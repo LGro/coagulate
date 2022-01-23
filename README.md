@@ -78,6 +78,65 @@ I'd also like to remain anonymous to the peers I do not share my contact details
 - also everything that a peer - known or unknown - replicates is replicated
 - servers (randomly?) discard what they replicate after a while
 
+### Program Flow
+
+The following assumes the existance of a secure storage that only the app has access to.
+
+#### Generate Sharing URI for Contact
+
+- generate random secret at variable length
+- associate the secret with the contact in storage
+- specify a set of peers (potentially including servers and oneself)
+- base64 encode peers and secret into combined string
+- prepend with coag:// and return
+
+#### Receive Sharing URI
+
+- base64 decode URI into list of specified peers and secret
+- store secret in storage without an associated contact
+- encrypt own profile with secret
+- send encrypted profile to specified peers as well as all own peers
+
+#### Receive Encrypted Message
+
+```
+function receiveEncryptedMessage(encryptedMessage):
+    for secret in allStoredSecrets:
+        decryptedMessage = decrypt(encryptedMessage, secret)
+
+        if isValid(decryptedMessage):
+            handleSuccessfullyDecryptedProfile(secret, decryptedMessage)
+            return
+
+        if isValidConfirmation(decryptedMessage):
+            handleSuccessfullyDecryptedConfirmation(secret, decryptedMessage)
+            return
+
+    storage.insert(encryptedMessage)
+    network.sendToAllPeers(storage.getAllEncryptedThings())
+
+
+function handleSuccessfullyDecryptedProfile(secret, profile):
+    contact = storage.getContact(secret)
+    if not contact:
+        candidateContacts = addressBook.getMatchingCandidates(profile)
+        if len(candidateContacts) == 1:
+            contact = candidateContacts[0]
+        else:
+            contact = ui.promptUserForCandidateSelection(candidateContacts)
+        storage.setContact(secret, contact)
+
+    receiverConfirmation = {
+        hash(profile)
+        currentLocalizedTime
+    }
+    encryptedConfirmation = encrypt(padToUnifyLength(receiverConfirmation), secret)
+
+    storage.updateEncryptedProfile(contact, encryptedMessage)
+    storage.updateReceiverConfirmation(contact, encryptedConfirmation)
+    network.sendToAllPeers(storage.getAllEncryptedThings())
+```
+
 ### Secret Restoration
 
 - https://anastasis.lu/
