@@ -72,7 +72,7 @@ I'd also like to remain anonymous to the peers I do not share my contact details
 - replicate for contacts as well as unknown peers to obfuscate social graph
 - replicate to all connected peers
 - maintain central servers for rendevouz and as replication cache
-- on re-join a node asks the rendevouz servers of choice for all their known peers, and from that list - locally - the known peers as well as random unknown peers are selected for replication
+- ~~on re-join a node asks the rendevouz servers of choice for all their known peers, and from that list - locally - the known peers as well as random unknown peers are selected for replication~~ (see section "re-connect" below)
 - only most recent version of address books from peers are kept; others are discarded
 - replicated address books from unknown peers are discarded after a random storage time
 - also everything that a peer - known or unknown - replicates is replicated
@@ -82,11 +82,16 @@ I'd also like to remain anonymous to the peers I do not share my contact details
 
 The following assumes the existance of a secure storage that only the app has access to.
 
+We call a peer that does not belong to the real contact network an "obfuscation peer".
+
+A "server" is considered to be an always or at least mostly on peer but bears no special
+functionality.
+
 #### Generate Sharing URI for Contact
 
 - generate random secret at variable length
 - associate the secret with the contact in storage
-- specify a set of peers (potentially including servers and oneself)
+- specify a set of peers (needs to include at least one server, oneself and some obfuscation peers)
 - base64 encode peers and secret into combined string
 - prepend with coag:// and return
 
@@ -95,7 +100,8 @@ The following assumes the existance of a secure storage that only the app has ac
 - base64 decode URI into list of specified peers and secret
 - store secret in storage without an associated contact
 - encrypt own profile with secret
-- send encrypted profile to specified peers as well as all own peers
+- add the specified peers to own distribution network (also follow them?)
+- send encrypted profile to all peers
 
 #### Receive Encrypted Message
 
@@ -136,6 +142,20 @@ function handleSuccessfullyDecryptedProfile(secret, profile):
     storage.updateReceiverConfirmation(contact, encryptedConfirmation)
     network.sendToAllPeers(storage.getAllEncryptedThings())
 ```
+
+#### Re-connect & Catch up
+
+When a device loses network connectivity or for other reasons stops being connected to
+its peers there is no way for them to send messages to the device anymore.
+Accordingly, when a device regains connectivity and is ready to connect to its peers
+it wants to get the messages it has missed out on.
+Given that there is at least one shared server with any peer (see sharing above), all
+relevant information and more is stored with that server.
+The re-connecting device can query that server, as well as any peer for which it still
+knows an up to date address, for all messages that the peer has stored starting from
+the last time the re-connecting device got messages from that peer last time.
+To facilitate this, every device keeps a local record of when they last communicated
+with each individual peer.
 
 ### Secret Restoration
 
