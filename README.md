@@ -84,8 +84,8 @@ The following assumes the existance of a secure storage that only the app has ac
 
 We call a peer that does not belong to the real contact network an "obfuscation peer".
 
-A "server" is considered to be an always or at least mostly on peer but bears no special
-functionality.
+A "server" is considered to be an always or at least mostly on peer which accepts all
+messages (rate limited) and does not try to decrypt any of them itself.
 
 #### Generate Sharing URI for Contact
 
