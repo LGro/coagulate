@@ -175,3 +175,12 @@ with each individual peer.
 
 - https://media.ccc.de/v/Camp2019-10226-introduction_to_mix_networks_and_katzenpost
 - https://media.ccc.de/v/36c3-10565-what_s_left_for_private_messaging
+
+#### Private Information Retreival
+
+- multiple servers, at least one honest
+- request XORed subset of data
+- XOR locally to get the one thing I want
+
+- https://github.com/privacylab/talek
+- https://github.com/sabaeskandarian/express
