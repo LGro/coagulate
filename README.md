@@ -62,7 +62,7 @@ I'd also like to remain anonymous to the peers I do not share my contact details
 
 ### Design Properties
 
-- per connection shared secret
+- per connection shared secret, potentially used with [EAX](https://en.wikipedia.org/wiki/EAX_mode)
 - exchange shared secret via probably secure existing channel (e.g. crypto messenger)
 - update shared secret at every direct interaction to not be vulnerable against compromised key exchange medium
 - provide future shared secrets at every direct interaction for forward secrecy in async communication
