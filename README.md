@@ -168,3 +168,8 @@ with each individual peer.
 - compromised device -> current shared secret and agreed future shared secrets are comromised ->impersonation
 - meta data leakage? -> social graph reconstruction; identity demasking
 - (D)DOS potential? -> vulnerability of rendevouz server; mitigate via alternative backup rendevouz channels (e.g. webrtc, DHT), might not be applicable due to then reduced privacy guarantees; resiliency
+
+### Resources
+
+- https://media.ccc.de/v/Camp2019-10226-introduction_to_mix_networks_and_katzenpost
+- https://media.ccc.de/v/36c3-10565-what_s_left_for_private_messaging
