@@ -169,6 +169,7 @@ with each individual peer.
 - compromised device -> current shared secret and agreed future shared secrets are comromised ->impersonation
 - meta data leakage? -> social graph reconstruction; identity demasking
 - (D)DOS potential? -> vulnerability of rendevouz server; mitigate via alternative backup rendevouz channels (e.g. webrtc, DHT), might not be applicable due to then reduced privacy guarantees; resiliency
+- intersection attack -> when a confirmation comes quickly and directly over the network it leaks who talks to whom
 
 ### Resources
 
