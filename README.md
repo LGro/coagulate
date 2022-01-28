@@ -77,6 +77,7 @@ I'd also like to remain anonymous to the peers I do not share my contact details
 - replicated address books from unknown peers are discarded after a random storage time
 - also everything that a peer - known or unknown - replicates is replicated
 - servers (randomly?) discard what they replicate after a while
+- a client should be able to revoke / update a shared secret
 
 ### Program Flow
 
