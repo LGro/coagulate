@@ -158,6 +158,27 @@ the last time the re-connecting device got messages from that peer last time.
 To facilitate this, every device keeps a local record of when they last communicated
 with each individual peer.
 
+```
+function catchUp():
+    for peerAddress in recentPeerAddresses:
+        peerConnection = peerAddress.connect()
+        if not peerConnection:
+            continue
+
+        messages = peerConnection.requestEverythingSinceLastConnection()
+        for message in messages:
+            receiveEncryptedMessage(message)
+```
+
+```
+function handleRequestEverythingSinceLastConnection(peerID):
+    time = storage.getLastConnectionTime(peerID)
+    messages = storage.getAllEntriesSince(time)
+    send(messages, peerID)
+```
+
+TODO: What is a peer ID wrt to a peer address, a profile or a shared secret?
+
 ### Secret Restoration
 
 - https://anastasis.lu/
@@ -175,6 +196,7 @@ with each individual peer.
 
 - https://media.ccc.de/v/Camp2019-10226-introduction_to_mix_networks_and_katzenpost
 - https://media.ccc.de/v/36c3-10565-what_s_left_for_private_messaging
+- https://media.ccc.de/v/rc3-11400-building_blocks_of_decentralization
 
 #### Private Information Retreival
 
