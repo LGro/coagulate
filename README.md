@@ -206,6 +206,13 @@ TODO: What is a peer ID wrt to a peer address, a profile or a shared secret?
 
 - https://github.com/privacylab/talek
 - https://github.com/sabaeskandarian/express
+- https://eprint.iacr.org/2017/1142.pdf
+- https://github.com/pung-project/pung
+- https://www.cis.upenn.edu/~sga001/papers/diss.pdf
+
+PIR could be used in Coagulate for looking up the current address of peers, to then
+exchange profile updates peer to peer.
+Or directly for exchanging profile updates themselves.
 
 #### Background Updates / Notifications
 
