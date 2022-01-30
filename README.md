@@ -206,3 +206,7 @@ TODO: What is a peer ID wrt to a peer address, a profile or a shared secret?
 
 - https://github.com/privacylab/talek
 - https://github.com/sabaeskandarian/express
+
+#### Background Updates / Notifications
+
+- https://gotify.net/
