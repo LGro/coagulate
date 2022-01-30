@@ -200,19 +200,33 @@ TODO: What is a peer ID wrt to a peer address, a profile or a shared secret?
 
 #### Private Information Retreival
 
+**ITPIR**
+
 - multiple servers, at least one honest
 - request XORed subset of data
 - XOR locally to get the one thing I want
 
+- https://www.youtube.com/watch?v=HFFPeYrz3ak
+- https://bora.uib.no/bora-xmlui/bitstream/handle/1956/20440/thesis_master_uib_TaraldRiise-5-.pdf
 - https://github.com/privacylab/talek
 - https://github.com/sabaeskandarian/express
 - https://eprint.iacr.org/2017/1142.pdf
 - https://github.com/pung-project/pung
 - https://www.cis.upenn.edu/~sga001/papers/diss.pdf
+- https://www.youtube.com/watch?v=SHOOSECgatA
 
-PIR could be used in Coagulate for looking up the current address of peers, to then
-exchange profile updates peer to peer.
+IT-PIR (or SPRI) could be used in Coagulate for looking up the current address of peers,
+to then exchange profile updates peer to peer.
 Or directly for exchanging profile updates themselves.
+DDOS prevention could be with rate limiting on writing at indexes in the DB.
+
+**CPIR**
+
+- https://github.com/microsoft/SealPIR
+- https://github.com/XPIR-team/XPIR
+- https://github.com/alan-turing-institute/SHEEP
+- https://www.turing.ac.uk/news/private-information-retrieval-sheep-homomorphic-encryption-evaluation-platform
+- https://www.researchgate.net/publication/343825541
 
 #### Background Updates / Notifications
 
