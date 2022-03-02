@@ -179,6 +179,34 @@ function handleRequestEverythingSinceLastConnection(peerID):
 
 TODO: What is a peer ID wrt to a peer address, a profile or a shared secret?
 
+#### Rediscovery [Update]
+
+Given that the following is included in the initial handshake:
+
+- shared secret (individual per connection)
+- seed (one shared with everyone) & and index or initial date
+  (-> could be used as "pubkey" derive to dervice hash for peerID in libp2p; or index in CPIR DB)
+  (in any case, when i want to exclude someone from next update, I send around new seed and index/initdate encrypted only for updated target group)
+- one handshake/rendevouz server
+
+two fundemantally different ways to do privacy friendly discovery are possible.
+
+**P2P**
+
+- when i want to talk to someone, I ask all handshake servers I know for all available peers
+- filter out locally based on ids i know (seed, initdate delta; change every day)
+- ask handshake/rendevouz servers to connect me to all peers I know + some obfuscation one
+
+**Federated Client/Server with (C)PIR**
+
+- federated PIR servers
+- clients transfer profiles there
+
+user requirements for data authority:
+
+- decide on which servers to store
+- host own servers
+
 ### Secret Restoration
 
 - https://anastasis.lu/
