@@ -256,6 +256,11 @@ DDOS prevention could be with rate limiting on writing at indexes in the DB.
 - https://www.turing.ac.uk/news/private-information-retrieval-sheep-homomorphic-encryption-evaluation-platform
 - https://www.researchgate.net/publication/343825541
 
+also see "_labeled_ private set intersection (PSI)" as potentially good starting point
+
+- https://eprint.iacr.org/2018/787.pdf
+- https://github.com/microsoft/APSI (in labeled mode)
+
 #### Background Updates / Notifications
 
 - https://gotify.net/
