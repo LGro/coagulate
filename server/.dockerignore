@@ -1,0 +1,6 @@
+.venv/
+build/
+.github/
+.pytest_cache/
+.vscode/
+dist/

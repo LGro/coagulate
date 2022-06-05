@@ -1,0 +1,28 @@
+version: '3'
+
+
+services:
+
+  postgres:
+    image: "postgres:9.6-alpine"
+    container_name: coagulate-postgres
+    volumes:
+      - coagulate-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB:coagulate
+      - POSTGRES_USER:coagulate
+      - POSTGRES_PASSWORD:coagulate
+  
+  api:
+    build: ./
+    container_name: coagulate-api
+    ports:
+      - 80:80
+    links:
+      - postgres
+
+
+volumes:
+  coagulate-data:

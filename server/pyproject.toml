@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "coagulate-server"
+version = "0.1.0"
+description = ""
+authors = ["Lukas Grossberger <code@grossberger.xyz>"]
+license = "Apache-2.0"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.10"
+fastapi = "^0.75.0"
+uvicorn = "^0.17.5"
+requests = "^2.27.1"
+apsi = "^0.1.2"
+
+[tool.poetry.dev-dependencies]
+black = "^22.1.0"
+isort = "^5.10.1"
+mypy = "^0.931"
+pytest = "^7.0.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
