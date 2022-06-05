@@ -1,12 +1,9 @@
 import base64
-from typing import Dict
 
-import pydantic
 from apsi import LabeledServer
-from fastapi import FastAPI, Body
+from fastapi import FastAPI
 
-from coagulate_server import schemas, config
-
+from coagulate_server import config, schemas
 
 app = FastAPI()
 
@@ -21,12 +18,12 @@ def root():
 
 
 @app.post("/profiles")
-def post_set_profile(profile: schemas.Profile):
+def post_profile(profile: schemas.Profile):
     APSI_SERVER.add_item(item=profile.shared_id, label=profile.encrypted_profile)
 
 
 @app.get("/profiles/oprf", response_model=schemas.OPRFResponse)
-def get_oprf_request_profile(oprf_request: schemas.OPRFRequest):
+def get_oprf_profile(oprf_request: schemas.OPRFRequest):
     oprf_response = APSI_SERVER.handle_oprf_request(
         base64.b64decode(oprf_request.oprf_request)
     )
