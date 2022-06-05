@@ -261,6 +261,12 @@ also see "_labeled_ private set intersection (PSI)" as potentially good starting
 - https://eprint.iacr.org/2018/787.pdf
 - https://github.com/microsoft/APSI (in labeled mode)
 
+also see sharded bloom filters as outlined on a high level in
+[https://signal.org/blog/contact-discovery/](https://signal.org/blog/contact-discovery/)
+for privacy friendly contact discovery; could apply better to a federated than a
+centralized system (APSI seems to implement an alterantive to bloom filters called
+cuckoo filter)
+
 #### Background Updates / Notifications
 
 - https://gotify.net/
