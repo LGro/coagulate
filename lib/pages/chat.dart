@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomePage extends ConsumerWidget {
-  const HomePage({super.key});
-  static const path = '/home';
+class ChatPage extends ConsumerWidget {
+  const ChatPage({super.key});
+  static const path = '/chat';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text("VeilidChat")),
+      appBar: AppBar(title: const Text("Chat")),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomePage extends ConsumerWidget {
-  const HomePage({super.key});
-  static const path = '/home';
+class LoginPage extends ConsumerWidget {
+  const LoginPage({super.key});
+  static const path = '/login';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text("VeilidChat")),
+      appBar: null,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text("Home Page"),
+            const Text("Login Page"),
             ElevatedButton(
-              onPressed: () {
-                ref.watch(authNotifierProvider.notifier).logout();
+              onPressed: () async {
+                ref.watch(authNotifierProvider.notifier).login(
+                      "myEmail",
+                      "myPassword",
+                    );
               },
-              child: const Text("Logout"),
+              child: const Text("Login"),
             ),
           ],
         ),

@@ -17,7 +17,7 @@ void main() async {
   var initTheme = themeService.initial;
   runApp(
     ProviderScope(
-        observers: [const StateLogger()],
+        observers: const [StateLogger()],
         child: VeilidChatApp(theme: initTheme)),
   );
 }

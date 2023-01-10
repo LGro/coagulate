@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';s
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'router/router.dart';
 
-class VeilidChatApp extends StatelessWidget {
+class VeilidChatApp extends ConsumerWidget {
   const VeilidChatApp({
     Key? key,
     required this.theme,
@@ -10,14 +12,16 @@ class VeilidChatApp extends StatelessWidget {
   final ThemeData theme;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
     return ThemeProvider(
       initTheme: theme,
       builder: (_, theme) {
-        return MaterialApp(
+        return MaterialApp.router(
+          routerConfig: router,
           title: 'VeilidChat',
           theme: theme,
-          home: const MyHomePage(title: 'Flutter Demo Home Page'),
         );
       },
     );
