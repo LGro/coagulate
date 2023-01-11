@@ -1,2 +1,4 @@
 export 'home.dart';
-export 'splash.dart';
+export 'index.dart';
+export 'login.dart';
+export 'new_account.dart';

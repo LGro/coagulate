@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:veilid/veilid.dart';
 import 'config.dart';
 import 'veilid_log.dart';
-import '../log/loggy.dart';
+import '../log/log.dart';
+import '../state/state.dart';
 
 class Processor {
   String _veilidVersion = "";
@@ -57,48 +58,46 @@ class Processor {
     //loggy.info("Attachment: ${updateAttachment.json}");
 
     // Set connection meter and ui state for connection state
-    var connectionState = "";
+    var cs = ConnectionState.detached;
     var checkPublicInternet = false;
     switch (updateAttachment.state.state) {
       case AttachmentState.detached:
-        connectionState = "detached";
+        cs = ConnectionState.detached;
         break;
       case AttachmentState.detaching:
-        connectionState = "detaching";
+        cs = ConnectionState.detaching;
         break;
       case AttachmentState.attaching:
-        connectionState = "attaching";
+        cs = ConnectionState.attaching;
         break;
       case AttachmentState.attachedWeak:
         checkPublicInternet = true;
-        connectionState = "weak";
+        cs = ConnectionState.attachedWeak;
         break;
       case AttachmentState.attachedGood:
         checkPublicInternet = true;
-        connectionState = "good";
+        cs = ConnectionState.attachedGood;
         break;
       case AttachmentState.attachedStrong:
         checkPublicInternet = true;
-        connectionState = "strong";
+        cs = ConnectionState.attachedStrong;
         break;
       case AttachmentState.fullyAttached:
         checkPublicInternet = true;
-        connectionState = "full";
+        cs = ConnectionState.fullyAttached;
         break;
       case AttachmentState.overAttached:
         checkPublicInternet = true;
-        connectionState = "over";
+        cs = ConnectionState.overAttached;
         break;
     }
     if (checkPublicInternet) {
       if (!updateAttachment.state.publicInternetReady) {
-        connectionState = "attaching";
+        cs = ConnectionState.attaching;
       }
     }
 
-    FFAppState().update(() {
-      FFAppState().ConnectionState = connectionState;
-    });
+    globalConnectionState.add(cs);
   }
 
   Future<void> processUpdateConfig(VeilidUpdateConfig updateConfig) async {

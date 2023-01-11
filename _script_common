@@ -1,0 +1,13 @@
+set -eo pipefail
+
+get_abs_filename() {
+    # $1 : relative filename
+    echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+}
+
+# Veilid location
+VEILIDDIR=$(get_abs_filename "$SCRIPTDIR/../veilid")
+if [ ! -d "$VEILIDDIR" ]; then 
+    echo 'Veilid git clone needs to be at $VEILIDDIR'
+    exit 1
+fi

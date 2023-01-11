@@ -14,7 +14,7 @@ Future<String> getVeilidVersion() async {
 
 // Initialize Veilid
 // Call only once.
-void _init() {
+void _initVeilid() {
   if (kIsWeb) {
     var platformConfig = VeilidWASMConfig(
         logging: VeilidWASMConfigLogging(
@@ -44,7 +44,6 @@ void _init() {
   }
 }
 
-// Called from FlutterFlow stub initialize() function upon Main page load
 bool initialized = false;
 Processor processor = Processor();
 
@@ -54,7 +53,7 @@ Future<void> initializeVeilid() async {
   }
 
   // Init Veilid
-  _init();
+  _initVeilid();
 
   // Startup Veilid
   await processor.startup();

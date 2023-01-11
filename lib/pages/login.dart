@@ -15,15 +15,15 @@ class LoginPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text("Login Page"),
-            ElevatedButton(
-              onPressed: () async {
-                ref.watch(authNotifierProvider.notifier).login(
-                      "myEmail",
-                      "myPassword",
-                    );
-              },
-              child: const Text("Login"),
-            ),
+            // ElevatedButton(
+            //   onPressed: () async {
+            //     ref.watch(authNotifierProvider.notifier).login(
+            //           "myEmail",
+            //           "myPassword",
+            //         );
+            //   },
+            //   child: const Text("Login"),
+            // ),
           ],
         ),
       ),

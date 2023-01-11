@@ -15,12 +15,12 @@ class ChatPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text("Home Page"),
-            ElevatedButton(
-              onPressed: () {
-                ref.watch(authNotifierProvider.notifier).logout();
-              },
-              child: const Text("Logout"),
-            ),
+            // ElevatedButton(
+            //   onPressed: () {
+            //     ref.watch(authNotifierProvider.notifier).logout();
+            //   },
+            //   child: const Text("Logout"),
+            // ),
           ],
         ),
       ),

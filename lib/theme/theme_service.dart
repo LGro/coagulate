@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'themes.dart';
+import 'themes/themes.dart';
 
 class ThemeService {
   ThemeService._();
@@ -18,9 +18,6 @@ class ThemeService {
   final allThemes = <String, ThemeData>{
     'dark': darkTheme,
     'light': lightTheme,
-    'pink': pinkTheme,
-    'darkBlue': darkBlueTheme,
-    'halloween': halloweenTheme,
   };
 
   String get previousThemeName {
