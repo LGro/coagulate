@@ -1,0 +1,34 @@
+PODS:
+  - FlutterMacOS (1.0.0)
+  - path_provider_macos (0.0.1):
+    - FlutterMacOS
+  - shared_preferences_macos (0.0.1):
+    - FlutterMacOS
+  - veilid (0.0.1):
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - path_provider_macos (from `Flutter/ephemeral/.symlinks/plugins/path_provider_macos/macos`)
+  - shared_preferences_macos (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_macos/macos`)
+  - veilid (from `Flutter/ephemeral/.symlinks/plugins/veilid/macos`)
+
+EXTERNAL SOURCES:
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+  path_provider_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_macos/macos
+  shared_preferences_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_macos/macos
+  veilid:
+    :path: Flutter/ephemeral/.symlinks/plugins/veilid/macos
+
+SPEC CHECKSUMS:
+  FlutterMacOS: ae6af50a8ea7d6103d888583d46bd8328a7e9811
+  path_provider_macos: 3c0c3b4b0d4a76d2bf989a913c2de869c5641a19
+  shared_preferences_macos: 8b221d457159a85f478c0b9d2f19aeae9feff475
+  veilid: ef97d3a2d5fda3b25a4017eae65c37afa8035203
+
+PODFILE CHECKSUM: 290b89638b803a41d96e2a2c02a9e1e635956f78
+
+COCOAPODS: 1.11.3

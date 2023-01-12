@@ -1,6 +1,7 @@
 import 'package:veilid/veilid.dart';
 import 'package:flutter/foundation.dart';
 import 'processor.dart';
+import 'veilid_log.dart';
 
 Future<String> getVeilidVersion() async {
   String veilidVersion;
@@ -54,6 +55,9 @@ Future<void> initializeVeilid() async {
 
   // Init Veilid
   _initVeilid();
+
+  // Veilid logging
+  initVeilidLog();
 
   // Startup Veilid
   await processor.startup();

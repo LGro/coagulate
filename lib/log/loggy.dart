@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:loggy/loggy.dart';
 import 'package:ansicolor/ansicolor.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 // Loggy tools
 const LogLevel traceLevel = LogLevel('Trace', 1);
 
 String wrapWithLogColor(LogLevel? level, String text) {
+  // XXX: https://github.com/flutter/flutter/issues/64491
+  if (!kIsWeb && Platform.isIOS) {
+    return text;
+  }
+
   if (level == null) {
     return text;
   }
@@ -85,7 +92,7 @@ class RootLoggy implements LoggyType {
   Loggy<RootLoggy> get loggy => Loggy<RootLoggy>('');
 }
 
-Loggy get log => Loggy<RootLoggy>('');
+Loggy get log => Loggy<RootLoggy>('veilidchat');
 
 void initLoggy() {
   Loggy.initLoggy(
