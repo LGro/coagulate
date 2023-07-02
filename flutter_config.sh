@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Run this if you regenerate and need to reconfigure platform specific make system project files
+#
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 source $SCRIPTDIR/_script_common
 
@@ -7,8 +10,8 @@ sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [^;]*/IPHONEOS_DEPLOYMENT_TARGET = 12.
 sed -i '' "s/platform :ios, '[^']*'/platform :ios, '12.4'/g" $SCRIPTDIR/ios/Podfile
 
 # MacOS: Set deployment target
-sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = [^;]*/MACOSX_DEPLOYMENT_TARGET = 10.12.2/g' $SCRIPTDIR/macos/Runner.xcodeproj/project.pbxproj
-sed -i '' "s/platform :osx, '[^']*'/platform :osx, '10.12.2'/g" $SCRIPTDIR/macos/Podfile
+sed -i '' 's/MACOSX_DEPLOYMENT_TARGET = [^;]*/MACOSX_DEPLOYMENT_TARGET = 10.14.6/g' $SCRIPTDIR/macos/Runner.xcodeproj/project.pbxproj
+sed -i '' "s/platform :osx, '[^']*'/platform :osx, '10.14.6'/g" $SCRIPTDIR/macos/Podfile
 
 # Android: Set NDK version
 if [[ "$TMPDIR" != "" ]]; then 

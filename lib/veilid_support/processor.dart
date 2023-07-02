@@ -123,11 +123,11 @@ class Processor {
         } else if (update is VeilidUpdateNetwork) {
           await processUpdateNetwork(update);
         } else if (update is VeilidAppMessage) {
-          log.info("AppMessage: ${update.json}");
+          log.info("AppMessage: ${update.toJson()}");
         } else if (update is VeilidAppCall) {
-          log.info("AppCall: ${update.json}");
+          log.info("AppCall: ${update.toJson()}");
         } else {
-          log.trace("Update: ${update.json}");
+          log.trace("Update: ${update.toJson()}");
         }
       }
     }
