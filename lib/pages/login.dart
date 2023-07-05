@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../state/auth.dart';
 
 class LoginPage extends ConsumerWidget {
   const LoginPage({super.key});
@@ -15,15 +16,15 @@ class LoginPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text("Login Page"),
-            // ElevatedButton(
-            //   onPressed: () async {
-            //     ref.watch(authNotifierProvider.notifier).login(
-            //           "myEmail",
-            //           "myPassword",
-            //         );
-            //   },
-            //   child: const Text("Login"),
-            // ),
+            ElevatedButton(
+              onPressed: () async {
+                await ref.watch(authNotifierProvider.notifier).login(
+                      "myEmail",
+                      "myPassword",
+                    );
+              },
+              child: const Text("Login"),
+            ),
           ],
         ),
       ),

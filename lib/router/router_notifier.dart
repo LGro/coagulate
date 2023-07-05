@@ -21,7 +21,7 @@ import '../state/auth.dart';
 class RouterNotifier extends AutoDisposeAsyncNotifier<void>
     implements Listenable {
   VoidCallback? routerListener;
-  bool isAuth = false; // Useful for our global redirect functio
+  bool isAuth = false; // Useful for our global redirect function
 
   @override
   Future<void> build() async {
@@ -43,13 +43,14 @@ class RouterNotifier extends AutoDisposeAsyncNotifier<void>
     if (this.state.isLoading || this.state.hasError) return null;
 
     final isIndex = state.location == IndexPage.path;
-
     if (isIndex) {
       return isAuth ? HomePage.path : LoginPage.path;
     }
 
     final isLoggingIn = state.location == LoginPage.path;
-    if (isLoggingIn) return isAuth ? HomePage.path : null;
+    if (isLoggingIn) {
+      return isAuth ? HomePage.path : null;
+    }
 
     return isAuth ? null : IndexPage.path;
   }
