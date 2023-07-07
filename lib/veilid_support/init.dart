@@ -17,7 +17,7 @@ Future<String> getVeilidVersion() async {
 // Call only once.
 void _initVeilid() {
   if (kIsWeb) {
-    var platformConfig = VeilidWASMConfig(
+    var platformConfig = const VeilidWASMConfig(
         logging: VeilidWASMConfigLogging(
             performance: VeilidWASMConfigLoggingPerformance(
                 enabled: true,
@@ -28,7 +28,7 @@ void _initVeilid() {
                 enabled: true, level: VeilidConfigLogLevel.info)));
     Veilid.instance.initializeVeilidCore(platformConfig.toJson());
   } else {
-    var platformConfig = VeilidFFIConfig(
+    var platformConfig = const VeilidFFIConfig(
         logging: VeilidFFIConfigLogging(
             terminal: VeilidFFIConfigLoggingTerminal(
               enabled: false,

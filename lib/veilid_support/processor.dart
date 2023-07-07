@@ -60,7 +60,7 @@ class Processor {
     // Set connection meter and ui state for connection state
     var cs = ConnectionState.detached;
     var checkPublicInternet = false;
-    switch (updateAttachment.state.state) {
+    switch (updateAttachment.state) {
       case AttachmentState.detached:
         cs = ConnectionState.detached;
         break;
@@ -92,7 +92,7 @@ class Processor {
         break;
     }
     if (checkPublicInternet) {
-      if (!updateAttachment.state.publicInternetReady) {
+      if (!updateAttachment.publicInternetReady) {
         cs = ConnectionState.attaching;
       }
     }
