@@ -8,6 +8,7 @@ import 'veilid_support/veilid_support.dart';
 import 'theming/theming.dart';
 import 'app.dart';
 import 'dart:io';
+import 'package:flutter_translate/flutter_translate.dart';
 
 void main() async {
   // Disable all debugprints in release mode
@@ -31,11 +32,13 @@ void main() async {
   // Start up Veilid and Veilid processor in the background
   unawaited(initializeVeilid());
 
+  // Make localization delegate
+  var delegate = await LocalizationDelegate.create(
+      fallbackLocale: 'en_US', supportedLocales: ['en_US']);
+
   // Run the app
   // Hot reloads will only restart this part, not Veilid
-  runApp(
-    ProviderScope(
-        observers: const [StateLogger()],
-        child: VeilidChatApp(theme: initTheme)),
-  );
+  runApp(ProviderScope(
+      observers: const [StateLogger()],
+      child: LocalizedApp(delegate, VeilidChatApp(theme: initTheme))));
 }

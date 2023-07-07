@@ -1,0 +1,195 @@
+
+// import 'dart:typed_data';
+
+// import 'package:change_case/change_case.dart';
+// import 'package:flutter/material.dart';
+// import 'package:freezed_annotation/freezed_annotation.dart';
+// import 'package:uuid/uuid.dart';
+// import 'package:veilid/veilid.dart';
+
+// part 'dht.freezed.dart';
+// part 'dht.g.dart';
+
+// // DHTData - represents chunked blob data in the DHT
+// // Header in subkey 0 follows this structure
+// //
+// // Subkeys 1..=stride on the first key are concatenated chunks
+// // Subkeys 0..stride on the 'keys' keys are concatenated chunks
+// //
+// // Keys must use writable schema in order to make this data mutable
+// @freezed
+// class DHTData with _$DHTData {
+//   const factory DHTData({
+//     // Other keys to concatenate
+//     required List<TypedKey> keys,
+//     // Hash of reassembled data to verify contents
+//     required TypedHashDigest hash,
+//     // Subkeys per key
+//     required int stride,
+//     // Chunk size per subkey
+//     required int chunk,
+//     // Total data size
+//     required int size,
+//   }) = _DHTData;
+//   factory DHTData.fromJson(Map<String, dynamic> json) => _$DHTData(json);
+// }
+
+// // DHTList - represents an ordered collection of individual elements
+// // Header in subkey 0 follows this structure
+// //
+// // Subkeys 1..=stride on the first key are individual elements
+// // Subkeys 0..stride on the 'keys' keys are also individual elements
+// //
+// // Keys must use writable schema in order to make this list mutable
+// @freezed
+// class DHTList with _$DHTList {
+//   const factory DHTList({
+//     // Other keys to concatenate
+//     required List<TypedKey> keys,
+//     // Subkeys per key
+//     required int stride,
+//     // Item position index
+//     // Actual item location is:
+//     //   idx = index[n] + 1 (offset for header at idx 0)
+//     //   key = idx / stride
+//     //   subkey = idx % stride
+//     required List<int> index,
+//   }) = _DHTList;
+//   factory DHTList.fromJson(Map<String, dynamic> json) => _$DHTList(json);
+// }
+
+
+// // A single message as part of a series of messages
+// @freezed
+// class Message with _$Message {
+//   const factory Message(
+//       {
+//       // Identity public key of the message author
+//       required TypedKey author,
+//       // Identity signature of all of the message fields
+//       required Signature sig,
+//       // Time the message was sent (ms since epoch)
+//       required int ts,
+//       // Text of the message
+//       required String text}) = _Message;
+
+//   factory Message.fromJson(Map<String, dynamic> json) =>
+//       _$MessageFromJson(json);
+// }
+
+// // A record of a chunk of messages as reconciled from a conversation
+// // Element of a DHTList of messages
+// // DHT Key (Private): messagesKey
+// // DHT Secret: messagesSecret
+// // Encryption: Symmetric(messagesSecret)
+// //           * for Conversation messagesSecret is: DH(IdentityA, IdentityB)
+
+// @freezed
+// class Messages with _$Messages {
+//   const factory Messages(
+//       {required Profile profile,
+//       required Identity identity,
+//       required bool available}) = _Messages;
+
+//   factory Messages.fromJson(Map<String, dynamic> json) =>
+//       _$MessagesFromJson(json);
+// }
+
+// // A record of a 1-1 chat that is synchronized between
+// // two users. Backed up on a DHT key. Visible and encrypted
+// // for the other party
+// //
+// // DHT Schema: SMPL(0,1,[identityPublicKey])
+// // DHT Key (UnicastOutbox): localConversation
+// // DHT Secret: None
+// // Encryption: DH(IdentityA, IdentityB)
+
+// @freezed
+// class Conversation with _$Conversation {
+//   const factory Conversation(
+//       {
+//       // Profile to publish to friend
+//       required Profile profile,
+//       // Identity to publish to friend
+//       required Identity identity,
+//       // Messages DHTList
+//       required TypedKey}) = _Contact;
+
+//   factory Conversation.fromJson(Map<String, dynamic> json) =>
+//       _$ConversationFromJson(json);
+// }
+
+// // A record of a contact that has accepted a contact invitation
+// // Contains a copy of the most recent remote profile as well as
+// // a locally edited profile.
+// // Contains a copy of the most recent identity from the contact's
+// // Master identity dht key
+// //
+// // Stored in ContactList DHTList
+// //
+
+// @freezed
+// class Contact with _$Contact {
+//   const factory Contact({
+//     // Friend's profile as locally edited
+//     required Profile editedProfile,
+//     // Copy of friend's profile from remote conversation
+//     required Profile remoteProfile,
+//     // Copy of friend's identity from remote conversation
+//     required Identity remoteIdentity,
+//     // Remote conversation key to sync from friend
+//     required TypedKey remoteConversation,
+//     // Our conversation key for friend to sync
+//     required TypedKey localConversation,
+//   }) = _Contact;
+
+//   factory Contact.fromJson(Map<String, dynamic> json) =>
+//       _$ContactFromJson(json);
+// }
+
+// // Publicly shared profile information for both contacts and accounts
+// // Contains:
+// // Name - Friendly name
+// // Title - Title of user
+// // Icon - Little picture to represent user in contact list
+// //
+// // DHT Key: None
+// // Encryption: None
+// @freezed
+// class Profile with _$Profile {
+//   const factory Profile({
+//     // Friendy name
+//     required String name,
+//     // Title of user
+//     required String title,
+//     // Status/away message
+//     required String status,
+//     // Icon DHTData
+//     required TypedKey icon,
+//   }) = _Profile;
+//   factory Profile.fromJson(Map<String, dynamic> json) =>
+//       _$ProfileFromJson(json);
+// }
+
+// // A record of an individual account
+// //
+// // DHT Schema: DFLT(1)
+// // DHT Key (Private): accountPublicKey
+// // DHT Secret: accountSecretKey
+// @freezed
+// class Account with _$Account {
+//   const factory Account({
+//     // The user's profile that gets shared with contacts
+//     required Profile profile,
+//     // Invisibility makes you always look 'Offline'
+//     required bool invisible,
+//     // Auto-away sets 'away' mode after an inactivity time
+//     required autoAwayTimeoutSec,
+//     // The contacts DHTList for this account
+//     // Schema: SMPL(0,64,[accountPublicKey]) Encryption: accountSecretKey
+//     required TypedKey contactList,
+//   }) = _Account;
+
+//   factory Account.fromJson(Map<String, dynamic> json) =>
+//       _$AccountFromJson(json);
+// }

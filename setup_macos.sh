@@ -7,13 +7,27 @@ if [[ "$(uname)" != "Darwin" ]]; then
     exit 1
 fi
 
-# # ensure unzip is installed
-# if command -v unzip &> /dev/null; then 
-#     echo '[X] unzip is available in the path'
-# else
-#     echo 'unzip is not available in the path'
-#     exit 1
-# fi
+# run setup for veilid
+$VEILIDDIR/setup_macos.sh
+# run setup for veilid_flutter
+$VEILIDDIR/veilid-flutter/setup_flutter.sh
+
+# ensure unzip is installed
+if command -v protoc &> /dev/null; then 
+    echo '[X] protoc is available in the path'
+else
+    echo 'protoc is not available in the path'
+    exit 1
+fi
+
+# Install protoc-gen-dart
+dart pub global activate protoc_plugin
+if command -v protoc-gen-dart &> /dev/null; then 
+    echo '[X] protoc-gen-dart is available in the path'
+else
+    echo 'protoc-gen-dart is not available in the path. Add "$HOME/.pub-cache/bin" to your path.'
+    exit 1
+fi
 
 # # ensure rsync is installed
 # if command -v rsync &> /dev/null; then 
@@ -30,7 +44,3 @@ fi
 #     echo 'sed is not available in the path'
 #     exit 1
 # fi
-
-# run setup for veilid
-$VEILIDDIR/setup_macos.sh
-

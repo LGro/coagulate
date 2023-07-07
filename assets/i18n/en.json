@@ -1,0 +1,27 @@
+{
+    "app_bar": {
+        "title": "VeilidChat"
+    },
+    "button": {
+        "cancel": "Cancel",
+        "change_language": "Change Language"
+    },
+    "language": {
+        "name": {
+            "en": "English"
+        },
+        "selected_message": "Currently selected language is {language}",
+        "selection": {
+            "message": "Please select a language from the list",
+            "title": "Language Selection"
+        }
+    },
+    "plural": {
+        "demo": {
+            "zero": "Please start pushing the 'plus' button.",
+            "one": "You have pushed the button one time.",
+            "two": "You have pushed the button two times.",
+            "other": "You have pushed the button {{value}} times."
+        }
+    }
+}
