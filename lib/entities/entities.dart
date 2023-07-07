@@ -27,8 +27,8 @@ class Messages with _$Messages {
 }
 
 // A record of a 1-1 chat that is synchronized between
-// two users. Backed up on a DHT key.
-//
+// two users. Backed up on a DHT key. Visible and encrypted
+// for the other party
 //
 // DHT Key (UnicastOutbox): conversationPublicKey
 // DHT Secret: conversationSecret
@@ -53,11 +53,16 @@ class Conversation with _$Conversation {
 // Contains
 @freezed
 class Contact with _$Contact {
-  const factory Contact(
-      {required Profile remoteProfile,
-      required Profile localProfile,
-      required Identity identity,
-      required bool available}) = _Contact;
+  const factory Contact({
+    // Profile as locally edited
+    required Profile localProfile,
+    // Profile from remote conversation
+    required Profile remoteProfile,
+    // Identity from remote conversation
+    required Identity identity,
+    // xxx
+    required bool available,
+  }) = _Contact;
 
   factory Contact.fromJson(Map<String, dynamic> json) =>
       _$ContactFromJson(json);
@@ -80,12 +85,14 @@ class Profile with _$Profile {
     required String title,
     // Status/away message
     required String status,
-    // Icon data (png 128x128x24bit)
-    required Uint8List icon,
+    // Icon DHTData
+    required TypedKey icon,
   }) = _Profile;
   factory Profile.fromJson(Map<String, dynamic> json) =>
       _$ProfileFromJson(json);
 }
+
+// A linked list of DHT subvalues
 
 // A record of an individual account
 // DHT Key (Private): accountPublicKey
@@ -100,10 +107,7 @@ class Account with _$Account {
     // Auto-away sets 'away' mode after an inactivity time
     required autoAwayTimeoutSec,
     // The contacts for this account
-    required List<Contact>,
-
-    xxx investigate immutable FIC lists and their use with freezed/jsonserializable, switch them here
-
+    required DHTListRef<Contact> contacts,
   }) = _Account;
 
   factory Account.fromJson(Map<String, dynamic> json) =>
