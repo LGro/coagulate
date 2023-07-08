@@ -1,6 +1,6 @@
 //
 //  Generated code. Do not modify.
-//  source: proto/veilidchat.proto
+//  source: veilidchat.proto
 //
 // @dart = 2.12
 
