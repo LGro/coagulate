@@ -18,7 +18,6 @@ $VEILIDDIR/setup_linux.sh
 # run setup for veilid_flutter
 $VEILIDDIR/veilid-flutter/setup_flutter.sh
 
-
 # ensure protoc is installed
 if command -v protoc &> /dev/null; then 
     echo '[X] protoc is available in the path'

@@ -1,195 +1,245 @@
+syntax = "proto3";
 
-// import 'dart:typed_data';
+// 32-byte value in bigendian format
+message CryptoKey {
+    fixed32 u0 = 1;
+    fixed32 u1 = 2;
+    fixed32 u2 = 3;
+    fixed32 u3 = 4;    
+    fixed32 u4 = 5;
+    fixed32 u5 = 6;
+    fixed32 u6 = 7;
+    fixed32 u7 = 8;    
+}
 
-// import 'package:change_case/change_case.dart';
-// import 'package:flutter/material.dart';
-// import 'package:freezed_annotation/freezed_annotation.dart';
-// import 'package:uuid/uuid.dart';
-// import 'package:veilid/veilid.dart';
+// 64-byte value in bigendian format
+message Signature {
+    fixed32 u0 = 1;
+    fixed32 u1 = 2;
+    fixed32 u2 = 3;
+    fixed32 u3 = 4;    
+    fixed32 u4 = 5;
+    fixed32 u5 = 6;
+    fixed32 u6 = 7;
+    fixed32 u7 = 8;    
+    fixed32 u8 = 9;
+    fixed32 u9 = 10;
+    fixed32 u10 = 11;
+    fixed32 u11 = 12;    
+    fixed32 u12 = 13;
+    fixed32 u13 = 14;
+    fixed32 u14 = 15;
+    fixed32 u15 = 16;    
+}
 
-// part 'dht.freezed.dart';
-// part 'dht.g.dart';
+// 24-byte value in bigendian format
+message Nonce {
+    fixed32 u0 = 1;
+    fixed32 u1 = 2;
+    fixed32 u2 = 3;
+    fixed32 u3 = 4;    
+    fixed32 u4 = 5;
+    fixed32 u5 = 6;
+}
 
-// // DHTData - represents chunked blob data in the DHT
-// // Header in subkey 0 follows this structure
-// //
-// // Subkeys 1..=stride on the first key are concatenated chunks
-// // Subkeys 0..stride on the 'keys' keys are concatenated chunks
-// //
-// // Keys must use writable schema in order to make this data mutable
-// @freezed
-// class DHTData with _$DHTData {
-//   const factory DHTData({
-//     // Other keys to concatenate
-//     required List<TypedKey> keys,
-//     // Hash of reassembled data to verify contents
-//     required TypedHashDigest hash,
-//     // Subkeys per key
-//     required int stride,
-//     // Chunk size per subkey
-//     required int chunk,
-//     // Total data size
-//     required int size,
-//   }) = _DHTData;
-//   factory DHTData.fromJson(Map<String, dynamic> json) => _$DHTData(json);
-// }
+// 36-byte typed crpyto key
+message TypedKey {
+    // CryptoKind FourCC in bigendian format
+    fixed32 kind = 1;
+    // Key value
+    CryptoKey value = 2;
+}
 
-// // DHTList - represents an ordered collection of individual elements
-// // Header in subkey 0 follows this structure
-// //
-// // Subkeys 1..=stride on the first key are individual elements
-// // Subkeys 0..stride on the 'keys' keys are also individual elements
-// //
-// // Keys must use writable schema in order to make this list mutable
-// @freezed
-// class DHTList with _$DHTList {
-//   const factory DHTList({
-//     // Other keys to concatenate
-//     required List<TypedKey> keys,
-//     // Subkeys per key
-//     required int stride,
-//     // Item position index
-//     // Actual item location is:
-//     //   idx = index[n] + 1 (offset for header at idx 0)
-//     //   key = idx / stride
-//     //   subkey = idx % stride
-//     required List<int> index,
-//   }) = _DHTList;
-//   factory DHTList.fromJson(Map<String, dynamic> json) => _$DHTList(json);
-// }
+// DHTData - represents chunked blob data in the DHT
+// Header in subkey 0 follows this structure
+//
+// stride = descriptor subkey count on first key - 1
+// Subkeys 1..=stride on the first key are concatenated chunks
+// Subkeys 0..stride on the 'keys' keys are concatenated chunks
+//
+// Keys must use writable schema in order to make this data mutable
 
+message DHTData {
+    // Other keys to concatenate
+    repeated TypedKey keys = 1;
+    // Hash of reassembled data to verify contents
+    TypedKey hash = 2;
+    // Chunk size per subkey
+    uint32 chunk = 3;
+    // Total data size
+    uint32 size = 4;
+}
 
-// // A single message as part of a series of messages
-// @freezed
-// class Message with _$Message {
-//   const factory Message(
-//       {
-//       // Identity public key of the message author
-//       required TypedKey author,
-//       // Identity signature of all of the message fields
-//       required Signature sig,
-//       // Time the message was sent (ms since epoch)
-//       required int ts,
-//       // Text of the message
-//       required String text}) = _Message;
+// DHTList - represents a re-orderable collection of individual elements
+// Header in subkey 0 of first key follows this structure
+//
+// stride = descriptor subkey count on first key - 1
+// Subkeys 1..=stride on the first key are individual elements
+// Subkeys 0..stride on the 'keys' keys are also individual elements
+//
+// Keys must use writable schema in order to make this list mutable
+message DHTList {
+    // Other keys to concatenate
+    repeated TypedKey keys = 1;
+    // Item position index
+    // Actual item location is:
+    //   idx = index[n] + 1 (offset for header at idx 0)
+    //   key = idx / stride
+    //   subkey = idx % stride
+    repeated uint32 index = 2;
+    // Free items are not represented in the list but can be
+    // calculated through iteration
+}
 
-//   factory Message.fromJson(Map<String, dynamic> json) =>
-//       _$MessageFromJson(json);
-// }
+// DHTLog - represents an appendable/truncatable log collection of individual elements
+// Header in subkey 0 of first key follows this structure
+//
+// stride = descriptor subkey count on first key - 1
+// Subkeys 1..=stride on the first key are individual elements
+// Subkeys 0..stride on the 'keys' keys are also individual elements
+// 
+// Keys must use writable schema in order to make this list mutable
+message DHTLog {
+    // Other keys to concatenate
+    repeated TypedKey keys = 1;
+    // Back link to another DHTLog further back
+    TypedKey back = 2;
+    // Count of subkeys in all keys in this DHTLog
+    repeated uint32 subkey_counts = 3;
+    // Total count of subkeys in all keys in this DHTLog including all backlogs
+    uint32 total_subkeys = 4;
+}
 
-// // A record of a chunk of messages as reconciled from a conversation
-// // Element of a DHTList of messages
-// // DHT Key (Private): messagesKey
-// // DHT Secret: messagesSecret
-// // Encryption: Symmetric(messagesSecret)
-// //           * for Conversation messagesSecret is: DH(IdentityA, IdentityB)
+// DataReference
+// Pointer to data somewhere in Veilid
+// Abstraction over DHTData and BlockStore
+message DataReference {
+    oneof kind {
+        TypedKey dht_data = 1;
+        // TypedKey block = 2;
+    }
+}
 
-// @freezed
-// class Messages with _$Messages {
-//   const factory Messages(
-//       {required Profile profile,
-//       required Identity identity,
-//       required bool available}) = _Messages;
+// AttachmentKind
+// Enumeration of well-known attachment types
+enum AttachmentKind {
+    ATTACHMENT_KIND_UNSPECIFIED = 0;
+    ATTACHMENT_KIND_FILE = 1;
+    ATTACHMENT_KIND_IMAGE = 2;
+}
 
-//   factory Messages.fromJson(Map<String, dynamic> json) =>
-//       _$MessagesFromJson(json);
-// }
+// A single attachment
+message Attachment {
+    // Type of the data
+    AttachmentKind kind = 1;
+    // MIME type of the data
+    string mime = 2;
+    // Title or filename
+    string name = 3;
+    // Pointer to the data content
+    DataReference content = 4;
+    // Author signature over all attachment fields and content fields and bytes
+    Signature signature = 5;
+}
 
-// // A record of a 1-1 chat that is synchronized between
-// // two users. Backed up on a DHT key. Visible and encrypted
-// // for the other party
-// //
-// // DHT Schema: SMPL(0,1,[identityPublicKey])
-// // DHT Key (UnicastOutbox): localConversation
-// // DHT Secret: None
-// // Encryption: DH(IdentityA, IdentityB)
+// A single message as part of a series of messages
+// Messages are stored in an append-only log in DHT
+message Message {
+    // Author of the message
+    TypedKey author = 1;
+    // Time the message was sent (us since epoch)
+    uint64 timestamp = 2;
+    // Text of the message
+    string text = 3;
+    // Author signature over all of the fields and attachment signatures
+    Signature signature = 4;
+    // Attachments on the message
+    repeated Attachment attachments = 5;
+}
 
-// @freezed
-// class Conversation with _$Conversation {
-//   const factory Conversation(
-//       {
-//       // Profile to publish to friend
-//       required Profile profile,
-//       // Identity to publish to friend
-//       required Identity identity,
-//       // Messages DHTList
-//       required TypedKey}) = _Contact;
+// A record of a 1-1 chat that is synchronized between
+// two users. Visible and encrypted for the other party
+//
+// DHT Schema: SMPL(0,1,[identityPublicKey])
+// DHT Key (UnicastOutbox): localConversation
+// DHT Secret: None
+// Encryption: DH(IdentityA, IdentityB)
 
-//   factory Conversation.fromJson(Map<String, dynamic> json) =>
-//       _$ConversationFromJson(json);
-// }
+message Conversation {
+    // Profile to publish to friend
+    Profile profile = 1;
+    // Identity master (JSON) to publish to friend
+    string identity = 2;
+    // Messages DHTLog
+    DHTLog messages = 3;
+}
 
-// // A record of a contact that has accepted a contact invitation
-// // Contains a copy of the most recent remote profile as well as
-// // a locally edited profile.
-// // Contains a copy of the most recent identity from the contact's
-// // Master identity dht key
-// //
-// // Stored in ContactList DHTList
-// //
+// A record of a contact that has accepted a contact invitation
+// Contains a copy of the most recent remote profile as well as
+// a locally edited profile.
+// Contains a copy of the most recent identity from the contact's
+// Master identity dht key
+//
+// Stored in ContactList DHTList
+message Contact {
+    // Friend's profile as locally edited
+    Profile edited_profile = 1;
+    // Copy of friend's profile from remote conversation
+    Profile remote_profile = 2;
+    // Copy of friend's identity (JSON) from remote conversation
+    string remote_identity = 3;
+    // Remote conversation key to sync from friend
+    TypedKey remote_conversation = 4;
+    // Our conversation key for friend to sync
+    TypedKey local_conversation = 5;
+    // Show availability
+    bool show_availability = 6;
+}
 
-// @freezed
-// class Contact with _$Contact {
-//   const factory Contact({
-//     // Friend's profile as locally edited
-//     required Profile editedProfile,
-//     // Copy of friend's profile from remote conversation
-//     required Profile remoteProfile,
-//     // Copy of friend's identity from remote conversation
-//     required Identity remoteIdentity,
-//     // Remote conversation key to sync from friend
-//     required TypedKey remoteConversation,
-//     // Our conversation key for friend to sync
-//     required TypedKey localConversation,
-//   }) = _Contact;
+// Contact availability as specified by the 
+enum Availability {
+    AVAILABILITY_UNSPECIFIED = 0;
+    AVAILABILITY_OFFLINE = 1;
+    AVAILABILITY_FREE = 2;
+    AVAILABILITY_BUSY = 3;
+    AVAILABILITY_AWAY = 4;
+}
 
-//   factory Contact.fromJson(Map<String, dynamic> json) =>
-//       _$ContactFromJson(json);
-// }
+// Publicly shared profile information for both contacts and accounts
+// Contains:
+// Name - Friendly name
+// Title - Title of user
+// Icon - Little picture to represent user in contact list
+//
+// DHT Key: None
+// Encryption: None
+message Profile  {
+    // Friendy name
+    string name = 1;
+    // Title of user
+    string title = 2;
+    // Status/away message
+    string status = 3;
+    // Availability
+    Availability availability = 4;
+    // Icon DHTData
+    TypedKey icon = 5;
+}
 
-// // Publicly shared profile information for both contacts and accounts
-// // Contains:
-// // Name - Friendly name
-// // Title - Title of user
-// // Icon - Little picture to represent user in contact list
-// //
-// // DHT Key: None
-// // Encryption: None
-// @freezed
-// class Profile with _$Profile {
-//   const factory Profile({
-//     // Friendy name
-//     required String name,
-//     // Title of user
-//     required String title,
-//     // Status/away message
-//     required String status,
-//     // Icon DHTData
-//     required TypedKey icon,
-//   }) = _Profile;
-//   factory Profile.fromJson(Map<String, dynamic> json) =>
-//       _$ProfileFromJson(json);
-// }
-
-// // A record of an individual account
-// //
-// // DHT Schema: DFLT(1)
-// // DHT Key (Private): accountPublicKey
-// // DHT Secret: accountSecretKey
-// @freezed
-// class Account with _$Account {
-//   const factory Account({
-//     // The user's profile that gets shared with contacts
-//     required Profile profile,
-//     // Invisibility makes you always look 'Offline'
-//     required bool invisible,
-//     // Auto-away sets 'away' mode after an inactivity time
-//     required autoAwayTimeoutSec,
-//     // The contacts DHTList for this account
-//     // Schema: SMPL(0,64,[accountPublicKey]) Encryption: accountSecretKey
-//     required TypedKey contactList,
-//   }) = _Account;
-
-//   factory Account.fromJson(Map<String, dynamic> json) =>
-//       _$AccountFromJson(json);
-// }
+// A record of an individual account
+// Pointed to by the identity account map in the identity key
+//
+// DHT Schema: DFLT(1)
+// DHT Key (Private): accountPublicKey
+// DHT Secret: accountSecretKey
+message Account {
+    // The user's profile that gets shared with contacts
+    Profile profile = 1;
+    // Invisibility makes you always look 'Offline'
+    bool invisible = 2;
+    // Auto-away sets 'away' mode after an inactivity time
+    uint32 auto_away_timeout_sec = 3;
+    // The contacts DHTList for this account
+    // Schema: SMPL(0,64,[accountPublicKey]) Encryption: accountSecretKey
+    TypedKey contact_list = 4;
+}

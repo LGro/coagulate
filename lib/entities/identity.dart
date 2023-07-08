@@ -1,9 +1,4 @@
-import 'dart:typed_data';
-
-import 'package:change_case/change_case.dart';
-import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:uuid/uuid.dart';
 import 'package:veilid/veilid.dart';
 
 part 'identity.freezed.dart';

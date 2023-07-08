@@ -36,6 +36,8 @@ dependencies:
   radix_colors: ^1.0.4
   flutter_translate: ^4.0.4
   intl: ^0.18.0
+  fixnum: ^1.1.0
+  protobuf: ^3.0.0
 
 dev_dependencies:
   flutter_test:
