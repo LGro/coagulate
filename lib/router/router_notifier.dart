@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../pages/pages.dart';
-import '../state/auth.dart';
+import '../state/active_logins_state.dart';
 
 /// This notifier is meant to implement the [Listenable] our [GoRouter] needs.
 ///

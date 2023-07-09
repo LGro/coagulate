@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:change_case/change_case.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'package:veilid/veilid.dart';
 import 'identity.dart';
 

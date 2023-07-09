@@ -7,7 +7,8 @@ part 'identity.g.dart';
 // Identity Key points to accounts associated with this identity
 // accounts field has a map of service name or uuid to account key pairs
 // DHT Schema: DFLT(1)
-// DHT Key (Private): identityPublicKey
+// DHT Key (Private): identityRecordKey
+// DHT Owner Key: identityPublicKey
 // DHT Secret: identitySecretKey (stored encrypted with unlock code in local table store)
 @freezed
 class Identity with _$Identity {
@@ -25,21 +26,43 @@ class Identity with _$Identity {
 // Bidirectional Master<->Identity signature allows for
 // chain of identity ownership for account recovery process
 //
-// Backed by a DHT key at masterPublicKey, the secret is kept
+// Backed by a DHT key at masterRecordKey, the secret is kept
 // completely offline and only written to upon account recovery
 //
 // DHT Schema: DFLT(1)
-// DHT Key (Public): masterPublicKey
-// DHT Secret: masterSecretKey (kept offline)
+// DHT Record Key (Public): masterRecordKey
+// DHT Owner Key: masterPublicKey
+// DHT Owner Secret: masterSecretKey (kept offline)
 // Encryption: None
 @freezed
 class IdentityMaster with _$IdentityMaster {
   const factory IdentityMaster(
-      {required TypedKey identityPublicKey,
-      required TypedKey masterPublicKey,
+      {
+      // Private DHT record storing identity account mapping
+      required TypedKey identityRecordKey,
+      // Public key of identity
+      required PublicKey identityPublicKey,
+      // Public DHT record storing this structure for account recovery
+      required TypedKey masterRecordKey,
+      // Public key of master identity used to sign identity keys for recovery
+      required PublicKey masterPublicKey,
+      // Signature of identityRecordKey and identityPublicKey by masterPublicKey
       required Signature identitySignature,
+      // Signature of masterRecordKey and masterPublicKey by identityPublicKey
       required Signature masterSignature}) = _IdentityMaster;
 
   factory IdentityMaster.fromJson(Map<String, dynamic> json) =>
       _$IdentityMasterFromJson(json);
+}
+
+// Identity Master with secrets
+// Not freezed because we never persist this class in its entirety
+class IdentityMasterWithSecrets {
+  IdentityMaster identityMaster;
+  SecretKey masterSecret;
+  SecretKey identitySecret;
+  IdentityMasterWithSecrets(
+      {required this.identityMaster,
+      required this.masterSecret,
+      required this.identitySecret});
 }

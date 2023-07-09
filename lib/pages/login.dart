@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../state/auth.dart';
+import '../state/active_logins_state.dart';
 
 class LoginPage extends ConsumerWidget {
   const LoginPage({super.key});

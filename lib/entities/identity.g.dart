@@ -20,10 +20,13 @@ Map<String, dynamic> _$$_IdentityToJson(_$_Identity instance) =>
 
 _$_IdentityMaster _$$_IdentityMasterFromJson(Map<String, dynamic> json) =>
     _$_IdentityMaster(
+      identityRecordKey:
+          Typed<FixedEncodedString43>.fromJson(json['identity_record_key']),
       identityPublicKey:
-          Typed<FixedEncodedString43>.fromJson(json['identity_public_key']),
-      masterPublicKey:
-          Typed<FixedEncodedString43>.fromJson(json['master_public_key']),
+          FixedEncodedString43.fromJson(json['identity_public_key']),
+      masterRecordKey:
+          Typed<FixedEncodedString43>.fromJson(json['master_record_key']),
+      masterPublicKey: FixedEncodedString43.fromJson(json['master_public_key']),
       identitySignature:
           FixedEncodedString86.fromJson(json['identity_signature']),
       masterSignature: FixedEncodedString86.fromJson(json['master_signature']),
@@ -31,7 +34,9 @@ _$_IdentityMaster _$$_IdentityMasterFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$_IdentityMasterToJson(_$_IdentityMaster instance) =>
     <String, dynamic>{
+      'identity_record_key': instance.identityRecordKey.toJson(),
       'identity_public_key': instance.identityPublicKey.toJson(),
+      'master_record_key': instance.masterRecordKey.toJson(),
       'master_public_key': instance.masterPublicKey.toJson(),
       'identity_signature': instance.identitySignature.toJson(),
       'master_signature': instance.masterSignature.toJson(),

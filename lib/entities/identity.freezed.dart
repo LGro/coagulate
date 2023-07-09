@@ -166,12 +166,17 @@ IdentityMaster _$IdentityMasterFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$IdentityMaster {
-  Typed<FixedEncodedString43> get identityPublicKey =>
-      throw _privateConstructorUsedError;
-  Typed<FixedEncodedString43> get masterPublicKey =>
-      throw _privateConstructorUsedError;
+// Private DHT record storing identity account mapping
+  Typed<FixedEncodedString43> get identityRecordKey =>
+      throw _privateConstructorUsedError; // Public key of identity
+  FixedEncodedString43 get identityPublicKey =>
+      throw _privateConstructorUsedError; // Public DHT record storing this structure for account recovery
+  Typed<FixedEncodedString43> get masterRecordKey =>
+      throw _privateConstructorUsedError; // Public key of master identity used to sign identity keys for recovery
+  FixedEncodedString43 get masterPublicKey =>
+      throw _privateConstructorUsedError; // Signature of identityRecordKey and identityPublicKey by masterPublicKey
   FixedEncodedString86 get identitySignature =>
-      throw _privateConstructorUsedError;
+      throw _privateConstructorUsedError; // Signature of masterRecordKey and masterPublicKey by identityPublicKey
   FixedEncodedString86 get masterSignature =>
       throw _privateConstructorUsedError;
 
@@ -188,8 +193,10 @@ abstract class $IdentityMasterCopyWith<$Res> {
       _$IdentityMasterCopyWithImpl<$Res, IdentityMaster>;
   @useResult
   $Res call(
-      {Typed<FixedEncodedString43> identityPublicKey,
-      Typed<FixedEncodedString43> masterPublicKey,
+      {Typed<FixedEncodedString43> identityRecordKey,
+      FixedEncodedString43 identityPublicKey,
+      Typed<FixedEncodedString43> masterRecordKey,
+      FixedEncodedString43 masterPublicKey,
       FixedEncodedString86 identitySignature,
       FixedEncodedString86 masterSignature});
 }
@@ -207,20 +214,30 @@ class _$IdentityMasterCopyWithImpl<$Res, $Val extends IdentityMaster>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? identityRecordKey = null,
     Object? identityPublicKey = null,
+    Object? masterRecordKey = null,
     Object? masterPublicKey = null,
     Object? identitySignature = null,
     Object? masterSignature = null,
   }) {
     return _then(_value.copyWith(
+      identityRecordKey: null == identityRecordKey
+          ? _value.identityRecordKey
+          : identityRecordKey // ignore: cast_nullable_to_non_nullable
+              as Typed<FixedEncodedString43>,
       identityPublicKey: null == identityPublicKey
           ? _value.identityPublicKey
           : identityPublicKey // ignore: cast_nullable_to_non_nullable
+              as FixedEncodedString43,
+      masterRecordKey: null == masterRecordKey
+          ? _value.masterRecordKey
+          : masterRecordKey // ignore: cast_nullable_to_non_nullable
               as Typed<FixedEncodedString43>,
       masterPublicKey: null == masterPublicKey
           ? _value.masterPublicKey
           : masterPublicKey // ignore: cast_nullable_to_non_nullable
-              as Typed<FixedEncodedString43>,
+              as FixedEncodedString43,
       identitySignature: null == identitySignature
           ? _value.identitySignature
           : identitySignature // ignore: cast_nullable_to_non_nullable
@@ -242,8 +259,10 @@ abstract class _$$_IdentityMasterCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {Typed<FixedEncodedString43> identityPublicKey,
-      Typed<FixedEncodedString43> masterPublicKey,
+      {Typed<FixedEncodedString43> identityRecordKey,
+      FixedEncodedString43 identityPublicKey,
+      Typed<FixedEncodedString43> masterRecordKey,
+      FixedEncodedString43 masterPublicKey,
       FixedEncodedString86 identitySignature,
       FixedEncodedString86 masterSignature});
 }
@@ -259,20 +278,30 @@ class __$$_IdentityMasterCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? identityRecordKey = null,
     Object? identityPublicKey = null,
+    Object? masterRecordKey = null,
     Object? masterPublicKey = null,
     Object? identitySignature = null,
     Object? masterSignature = null,
   }) {
     return _then(_$_IdentityMaster(
+      identityRecordKey: null == identityRecordKey
+          ? _value.identityRecordKey
+          : identityRecordKey // ignore: cast_nullable_to_non_nullable
+              as Typed<FixedEncodedString43>,
       identityPublicKey: null == identityPublicKey
           ? _value.identityPublicKey
           : identityPublicKey // ignore: cast_nullable_to_non_nullable
+              as FixedEncodedString43,
+      masterRecordKey: null == masterRecordKey
+          ? _value.masterRecordKey
+          : masterRecordKey // ignore: cast_nullable_to_non_nullable
               as Typed<FixedEncodedString43>,
       masterPublicKey: null == masterPublicKey
           ? _value.masterPublicKey
           : masterPublicKey // ignore: cast_nullable_to_non_nullable
-              as Typed<FixedEncodedString43>,
+              as FixedEncodedString43,
       identitySignature: null == identitySignature
           ? _value.identitySignature
           : identitySignature // ignore: cast_nullable_to_non_nullable
@@ -289,7 +318,9 @@ class __$$_IdentityMasterCopyWithImpl<$Res>
 @JsonSerializable()
 class _$_IdentityMaster implements _IdentityMaster {
   const _$_IdentityMaster(
-      {required this.identityPublicKey,
+      {required this.identityRecordKey,
+      required this.identityPublicKey,
+      required this.masterRecordKey,
       required this.masterPublicKey,
       required this.identitySignature,
       required this.masterSignature});
@@ -297,18 +328,28 @@ class _$_IdentityMaster implements _IdentityMaster {
   factory _$_IdentityMaster.fromJson(Map<String, dynamic> json) =>
       _$$_IdentityMasterFromJson(json);
 
+// Private DHT record storing identity account mapping
   @override
-  final Typed<FixedEncodedString43> identityPublicKey;
+  final Typed<FixedEncodedString43> identityRecordKey;
+// Public key of identity
   @override
-  final Typed<FixedEncodedString43> masterPublicKey;
+  final FixedEncodedString43 identityPublicKey;
+// Public DHT record storing this structure for account recovery
+  @override
+  final Typed<FixedEncodedString43> masterRecordKey;
+// Public key of master identity used to sign identity keys for recovery
+  @override
+  final FixedEncodedString43 masterPublicKey;
+// Signature of identityRecordKey and identityPublicKey by masterPublicKey
   @override
   final FixedEncodedString86 identitySignature;
+// Signature of masterRecordKey and masterPublicKey by identityPublicKey
   @override
   final FixedEncodedString86 masterSignature;
 
   @override
   String toString() {
-    return 'IdentityMaster(identityPublicKey: $identityPublicKey, masterPublicKey: $masterPublicKey, identitySignature: $identitySignature, masterSignature: $masterSignature)';
+    return 'IdentityMaster(identityRecordKey: $identityRecordKey, identityPublicKey: $identityPublicKey, masterRecordKey: $masterRecordKey, masterPublicKey: $masterPublicKey, identitySignature: $identitySignature, masterSignature: $masterSignature)';
   }
 
   @override
@@ -316,8 +357,12 @@ class _$_IdentityMaster implements _IdentityMaster {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_IdentityMaster &&
+            (identical(other.identityRecordKey, identityRecordKey) ||
+                other.identityRecordKey == identityRecordKey) &&
             (identical(other.identityPublicKey, identityPublicKey) ||
                 other.identityPublicKey == identityPublicKey) &&
+            (identical(other.masterRecordKey, masterRecordKey) ||
+                other.masterRecordKey == masterRecordKey) &&
             (identical(other.masterPublicKey, masterPublicKey) ||
                 other.masterPublicKey == masterPublicKey) &&
             (identical(other.identitySignature, identitySignature) ||
@@ -328,8 +373,14 @@ class _$_IdentityMaster implements _IdentityMaster {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, identityPublicKey,
-      masterPublicKey, identitySignature, masterSignature);
+  int get hashCode => Object.hash(
+      runtimeType,
+      identityRecordKey,
+      identityPublicKey,
+      masterRecordKey,
+      masterPublicKey,
+      identitySignature,
+      masterSignature);
 
   @JsonKey(ignore: true)
   @override
@@ -347,21 +398,27 @@ class _$_IdentityMaster implements _IdentityMaster {
 
 abstract class _IdentityMaster implements IdentityMaster {
   const factory _IdentityMaster(
-      {required final Typed<FixedEncodedString43> identityPublicKey,
-      required final Typed<FixedEncodedString43> masterPublicKey,
+      {required final Typed<FixedEncodedString43> identityRecordKey,
+      required final FixedEncodedString43 identityPublicKey,
+      required final Typed<FixedEncodedString43> masterRecordKey,
+      required final FixedEncodedString43 masterPublicKey,
       required final FixedEncodedString86 identitySignature,
       required final FixedEncodedString86 masterSignature}) = _$_IdentityMaster;
 
   factory _IdentityMaster.fromJson(Map<String, dynamic> json) =
       _$_IdentityMaster.fromJson;
 
-  @override
-  Typed<FixedEncodedString43> get identityPublicKey;
-  @override
-  Typed<FixedEncodedString43> get masterPublicKey;
-  @override
+  @override // Private DHT record storing identity account mapping
+  Typed<FixedEncodedString43> get identityRecordKey;
+  @override // Public key of identity
+  FixedEncodedString43 get identityPublicKey;
+  @override // Public DHT record storing this structure for account recovery
+  Typed<FixedEncodedString43> get masterRecordKey;
+  @override // Public key of master identity used to sign identity keys for recovery
+  FixedEncodedString43 get masterPublicKey;
+  @override // Signature of identityRecordKey and identityPublicKey by masterPublicKey
   FixedEncodedString86 get identitySignature;
-  @override
+  @override // Signature of masterRecordKey and masterPublicKey by identityPublicKey
   FixedEncodedString86 get masterSignature;
   @override
   @JsonKey(ignore: true)
