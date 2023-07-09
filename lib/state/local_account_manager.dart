@@ -40,49 +40,58 @@ class LocalAccountManager {
     final dhtctx = (await Veilid.instance.routingContext())
         .withPrivacy()
         .withSequencing(Sequencing.ensureOrdered);
-    final masterRec =
-        await dhtctx.createDHTRecord(const DHTSchema.dflt(oCnt: 1));
-    final identityRec =
-        await dhtctx.createDHTRecord(const DHTSchema.dflt(oCnt: 1));
-    final crypto = await Veilid.instance.bestCryptoSystem();
-    assert(masterRec.key.kind == crypto.kind());
-    assert(identityRec.key.kind == crypto.kind());
+    DHTRecordDescriptor? masterRec;
+    DHTRecordDescriptor? identityRec;
+    try {
+      masterRec = await dhtctx.createDHTRecord(const DHTSchema.dflt(oCnt: 1));
+      identityRec = await dhtctx.createDHTRecord(const DHTSchema.dflt(oCnt: 1));
+      final crypto = await Veilid.instance.bestCryptoSystem();
+      assert(masterRec.key.kind == crypto.kind());
+      assert(identityRec.key.kind == crypto.kind());
 
-    // IdentityMaster
-    final masterRecordKey = masterRec.key;
-    final masterPublicKey = masterRec.owner;
-    final masterSecret = masterRec.ownerSecret!;
-    final masterSigBuf = masterRecordKey.decode()
-      ..addAll(masterPublicKey.decode());
+      // IdentityMaster
+      final masterRecordKey = masterRec.key;
+      final masterPublicKey = masterRec.owner;
+      final masterSecret = masterRec.ownerSecret!;
+      final masterSigBuf = masterRecordKey.decode()
+        ..addAll(masterPublicKey.decode());
 
-    final identityRecordKey = identityRec.key;
-    final identityPublicKey = identityRec.owner;
-    final identitySecret = identityRec.ownerSecret!;
-    final identitySigBuf = identityRecordKey.decode()
-      ..addAll(identityPublicKey.decode());
+      final identityRecordKey = identityRec.key;
+      final identityPublicKey = identityRec.owner;
+      final identitySecret = identityRec.ownerSecret!;
+      final identitySigBuf = identityRecordKey.decode()
+        ..addAll(identityPublicKey.decode());
 
-    final identitySignature =
-        await crypto.sign(masterPublicKey, masterSecret, identitySigBuf);
-    final masterSignature =
-        await crypto.sign(identityPublicKey, identitySecret, masterSigBuf);
+      final identitySignature =
+          await crypto.sign(masterPublicKey, masterSecret, identitySigBuf);
+      final masterSignature =
+          await crypto.sign(identityPublicKey, identitySecret, masterSigBuf);
 
-    final identityMaster = IdentityMaster(
-        identityRecordKey: identityRecordKey,
-        identityPublicKey: identityPublicKey,
-        masterRecordKey: masterRecordKey,
-        masterPublicKey: masterPublicKey,
-        identitySignature: identitySignature,
-        masterSignature: masterSignature);
+      final identityMaster = IdentityMaster(
+          identityRecordKey: identityRecordKey,
+          identityPublicKey: identityPublicKey,
+          masterRecordKey: masterRecordKey,
+          masterPublicKey: masterPublicKey,
+          identitySignature: identitySignature,
+          masterSignature: masterSignature);
 
-    // Write identity master to master dht key
-    final identityMasterBytes =
-        Uint8List.fromList(utf8.encode(jsonEncode(identityMaster)));
-    await dhtctx.setDHTValue(masterRecordKey, 0, identityMasterBytes);
+      // Write identity master to master dht key
+      final identityMasterBytes =
+          Uint8List.fromList(utf8.encode(jsonEncode(identityMaster)));
+      await dhtctx.setDHTValue(masterRecordKey, 0, identityMasterBytes);
 
-    return IdentityMasterWithSecrets(
-        identityMaster: identityMaster,
-        masterSecret: masterSecret,
-        identitySecret: identitySecret);
+      return IdentityMasterWithSecrets(
+          identityMaster: identityMaster,
+          masterSecret: masterSecret,
+          identitySecret: identitySecret);
+    } catch (e) {
+      if (masterRec != null) {
+        await dhtctx.deleteDHTRecord(masterRec.key);
+      }
+      if (identityRec != null) {
+        await dhtctx.deleteDHTRecord(identityRec.key);
+      }
+    }
   }
 
   /// Creates a new account associated with master identity
