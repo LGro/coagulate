@@ -38,6 +38,8 @@ class LocalAccount with _$LocalAccount {
     required IdentityMaster identityMaster,
     // The encrypted identity secret that goes with the identityPublicKey
     @Uint8ListJsonConverter() required Uint8List identitySecretKeyBytes,
+    // The salt for the identity secret key encryption
+    @Uint8ListJsonConverter() required Uint8List identitySecretSaltBytes,
     // The kind of encryption input used on the account
     required EncryptionKeyType encryptionKeyType,
     // If account is not hidden, password can be retrieved via

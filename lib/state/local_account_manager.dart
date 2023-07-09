@@ -80,6 +80,12 @@ class LocalAccountManager {
           Uint8List.fromList(utf8.encode(jsonEncode(identityMaster)));
       await dhtctx.setDHTValue(masterRecordKey, 0, identityMasterBytes);
 
+      // Write empty identity to account map
+      const identity = Identity(accountKeyPairs: {});
+      final identityBytes =
+          Uint8List.fromList(utf8.encode(jsonEncode(identity)));
+      await dhtctx.setDHTValue(identityRecordKey, 0, identityBytes);
+
       return IdentityMasterWithSecrets(
           identityMaster: identityMaster,
           masterSecret: masterSecret,
@@ -91,6 +97,7 @@ class LocalAccountManager {
       if (identityRec != null) {
         await dhtctx.deleteDHTRecord(identityRec.key);
       }
+      rethrow;
     }
   }
 
@@ -100,15 +107,29 @@ class LocalAccountManager {
       SecretKey identitySecret,
       EncryptionKeyType encryptionKeyType,
       String encryptionKey) async {
-    //
+    // Encrypt identitySecret with key
+    final cs = await Veilid.instance.bestCryptoSystem();
+    final ekbytes = Uint8List.fromList(utf8.encode(encryptionKey));
+    final nonce = await cs.randomNonce();
+    final eksalt = nonce.decode();
+    SharedSecret sharedSecret = await cs.deriveSharedSecret(ekbytes, eksalt);
+    final identitySecretBytes =
+        await cs.cryptNoAuth(identitySecret.decode(), nonce, sharedSecret);
 
-    return LocalAccount(
+    // Create local account object
+    final localAccount = LocalAccount(
       identityMaster: identityMaster,
       identitySecretKeyBytes: identitySecretBytes,
+      identitySecretSaltBytes: eksalt,
       encryptionKeyType: encryptionKeyType,
       biometricsEnabled: false,
       hiddenAccount: false,
     );
+
+    // Push
+
+    // Return local account object
+    return localAccount;
   }
 }
 
