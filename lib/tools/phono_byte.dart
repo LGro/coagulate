@@ -1,8 +1,9 @@
 // Implementation of https://github.com/meeb/phonobyte
-
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:charcode/charcode.dart';
 
-const phonoWords = [
+const _byteToPhono = [
   'jab',
   'tip',
   'led',
@@ -261,23 +262,81 @@ const phonoWords = [
   'tab'
 ];
 
-String prettyPhonoString(String s) {
+Map<String, int> _phonoToByte = _buildPhonoToByte();
 
+Map<String, int> _buildPhonoToByte() {
+  Map<String, int> phonoToByte = {};
+  for (int b = 0; b < 256; b++) {
+    String ph = _byteToPhono[b];
+    phonoToByte[ph] = b;
+  }
+  return phonoToByte;
+}
+
+String prettyPhonoString(String s,
+    {int wordsPerLine = 5, int phonoPerWord = 2}) {
+  assert(wordsPerLine >= 1);
+  assert(phonoPerWord >= 1);
+  final cs = canonicalPhonoString(s).toUpperCase();
+  String out = "";
+  int words = 0;
+  int phonos = 0;
+  for (int i = 0; i < cs.length; i += 3) {
+    if (i != 0) {
+      phonos += 1;
+      if (phonos == phonoPerWord) {
+        phonos = 0;
+        words += 1;
+        if (words == wordsPerLine) {
+          words = 0;
+          out += "\n";
+        } else {
+          out += " ";
+        }
+      }
+    }
+    out += cs.substring(i, i + 3);
+  }
+  return out;
 }
 
 String canonicalPhonoString(String s) {
-
+  Uint8List bytes = Uint8List.fromList(utf8.encode(s.toLowerCase()));
+  String cs = "";
+  for (int i = 0; i < bytes.length; i++) {
+    int ch = bytes[i];
+    if (ch >= $a && ch <= $z) {
+      cs += String.fromCharCode(ch);
+    }
+  }
+  if (cs.length % 3 != 0) {
+    throw const FormatException(
+        "phonobyte string length should be a multiple of 3");
+  }
+  for (int i = 0; i < cs.length; i += 3) {
+    String ph = cs.substring(i, i + 3);
+    if (!_phonoToByte.containsKey(ph)) {
+      throw const FormatException("phonobyte string contains invalid sequence");
+    }
+  }
+  return cs;
 }
 
 Uint8List decodePhono(String s) {
-    
-  try {
-
+  final cs = canonicalPhonoString(s);
+  final out = Uint8List(cs.length ~/ 3);
+  for (int i = 0; i < cs.length; i += 3) {
+    String ph = cs.substring(i, i + 3);
+    int b = _phonoToByte[ph]!;
+    out[i] = b;
   }
-//FormatException
-
+  return out;
 }
 
 String encodePhono(Uint8List b) {
-
+  String out = "";
+  for (int i = 0; i < b.length; i++) {
+    out += _byteToPhono[b[i]];
+  }
+  return out;
 }
