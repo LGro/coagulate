@@ -14,6 +14,157 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
+AccountOwnerInfo _$AccountOwnerInfoFromJson(Map<String, dynamic> json) {
+  return _AccountOwnerInfo.fromJson(json);
+}
+
+/// @nodoc
+mixin _$AccountOwnerInfo {
+// Top level account keys and secrets
+  Map<String, TypedKeyPair> get accountKeyPairs =>
+      throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $AccountOwnerInfoCopyWith<AccountOwnerInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $AccountOwnerInfoCopyWith<$Res> {
+  factory $AccountOwnerInfoCopyWith(
+          AccountOwnerInfo value, $Res Function(AccountOwnerInfo) then) =
+      _$AccountOwnerInfoCopyWithImpl<$Res, AccountOwnerInfo>;
+  @useResult
+  $Res call({Map<String, TypedKeyPair> accountKeyPairs});
+}
+
+/// @nodoc
+class _$AccountOwnerInfoCopyWithImpl<$Res, $Val extends AccountOwnerInfo>
+    implements $AccountOwnerInfoCopyWith<$Res> {
+  _$AccountOwnerInfoCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? accountKeyPairs = null,
+  }) {
+    return _then(_value.copyWith(
+      accountKeyPairs: null == accountKeyPairs
+          ? _value.accountKeyPairs
+          : accountKeyPairs // ignore: cast_nullable_to_non_nullable
+              as Map<String, TypedKeyPair>,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$_AccountOwnerInfoCopyWith<$Res>
+    implements $AccountOwnerInfoCopyWith<$Res> {
+  factory _$$_AccountOwnerInfoCopyWith(
+          _$_AccountOwnerInfo value, $Res Function(_$_AccountOwnerInfo) then) =
+      __$$_AccountOwnerInfoCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({Map<String, TypedKeyPair> accountKeyPairs});
+}
+
+/// @nodoc
+class __$$_AccountOwnerInfoCopyWithImpl<$Res>
+    extends _$AccountOwnerInfoCopyWithImpl<$Res, _$_AccountOwnerInfo>
+    implements _$$_AccountOwnerInfoCopyWith<$Res> {
+  __$$_AccountOwnerInfoCopyWithImpl(
+      _$_AccountOwnerInfo _value, $Res Function(_$_AccountOwnerInfo) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? accountKeyPairs = null,
+  }) {
+    return _then(_$_AccountOwnerInfo(
+      accountKeyPairs: null == accountKeyPairs
+          ? _value._accountKeyPairs
+          : accountKeyPairs // ignore: cast_nullable_to_non_nullable
+              as Map<String, TypedKeyPair>,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$_AccountOwnerInfo implements _AccountOwnerInfo {
+  const _$_AccountOwnerInfo(
+      {required final Map<String, TypedKeyPair> accountKeyPairs})
+      : _accountKeyPairs = accountKeyPairs;
+
+  factory _$_AccountOwnerInfo.fromJson(Map<String, dynamic> json) =>
+      _$$_AccountOwnerInfoFromJson(json);
+
+// Top level account keys and secrets
+  final Map<String, TypedKeyPair> _accountKeyPairs;
+// Top level account keys and secrets
+  @override
+  Map<String, TypedKeyPair> get accountKeyPairs {
+    if (_accountKeyPairs is EqualUnmodifiableMapView) return _accountKeyPairs;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_accountKeyPairs);
+  }
+
+  @override
+  String toString() {
+    return 'AccountOwnerInfo(accountKeyPairs: $accountKeyPairs)';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$_AccountOwnerInfo &&
+            const DeepCollectionEquality()
+                .equals(other._accountKeyPairs, _accountKeyPairs));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, const DeepCollectionEquality().hash(_accountKeyPairs));
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$_AccountOwnerInfoCopyWith<_$_AccountOwnerInfo> get copyWith =>
+      __$$_AccountOwnerInfoCopyWithImpl<_$_AccountOwnerInfo>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$_AccountOwnerInfoToJson(
+      this,
+    );
+  }
+}
+
+abstract class _AccountOwnerInfo implements AccountOwnerInfo {
+  const factory _AccountOwnerInfo(
+          {required final Map<String, TypedKeyPair> accountKeyPairs}) =
+      _$_AccountOwnerInfo;
+
+  factory _AccountOwnerInfo.fromJson(Map<String, dynamic> json) =
+      _$_AccountOwnerInfo.fromJson;
+
+  @override // Top level account keys and secrets
+  Map<String, TypedKeyPair> get accountKeyPairs;
+  @override
+  @JsonKey(ignore: true)
+  _$$_AccountOwnerInfoCopyWith<_$_AccountOwnerInfo> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 Identity _$IdentityFromJson(Map<String, dynamic> json) {
   return _Identity.fromJson(json);
 }

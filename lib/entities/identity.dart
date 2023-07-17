@@ -4,6 +4,19 @@ import 'package:veilid/veilid.dart';
 part 'identity.freezed.dart';
 part 'identity.g.dart';
 
+// AccountOwnerInfo is the key and owner info for the account dht key that is
+// stored in the identity key
+@freezed
+class AccountOwnerInfo with _$AccountOwnerInfo {
+  const factory AccountOwnerInfo({
+    // Top level account keys and secrets
+    required Map<String, TypedKeyPair> accountKeyPairs,
+  }) = _AccountOwnerInfo;
+
+  factory AccountOwnerInfo.fromJson(Map<String, dynamic> json) =>
+      _$AccountOwnerInfoFromJson(json);
+}
+
 // Identity Key points to accounts associated with this identity
 // accounts field has a map of service name or uuid to account key pairs
 // DHT Schema: DFLT(1)
@@ -53,6 +66,16 @@ class IdentityMaster with _$IdentityMaster {
 
   factory IdentityMaster.fromJson(Map<String, dynamic> json) =>
       _$IdentityMasterFromJson(json);
+}
+
+extension IdentityMasterExtension on IdentityMaster {
+  KeyPair identityWriter(SecretKey secret) {
+    return KeyPair(key: identityPublicKey, secret: secret);
+  }
+
+  KeyPair masterWriter(SecretKey secret) {
+    return KeyPair(key: masterPublicKey, secret: secret);
+  }
 }
 
 // Identity Master with secrets

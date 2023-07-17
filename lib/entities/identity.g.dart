@@ -6,6 +6,19 @@ part of 'identity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+_$_AccountOwnerInfo _$$_AccountOwnerInfoFromJson(Map<String, dynamic> json) =>
+    _$_AccountOwnerInfo(
+      accountKeyPairs: (json['account_key_pairs'] as Map<String, dynamic>).map(
+        (k, e) => MapEntry(k, TypedKeyPair.fromJson(e)),
+      ),
+    );
+
+Map<String, dynamic> _$$_AccountOwnerInfoToJson(_$_AccountOwnerInfo instance) =>
+    <String, dynamic>{
+      'account_key_pairs':
+          instance.accountKeyPairs.map((k, e) => MapEntry(k, e.toJson())),
+    };
+
 _$_Identity _$$_IdentityFromJson(Map<String, dynamic> json) => _$_Identity(
       accountKeyPairs: (json['account_key_pairs'] as Map<String, dynamic>).map(
         (k, e) => MapEntry(k, TypedKeyPair.fromJson(e)),
