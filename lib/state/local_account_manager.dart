@@ -102,23 +102,48 @@ class LocalAccountManager {
     }
   }
 
+  /// Adds a 'VeilidChat' account record to an identity key
   Future<void> updateIdentityKey(
       VeilidRoutingContext dhtctx,
       TypedKey identityRecordKey,
       TypedKey accountRecordKey,
       KeyPair accountRecordOwner) async {
+    // Account record to add
+    final accountRecordInfo =
+        AccountRecordInfo(key: accountRecordKey, owner: accountRecordOwner);
+
+    // Eventually update identity key
+    eventuallyConsistentUpdate(
+        dhtctx,
+        identityRecordKey,
+        0,
+        true,
+        jsonUpdate(Identity.fromJson, (oldObj) async {
+          final accountRecords = IMapOfSets.from(oldObj.accountRecords)
+              .add("VeilidChat", accountRecordInfo)
+              .asIMap();
+          return oldObj.copyWith(accountRecords: accountRecords);
+        }));
+
     // Get existing identity key
     ValueData? identityValueData =
         await dhtctx.getDHTValue(identityRecordKey, 0, true);
-    if (identityValueData == null) {
-      throw const FormatException("Identity does not exist");
-    }
-    var identity = identityValueData.readJsonData(Identity.fromJson);
-xxx make back to bytes function and  do update loop and maybe make that a tool function too (consistentUpdate)
-    // Update identity key to include account
-    const identity = Identity(accountKeyPairs: {});
-    final identityBytes = Uint8List.fromList(utf8.encode(jsonEncode(identity)));
-    await dhtctx.setDHTValue(identityRec.key, 0, identityBytes);
+    do {
+      if (identityValueData == null) {
+        throw const FormatException("Identity does not exist");
+      }
+
+      var identity = identityValueData.readJsonData(Identity.fromJson);
+      // Update identity key to include account
+      final accountRecords = IMapOfSets.from(identity.accountRecords)
+          .add("VeilidChat", accountRecordInfo)
+          .asIMap();
+      identity = identity.copyWith(accountRecords: accountRecords);
+
+      final identityBytes = jsonEncodeBytes(identity);
+      identityValueData =
+          await dhtctx.setDHTValue(identityRecordKey, 0, identityBytes);
+    } while (identityValueData != null);
   }
 
   /// Creates a new account associated with master identity

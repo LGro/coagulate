@@ -6,29 +6,37 @@ part of 'identity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_AccountOwnerInfo _$$_AccountOwnerInfoFromJson(Map<String, dynamic> json) =>
-    _$_AccountOwnerInfo(
-      accountKeyPairs: (json['account_key_pairs'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry(k, TypedKeyPair.fromJson(e)),
-      ),
+_$_AccountRecordInfo _$$_AccountRecordInfoFromJson(Map<String, dynamic> json) =>
+    _$_AccountRecordInfo(
+      key: Typed<FixedEncodedString43>.fromJson(json['key']),
+      owner: KeyPair.fromJson(json['owner']),
     );
 
-Map<String, dynamic> _$$_AccountOwnerInfoToJson(_$_AccountOwnerInfo instance) =>
+Map<String, dynamic> _$$_AccountRecordInfoToJson(
+        _$_AccountRecordInfo instance) =>
     <String, dynamic>{
-      'account_key_pairs':
-          instance.accountKeyPairs.map((k, e) => MapEntry(k, e.toJson())),
+      'key': instance.key.toJson(),
+      'owner': instance.owner.toJson(),
     };
 
 _$_Identity _$$_IdentityFromJson(Map<String, dynamic> json) => _$_Identity(
-      accountKeyPairs: (json['account_key_pairs'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry(k, TypedKeyPair.fromJson(e)),
-      ),
+      accountRecords: IMap<String, ISet<AccountRecordInfo>>.fromJson(
+          json['account_records'] as Map<String, dynamic>,
+          (value) => value as String,
+          (value) => ISet<AccountRecordInfo>.fromJson(
+              value,
+              (value) =>
+                  AccountRecordInfo.fromJson(value as Map<String, dynamic>))),
     );
 
 Map<String, dynamic> _$$_IdentityToJson(_$_Identity instance) =>
     <String, dynamic>{
-      'account_key_pairs':
-          instance.accountKeyPairs.map((k, e) => MapEntry(k, e.toJson())),
+      'account_records': instance.accountRecords.toJson(
+        (value) => value,
+        (value) => value.toJson(
+          (value) => value.toJson(),
+        ),
+      ),
     };
 
 _$_IdentityMaster _$$_IdentityMasterFromJson(Map<String, dynamic> json) =>

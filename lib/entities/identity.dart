@@ -1,3 +1,4 @@
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:veilid/veilid.dart';
 
@@ -7,14 +8,15 @@ part 'identity.g.dart';
 // AccountOwnerInfo is the key and owner info for the account dht key that is
 // stored in the identity key
 @freezed
-class AccountOwnerInfo with _$AccountOwnerInfo {
-  const factory AccountOwnerInfo({
+class AccountRecordInfo with _$AccountRecordInfo {
+  const factory AccountRecordInfo({
     // Top level account keys and secrets
-    required Map<String, TypedKeyPair> accountKeyPairs,
-  }) = _AccountOwnerInfo;
+    required TypedKey key,
+    required KeyPair owner,
+  }) = _AccountRecordInfo;
 
-  factory AccountOwnerInfo.fromJson(Map<String, dynamic> json) =>
-      _$AccountOwnerInfoFromJson(json);
+  factory AccountRecordInfo.fromJson(Map<String, dynamic> json) =>
+      _$AccountRecordInfoFromJson(json);
 }
 
 // Identity Key points to accounts associated with this identity
@@ -27,7 +29,7 @@ class AccountOwnerInfo with _$AccountOwnerInfo {
 class Identity with _$Identity {
   const factory Identity({
     // Top level account keys and secrets
-    required Map<String, TypedKeyPair> accountKeyPairs,
+    required IMap<String, ISet<AccountRecordInfo>> accountRecords,
   }) = _Identity;
 
   factory Identity.fromJson(Map<String, dynamic> json) =>

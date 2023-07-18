@@ -14,35 +14,35 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
-AccountOwnerInfo _$AccountOwnerInfoFromJson(Map<String, dynamic> json) {
-  return _AccountOwnerInfo.fromJson(json);
+AccountRecordInfo _$AccountRecordInfoFromJson(Map<String, dynamic> json) {
+  return _AccountRecordInfo.fromJson(json);
 }
 
 /// @nodoc
-mixin _$AccountOwnerInfo {
+mixin _$AccountRecordInfo {
 // Top level account keys and secrets
-  Map<String, TypedKeyPair> get accountKeyPairs =>
-      throw _privateConstructorUsedError;
+  Typed<FixedEncodedString43> get key => throw _privateConstructorUsedError;
+  KeyPair get owner => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
-  $AccountOwnerInfoCopyWith<AccountOwnerInfo> get copyWith =>
+  $AccountRecordInfoCopyWith<AccountRecordInfo> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $AccountOwnerInfoCopyWith<$Res> {
-  factory $AccountOwnerInfoCopyWith(
-          AccountOwnerInfo value, $Res Function(AccountOwnerInfo) then) =
-      _$AccountOwnerInfoCopyWithImpl<$Res, AccountOwnerInfo>;
+abstract class $AccountRecordInfoCopyWith<$Res> {
+  factory $AccountRecordInfoCopyWith(
+          AccountRecordInfo value, $Res Function(AccountRecordInfo) then) =
+      _$AccountRecordInfoCopyWithImpl<$Res, AccountRecordInfo>;
   @useResult
-  $Res call({Map<String, TypedKeyPair> accountKeyPairs});
+  $Res call({Typed<FixedEncodedString43> key, KeyPair owner});
 }
 
 /// @nodoc
-class _$AccountOwnerInfoCopyWithImpl<$Res, $Val extends AccountOwnerInfo>
-    implements $AccountOwnerInfoCopyWith<$Res> {
-  _$AccountOwnerInfoCopyWithImpl(this._value, this._then);
+class _$AccountRecordInfoCopyWithImpl<$Res, $Val extends AccountRecordInfo>
+    implements $AccountRecordInfoCopyWith<$Res> {
+  _$AccountRecordInfoCopyWithImpl(this._value, this._then);
 
   // ignore: unused_field
   final $Val _value;
@@ -52,116 +52,122 @@ class _$AccountOwnerInfoCopyWithImpl<$Res, $Val extends AccountOwnerInfo>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? accountKeyPairs = null,
+    Object? key = null,
+    Object? owner = null,
   }) {
     return _then(_value.copyWith(
-      accountKeyPairs: null == accountKeyPairs
-          ? _value.accountKeyPairs
-          : accountKeyPairs // ignore: cast_nullable_to_non_nullable
-              as Map<String, TypedKeyPair>,
+      key: null == key
+          ? _value.key
+          : key // ignore: cast_nullable_to_non_nullable
+              as Typed<FixedEncodedString43>,
+      owner: null == owner
+          ? _value.owner
+          : owner // ignore: cast_nullable_to_non_nullable
+              as KeyPair,
     ) as $Val);
   }
 }
 
 /// @nodoc
-abstract class _$$_AccountOwnerInfoCopyWith<$Res>
-    implements $AccountOwnerInfoCopyWith<$Res> {
-  factory _$$_AccountOwnerInfoCopyWith(
-          _$_AccountOwnerInfo value, $Res Function(_$_AccountOwnerInfo) then) =
-      __$$_AccountOwnerInfoCopyWithImpl<$Res>;
+abstract class _$$_AccountRecordInfoCopyWith<$Res>
+    implements $AccountRecordInfoCopyWith<$Res> {
+  factory _$$_AccountRecordInfoCopyWith(_$_AccountRecordInfo value,
+          $Res Function(_$_AccountRecordInfo) then) =
+      __$$_AccountRecordInfoCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({Map<String, TypedKeyPair> accountKeyPairs});
+  $Res call({Typed<FixedEncodedString43> key, KeyPair owner});
 }
 
 /// @nodoc
-class __$$_AccountOwnerInfoCopyWithImpl<$Res>
-    extends _$AccountOwnerInfoCopyWithImpl<$Res, _$_AccountOwnerInfo>
-    implements _$$_AccountOwnerInfoCopyWith<$Res> {
-  __$$_AccountOwnerInfoCopyWithImpl(
-      _$_AccountOwnerInfo _value, $Res Function(_$_AccountOwnerInfo) _then)
+class __$$_AccountRecordInfoCopyWithImpl<$Res>
+    extends _$AccountRecordInfoCopyWithImpl<$Res, _$_AccountRecordInfo>
+    implements _$$_AccountRecordInfoCopyWith<$Res> {
+  __$$_AccountRecordInfoCopyWithImpl(
+      _$_AccountRecordInfo _value, $Res Function(_$_AccountRecordInfo) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? accountKeyPairs = null,
+    Object? key = null,
+    Object? owner = null,
   }) {
-    return _then(_$_AccountOwnerInfo(
-      accountKeyPairs: null == accountKeyPairs
-          ? _value._accountKeyPairs
-          : accountKeyPairs // ignore: cast_nullable_to_non_nullable
-              as Map<String, TypedKeyPair>,
+    return _then(_$_AccountRecordInfo(
+      key: null == key
+          ? _value.key
+          : key // ignore: cast_nullable_to_non_nullable
+              as Typed<FixedEncodedString43>,
+      owner: null == owner
+          ? _value.owner
+          : owner // ignore: cast_nullable_to_non_nullable
+              as KeyPair,
     ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$_AccountOwnerInfo implements _AccountOwnerInfo {
-  const _$_AccountOwnerInfo(
-      {required final Map<String, TypedKeyPair> accountKeyPairs})
-      : _accountKeyPairs = accountKeyPairs;
+class _$_AccountRecordInfo implements _AccountRecordInfo {
+  const _$_AccountRecordInfo({required this.key, required this.owner});
 
-  factory _$_AccountOwnerInfo.fromJson(Map<String, dynamic> json) =>
-      _$$_AccountOwnerInfoFromJson(json);
+  factory _$_AccountRecordInfo.fromJson(Map<String, dynamic> json) =>
+      _$$_AccountRecordInfoFromJson(json);
 
-// Top level account keys and secrets
-  final Map<String, TypedKeyPair> _accountKeyPairs;
 // Top level account keys and secrets
   @override
-  Map<String, TypedKeyPair> get accountKeyPairs {
-    if (_accountKeyPairs is EqualUnmodifiableMapView) return _accountKeyPairs;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_accountKeyPairs);
-  }
+  final Typed<FixedEncodedString43> key;
+  @override
+  final KeyPair owner;
 
   @override
   String toString() {
-    return 'AccountOwnerInfo(accountKeyPairs: $accountKeyPairs)';
+    return 'AccountRecordInfo(key: $key, owner: $owner)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_AccountOwnerInfo &&
-            const DeepCollectionEquality()
-                .equals(other._accountKeyPairs, _accountKeyPairs));
+            other is _$_AccountRecordInfo &&
+            (identical(other.key, key) || other.key == key) &&
+            (identical(other.owner, owner) || other.owner == owner));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, const DeepCollectionEquality().hash(_accountKeyPairs));
+  int get hashCode => Object.hash(runtimeType, key, owner);
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_AccountOwnerInfoCopyWith<_$_AccountOwnerInfo> get copyWith =>
-      __$$_AccountOwnerInfoCopyWithImpl<_$_AccountOwnerInfo>(this, _$identity);
+  _$$_AccountRecordInfoCopyWith<_$_AccountRecordInfo> get copyWith =>
+      __$$_AccountRecordInfoCopyWithImpl<_$_AccountRecordInfo>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_AccountOwnerInfoToJson(
+    return _$$_AccountRecordInfoToJson(
       this,
     );
   }
 }
 
-abstract class _AccountOwnerInfo implements AccountOwnerInfo {
-  const factory _AccountOwnerInfo(
-          {required final Map<String, TypedKeyPair> accountKeyPairs}) =
-      _$_AccountOwnerInfo;
+abstract class _AccountRecordInfo implements AccountRecordInfo {
+  const factory _AccountRecordInfo(
+      {required final Typed<FixedEncodedString43> key,
+      required final KeyPair owner}) = _$_AccountRecordInfo;
 
-  factory _AccountOwnerInfo.fromJson(Map<String, dynamic> json) =
-      _$_AccountOwnerInfo.fromJson;
+  factory _AccountRecordInfo.fromJson(Map<String, dynamic> json) =
+      _$_AccountRecordInfo.fromJson;
 
   @override // Top level account keys and secrets
-  Map<String, TypedKeyPair> get accountKeyPairs;
+  Typed<FixedEncodedString43> get key;
+  @override
+  KeyPair get owner;
   @override
   @JsonKey(ignore: true)
-  _$$_AccountOwnerInfoCopyWith<_$_AccountOwnerInfo> get copyWith =>
+  _$$_AccountRecordInfoCopyWith<_$_AccountRecordInfo> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -172,7 +178,7 @@ Identity _$IdentityFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$Identity {
 // Top level account keys and secrets
-  Map<String, TypedKeyPair> get accountKeyPairs =>
+  IMap<String, ISet<AccountRecordInfo>> get accountRecords =>
       throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -186,7 +192,7 @@ abstract class $IdentityCopyWith<$Res> {
   factory $IdentityCopyWith(Identity value, $Res Function(Identity) then) =
       _$IdentityCopyWithImpl<$Res, Identity>;
   @useResult
-  $Res call({Map<String, TypedKeyPair> accountKeyPairs});
+  $Res call({IMap<String, ISet<AccountRecordInfo>> accountRecords});
 }
 
 /// @nodoc
@@ -202,13 +208,13 @@ class _$IdentityCopyWithImpl<$Res, $Val extends Identity>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? accountKeyPairs = null,
+    Object? accountRecords = null,
   }) {
     return _then(_value.copyWith(
-      accountKeyPairs: null == accountKeyPairs
-          ? _value.accountKeyPairs
-          : accountKeyPairs // ignore: cast_nullable_to_non_nullable
-              as Map<String, TypedKeyPair>,
+      accountRecords: null == accountRecords
+          ? _value.accountRecords
+          : accountRecords // ignore: cast_nullable_to_non_nullable
+              as IMap<String, ISet<AccountRecordInfo>>,
     ) as $Val);
   }
 }
@@ -220,7 +226,7 @@ abstract class _$$_IdentityCopyWith<$Res> implements $IdentityCopyWith<$Res> {
       __$$_IdentityCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({Map<String, TypedKeyPair> accountKeyPairs});
+  $Res call({IMap<String, ISet<AccountRecordInfo>> accountRecords});
 }
 
 /// @nodoc
@@ -234,13 +240,13 @@ class __$$_IdentityCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? accountKeyPairs = null,
+    Object? accountRecords = null,
   }) {
     return _then(_$_Identity(
-      accountKeyPairs: null == accountKeyPairs
-          ? _value._accountKeyPairs
-          : accountKeyPairs // ignore: cast_nullable_to_non_nullable
-              as Map<String, TypedKeyPair>,
+      accountRecords: null == accountRecords
+          ? _value.accountRecords
+          : accountRecords // ignore: cast_nullable_to_non_nullable
+              as IMap<String, ISet<AccountRecordInfo>>,
     ));
   }
 }
@@ -248,25 +254,18 @@ class __$$_IdentityCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$_Identity implements _Identity {
-  const _$_Identity({required final Map<String, TypedKeyPair> accountKeyPairs})
-      : _accountKeyPairs = accountKeyPairs;
+  const _$_Identity({required this.accountRecords});
 
   factory _$_Identity.fromJson(Map<String, dynamic> json) =>
       _$$_IdentityFromJson(json);
 
 // Top level account keys and secrets
-  final Map<String, TypedKeyPair> _accountKeyPairs;
-// Top level account keys and secrets
   @override
-  Map<String, TypedKeyPair> get accountKeyPairs {
-    if (_accountKeyPairs is EqualUnmodifiableMapView) return _accountKeyPairs;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_accountKeyPairs);
-  }
+  final IMap<String, ISet<AccountRecordInfo>> accountRecords;
 
   @override
   String toString() {
-    return 'Identity(accountKeyPairs: $accountKeyPairs)';
+    return 'Identity(accountRecords: $accountRecords)';
   }
 
   @override
@@ -274,14 +273,13 @@ class _$_Identity implements _Identity {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_Identity &&
-            const DeepCollectionEquality()
-                .equals(other._accountKeyPairs, _accountKeyPairs));
+            (identical(other.accountRecords, accountRecords) ||
+                other.accountRecords == accountRecords));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, const DeepCollectionEquality().hash(_accountKeyPairs));
+  int get hashCode => Object.hash(runtimeType, accountRecords);
 
   @JsonKey(ignore: true)
   @override
@@ -299,12 +297,13 @@ class _$_Identity implements _Identity {
 
 abstract class _Identity implements Identity {
   const factory _Identity(
-      {required final Map<String, TypedKeyPair> accountKeyPairs}) = _$_Identity;
+      {required final IMap<String, ISet<AccountRecordInfo>>
+          accountRecords}) = _$_Identity;
 
   factory _Identity.fromJson(Map<String, dynamic> json) = _$_Identity.fromJson;
 
   @override // Top level account keys and secrets
-  Map<String, TypedKeyPair> get accountKeyPairs;
+  IMap<String, ISet<AccountRecordInfo>> get accountRecords;
   @override
   @JsonKey(ignore: true)
   _$$_IdentityCopyWith<_$_Identity> get copyWith =>
