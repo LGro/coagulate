@@ -1,3 +1,4 @@
+import 'package:protobuf/protobuf.dart';
 import 'package:veilid/veilid.dart';
 import 'dart:typed_data';
 import 'tools.dart';
@@ -37,6 +38,49 @@ class DHTRecord {
         _defaultSubkey = defaultSubkey;
 
   int _subkey(int subkey) => (subkey == -1) ? _defaultSubkey : subkey;
+
+  TypedKey key() {
+    return _recordDescriptor.key;
+  }
+
+  PublicKey owner() {
+    return _recordDescriptor.owner;
+  }
+
+  KeyPair? ownerKeyPair() {
+    final ownerSecret = _recordDescriptor.ownerSecret;
+    if (ownerSecret == null) {
+      return null;
+    }
+    return KeyPair(key: _recordDescriptor.owner, secret: ownerSecret);
+  }
+
+  Future<void> close() async {
+    await _dhtctx.closeDHTRecord(_recordDescriptor.key);
+  }
+
+  Future<void> delete() async {
+    await _dhtctx.deleteDHTRecord(_recordDescriptor.key);
+  }
+
+  Future<T> scope<T>(Future<T> Function(DHTRecord) scopeFunction) async {
+    try {
+      return await scopeFunction(this);
+    } finally {
+      close();
+    }
+  }
+
+  Future<T> deleteScope<T>(Future<T> Function(DHTRecord) scopeFunction) async {
+    try {
+      return await scopeFunction(this);
+    } catch (_) {
+      delete();
+      rethrow;
+    } finally {
+      close();
+    }
+  }
 
   Future<Uint8List?> get({int subkey = -1, bool forceRefresh = false}) async {
     ValueData? valueData = await _dhtctx.getDHTValue(
@@ -101,9 +145,21 @@ class DHTRecord {
     return eventualWriteBytes(jsonEncodeBytes(newValue), subkey: subkey);
   }
 
+  Future<void> eventualWriteProtobuf<T extends GeneratedMessage>(T newValue,
+      {int subkey = -1}) {
+    return eventualWriteBytes(newValue.writeToBuffer(), subkey: subkey);
+  }
+
   Future<void> eventualUpdateJson<T>(
       T Function(Map<String, dynamic>) fromJson, Future<T> Function(T) update,
       {int subkey = -1}) {
     return eventualUpdateBytes(jsonUpdate(fromJson, update), subkey: subkey);
+  }
+
+  Future<void> eventualUpdateProtobuf<T extends GeneratedMessage>(
+      T Function(List<int>) fromBuffer, Future<T> Function(T) update,
+      {int subkey = -1}) {
+    return eventualUpdateBytes(protobufUpdate(fromBuffer, update),
+        subkey: subkey);
   }
 }

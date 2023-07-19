@@ -1,4 +1,3 @@
-// import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:veilid/veilid.dart';
 import 'dart:typed_data';
 import 'dart:convert';
@@ -26,5 +25,12 @@ Future<Uint8List> Function(Uint8List) jsonUpdate<T>(
     T Function(Map<String, dynamic>) fromJson, Future<T> Function(T) update) {
   return (Uint8List oldBytes) {
     return jsonUpdateBytes(fromJson, oldBytes, update);
+  };
+}
+
+T Function(Object?) genericFromJson<T>(
+    T Function(Map<String, dynamic>) fromJsonMap) {
+  return (Object? json) {
+    return fromJsonMap(json as Map<String, dynamic>);
   };
 }
