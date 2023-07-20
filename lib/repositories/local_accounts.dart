@@ -1,27 +1,26 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:veilid/veilid.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../tools/tools.dart';
 import '../entities/entities.dart';
 import '../entities/proto.dart' as proto;
 
-import 'local_account_repository.dart';
+part 'local_accounts.g.dart';
 
 // Local account manager
-class LocalAccountRepositoryImpl extends LocalAccountRepository {
-  IList<LocalAccount> _localAccounts;
-
+@riverpod
+abstract class LocalAccounts extends _$LocalAccounts {
   static const localAccountManagerTable = "local_account_manager";
   static const localAccountsKey = "local_accounts";
 
-  LocalAccountRepositoryImpl._({required IList<LocalAccount> localAccounts})
-      : _localAccounts = localAccounts;
-
-  /// Gets or creates a local account manager
-  static Future<LocalAccountRepository> open() async {
+  /// Get all local account information
+  @override
+  FutureOr<IList<LocalAccount>> build() async {
     // Load accounts from tabledb
     final localAccounts =
         await tableScope(localAccountManagerTable, (tdb) async {
@@ -31,19 +30,17 @@ class LocalAccountRepositoryImpl extends LocalAccountRepository {
               localAccountsJson, genericFromJson(LocalAccount.fromJson))
           : IList<LocalAccount>();
     });
-
-    return LocalAccountRepositoryImpl._(localAccounts: localAccounts);
+    return localAccounts;
   }
 
   /// Store things back to storage
-  Future<void> flush() async {
+  Future<void> flush(IList<LocalAccount> localAccounts) async {
     await tableScope(localAccountManagerTable, (tdb) async {
-      await tdb.storeStringJson(0, localAccountsKey, _localAccounts);
+      await tdb.storeStringJson(0, localAccountsKey, localAccounts);
     });
   }
 
   /// Creates a new master identity and returns it with its secrets
-  @override
   Future<IdentityMasterWithSecrets> newIdentityMaster() async {
     final crypto = await Veilid.instance.bestCryptoSystem();
     final dhtctx = (await Veilid.instance.routingContext())
@@ -94,13 +91,14 @@ class LocalAccountRepositoryImpl extends LocalAccountRepository {
   }
 
   /// Creates a new account associated with master identity
-  @override
   Future<LocalAccount> newAccount(
       IdentityMaster identityMaster,
       SecretKey identitySecret,
       EncryptionKeyType encryptionKeyType,
       String encryptionKey,
       proto.Account account) async {
+    final localAccounts = state.requireValue;
+
     // Encrypt identitySecret with key
     final cs = await Veilid.instance.bestCryptoSystem();
     final ekbytes = Uint8List.fromList(utf8.encode(encryptionKey));
@@ -152,8 +150,15 @@ class LocalAccountRepositoryImpl extends LocalAccountRepository {
     });
 
     // Add local account object to internal store
+    final newLocalAccounts = localAccounts.add(localAccount);
+    await flush(newLocalAccounts);
+    state = AsyncValue.data(newLocalAccounts);
 
     // Return local account object
     return localAccount;
   }
+
+  /// Import an account from another VeilidChat instance
+
+  /// Recover an account with the master identity secret
 }

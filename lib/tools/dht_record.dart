@@ -10,7 +10,8 @@ class DHTRecord {
 
   static Future<DHTRecord> create(VeilidRoutingContext dhtctx,
       {DHTSchema schema = const DHTSchema.dflt(oCnt: 1),
-      int defaultSubkey = 0}) async {
+      int defaultSubkey = 0,
+      DHTRecordEncryption encrypt = DHTRecordEncryption.private}) async {
     DHTRecordDescriptor recordDescriptor = await dhtctx.createDHTRecord(schema);
     return DHTRecord(
         dhtctx: dhtctx,
@@ -20,7 +21,8 @@ class DHTRecord {
 
   static Future<DHTRecord> open(
       VeilidRoutingContext dhtctx, TypedKey recordKey, KeyPair? writer,
-      {int defaultSubkey = 0}) async {
+      {int defaultSubkey = 0,
+      DHTRecordEncryption encrypt = DHTRecordEncryption.private}) async {
     DHTRecordDescriptor recordDescriptor =
         await dhtctx.openDHTRecord(recordKey, writer);
     return DHTRecord(
