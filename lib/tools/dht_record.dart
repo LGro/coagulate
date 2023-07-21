@@ -13,7 +13,6 @@ class DHTRecord {
   static Future<DHTRecord> create(VeilidRoutingContext dhtctx,
       {DHTSchema schema = const DHTSchema.dflt(oCnt: 1),
       int defaultSubkey = 0,
-      KeyPair? writer,
       DHTRecordEncryptionFactory crypto = DHTRecordEncryption.private}) async {
     DHTRecordDescriptor recordDescriptor = await dhtctx.createDHTRecord(schema);
 
@@ -21,33 +20,55 @@ class DHTRecord {
         dhtctx: dhtctx,
         recordDescriptor: recordDescriptor,
         defaultSubkey: defaultSubkey,
-        writer: writer);
-    final encryption = crypto)
+        writer: recordDescriptor.ownerKeyPair());
+
+    rec._encryption = crypto(rec);
+
+    return rec;
   }
 
-  static Future<DHTRecord> open(
-      VeilidRoutingContext dhtctx, TypedKey recordKey, KeyPair? writer,
+  static Future<DHTRecord> openRead(
+      VeilidRoutingContext dhtctx, TypedKey recordKey,
       {int defaultSubkey = 0,
-      KeyPair? writer,
-      DHTRecordEncryptionFactory encrypt = DHTRecordEncryption.private}) async {
+      DHTRecordEncryptionFactory crypto = DHTRecordEncryption.private}) async {
     DHTRecordDescriptor recordDescriptor =
-        await dhtctx.openDHTRecord(recordKey, writer);
-    return DHTRecord(
+        await dhtctx.openDHTRecord(recordKey, null);
+    final rec = DHTRecord(
         dhtctx: dhtctx,
         recordDescriptor: recordDescriptor,
-        defaultSubkey: defaultSubkey);
+        defaultSubkey: defaultSubkey,
+        writer: null);
+
+    rec._encryption = crypto(rec);
+    return rec;
+  }
+
+  static Future<DHTRecord> openWrite(
+      VeilidRoutingContext dhtctx, TypedKey recordKey, KeyPair writer,
+      {int defaultSubkey = 0,
+      DHTRecordEncryptionFactory crypto = DHTRecordEncryption.private}) async {
+    DHTRecordDescriptor recordDescriptor =
+        await dhtctx.openDHTRecord(recordKey, writer);
+    final rec = DHTRecord(
+        dhtctx: dhtctx,
+        recordDescriptor: recordDescriptor,
+        defaultSubkey: defaultSubkey,
+        writer: writer);
+    rec._encryption = crypto(rec);
+    return rec;
   }
 
   DHTRecord(
       {required VeilidRoutingContext dhtctx,
       required DHTRecordDescriptor recordDescriptor,
-      int defaultSubkey = 0, KeyPair? writer})
+      int defaultSubkey = 0,
+      KeyPair? writer})
       : _dhtctx = dhtctx,
         _recordDescriptor = recordDescriptor,
         _defaultSubkey = defaultSubkey,
         _writer = writer;
 
-  int _subkey(int subkey) => (subkey == -1) ? _defaultSubkey : subkey;
+  int subkeyOrDefault(int subkey) => (subkey == -1) ? _defaultSubkey : subkey;
 
   TypedKey key() {
     return _recordDescriptor.key;
@@ -58,11 +79,7 @@ class DHTRecord {
   }
 
   KeyPair? ownerKeyPair() {
-    final ownerSecret = _recordDescriptor.ownerSecret;
-    if (ownerSecret == null) {
-      return null;
-    }
-    return KeyPair(key: _recordDescriptor.owner, secret: ownerSecret);
+    return _recordDescriptor.ownerKeyPair();
   }
 
   KeyPair? writer() {
@@ -97,25 +114,27 @@ class DHTRecord {
   }
 
   Future<Uint8List?> get({int subkey = -1, bool forceRefresh = false}) async {
-    ValueData? valueData = await _dhtctx.getDHTValue(
-        _recordDescriptor.key, _subkey(subkey), false);
+    subkey = subkeyOrDefault(subkey);
+    ValueData? valueData =
+        await _dhtctx.getDHTValue(_recordDescriptor.key, subkey, false);
     if (valueData == null) {
       return null;
     }
-    return valueData.data;
+    return _encryption.decrypt(valueData.data, subkey);
   }
 
   Future<T?> getJson<T>(T Function(Map<String, dynamic>) fromJson,
       {int subkey = -1, bool forceRefresh = false}) async {
-    ValueData? valueData = await _dhtctx.getDHTValue(
-        _recordDescriptor.key, _subkey(subkey), false);
-    if (valueData == null) {
+    final data = await get(subkey: subkey, forceRefresh: forceRefresh);
+    if (data == null) {
       return null;
     }
-    return valueData.readJsonData(fromJson);
+    return jsonDecodeBytes(fromJson, data);
   }
 
   Future<void> eventualWriteBytes(Uint8List newValue, {int subkey = -1}) async {
+    subkey = subkeyOrDefault(subkey);
+    newValue = await _encryption.encrypt(newValue, subkey);
     // Get existing identity key
     ValueData? valueData;
     do {
@@ -125,8 +144,8 @@ class DHTRecord {
       }
 
       // Set the new data
-      valueData = await _dhtctx.setDHTValue(
-          _recordDescriptor.key, _subkey(subkey), newValue);
+      valueData =
+          await _dhtctx.setDHTValue(_recordDescriptor.key, subkey, newValue);
 
       // Repeat if newer data on the network was found
     } while (valueData != null);
@@ -135,9 +154,10 @@ class DHTRecord {
   Future<void> eventualUpdateBytes(
       Future<Uint8List> Function(Uint8List oldValue) update,
       {int subkey = -1}) async {
+    subkey = subkeyOrDefault(subkey);
     // Get existing identity key
-    ValueData? valueData = await _dhtctx.getDHTValue(
-        _recordDescriptor.key, _subkey(subkey), false);
+    ValueData? valueData =
+        await _dhtctx.getDHTValue(_recordDescriptor.key, subkey, false);
     do {
       // Ensure it exists already
       if (valueData == null) {
@@ -145,11 +165,13 @@ class DHTRecord {
       }
 
       // Update the data
-      final newData = await update(valueData.data);
+      final oldData = await _encryption.decrypt(valueData.data, subkey);
+      final updatedData = await update(oldData);
+      final newData = await _encryption.encrypt(updatedData, subkey);
 
       // Set it back
-      valueData = await _dhtctx.setDHTValue(
-          _recordDescriptor.key, _subkey(subkey), newData);
+      valueData =
+          await _dhtctx.setDHTValue(_recordDescriptor.key, subkey, newData);
 
       // Repeat if newer data on the network was found
     } while (valueData != null);

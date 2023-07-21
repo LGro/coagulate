@@ -2,10 +2,9 @@ import 'package:veilid/veilid.dart';
 import 'dart:typed_data';
 import 'dart:convert';
 
-extension FromValueDataJsonExt on ValueData {
-  T readJsonData<T>(T Function(Map<String, dynamic>) fromJson) {
-    return fromJson(jsonDecode(utf8.decode(data)));
-  }
+T jsonDecodeBytes<T>(
+    T Function(Map<String, dynamic>) fromJson, Uint8List data) {
+  return fromJson(jsonDecode(utf8.decode(data)));
 }
 
 Uint8List jsonEncodeBytes(Object? object,
