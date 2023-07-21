@@ -7,22 +7,29 @@ class DHTRecord {
   final VeilidRoutingContext _dhtctx;
   final DHTRecordDescriptor _recordDescriptor;
   final int _defaultSubkey;
+  final KeyPair? _writer;
+  late final DHTRecordEncryption _encryption;
 
   static Future<DHTRecord> create(VeilidRoutingContext dhtctx,
       {DHTSchema schema = const DHTSchema.dflt(oCnt: 1),
       int defaultSubkey = 0,
-      DHTRecordEncryption encrypt = DHTRecordEncryption.private}) async {
+      KeyPair? writer,
+      DHTRecordEncryptionFactory crypto = DHTRecordEncryption.private}) async {
     DHTRecordDescriptor recordDescriptor = await dhtctx.createDHTRecord(schema);
-    return DHTRecord(
+
+    final rec = DHTRecord(
         dhtctx: dhtctx,
         recordDescriptor: recordDescriptor,
-        defaultSubkey: defaultSubkey);
+        defaultSubkey: defaultSubkey,
+        writer: writer);
+    final encryption = crypto)
   }
 
   static Future<DHTRecord> open(
       VeilidRoutingContext dhtctx, TypedKey recordKey, KeyPair? writer,
       {int defaultSubkey = 0,
-      DHTRecordEncryption encrypt = DHTRecordEncryption.private}) async {
+      KeyPair? writer,
+      DHTRecordEncryptionFactory encrypt = DHTRecordEncryption.private}) async {
     DHTRecordDescriptor recordDescriptor =
         await dhtctx.openDHTRecord(recordKey, writer);
     return DHTRecord(
@@ -34,10 +41,11 @@ class DHTRecord {
   DHTRecord(
       {required VeilidRoutingContext dhtctx,
       required DHTRecordDescriptor recordDescriptor,
-      int defaultSubkey = 0})
+      int defaultSubkey = 0, KeyPair? writer})
       : _dhtctx = dhtctx,
         _recordDescriptor = recordDescriptor,
-        _defaultSubkey = defaultSubkey;
+        _defaultSubkey = defaultSubkey,
+        _writer = writer;
 
   int _subkey(int subkey) => (subkey == -1) ? _defaultSubkey : subkey;
 
@@ -55,6 +63,10 @@ class DHTRecord {
       return null;
     }
     return KeyPair(key: _recordDescriptor.owner, secret: ownerSecret);
+  }
+
+  KeyPair? writer() {
+    return _writer;
   }
 
   Future<void> close() async {

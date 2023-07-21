@@ -4,6 +4,8 @@ import 'package:veilid/veilid.dart';
 import 'dart:typed_data';
 import 'tools.dart';
 
+typedef DHTRecordEncryptionFactory = DHTRecordEncryption Function();
+
 abstract class DHTRecordEncryption {
   factory DHTRecordEncryption.private() {
     return DHTRecordEncryptionPrivate();
@@ -16,6 +18,8 @@ abstract class DHTRecordEncryption {
   FutureOr<Uint8List> decrypt(Uint8List data);
 }
 
+////////////////////////////////////
+/// Private DHT Record: Encrypted with the owner's secret key
 class DHTRecordEncryptionPrivate implements DHTRecordEncryption {
   DHTRecordEncryptionPrivate() {
     //
@@ -32,6 +36,8 @@ class DHTRecordEncryptionPrivate implements DHTRecordEncryption {
   }
 }
 
+////////////////////////////////////
+/// Public DHT Record: No encryption
 class DHTRecordEncryptionPublic implements DHTRecordEncryption {
   DHTRecordEncryptionPublic() {
     //
