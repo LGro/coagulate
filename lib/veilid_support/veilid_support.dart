@@ -1,5 +1,8 @@
 export 'config.dart';
 export 'processor.dart';
-export 'tools.dart';
 export 'veilid_log.dart';
 export 'init.dart';
+export 'dht_record.dart';
+export 'dht_record_crypto.dart';
+export 'table_db.dart';
+export 'identity_master.dart';

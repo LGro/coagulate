@@ -3,7 +3,7 @@ import 'package:veilid/veilid.dart';
 import 'config.dart';
 import 'veilid_log.dart';
 import '../log/log.dart';
-import '../state/state.dart';
+import '../providers/providers.dart';
 
 class Processor {
   String _veilidVersion = "";

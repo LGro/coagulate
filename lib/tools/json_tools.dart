@@ -1,4 +1,3 @@
-import 'package:veilid/veilid.dart';
 import 'dart:typed_data';
 import 'dart:convert';
 

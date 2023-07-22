@@ -28,3 +28,25 @@ Future<T> transactionScope<T>(
     }
   }
 }
+
+abstract mixin class AsyncTableDBBacked<T> {
+  String tableName();
+  String tableKeyName();
+  T reviveJson(Object? obj);
+
+  /// Load things from storage
+  Future<T> load() async {
+    final obj = await tableScope(tableName(), (tdb) async {
+      final objJson = await tdb.loadStringJson(0, tableKeyName());
+      return reviveJson(objJson);
+    });
+    return obj;
+  }
+
+  /// Store things to storage
+  Future<void> store(T obj) async {
+    await tableScope(tableName(), (tdb) async {
+      await tdb.storeStringJson(0, tableKeyName(), obj);
+    });
+  }
+}

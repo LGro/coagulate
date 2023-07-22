@@ -11,7 +11,7 @@ part 'user_login.g.dart';
 @freezed
 class UserLogin with _$UserLogin {
   const factory UserLogin({
-    // Master public key for the user used to index the local accounts table
+    // Master record key for the user used to index the local accounts table
     required TypedKey accountMasterKey,
     // The identity secret as unlocked from the local accounts table
     required TypedSecret secretKey,
@@ -30,7 +30,7 @@ class ActiveLogins with _$ActiveLogins {
   const factory ActiveLogins({
     // The list of current logged in accounts
     required IList<UserLogin> userLogins,
-    // The current selected account indexed by master key
+    // The current selected account indexed by master record key
     TypedKey? activeUserLogin,
   }) = _ActiveLogins;
 
