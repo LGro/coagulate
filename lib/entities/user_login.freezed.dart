@@ -21,7 +21,7 @@ UserLogin _$UserLoginFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$UserLogin {
 // Master record key for the user used to index the local accounts table
-  Typed<FixedEncodedString43> get accountMasterRecordKey =>
+  Typed<FixedEncodedString43> get accountMasterKey =>
       throw _privateConstructorUsedError; // The identity secret as unlocked from the local accounts table
   Typed<FixedEncodedString43> get secretKey =>
       throw _privateConstructorUsedError; // The time this login was most recently used
@@ -63,7 +63,7 @@ class _$UserLoginCopyWithImpl<$Res, $Val extends UserLogin>
   }) {
     return _then(_value.copyWith(
       accountMasterKey: null == accountMasterKey
-          ? _value.accountMasterRecordKey
+          ? _value.accountMasterKey
           : accountMasterKey // ignore: cast_nullable_to_non_nullable
               as Typed<FixedEncodedString43>,
       secretKey: null == secretKey
@@ -107,8 +107,8 @@ class __$$_UserLoginCopyWithImpl<$Res>
     Object? lastActive = null,
   }) {
     return _then(_$_UserLogin(
-      accountMasterRecordKey: null == accountMasterKey
-          ? _value.accountMasterRecordKey
+      accountMasterKey: null == accountMasterKey
+          ? _value.accountMasterKey
           : accountMasterKey // ignore: cast_nullable_to_non_nullable
               as Typed<FixedEncodedString43>,
       secretKey: null == secretKey
@@ -127,7 +127,7 @@ class __$$_UserLoginCopyWithImpl<$Res>
 @JsonSerializable()
 class _$_UserLogin implements _UserLogin {
   const _$_UserLogin(
-      {required this.accountMasterRecordKey,
+      {required this.accountMasterKey,
       required this.secretKey,
       required this.lastActive});
 
@@ -136,7 +136,7 @@ class _$_UserLogin implements _UserLogin {
 
 // Master record key for the user used to index the local accounts table
   @override
-  final Typed<FixedEncodedString43> accountMasterRecordKey;
+  final Typed<FixedEncodedString43> accountMasterKey;
 // The identity secret as unlocked from the local accounts table
   @override
   final Typed<FixedEncodedString43> secretKey;
@@ -146,7 +146,7 @@ class _$_UserLogin implements _UserLogin {
 
   @override
   String toString() {
-    return 'UserLogin(accountMasterKey: $accountMasterRecordKey, secretKey: $secretKey, lastActive: $lastActive)';
+    return 'UserLogin(accountMasterKey: $accountMasterKey, secretKey: $secretKey, lastActive: $lastActive)';
   }
 
   @override
@@ -154,8 +154,8 @@ class _$_UserLogin implements _UserLogin {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_UserLogin &&
-            (identical(other.accountMasterRecordKey, accountMasterRecordKey) ||
-                other.accountMasterRecordKey == accountMasterRecordKey) &&
+            (identical(other.accountMasterKey, accountMasterKey) ||
+                other.accountMasterKey == accountMasterKey) &&
             (identical(other.secretKey, secretKey) ||
                 other.secretKey == secretKey) &&
             (identical(other.lastActive, lastActive) ||
@@ -165,7 +165,7 @@ class _$_UserLogin implements _UserLogin {
   @JsonKey(ignore: true)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, accountMasterRecordKey, secretKey, lastActive);
+      Object.hash(runtimeType, accountMasterKey, secretKey, lastActive);
 
   @JsonKey(ignore: true)
   @override
@@ -191,7 +191,7 @@ abstract class _UserLogin implements UserLogin {
       _$_UserLogin.fromJson;
 
   @override // Master record key for the user used to index the local accounts table
-  Typed<FixedEncodedString43> get accountMasterRecordKey;
+  Typed<FixedEncodedString43> get accountMasterKey;
   @override // The identity secret as unlocked from the local accounts table
   Typed<FixedEncodedString43> get secretKey;
   @override // The time this login was most recently used

@@ -7,7 +7,7 @@ part of 'user_login.dart';
 // **************************************************************************
 
 _$_UserLogin _$$_UserLoginFromJson(Map<String, dynamic> json) => _$_UserLogin(
-      accountMasterRecordKey:
+      accountMasterKey:
           Typed<FixedEncodedString43>.fromJson(json['account_master_key']),
       secretKey: Typed<FixedEncodedString43>.fromJson(json['secret_key']),
       lastActive: Timestamp.fromJson(json['last_active']),
@@ -15,7 +15,7 @@ _$_UserLogin _$$_UserLoginFromJson(Map<String, dynamic> json) => _$_UserLogin(
 
 Map<String, dynamic> _$$_UserLoginToJson(_$_UserLogin instance) =>
     <String, dynamic>{
-      'account_master_key': instance.accountMasterRecordKey.toJson(),
+      'account_master_key': instance.accountMasterKey.toJson(),
       'secret_key': instance.secretKey.toJson(),
       'last_active': instance.lastActive.toJson(),
     };
