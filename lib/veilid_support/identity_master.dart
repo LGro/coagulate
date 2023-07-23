@@ -6,8 +6,9 @@ import 'veilid_support.dart';
 
 /// Creates a new master identity and returns it with its secrets
 Future<IdentityMasterWithSecrets> newIdentityMaster() async {
-  final crypto = await Veilid.instance.bestCryptoSystem();
-  final dhtctx = (await Veilid.instance.routingContext())
+  final veilid = await eventualVeilid.future;
+  final crypto = await veilid.bestCryptoSystem();
+  final dhtctx = (await veilid.routingContext())
       .withPrivacy()
       .withSequencing(Sequencing.ensureOrdered);
 

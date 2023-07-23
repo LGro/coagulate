@@ -10,6 +10,7 @@ import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import '../entities/entities.dart';
 import '../entities/proto.dart' as proto;
+import 'logins.dart';
 
 part 'local_accounts.g.dart';
 
@@ -38,58 +39,15 @@ class LocalAccounts extends _$LocalAccounts
   //////////////////////////////////////////////////////////////
   /// Mutators and Selectors
 
-  /// Creates a new master identity and returns it with its secrets
-  Future<IdentityMasterWithSecrets> newIdentityMaster() async {
-    final crypto = await Veilid.instance.bestCryptoSystem();
-    final dhtctx = (await Veilid.instance.routingContext())
-        .withPrivacy()
-        .withSequencing(Sequencing.ensureOrdered);
-
-    // IdentityMaster DHT record is public/unencrypted
-    return (await DHTRecord.create(dhtctx,
-            crypto: const DHTRecordCryptoPublic()))
-        .deleteScope((masterRec) async {
-      // Identity record is private
-      return (await DHTRecord.create(dhtctx)).deleteScope((identityRec) async {
-        // Make IdentityMaster
-        final masterRecordKey = masterRec.key();
-        final masterOwner = masterRec.ownerKeyPair()!;
-        final masterSigBuf = masterRecordKey.decode()
-          ..addAll(masterOwner.key.decode());
-
-        final identityRecordKey = identityRec.key();
-        final identityOwner = identityRec.ownerKeyPair()!;
-        final identitySigBuf = identityRecordKey.decode()
-          ..addAll(identityOwner.key.decode());
-
-        final identitySignature =
-            await crypto.signWithKeyPair(masterOwner, identitySigBuf);
-        final masterSignature =
-            await crypto.signWithKeyPair(identityOwner, masterSigBuf);
-
-        final identityMaster = IdentityMaster(
-            identityRecordKey: identityRecordKey,
-            identityPublicKey: identityOwner.key,
-            masterRecordKey: masterRecordKey,
-            masterPublicKey: masterOwner.key,
-            identitySignature: identitySignature,
-            masterSignature: masterSignature);
-
-        // Write identity master to master dht key
-        await masterRec.eventualWriteJson(identityMaster);
-
-        // Make empty identity
-        const identity = Identity(accountRecords: IMapConst({}));
-
-        // Write empty identity to identity dht key
-        await identityRec.eventualWriteJson(identity);
-
-        return IdentityMasterWithSecrets(
-            identityMaster: identityMaster,
-            masterSecret: masterOwner.secret,
-            identitySecret: identityOwner.secret);
-      });
-    });
+  /// Reorder accounts
+  Future<void> reorderAccount(int oldIndex, int newIndex) async {
+    final localAccounts = state.requireValue;
+    var removedItem = Output<LocalAccount>();
+    final updated = localAccounts
+        .removeAt(oldIndex, removedItem)
+        .insert(newIndex, removedItem.value!);
+    await store(updated);
+    state = AsyncValue.data(updated);
   }
 
   /// Creates a new account associated with master identity
@@ -99,6 +57,7 @@ class LocalAccounts extends _$LocalAccounts
       EncryptionKeyType encryptionKeyType,
       String encryptionKey,
       proto.Account account) async {
+    final veilid = await eventualVeilid.future;
     final localAccounts = state.requireValue;
 
     // Encrypt identitySecret with key
@@ -111,8 +70,8 @@ class LocalAccounts extends _$LocalAccounts
         identitySecretSaltBytes = Uint8List(0);
       case EncryptionKeyType.pin:
       case EncryptionKeyType.password:
-        final cs = await Veilid.instance
-            .getCryptoSystem(identityMaster.identityRecordKey.kind);
+        final cs =
+            await veilid.getCryptoSystem(identityMaster.identityRecordKey.kind);
         final ekbytes = Uint8List.fromList(utf8.encode(encryptionKey));
         final nonce = await cs.randomNonce();
         identitySecretSaltBytes = nonce.decode();
@@ -135,7 +94,7 @@ class LocalAccounts extends _$LocalAccounts
     /////// Add account with profile to DHT
 
     // Create private routing context
-    final dhtctx = (await Veilid.instance.routingContext())
+    final dhtctx = (await veilid.routingContext())
         .withPrivacy()
         .withSequencing(Sequencing.ensureOrdered);
 
@@ -169,6 +128,22 @@ class LocalAccounts extends _$LocalAccounts
 
     // Return local account object
     return localAccount;
+  }
+
+  /// Remove an account and wipe the messages for this account from this device
+  Future<bool> deleteAccount(TypedKey accountMasterRecordKey) async {
+    final logins = ref.read(loginsProvider.notifier);
+    await logins.logout(accountMasterRecordKey);
+
+    final localAccounts = state.requireValue;
+    final updated = localAccounts.removeWhere(
+        (la) => la.identityMaster.masterRecordKey == accountMasterRecordKey);
+    await store(updated);
+    state = AsyncValue.data(updated);
+
+    // xxx todo: wipe messages
+
+    return true;
   }
 
   /// Import an account from another VeilidChat instance

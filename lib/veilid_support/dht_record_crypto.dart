@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:veilid/veilid.dart';
 import 'dart:typed_data';
 
+import 'veilid_init.dart';
+
 abstract class DHTRecordCrypto {
   FutureOr<Uint8List> encrypt(Uint8List data, int subkey);
   FutureOr<Uint8List> decrypt(Uint8List data, int subkey);
@@ -21,15 +23,16 @@ class DHTRecordCryptoPrivate implements DHTRecordCrypto {
 
   static Future<DHTRecordCryptoPrivate> fromTypedKeyPair(
       TypedKeyPair typedKeyPair) async {
-    final cryptoSystem =
-        await Veilid.instance.getCryptoSystem(typedKeyPair.kind);
+    final veilid = await eventualVeilid.future;
+    final cryptoSystem = await veilid.getCryptoSystem(typedKeyPair.kind);
     final secretKey = typedKeyPair.secret;
     return DHTRecordCryptoPrivate._(cryptoSystem, secretKey);
   }
 
   static Future<DHTRecordCryptoPrivate> fromSecret(
       CryptoKind kind, SharedSecret secretKey) async {
-    final cryptoSystem = await Veilid.instance.getCryptoSystem(kind);
+    final veilid = await eventualVeilid.future;
+    final cryptoSystem = await veilid.getCryptoSystem(kind);
     return DHTRecordCryptoPrivate._(cryptoSystem, secretKey);
   }
 

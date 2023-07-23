@@ -3,56 +3,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../pages/pages.dart';
-import '../state/active_logins_state.dart';
+import '../providers/logins.dart';
 
-/// This notifier is meant to implement the [Listenable] our [GoRouter] needs.
-///
-/// We aim to trigger redirects whenever's needed.
-/// This is done by calling our (only) listener everytime we want to notify stuff.
-/// This allows to centralize global redirecting logic in this class.
-/// In this simple case, we just listen to auth changes.
-///
-/// SIDE NOTE.
-/// This might look overcomplicated at a first glance;
-/// Instead, this method aims to follow some good some good practices:
-///   1. It doesn't require us to pipe down any `ref` parameter
-///   2. It works as a complete replacement for [ChangeNotifier] (it's a [Listenable] implementation)
-///   3. It allows for listening to multiple providers if needed (we do have a [Ref] now!)
 class RouterNotifier extends AutoDisposeAsyncNotifier<void>
     implements Listenable {
+  /// GoRouter listener
   VoidCallback? routerListener;
-  bool isAuth = false; // Useful for our global redirect function
 
+  /// Router state for redirect
+  bool hasActiveUserLogin = false;
+
+  /// AsyncNotifier build
   @override
   Future<void> build() async {
-    // One could watch more providers and write logic accordingly
-
-    isAuth = await ref.watch(
-      authNotifierProvider.selectAsync((data) => data != null),
+    hasActiveUserLogin = await ref.watch(
+      loginsProvider.selectAsync((data) => data.activeUserLogin != null),
     );
 
+    // When this notifier's state changes, inform GoRouter
     ref.listenSelf((_, __) {
-      // One could write more conditional logic for when to call redirection
       if (state.isLoading) return;
       routerListener?.call();
     });
   }
 
-  /// Redirects the user when our authentication changes
+  /// Redirects when our state changes
   String? redirect(BuildContext context, GoRouterState state) {
     if (this.state.isLoading || this.state.hasError) return null;
 
-    final isIndex = state.location == IndexPage.path;
-    if (isIndex) {
-      return isAuth ? HomePage.path : LoginPage.path;
+    switch (state.location) {
+      case IndexPage.path:
+        return hasActiveUserLogin ? HomePage.path : LoginPage.path;
+      case LoginPage.path:
+        return hasActiveUserLogin ? HomePage.path : null;
+      default:
+        return hasActiveUserLogin ? null : LoginPage.path;
     }
-
-    final isLoggingIn = state.location == LoginPage.path;
-    if (isLoggingIn) {
-      return isAuth ? HomePage.path : null;
-    }
-
-    return isAuth ? null : IndexPage.path;
   }
 
   /// Our application routes
@@ -102,6 +88,9 @@ class RouterNotifier extends AutoDisposeAsyncNotifier<void>
           builder: (context, state) => const NewAccountPage(),
         ),
       ];
+
+  ///////////////////////////////////////////////////////////////////////////
+  /// Listenable
 
   /// Adds [GoRouter]'s listener as specified by its [Listenable].
   /// [GoRouteInformationProvider] uses this method on creation to handle its

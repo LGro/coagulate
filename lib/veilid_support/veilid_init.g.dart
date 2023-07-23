@@ -1,25 +1,24 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'local_accounts.dart';
+part of 'veilid_init.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$localAccountsHash() => r'694236fa91156c00b3f7d6985fbc55b8871646ab';
+String _$veilidInstanceHash() => r'6086fc1e7a83e7af81ee05ee84954507d38cb748';
 
-/// See also [LocalAccounts].
-@ProviderFor(LocalAccounts)
-final localAccountsProvider = AutoDisposeAsyncNotifierProvider<LocalAccounts,
-    IList<LocalAccount>>.internal(
-  LocalAccounts.new,
-  name: r'localAccountsProvider',
+/// See also [veilidInstance].
+@ProviderFor(veilidInstance)
+final veilidInstanceProvider = AutoDisposeFutureProvider<Veilid>.internal(
+  veilidInstance,
+  name: r'veilidInstanceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$localAccountsHash,
+      : _$veilidInstanceHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$LocalAccounts = AutoDisposeAsyncNotifier<IList<LocalAccount>>;
+typedef VeilidInstanceRef = AutoDisposeFutureProviderRef<Veilid>;
 // ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions

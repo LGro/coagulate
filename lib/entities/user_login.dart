@@ -12,9 +12,9 @@ part 'user_login.g.dart';
 class UserLogin with _$UserLogin {
   const factory UserLogin({
     // Master record key for the user used to index the local accounts table
-    required TypedKey accountMasterKey,
+    required TypedKey accountMasterRecordKey,
     // The identity secret as unlocked from the local accounts table
-    required TypedSecret secretKey,
+    required TypedSecret identitySecret,
     // The time this login was most recently used
     required Timestamp lastActive,
   }) = _UserLogin;

@@ -25,6 +25,7 @@ class VeilidChatApp extends ConsumerWidget {
         return LocalizationProvider(
             state: LocalizationProvider.of(context).state,
             child: MaterialApp.router(
+              debugShowCheckedModeBanner: false,
               routerConfig: router,
               title: 'VeilidChat',
               theme: theme,

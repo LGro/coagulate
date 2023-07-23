@@ -1,7 +1,13 @@
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:veilid/veilid.dart';
 import 'package:flutter/foundation.dart';
 import 'processor.dart';
 import 'veilid_log.dart';
+
+part 'veilid_init.g.dart';
 
 Future<String> getVeilidVersion() async {
   String veilidVersion;
@@ -45,11 +51,12 @@ void _initVeilid() {
   }
 }
 
-bool initialized = false;
+Completer<Veilid> eventualVeilid = Completer<Veilid>();
 Processor processor = Processor();
 
 Future<void> initializeVeilid() async {
-  if (initialized) {
+  // Ensure this runs only once
+  if (eventualVeilid.isCompleted) {
     return;
   }
 
@@ -62,5 +69,12 @@ Future<void> initializeVeilid() async {
   // Startup Veilid
   await processor.startup();
 
-  initialized = true;
+  // Share the initialized veilid instance to the rest of the app
+  eventualVeilid.complete(Veilid.instance);
+}
+
+// Expose the Veilid instance as a FutureProvider
+@riverpod
+FutureOr<Veilid> veilidInstance(VeilidInstanceRef ref) async {
+  return await eventualVeilid.future;
 }

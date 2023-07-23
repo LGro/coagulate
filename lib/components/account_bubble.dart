@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:reorderable_grid/reorderable_grid.dart';
+import 'package:user_profile_avatar/user_profile_avatar.dart';
 
 import '../providers/local_accounts.dart';
 import '../providers/logins.dart';
 
-class LoginPage extends ConsumerWidget {
-  const LoginPage({super.key});
-  static const path = '/login';
+class AccountBubble extends ConsumerWidget {
+  const AccountBubble({super.key});
 
   void _onReorder(WidgetRef ref, int oldIndex, int newIndex) {
     final accounts = ref.read(localAccountsProvider.notifier);

@@ -24,6 +24,8 @@ class Processor {
       _veilidVersion = 'Failed to get veilid version.';
     }
 
+    log.info("Veilid version: $_veilidVersion");
+
     // In case of hot restart shut down first
     try {
       await Veilid.instance.shutdownVeilidCore();
