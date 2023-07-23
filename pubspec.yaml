@@ -42,7 +42,8 @@ dependencies:
   window_manager: ^0.3.5
   flutter_svg: ^2.0.7
   reorderable_grid: ^1.0.7
-  user_profile_avatar: ^0.1.2
+  circular_profile_avatar: ^2.0.5
+  badges: ^3.1.1
 
 dev_dependencies:
   flutter_test:

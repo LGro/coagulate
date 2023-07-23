@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:reorderable_grid/reorderable_grid.dart';
 
+import '../components/account_bubble.dart';
 import '../providers/local_accounts.dart';
 import '../providers/logins.dart';
 
@@ -52,8 +53,8 @@ class LoginPage extends ConsumerWidget {
                       onReorder: (oldIndex, newIndex) =>
                           _onReorder(ref, oldIndex, newIndex),
                       children: accountList.map((account) {
-                        return AccountBubble(account);
-                      }),
+                        return AccountBubble(account: account);
+                      }).toList(),
                     )),
             const Spacer(),
           ],
