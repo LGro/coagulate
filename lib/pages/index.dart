@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:radix_colors/radix_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:window_manager/window_manager.dart';
+
+import '../tools/desktop_control.dart';
 
 class IndexPage extends StatelessWidget {
   const IndexPage({super.key});
@@ -9,7 +10,7 @@ class IndexPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+    enableTitleBar(false);
     return Scaffold(
         body: DecoratedBox(
       decoration: BoxDecoration(

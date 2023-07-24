@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../pages/pages.dart';
-import '../providers/logins.dart';
+import '../providers/local_accounts.dart';
 
-class RouterNotifier extends AutoDisposeAsyncNotifier<void>
-    implements Listenable {
+part 'router_notifier.g.dart';
+
+@riverpod
+class RouterNotifier extends _$RouterNotifier implements Listenable {
   /// GoRouter listener
   VoidCallback? routerListener;
 
-  /// Router state for redirect
-  bool hasActiveUserLogin = false;
+  /// Do we need to make or import an account immediately?
+  bool hasAnyAccount = false;
 
   /// AsyncNotifier build
   @override
   Future<void> build() async {
-    hasActiveUserLogin = await ref.watch(
-      loginsProvider.selectAsync((data) => data.activeUserLogin != null),
+    hasAnyAccount = await ref.watch(
+      localAccountsProvider.selectAsync((data) => data.isNotEmpty),
     );
 
     // When this notifier's state changes, inform GoRouter
@@ -33,11 +35,9 @@ class RouterNotifier extends AutoDisposeAsyncNotifier<void>
 
     switch (state.location) {
       case IndexPage.path:
-        return hasActiveUserLogin ? HomePage.path : LoginPage.path;
-      case LoginPage.path:
-        return hasActiveUserLogin ? HomePage.path : null;
+        return hasAnyAccount ? HomePage.path : NewAccountPage.path;
       default:
-        return hasActiveUserLogin ? null : LoginPage.path;
+        return hasAnyAccount ? null : NewAccountPage.path;
     }
   }
 
@@ -50,38 +50,6 @@ class RouterNotifier extends AutoDisposeAsyncNotifier<void>
         GoRoute(
           path: HomePage.path,
           builder: (context, state) => const HomePage(),
-          // redirect: (context, state) async {
-          //   if (state.location == HomePage.path) return null;
-
-          //   // final roleListener = ProviderScope.containerOf(context).listen(
-          //   //   permissionsProvider.select((value) => value.valueOrNull),
-          //   //   (previous, next) {},
-          //   // );
-
-          //   // final userRole = roleListener.read();
-          //   // final redirectTo = userRole?.redirectBasedOn(state.location);
-
-          //   // roleListener.close();
-          //   // return redirectTo;
-          // },
-          // routes: [
-          //   GoRoute(
-          //     path: AdminPage.path,
-          //     builder: (context, state) => const AdminPage(),
-          //   ),
-          //   GoRoute(
-          //     path: UserPage.path,
-          //     builder: (context, state) => const UserPage(),
-          //   ),
-          //   GoRoute(
-          //     path: GuestPage.path,
-          //     builder: (context, state) => const GuestPage(),
-          //   )
-          // ]
-        ),
-        GoRoute(
-          path: LoginPage.path,
-          builder: (context, state) => const LoginPage(),
         ),
         GoRoute(
           path: NewAccountPage.path,
@@ -112,27 +80,3 @@ class RouterNotifier extends AutoDisposeAsyncNotifier<void>
     routerListener = null;
   }
 }
-
-final routerNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<RouterNotifier, void>(() {
-  return RouterNotifier();
-});
-
-/// A simple extension to determine wherever should we redirect our users
-// extension RedirecttionBasedOnRole on UserRole {
-//   /// Redirects the users based on [this] and its current [location]
-//   String? redirectBasedOn(String location) {
-//     switch (this) {
-//       case UserRole.admin:
-//         return null;
-//       case UserRole.verifiedUser:
-//       case UserRole.unverifiedUser:
-//         if (location == AdminPage.path) return HomePage.path;
-//         return null;
-//       case UserRole.guest:
-//       case UserRole.none:
-//         if (location != HomePage.path) return HomePage.path;
-//         return null;
-//     }
-//   }
-// }

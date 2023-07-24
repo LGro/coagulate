@@ -4,13 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'log/log.dart';
 import 'veilid_support/veilid_support.dart';
 import 'theming/theming.dart';
 import 'app.dart';
 import 'dart:io';
+
+import '../tools/desktop_control.dart';
 
 void main() async {
   // Disable all debugprints in release mode
@@ -32,21 +33,7 @@ void main() async {
   var initTheme = themeService.initial;
 
   // Manage window on desktop platforms
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    await windowManager.ensureInitialized();
-
-    const windowOptions = WindowOptions(
-      size: Size(768, 1024),
-      center: true,
-      backgroundColor: Colors.transparent,
-      skipTaskbar: false,
-      titleBarStyle: TitleBarStyle.hidden,
-    );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.show();
-      await windowManager.focus();
-    });
-  }
+  await setupDesktopWindow();
 
   // Make localization delegate
   var delegate = await LocalizationDelegate.create(

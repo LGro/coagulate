@@ -44,6 +44,7 @@ dependencies:
   reorderable_grid: ^1.0.7
   circular_profile_avatar: ^2.0.5
   badges: ^3.1.1
+  awesome_extensions: ^2.0.9
 
 dev_dependencies:
   flutter_test:
@@ -53,14 +54,36 @@ dev_dependencies:
   freezed: ^2.3.5
   json_serializable: ^6.7.1
   riverpod_generator: ^2.2.3
+  flutter_launcher_icons: "^0.13.1"
+
+flutter_launcher_icons:
+  image_path: "assets/launcher/icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  min_sdk_android: 24 # android min sdk min:16, default 21
+  web:
+    generate: true
+    background_color: "#33183f"
+    theme_color: "#863fa6"
+  windows:
+    generate: true
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
 
 flutter:
   uses-material-design: true
   assets:
+    # Translations
     - assets/i18n/en.json
+    # Launcher icon
+    - assets/launcher/icon.png
+    # Images
     - assets/images/splash.svg
     - assets/images/icon.svg
     - assets/images/title.svg
+    - assets/images/vlogo.svg
     
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

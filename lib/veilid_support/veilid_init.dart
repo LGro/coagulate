@@ -43,7 +43,7 @@ void _initVeilid() {
             otlp: VeilidFFIConfigLoggingOtlp(
                 enabled: false,
                 level: VeilidConfigLogLevel.trace,
-                grpcEndpoint: "localhost:4317",
+                grpcEndpoint: "192.168.1.40:4317",
                 serviceName: "VeilidChat"),
             api: VeilidFFIConfigLoggingApi(
                 enabled: true, level: VeilidConfigLogLevel.info)));

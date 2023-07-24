@@ -1,25 +1,25 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'local_accounts.dart';
+part of 'router_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$localAccountsHash() => r'1faa6b22284a402e4f47b2629e54a39ffda9a4ad';
+String _$routerNotifierHash() => r'00de1dd715945e96b49507ea55d7b97a78366adc';
 
-/// See also [LocalAccounts].
-@ProviderFor(LocalAccounts)
-final localAccountsProvider = AutoDisposeAsyncNotifierProvider<LocalAccounts,
-    IList<LocalAccount>>.internal(
-  LocalAccounts.new,
-  name: r'localAccountsProvider',
+/// See also [RouterNotifier].
+@ProviderFor(RouterNotifier)
+final routerNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<RouterNotifier, void>.internal(
+  RouterNotifier.new,
+  name: r'routerNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$localAccountsHash,
+      : _$routerNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$LocalAccounts = AutoDisposeAsyncNotifier<IList<LocalAccount>>;
+typedef _$RouterNotifier = AutoDisposeAsyncNotifier<void>;
 // ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions

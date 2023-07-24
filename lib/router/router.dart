@@ -5,12 +5,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../pages/pages.dart';
 import 'router_notifier.dart';
 
+part 'router.g.dart';
+
 final _key = GlobalKey<NavigatorState>(debugLabel: 'routerKey');
 
 /// This simple provider caches our GoRouter.
-final routerProvider = Provider.autoDispose<GoRouter>((ref) {
+@riverpod
+GoRouter router(RouterRef ref) {
   final notifier = ref.watch(routerNotifierProvider.notifier);
-
   return GoRouter(
     navigatorKey: _key,
     refreshListenable: notifier,
@@ -19,4 +21,4 @@ final routerProvider = Provider.autoDispose<GoRouter>((ref) {
     routes: notifier.routes,
     redirect: notifier.redirect,
   );
-});
+}

@@ -39,26 +39,29 @@ class LoginPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Spacer(),
-            accounts.when(
-                error: (obj, err) => Text("error loading accounts: $err"),
-                loading: () => CircularProgressIndicator(),
-                data: (accountList) => ReorderableGridView.extent(
-                      maxCrossAxisExtent: 128,
-                      onReorder: (oldIndex, newIndex) =>
-                          _onReorder(ref, oldIndex, newIndex),
-                      children: accountList.map((account) {
-                        return AccountBubble(account: account);
-                      }).toList(),
-                    )),
-            const Spacer(),
-          ],
-        ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(height: 100, color: Color.fromARGB(255, 255, 0, 0)),
+          Spacer(),
+          // accounts.when(
+          //     error: (obj, err) => Text("error loading accounts: $err"),
+          //     loading: () => CircularProgressIndicator(),
+          //     data: (accountList) => ReorderableGridView.extent(
+          //           maxCrossAxisExtent: 128,
+          //           onReorder: (oldIndex, newIndex) =>
+          //               _onReorder(ref, oldIndex, newIndex),
+          //           children: accountList.map<Widget>((account) {
+          //             return AccountBubble(
+          //                 key: ValueKey(account.identityMaster.masterRecordKey),
+          //                 account: account);
+          //           }).toList(),
+          //         )),
+          AddAccountBubble(key: ValueKey("+")),
+          Spacer(),
+          Container(height: 100, color: Color.fromARGB(255, 0, 255, 0)),
+        ],
       ),
     );
   }
