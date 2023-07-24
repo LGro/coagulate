@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
 import 'router/router.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 
@@ -32,6 +33,7 @@ class VeilidChatApp extends ConsumerWidget {
               localizationsDelegates: [
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
+                FormBuilderLocalizations.delegate,
                 localizationDelegate
               ],
               supportedLocales: localizationDelegate.supportedLocales,

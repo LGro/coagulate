@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 Future<void> setupDesktopWindow() async {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -29,4 +30,18 @@ void enableTitleBar(bool enabled) {
       windowManager.setTitleBarStyle(TitleBarStyle.hidden);
     }
   }
+}
+
+void portraitOnly() {
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+}
+
+void landscapeOnly() {
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
 }

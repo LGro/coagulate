@@ -6,13 +6,10 @@
         "settings_tooltip": "Settings"
     },
     "new_account_page": {
-        "title": "Create a new account",
+        "titlebar": "Create a new account",
         "header": "Account Profile",
-        "import": "Import an existing account"
-    },
-    "new_account_form": {
-        "name": "Name",
-        "title": "Title (optional)",
+        "form_name": "Name",
+        "form_title": "Title (optional)",
         "create": "Create",
         "instructions": "This information will be shared with the people you invite to connect with you on VeilidChat."
     },

@@ -81,6 +81,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.1"
+  blurry_modal_progress_hud:
+    dependency: "direct main"
+    description:
+      name: blurry_modal_progress_hud
+      sha256: "01027921b499fc65c97682b4b9d1c4dd2fe7cfb30d5be5fb3f6518d729dfd1e3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -382,6 +390,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+  flutter_form_builder:
+    dependency: "direct main"
+    description:
+      name: flutter_form_builder
+      sha256: e828c11156d75fc668da1d8e7ddc2311ea8368f023fd28a7c7c126c8b903c5d6
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.1.0"
   flutter_hooks:
     dependency: "direct main"
     description:
@@ -419,6 +435,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.6"
+  flutter_spinkit:
+    dependency: "direct main"
+    description:
+      name: flutter_spinkit
+      sha256: b39c753e909d4796906c5696a14daf33639a76e017136c8d82bf3e620ce5bb8e
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.2.0"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -445,6 +469,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  form_builder_validators:
+    dependency: "direct main"
+    description:
+      name: form_builder_validators
+      sha256: e04998b1597d76a51da7f009ed3b2f12d4173f13e146e8744fd2453e8595a2c9
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.0.0"
   freezed:
     dependency: "direct dev"
     description:
