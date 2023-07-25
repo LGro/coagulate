@@ -19,8 +19,8 @@ class UserLogin with _$UserLogin {
     required Timestamp lastActive,
   }) = _UserLogin;
 
-  factory UserLogin.fromJson(Map<String, dynamic> json) =>
-      _$UserLoginFromJson(json);
+  factory UserLogin.fromJson(dynamic json) =>
+      _$UserLoginFromJson(json as Map<String, dynamic>);
 }
 
 // Represents a set of user logins
@@ -37,6 +37,6 @@ class ActiveLogins with _$ActiveLogins {
   factory ActiveLogins.empty() =>
       const ActiveLogins(userLogins: IListConst([]));
 
-  factory ActiveLogins.fromJson(Map<String, dynamic> json) =>
-      _$ActiveLoginsFromJson(json);
+  factory ActiveLogins.fromJson(dynamic json) =>
+      _$ActiveLoginsFromJson(json as Map<String, dynamic>);
 }

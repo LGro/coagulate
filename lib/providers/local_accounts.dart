@@ -52,11 +52,11 @@ class LocalAccounts extends _$LocalAccounts
 
   /// Creates a new account associated with master identity
   Future<LocalAccount> newAccount(
-      IdentityMaster identityMaster,
-      SecretKey identitySecret,
-      EncryptionKeyType encryptionKeyType,
-      String encryptionKey,
-      proto.Account account) async {
+      {required IdentityMaster identityMaster,
+      required SecretKey identitySecret,
+      EncryptionKeyType encryptionKeyType = EncryptionKeyType.none,
+      String encryptionKey = "",
+      required proto.Account account}) async {
     final veilid = await eventualVeilid.future;
     final localAccounts = state.requireValue;
 
@@ -114,7 +114,7 @@ class LocalAccounts extends _$LocalAccounts
         await identityRec.eventualUpdateJson(Identity.fromJson,
             (oldIdentity) async {
           final accountRecords = IMapOfSets.from(oldIdentity.accountRecords)
-              .add("VeilidChat", newAccountRecordInfo)
+              .add("com.veilid.veilidchat", newAccountRecordInfo)
               .asIMap();
           return oldIdentity.copyWith(accountRecords: accountRecords);
         });

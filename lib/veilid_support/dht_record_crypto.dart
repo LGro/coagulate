@@ -41,8 +41,10 @@ class DHTRecordCryptoPrivate implements DHTRecordCrypto {
     // generate nonce
     final nonce = await _cryptoSystem.randomNonce();
     // crypt and append nonce
-    return (await _cryptoSystem.cryptNoAuth(data, nonce, _secretKey))
-      ..addAll(nonce.decode());
+    var b = BytesBuilder();
+    b.add(await _cryptoSystem.cryptNoAuth(data, nonce, _secretKey));
+    b.add(nonce.decode());
+    return b.toBytes();
   }
 
   @override

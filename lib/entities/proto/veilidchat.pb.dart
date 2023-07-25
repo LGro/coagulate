@@ -1038,7 +1038,7 @@ class Profile extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'title')
     ..aOS(3, _omitFieldNames ? '' : 'status')
     ..e<Availability>(4, _omitFieldNames ? '' : 'availability', $pb.PbFieldType.OE, defaultOrMaker: Availability.AVAILABILITY_UNSPECIFIED, valueOf: Availability.valueOf, enumValues: Availability.values)
-    ..aOM<TypedKey>(5, _omitFieldNames ? '' : 'icon', subBuilder: TypedKey.create)
+    ..aOM<TypedKey>(5, _omitFieldNames ? '' : 'avatar', subBuilder: TypedKey.create)
     ..hasRequiredFields = false
   ;
 
@@ -1100,15 +1100,15 @@ class Profile extends $pb.GeneratedMessage {
   void clearAvailability() => clearField(4);
 
   @$pb.TagNumber(5)
-  TypedKey get icon => $_getN(4);
+  TypedKey get avatar => $_getN(4);
   @$pb.TagNumber(5)
-  set icon(TypedKey v) { setField(5, v); }
+  set avatar(TypedKey v) { setField(5, v); }
   @$pb.TagNumber(5)
-  $core.bool hasIcon() => $_has(4);
+  $core.bool hasAvatar() => $_has(4);
   @$pb.TagNumber(5)
-  void clearIcon() => clearField(5);
+  void clearAvatar() => clearField(5);
   @$pb.TagNumber(5)
-  TypedKey ensureIcon() => $_ensure(4);
+  TypedKey ensureAvatar() => $_ensure(4);
 }
 
 class Account extends $pb.GeneratedMessage {

@@ -279,7 +279,10 @@ const Profile$json = {
     {'1': 'title', '3': 2, '4': 1, '5': 9, '10': 'title'},
     {'1': 'status', '3': 3, '4': 1, '5': 9, '10': 'status'},
     {'1': 'availability', '3': 4, '4': 1, '5': 14, '6': '.Availability', '10': 'availability'},
-    {'1': 'icon', '3': 5, '4': 1, '5': 11, '6': '.TypedKey', '10': 'icon'},
+    {'1': 'avatar', '3': 5, '4': 1, '5': 11, '6': '.TypedKey', '9': 0, '10': 'avatar', '17': true},
+  ],
+  '8': [
+    {'1': '_avatar'},
   ],
 };
 
@@ -287,7 +290,8 @@ const Profile$json = {
 final $typed_data.Uint8List profileDescriptor = $convert.base64Decode(
     'CgdQcm9maWxlEhIKBG5hbWUYASABKAlSBG5hbWUSFAoFdGl0bGUYAiABKAlSBXRpdGxlEhYKBn'
     'N0YXR1cxgDIAEoCVIGc3RhdHVzEjEKDGF2YWlsYWJpbGl0eRgEIAEoDjINLkF2YWlsYWJpbGl0'
-    'eVIMYXZhaWxhYmlsaXR5Eh0KBGljb24YBSABKAsyCS5UeXBlZEtleVIEaWNvbg==');
+    'eVIMYXZhaWxhYmlsaXR5EiYKBmF2YXRhchgFIAEoCzIJLlR5cGVkS2V5SABSBmF2YXRhcogBAU'
+    'IJCgdfYXZhdGFy');
 
 @$core.Deprecated('Use accountDescriptor instead')
 const Account$json = {

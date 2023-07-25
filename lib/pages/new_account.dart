@@ -1,15 +1,17 @@
-import 'dart:io';
-
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:quickalert/quickalert.dart';
 
 import '../components/default_app_bar.dart';
+import '../entities/proto.dart' as proto;
 import '../providers/local_accounts.dart';
+import '../providers/logins.dart';
 import '../tools/tools.dart';
+import '../veilid_support/veilid_support.dart';
 
 class NewAccountPage extends ConsumerStatefulWidget {
   const NewAccountPage({super.key});
@@ -24,6 +26,34 @@ class NewAccountPage extends ConsumerStatefulWidget {
 class NewAccountPageState extends ConsumerState<NewAccountPage> {
   final _formKey = GlobalKey<FormBuilderState>();
   late bool isInAsyncCall = false;
+  static const String formFieldName = "name";
+  static const String formFieldTitle = "title";
+
+  Future<void> createAccount() async {
+    final imws = await newIdentityMaster();
+    try {
+      final localAccounts = ref.read(localAccountsProvider.notifier);
+      final logins = ref.read(loginsProvider.notifier);
+
+      final profile = proto.Profile();
+      profile.name = _formKey.currentState!.fields[formFieldName]!.value;
+      profile.title = _formKey.currentState!.fields[formFieldTitle]!.value;
+      final account = proto.Account();
+      account.profile = profile;
+      final localAccount = await localAccounts.newAccount(
+          identityMaster: imws.identityMaster,
+          identitySecret: imws.identitySecret,
+          account: account);
+
+      // Log in the new account by default with no pin
+      final ok = await logins
+          .loginWithNone(localAccount.identityMaster.masterRecordKey);
+      assert(ok == true);
+    } catch (e) {
+      await imws.delete();
+      rethrow;
+    }
+  }
 
   Widget _newAccountForm(BuildContext context,
       {required Future<void> Function(GlobalKey<FormBuilderState>) onSubmit}) {
@@ -36,9 +66,9 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
               .paddingSymmetric(vertical: 16),
           FormBuilderTextField(
             autofocus: true,
-            name: 'name',
-            decoration: InputDecoration(
-                hintText: translate("new_account_page.form_name")),
+            name: formFieldName,
+            decoration:
+                InputDecoration(hintText: translate("account.form_name")),
             maxLength: 64,
             // The validator receives the text that the user has entered.
             validator: FormBuilderValidators.compose([
@@ -46,10 +76,10 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
             ]),
           ),
           FormBuilderTextField(
-            name: 'title',
+            name: formFieldTitle,
             maxLength: 64,
-            decoration: InputDecoration(
-                hintText: translate("new_account_page.form_title")),
+            decoration:
+                InputDecoration(hintText: translate("account.form_title")),
           ),
           Row(children: [
             const Spacer(),
@@ -85,7 +115,8 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
     enableTitleBar(true);
     portraitOnly();
 
-    final localAccounts = ref.watch(localAccountsProvider);
+//    final localAccountsData = ref.watch(localAccountsProvider);
+    final displayModalHUD = isInAsyncCall; // || !localAccountsData.hasValue;
 
     return Scaffold(
       // resizeToAvoidBottomInset: false,
@@ -96,9 +127,21 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
         onSubmit: (formKey) async {
           debugPrint(_formKey.currentState?.value.toString());
           FocusScope.of(context).unfocus();
-          await Future.delayed(Duration(seconds: 5));
+          try {
+            await createAccount();
+          } catch (e) {
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.error,
+              title: translate("new_account_page.error"),
+              text: 'Exception: ${e.toString()}',
+              //backgroundColor: Colors.black,
+              //titleColor: Colors.white,
+              //textColor: Colors.white,
+            );
+          }
         },
       ).paddingSymmetric(horizontal: 24, vertical: 8),
-    ).withModalHUD(context, isInAsyncCall);
+    ).withModalHUD(context, displayModalHUD);
   }
 }

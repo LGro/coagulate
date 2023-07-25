@@ -5,15 +5,23 @@
     "app_bar": {
         "settings_tooltip": "Settings"
     },
+    "account": {
+        "form_name": "Name",
+        "form_title": "Title (optional)",
+        "form_lock_type": "Lock Type",
+        "lock_type_none": "none",
+        "lock_type_pin": "pin",
+        "lock_type_password": "password"
+    },
     "new_account_page": {
         "titlebar": "Create a new account",
         "header": "Account Profile",
-        "form_name": "Name",
-        "form_title": "Title (optional)",
         "create": "Create",
-        "instructions": "This information will be shared with the people you invite to connect with you on VeilidChat."
+        "instructions": "This information will be shared with the people you invite to connect with you on VeilidChat.",
+        "error": "Account creation error"
     },
     "button": {
+        "ok": "Ok",
         "cancel": "Cancel",
         "change_language": "Change Language"
     },

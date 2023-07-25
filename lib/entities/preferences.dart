@@ -12,8 +12,8 @@ enum DarkModePreference {
   dark;
 
   String toJson() => name.toPascalCase();
-  factory DarkModePreference.fromJson(String j) =>
-      DarkModePreference.values.byName(j.toCamelCase());
+  factory DarkModePreference.fromJson(dynamic j) =>
+      DarkModePreference.values.byName((j as String).toCamelCase());
 }
 
 // Lock preference changes how frequently the messenger locks its
@@ -26,8 +26,8 @@ class LockPreference with _$LockPreference {
     required bool lockWithSystemLock,
   }) = _LockPreference;
 
-  factory LockPreference.fromJson(Map<String, dynamic> json) =>
-      _$LockPreferenceFromJson(json);
+  factory LockPreference.fromJson(dynamic json) =>
+      _$LockPreferenceFromJson(json as Map<String, dynamic>);
 }
 
 // Theme supports multiple color variants based on 'Radix'
@@ -62,8 +62,8 @@ enum ColorPreference {
   yellow;
 
   String toJson() => name.toPascalCase();
-  factory ColorPreference.fromJson(String j) =>
-      ColorPreference.values.byName(j.toCamelCase());
+  factory ColorPreference.fromJson(dynamic j) =>
+      ColorPreference.values.byName((j as String).toCamelCase());
 }
 
 // Theme supports multiple translations
@@ -71,8 +71,8 @@ enum LanguagePreference {
   englishUS;
 
   String toJson() => name.toPascalCase();
-  factory LanguagePreference.fromJson(String j) =>
-      LanguagePreference.values.byName(j.toCamelCase());
+  factory LanguagePreference.fromJson(dynamic j) =>
+      LanguagePreference.values.byName((j as String).toCamelCase());
 }
 
 // Preferences are stored in a table locally and globally affect all
@@ -87,6 +87,6 @@ class Preferences with _$Preferences {
     required LockPreference locking,
   }) = _Preferences;
 
-  factory Preferences.fromJson(Map<String, dynamic> json) =>
-      _$PreferencesFromJson(json);
+  factory Preferences.fromJson(dynamic json) =>
+      _$PreferencesFromJson(json as Map<String, dynamic>);
 }

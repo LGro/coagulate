@@ -22,11 +22,11 @@ Map<String, dynamic> _$$_LockPreferenceToJson(_$_LockPreference instance) =>
 
 _$_Preferences _$$_PreferencesFromJson(Map<String, dynamic> json) =>
     _$_Preferences(
-      darkMode: DarkModePreference.fromJson(json['dark_mode'] as String),
-      themeColor: ColorPreference.fromJson(json['theme_color'] as String),
-      language: LanguagePreference.fromJson(json['language'] as String),
+      darkMode: DarkModePreference.fromJson(json['dark_mode']),
+      themeColor: ColorPreference.fromJson(json['theme_color']),
+      language: LanguagePreference.fromJson(json['language']),
       displayScale: json['display_scale'] as int,
-      locking: LockPreference.fromJson(json['locking'] as Map<String, dynamic>),
+      locking: LockPreference.fromJson(json['locking']),
     );
 
 Map<String, dynamic> _$$_PreferencesToJson(_$_Preferences instance) =>

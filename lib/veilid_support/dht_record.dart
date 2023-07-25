@@ -152,11 +152,6 @@ class DHTRecord {
     // Get existing identity key
     ValueData? valueData;
     do {
-      // Ensure it exists already
-      if (valueData == null) {
-        throw const FormatException("value does not exist");
-      }
-
       // Set the new data
       valueData =
           await _dhtctx.setDHTValue(_recordDescriptor.key, subkey, newValue);

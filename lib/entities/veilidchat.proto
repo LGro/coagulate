@@ -196,7 +196,7 @@ message Contact {
     bool show_availability = 6;
 }
 
-// Contact availability as specified by the 
+// Contact availability
 enum Availability {
     AVAILABILITY_UNSPECIFIED = 0;
     AVAILABILITY_OFFLINE = 1;
@@ -222,8 +222,8 @@ message Profile  {
     string status = 3;
     // Availability
     Availability availability = 4;
-    // Icon DHTData
-    TypedKey icon = 5;
+    // Avatar DHTData
+    optional TypedKey avatar = 5;
 }
 
 // A record of an individual account

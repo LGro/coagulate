@@ -6,7 +6,7 @@ part of 'local_accounts.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$localAccountsHash() => r'1faa6b22284a402e4f47b2629e54a39ffda9a4ad';
+String _$localAccountsHash() => r'37ed2ab40b6ed9063c7d1d00f067b7006c9a7670';
 
 /// See also [LocalAccounts].
 @ProviderFor(LocalAccounts)

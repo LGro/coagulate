@@ -15,12 +15,12 @@ class AccountRecordInfo with _$AccountRecordInfo {
     required KeyPair owner,
   }) = _AccountRecordInfo;
 
-  factory AccountRecordInfo.fromJson(Map<String, dynamic> json) =>
-      _$AccountRecordInfoFromJson(json);
+  factory AccountRecordInfo.fromJson(dynamic json) =>
+      _$AccountRecordInfoFromJson(json as Map<String, dynamic>);
 }
 
 // Identity Key points to accounts associated with this identity
-// accounts field has a map of service name or uuid to account key pairs
+// accounts field has a map of bundle id or uuid to account key pairs
 // DHT Schema: DFLT(1)
 // DHT Key (Private): identityRecordKey
 // DHT Owner Key: identityPublicKey
@@ -32,8 +32,8 @@ class Identity with _$Identity {
     required IMap<String, ISet<AccountRecordInfo>> accountRecords,
   }) = _Identity;
 
-  factory Identity.fromJson(Map<String, dynamic> json) =>
-      _$IdentityFromJson(json);
+  factory Identity.fromJson(dynamic json) =>
+      _$IdentityFromJson(json as Map<String, dynamic>);
 }
 
 // Identity Master key structure for created account
@@ -66,8 +66,8 @@ class IdentityMaster with _$IdentityMaster {
       // Signature of masterRecordKey and masterPublicKey by identityPublicKey
       required Signature masterSignature}) = _IdentityMaster;
 
-  factory IdentityMaster.fromJson(Map<String, dynamic> json) =>
-      _$IdentityMasterFromJson(json);
+  factory IdentityMaster.fromJson(dynamic json) =>
+      _$IdentityMasterFromJson(json as Map<String, dynamic>);
 }
 
 extension IdentityMasterExtension on IdentityMaster {
@@ -78,16 +78,4 @@ extension IdentityMasterExtension on IdentityMaster {
   KeyPair masterWriter(SecretKey secret) {
     return KeyPair(key: masterPublicKey, secret: secret);
   }
-}
-
-// Identity Master with secrets
-// Not freezed because we never persist this class in its entirety
-class IdentityMasterWithSecrets {
-  IdentityMaster identityMaster;
-  SecretKey masterSecret;
-  SecretKey identitySecret;
-  IdentityMasterWithSecrets(
-      {required this.identityMaster,
-      required this.masterSecret,
-      required this.identitySecret});
 }

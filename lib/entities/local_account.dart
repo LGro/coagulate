@@ -20,8 +20,8 @@ enum EncryptionKeyType {
   password;
 
   String toJson() => name.toPascalCase();
-  factory EncryptionKeyType.fromJson(String j) =>
-      EncryptionKeyType.values.byName(j.toCamelCase());
+  factory EncryptionKeyType.fromJson(dynamic j) =>
+      EncryptionKeyType.values.byName((j as String).toCamelCase());
 }
 
 // Local Accounts are stored in a table locally and not backed by a DHT key
@@ -49,6 +49,6 @@ class LocalAccount with _$LocalAccount {
     required bool hiddenAccount,
   }) = _LocalAccount;
 
-  factory LocalAccount.fromJson(Map<String, dynamic> json) =>
-      _$LocalAccountFromJson(json);
+  factory LocalAccount.fromJson(dynamic json) =>
+      _$LocalAccountFromJson(json as Map<String, dynamic>);
 }
