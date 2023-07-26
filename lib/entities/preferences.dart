@@ -11,9 +11,10 @@ enum DarkModePreference {
   light,
   dark;
 
-  String toJson() => name.toPascalCase();
   factory DarkModePreference.fromJson(dynamic j) =>
       DarkModePreference.values.byName((j as String).toCamelCase());
+
+  String toJson() => name.toPascalCase();
 }
 
 // Lock preference changes how frequently the messenger locks its
@@ -61,18 +62,18 @@ enum ColorPreference {
   violet,
   yellow;
 
-  String toJson() => name.toPascalCase();
   factory ColorPreference.fromJson(dynamic j) =>
       ColorPreference.values.byName((j as String).toCamelCase());
+  String toJson() => name.toPascalCase();
 }
 
 // Theme supports multiple translations
 enum LanguagePreference {
   englishUS;
 
-  String toJson() => name.toPascalCase();
   factory LanguagePreference.fromJson(dynamic j) =>
       LanguagePreference.values.byName((j as String).toCamelCase());
+  String toJson() => name.toPascalCase();
 }
 
 // Preferences are stored in a table locally and globally affect all

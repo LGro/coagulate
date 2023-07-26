@@ -13,4 +13,5 @@ Future<Uint8List> protobufUpdateBytes<T extends GeneratedMessage>(
 
 Future<Uint8List> Function(Uint8List)
     protobufUpdate<T extends GeneratedMessage>(
-        T Function(List<int>) fromBuffer, Future<T> Function(T) update) => (oldBytes) => protobufUpdateBytes(fromBuffer, oldBytes, update);
+            T Function(List<int>) fromBuffer, Future<T> Function(T) update) =>
+        (oldBytes) => protobufUpdateBytes(fromBuffer, oldBytes, update);

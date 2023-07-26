@@ -275,10 +275,10 @@ Map<String, int> _buildPhonoToByte() {
 
 String prettyPhonoString(String s,
     {int wordsPerLine = 5, int phonoPerWord = 2}) {
-  assert(wordsPerLine >= 1);
-  assert(phonoPerWord >= 1);
+  assert(wordsPerLine >= 1, 'Should not have zero or negative words per line');
+  assert(phonoPerWord >= 1, 'Should not have zero or negative phono per word');
   final cs = canonicalPhonoString(s).toUpperCase();
-  var out = '';
+  final out = StringBuffer();
   var words = 0;
   var phonos = 0;
   for (var i = 0; i < cs.length; i += 3) {
@@ -289,15 +289,15 @@ String prettyPhonoString(String s,
         words += 1;
         if (words == wordsPerLine) {
           words = 0;
-          out += '\n';
+          out.write('\n');
         } else {
-          out += ' ';
+          out.write(' ');
         }
       }
     }
-    out += cs.substring(i, i + 3);
+    out.write(cs.substring(i, i + 3));
   }
-  return out;
+  return out.toString();
 }
 
 String canonicalPhonoString(String s) {
@@ -334,9 +334,9 @@ Uint8List decodePhono(String s) {
 }
 
 String encodePhono(Uint8List b) {
-  var out = '';
+  final out = StringBuffer();
   for (var i = 0; i < b.length; i++) {
-    out += _byteToPhono[b[i]];
+    out.write(_byteToPhono[b[i]]);
   }
-  return out;
+  return out.toString();
 }

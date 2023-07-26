@@ -40,19 +40,20 @@ Future<IdentityMasterWithSecrets> newIdentityMaster() async {
     // Identity record is private
     return (await DHTRecord.create(dhtctx)).deleteScope((identityRec) async {
       // Make IdentityMaster
-      final masterRecordKey = masterRec.key();
-      final masterOwner = masterRec.ownerKeyPair()!;
-      final masterSigBuf = BytesBuilder();
-      masterSigBuf.add(masterRecordKey.decode());
-      masterSigBuf.add(masterOwner.key.decode());
+      final masterRecordKey = masterRec.key;
+      final masterOwner = masterRec.ownerKeyPair!;
+      final masterSigBuf = BytesBuilder()
+        ..add(masterRecordKey.decode())
+        ..add(masterOwner.key.decode());
 
-      final identityRecordKey = identityRec.key();
-      final identityOwner = identityRec.ownerKeyPair()!;
-      final identitySigBuf = BytesBuilder();
-      identitySigBuf.add(identityRecordKey.decode());
-      identitySigBuf.add(identityOwner.key.decode());
+      final identityRecordKey = identityRec.key;
+      final identityOwner = identityRec.ownerKeyPair!;
+      final identitySigBuf = BytesBuilder()
+        ..add(identityRecordKey.decode())
+        ..add(identityOwner.key.decode());
 
-      assert(masterRecordKey.kind == identityRecordKey.kind);
+      assert(masterRecordKey.kind == identityRecordKey.kind,
+          'new master and identity should have same cryptosystem');
       final crypto = await veilid.getCryptoSystem(masterRecordKey.kind);
 
       final identitySignature =

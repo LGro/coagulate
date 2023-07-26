@@ -97,7 +97,8 @@ void initLoggy() {
     logOptions: getLogOptions(null),
   );
 
-  const isTrace = String.fromEnvironment('logTrace') != '';
+  // ignore: do_not_use_environment
+  const isTrace = String.fromEnvironment('LOG_TRACE') != '';
   LogLevel logLevel;
   if (isTrace) {
     logLevel = traceLevel;

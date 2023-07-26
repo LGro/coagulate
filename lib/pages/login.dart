@@ -10,11 +10,11 @@ class LoginPage extends ConsumerWidget {
   const LoginPage({super.key});
   static const path = '/login';
 
-  void _onReorder(WidgetRef ref, int oldIndex, int newIndex) {
-    final accounts = ref.read(localAccountsProvider.notifier);
-    accounts.reorderAccount(oldIndex, newIndex);
-    // xxx fix this so we can await this properly, use FutureBuilder or whatever
-  }
+  // void _onReorder(WidgetRef ref, int oldIndex, int newIndex) {
+  //   final accounts = ref.read(localAccountsProvider.notifier);
+  //   accounts.reorderAccount(oldIndex, newIndex);
+  //   // xxx fix this so we can await this properly, use FutureBuilder or whatever
+  // }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,7 +52,8 @@ class LoginPage extends ConsumerWidget {
           //               _onReorder(ref, oldIndex, newIndex),
           //           children: accountList.map<Widget>((account) {
           //             return AccountBubble(
-          //                 key: ValueKey(account.identityMaster.masterRecordKey),
+          //                 key: ValueKey(
+          // account.identityMaster.masterRecordKey),
           //                 account: account);
           //           }).toList(),
           //         )),

@@ -24,14 +24,18 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
 
     // When this notifier's state changes, inform GoRouter
     ref.listenSelf((_, __) {
-      if (state.isLoading) return;
+      if (state.isLoading) {
+        return;
+      }
       routerListener?.call();
     });
   }
 
   /// Redirects when our state changes
   String? redirect(BuildContext context, GoRouterState state) {
-    if (this.state.isLoading || this.state.hasError) return null;
+    if (this.state.isLoading || this.state.hasError) {
+      return null;
+    }
 
     switch (state.location) {
       case IndexPage.path:

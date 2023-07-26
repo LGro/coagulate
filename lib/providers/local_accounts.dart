@@ -55,7 +55,8 @@ class LocalAccounts extends _$LocalAccounts
   Future<LocalAccount> newAccount(
       {required IdentityMaster identityMaster,
       required SecretKey identitySecret,
-      required proto.Account account, EncryptionKeyType encryptionKeyType = EncryptionKeyType.none,
+      required proto.Account account,
+      EncryptionKeyType encryptionKeyType = EncryptionKeyType.none,
       String encryptionKey = ''}) async {
     final veilid = await eventualVeilid.future;
     final localAccounts = state.requireValue;
@@ -109,7 +110,7 @@ class LocalAccounts extends _$LocalAccounts
 
         // Update identity key to include account
         final newAccountRecordInfo = AccountRecordInfo(
-            key: accountRec.key(), owner: accountRec.ownerKeyPair()!);
+            key: accountRec.key, owner: accountRec.ownerKeyPair!);
 
         await identityRec.eventualUpdateJson(Identity.fromJson,
             (oldIdentity) async {
@@ -141,7 +142,7 @@ class LocalAccounts extends _$LocalAccounts
     await store(updated);
     state = AsyncValue.data(updated);
 
-    // xxx todo: wipe messages
+    // TO DO: wipe messages
 
     return true;
   }

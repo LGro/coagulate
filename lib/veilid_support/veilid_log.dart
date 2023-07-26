@@ -39,8 +39,7 @@ Future<void> processLog(VeilidLog log) async {
   Object? error;
   final backtrace = log.backtrace;
   if (backtrace != null) {
-    stackTrace =
-        StackTrace.fromString('$backtrace\n${StackTrace.current}');
+    stackTrace = StackTrace.fromString('$backtrace\n${StackTrace.current}');
     error = 'embedded stack trace for ${log.logLevel} ${log.message}';
   }
 
@@ -64,7 +63,8 @@ Future<void> processLog(VeilidLog log) async {
 }
 
 void initVeilidLog() {
-  const isTrace = String.fromEnvironment('logTrace') != '';
+  // ignore: do_not_use_environment
+  const isTrace = String.fromEnvironment('LOG_TRACE') != '';
   LogLevel logLevel;
   if (isTrace) {
     logLevel = traceLevel;

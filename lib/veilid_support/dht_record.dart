@@ -12,17 +12,16 @@ class DHTRecord {
       required DHTRecordDescriptor recordDescriptor,
       int defaultSubkey = 0,
       KeyPair? writer,
-      DHTRecordCrypto crypto = const DHTRecordCryptoPublic()})
+      this.crypto = const DHTRecordCryptoPublic()})
       : _dhtctx = dhtctx,
         _recordDescriptor = recordDescriptor,
         _defaultSubkey = defaultSubkey,
-        _writer = writer,
-        _crypto = crypto;
+        _writer = writer;
   final VeilidRoutingContext _dhtctx;
   final DHTRecordDescriptor _recordDescriptor;
   final int _defaultSubkey;
   final KeyPair? _writer;
-  DHTRecordCrypto _crypto;
+  DHTRecordCrypto crypto;
 
   static Future<DHTRecord> create(VeilidRoutingContext dhtctx,
       {DHTSchema schema = const DHTSchema.dflt(oCnt: 1),
@@ -76,17 +75,13 @@ class DHTRecord {
 
   int subkeyOrDefault(int subkey) => (subkey == -1) ? _defaultSubkey : subkey;
 
-  TypedKey key() => _recordDescriptor.key;
+  TypedKey get key => _recordDescriptor.key;
 
-  PublicKey owner() => _recordDescriptor.owner;
+  PublicKey get owner => _recordDescriptor.owner;
 
-  KeyPair? ownerKeyPair() => _recordDescriptor.ownerKeyPair();
+  KeyPair? get ownerKeyPair => _recordDescriptor.ownerKeyPair();
 
-  KeyPair? writer() => _writer;
-
-  void setCrypto(DHTRecordCrypto crypto) {
-    _crypto = crypto;
-  }
+  KeyPair? get writer => _writer;
 
   Future<void> close() async {
     await _dhtctx.closeDHTRecord(_recordDescriptor.key);
@@ -122,7 +117,7 @@ class DHTRecord {
     if (valueData == null) {
       return null;
     }
-    return _crypto.decrypt(valueData.data, subkey);
+    return crypto.decrypt(valueData.data, subkey);
   }
 
   Future<T?> getJson<T>(T Function(dynamic) fromJson,
@@ -136,7 +131,7 @@ class DHTRecord {
 
   Future<void> eventualWriteBytes(Uint8List newValue, {int subkey = -1}) async {
     subkey = subkeyOrDefault(subkey);
-    newValue = await _crypto.encrypt(newValue, subkey);
+    newValue = await crypto.encrypt(newValue, subkey);
     // Get existing identity key
     ValueData? valueData;
     do {
@@ -162,9 +157,9 @@ class DHTRecord {
       }
 
       // Update the data
-      final oldData = await _crypto.decrypt(valueData.data, subkey);
+      final oldData = await crypto.decrypt(valueData.data, subkey);
       final updatedData = await update(oldData);
-      final newData = await _crypto.encrypt(updatedData, subkey);
+      final newData = await crypto.encrypt(updatedData, subkey);
 
       // Set it back
       valueData =

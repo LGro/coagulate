@@ -24,7 +24,8 @@ class AccountRecordInfo with _$AccountRecordInfo {
 // DHT Schema: DFLT(1)
 // DHT Key (Private): identityRecordKey
 // DHT Owner Key: identityPublicKey
-// DHT Secret: identitySecretKey (stored encrypted with unlock code in local table store)
+// DHT Secret: identitySecretKey (stored encrypted
+//    with unlock code in local table store)
 @freezed
 class Identity with _$Identity {
   const factory Identity({
@@ -71,7 +72,9 @@ class IdentityMaster with _$IdentityMaster {
 }
 
 extension IdentityMasterExtension on IdentityMaster {
-  KeyPair identityWriter(SecretKey secret) => KeyPair(key: identityPublicKey, secret: secret);
+  KeyPair identityWriter(SecretKey secret) =>
+      KeyPair(key: identityPublicKey, secret: secret);
 
-  KeyPair masterWriter(SecretKey secret) => KeyPair(key: masterPublicKey, secret: secret);
+  KeyPair masterWriter(SecretKey secret) =>
+      KeyPair(key: masterPublicKey, secret: secret);
 }

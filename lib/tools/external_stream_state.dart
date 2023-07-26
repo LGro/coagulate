@@ -14,12 +14,13 @@ class ExternalStreamState<T> {
     streamController.add(newState);
   }
 
-  AutoDisposeStreamProvider<T> provider() => AutoDisposeStreamProvider<T>((ref) async* {
-      if (await streamController.stream.isEmpty) {
-        yield currentState;
-      }
-      await for (final value in streamController.stream) {
-        yield value;
-      }
-    });
+  AutoDisposeStreamProvider<T> provider() =>
+      AutoDisposeStreamProvider<T>((ref) async* {
+        if (await streamController.stream.isEmpty) {
+          yield currentState;
+        }
+        await for (final value in streamController.stream) {
+          yield value;
+        }
+      });
 }

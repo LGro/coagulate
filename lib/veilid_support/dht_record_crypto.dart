@@ -13,7 +13,6 @@ abstract class DHTRecordCrypto {
 ////////////////////////////////////
 /// Private DHT Record: Encrypted for a specific symmetric key
 class DHTRecordCryptoPrivate implements DHTRecordCrypto {
-
   DHTRecordCryptoPrivate._(
       VeilidCryptoSystem cryptoSystem, SharedSecret secretKey)
       : _cryptoSystem = cryptoSystem,
@@ -41,9 +40,9 @@ class DHTRecordCryptoPrivate implements DHTRecordCrypto {
     // generate nonce
     final nonce = await _cryptoSystem.randomNonce();
     // crypt and append nonce
-    final b = BytesBuilder();
-    b.add(await _cryptoSystem.cryptNoAuth(data, nonce, _secretKey));
-    b.add(nonce.decode());
+    final b = BytesBuilder()
+      ..add(await _cryptoSystem.cryptNoAuth(data, nonce, _secretKey))
+      ..add(nonce.decode());
     return b.toBytes();
   }
 

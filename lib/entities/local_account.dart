@@ -19,9 +19,10 @@ enum EncryptionKeyType {
   pin,
   password;
 
-  String toJson() => name.toPascalCase();
   factory EncryptionKeyType.fromJson(dynamic j) =>
       EncryptionKeyType.values.byName((j as String).toCamelCase());
+
+  String toJson() => name.toPascalCase();
 }
 
 // Local Accounts are stored in a table locally and not backed by a DHT key

@@ -11,15 +11,15 @@ export 'proto/veilidchat.pb.dart';
 extension CryptoKeyProto on CryptoKey {
   proto.CryptoKey toProto() {
     final b = decode();
-    final out = proto.CryptoKey();
-    out.u0 = b[0];
-    out.u1 = b[1];
-    out.u2 = b[2];
-    out.u3 = b[3];
-    out.u4 = b[4];
-    out.u5 = b[5];
-    out.u6 = b[6];
-    out.u7 = b[7];
+    final out = proto.CryptoKey()
+      ..u0 = b[0]
+      ..u1 = b[1]
+      ..u2 = b[2]
+      ..u3 = b[3]
+      ..u4 = b[4]
+      ..u5 = b[5]
+      ..u6 = b[6]
+      ..u7 = b[7];
     return out;
   }
 
@@ -42,23 +42,23 @@ extension CryptoKeyProto on CryptoKey {
 extension SignatureProto on Signature {
   proto.Signature toProto() {
     final b = decode();
-    final out = proto.Signature();
-    out.u0 = b[0];
-    out.u1 = b[1];
-    out.u2 = b[2];
-    out.u3 = b[3];
-    out.u4 = b[4];
-    out.u5 = b[5];
-    out.u6 = b[6];
-    out.u7 = b[7];
-    out.u8 = b[8];
-    out.u9 = b[9];
-    out.u10 = b[10];
-    out.u11 = b[11];
-    out.u12 = b[12];
-    out.u13 = b[13];
-    out.u14 = b[14];
-    out.u15 = b[15];
+    final out = proto.Signature()
+      ..u0 = b[0]
+      ..u1 = b[1]
+      ..u2 = b[2]
+      ..u3 = b[3]
+      ..u4 = b[4]
+      ..u5 = b[5]
+      ..u6 = b[6]
+      ..u7 = b[7]
+      ..u8 = b[8]
+      ..u9 = b[9]
+      ..u10 = b[10]
+      ..u11 = b[11]
+      ..u12 = b[12]
+      ..u13 = b[13]
+      ..u14 = b[14]
+      ..u15 = b[15];
     return out;
   }
 
@@ -89,13 +89,13 @@ extension SignatureProto on Signature {
 extension NonceProto on Nonce {
   proto.Signature toProto() {
     final b = decode();
-    final out = proto.Signature();
-    out.u0 = b[0];
-    out.u1 = b[1];
-    out.u2 = b[2];
-    out.u3 = b[3];
-    out.u4 = b[4];
-    out.u5 = b[5];
+    final out = proto.Signature()
+      ..u0 = b[0]
+      ..u1 = b[1]
+      ..u2 = b[2]
+      ..u3 = b[3]
+      ..u4 = b[4]
+      ..u5 = b[5];
     return out;
   }
 
@@ -115,11 +115,12 @@ extension NonceProto on Nonce {
 ///
 extension TypedKeyProto on TypedKey {
   proto.TypedKey toProto() {
-    final out = proto.TypedKey();
-    out.kind = kind;
-    out.value = value.toProto();
+    final out = proto.TypedKey()
+      ..kind = kind
+      ..value = value.toProto();
     return out;
   }
 
-  static TypedKey fromProto(proto.TypedKey p) => TypedKey(kind: p.kind, value: CryptoKeyProto.fromProto(p.value));
+  static TypedKey fromProto(proto.TypedKey p) =>
+      TypedKey(kind: p.kind, value: CryptoKeyProto.fromProto(p.value));
 }

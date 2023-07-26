@@ -75,4 +75,5 @@ Future<void> initializeVeilid() async {
 
 // Expose the Veilid instance as a FutureProvider
 @riverpod
-FutureOr<Veilid> veilidInstance(VeilidInstanceRef ref) async => await eventualVeilid.future;
+FutureOr<Veilid> veilidInstance(VeilidInstanceRef ref) async =>
+    await eventualVeilid.future;

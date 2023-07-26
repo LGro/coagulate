@@ -23,25 +23,25 @@ Future<void> setupDesktopWindow() async {
   }
 }
 
-void enableTitleBar(bool enabled) {
+Future<void> enableTitleBar(bool enabled) async {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     if (enabled) {
-      windowManager.setTitleBarStyle(TitleBarStyle.normal);
+      await windowManager.setTitleBarStyle(TitleBarStyle.normal);
     } else {
-      windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+      await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
     }
   }
 }
 
-void portraitOnly() {
-  SystemChrome.setPreferredOrientations([
+Future<void> portraitOnly() async {
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 }
 
-void landscapeOnly() {
-  SystemChrome.setPreferredOrientations([
+Future<void> landscapeOnly() async {
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
