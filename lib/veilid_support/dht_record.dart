@@ -7,7 +7,6 @@ import '../tools/tools.dart';
 import 'veilid_support.dart';
 
 class DHTRecord {
-
   DHTRecord(
       {required VeilidRoutingContext dhtctx,
       required DHTRecordDescriptor recordDescriptor,
@@ -46,8 +45,7 @@ class DHTRecord {
   static Future<DHTRecord> openRead(
       VeilidRoutingContext dhtctx, TypedKey recordKey,
       {int defaultSubkey = 0, DHTRecordCrypto? crypto}) async {
-    final recordDescriptor =
-        await dhtctx.openDHTRecord(recordKey, null);
+    final recordDescriptor = await dhtctx.openDHTRecord(recordKey, null);
     final rec = DHTRecord(
         dhtctx: dhtctx,
         recordDescriptor: recordDescriptor,
@@ -64,8 +62,7 @@ class DHTRecord {
     int defaultSubkey = 0,
     DHTRecordCrypto? crypto,
   }) async {
-    final recordDescriptor =
-        await dhtctx.openDHTRecord(recordKey, writer);
+    final recordDescriptor = await dhtctx.openDHTRecord(recordKey, writer);
     final rec = DHTRecord(
         dhtctx: dhtctx,
         recordDescriptor: recordDescriptor,
@@ -112,7 +109,7 @@ class DHTRecord {
       final out = await scopeFunction(this);
       await close();
       return out;
-    } catch (_) {
+    } on Exception catch (_) {
       await delete();
       rethrow;
     }
@@ -128,7 +125,7 @@ class DHTRecord {
     return _crypto.decrypt(valueData.data, subkey);
   }
 
-  Future<T?> getJson<T>(T Function(Map<String, dynamic>) fromJson,
+  Future<T?> getJson<T>(T Function(dynamic) fromJson,
       {int subkey = -1, bool forceRefresh = false}) async {
     final data = await get(subkey: subkey, forceRefresh: forceRefresh);
     if (data == null) {
@@ -177,17 +174,20 @@ class DHTRecord {
     } while (valueData != null);
   }
 
-  Future<void> eventualWriteJson<T>(T newValue, {int subkey = -1}) => eventualWriteBytes(jsonEncodeBytes(newValue), subkey: subkey);
+  Future<void> eventualWriteJson<T>(T newValue, {int subkey = -1}) =>
+      eventualWriteBytes(jsonEncodeBytes(newValue), subkey: subkey);
 
   Future<void> eventualWriteProtobuf<T extends GeneratedMessage>(T newValue,
-      {int subkey = -1}) => eventualWriteBytes(newValue.writeToBuffer(), subkey: subkey);
+          {int subkey = -1}) =>
+      eventualWriteBytes(newValue.writeToBuffer(), subkey: subkey);
 
   Future<void> eventualUpdateJson<T>(
-      T Function(Map<String, dynamic>) fromJson, Future<T> Function(T) update,
-      {int subkey = -1}) => eventualUpdateBytes(jsonUpdate(fromJson, update), subkey: subkey);
+          T Function(dynamic) fromJson, Future<T> Function(T) update,
+          {int subkey = -1}) =>
+      eventualUpdateBytes(jsonUpdate(fromJson, update), subkey: subkey);
 
   Future<void> eventualUpdateProtobuf<T extends GeneratedMessage>(
-      T Function(List<int>) fromBuffer, Future<T> Function(T) update,
-      {int subkey = -1}) => eventualUpdateBytes(protobufUpdate(fromBuffer, update),
-        subkey: subkey);
+          T Function(List<int>) fromBuffer, Future<T> Function(T) update,
+          {int subkey = -1}) =>
+      eventualUpdateBytes(protobufUpdate(fromBuffer, update), subkey: subkey);
 }

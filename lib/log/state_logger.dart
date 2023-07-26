@@ -5,12 +5,13 @@ class StateLogger extends ProviderObserver {
   const StateLogger();
   @override
   void didUpdateProvider(
-    ProviderBase provider,
+    ProviderBase<Object?> provider,
     Object? previousValue,
     Object? newValue,
     ProviderContainer container,
   ) {
-    log.debug('''{
+    log.debug('''
+{
   provider: ${provider.name ?? provider.runtimeType},
   oldValue: $previousValue,
   newValue: $newValue

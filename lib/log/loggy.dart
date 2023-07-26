@@ -67,7 +67,7 @@ class CallbackPrinter extends LoggyPrinter {
     callback?.call(record);
   }
 
-  void setCallback(Function(LogRecord)? cb) {
+  void setCallback(void Function(LogRecord)? cb) {
     callback = cb;
   }
 }
@@ -80,9 +80,9 @@ extension TraceLoggy on Loggy {
 }
 
 LogOptions getLogOptions(LogLevel? level) => LogOptions(
-    level ?? LogLevel.all,
-    stackTraceLevel: LogLevel.error,
-  );
+      level ?? LogLevel.all,
+      stackTraceLevel: LogLevel.error,
+    );
 
 class RootLoggy implements LoggyType {
   @override

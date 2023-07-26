@@ -26,12 +26,12 @@ class ThemeService {
       final isPlatformDark =
           WidgetsBinding.instance.platformDispatcher.platformBrightness ==
               Brightness.dark;
-      themeName = isPlatformDark ? 'light' : 'dark';
+      themeName = isPlatformDark ? 'dark' : 'light';
     }
     return themeName;
   }
 
-  ThemeData? get initial {
+  ThemeData get initial {
     var themeName = prefs.getString('theme');
     if (themeName == null) {
       final isPlatformDark =
@@ -39,15 +39,15 @@ class ThemeService {
               Brightness.dark;
       themeName = isPlatformDark ? 'dark' : 'light';
     }
-    return allThemes[themeName];
+    return allThemes[themeName] ?? allThemes['light']!;
   }
 
-  save(String newThemeName) {
+  Future<void> save(String newThemeName) async {
     final currentThemeName = prefs.getString('theme');
     if (currentThemeName != null) {
-      prefs.setString('previousThemeName', currentThemeName);
+      await prefs.setString('previousThemeName', currentThemeName);
     }
-    prefs.setString('theme', newThemeName);
+    await prefs.setString('theme', newThemeName);
   }
 
   ThemeData getByName(String name) => allThemes[name]!;
