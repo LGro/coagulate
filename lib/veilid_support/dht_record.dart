@@ -3,10 +3,22 @@ import 'dart:typed_data';
 import 'package:protobuf/protobuf.dart';
 import 'package:veilid/veilid.dart';
 
-import 'veilid_support.dart';
 import '../tools/tools.dart';
+import 'veilid_support.dart';
 
 class DHTRecord {
+
+  DHTRecord(
+      {required VeilidRoutingContext dhtctx,
+      required DHTRecordDescriptor recordDescriptor,
+      int defaultSubkey = 0,
+      KeyPair? writer,
+      DHTRecordCrypto crypto = const DHTRecordCryptoPublic()})
+      : _dhtctx = dhtctx,
+        _recordDescriptor = recordDescriptor,
+        _defaultSubkey = defaultSubkey,
+        _writer = writer,
+        _crypto = crypto;
   final VeilidRoutingContext _dhtctx;
   final DHTRecordDescriptor _recordDescriptor;
   final int _defaultSubkey;
@@ -17,7 +29,7 @@ class DHTRecord {
       {DHTSchema schema = const DHTSchema.dflt(oCnt: 1),
       int defaultSubkey = 0,
       DHTRecordCrypto? crypto}) async {
-    DHTRecordDescriptor recordDescriptor = await dhtctx.createDHTRecord(schema);
+    final recordDescriptor = await dhtctx.createDHTRecord(schema);
 
     final rec = DHTRecord(
         dhtctx: dhtctx,
@@ -34,13 +46,12 @@ class DHTRecord {
   static Future<DHTRecord> openRead(
       VeilidRoutingContext dhtctx, TypedKey recordKey,
       {int defaultSubkey = 0, DHTRecordCrypto? crypto}) async {
-    DHTRecordDescriptor recordDescriptor =
+    final recordDescriptor =
         await dhtctx.openDHTRecord(recordKey, null);
     final rec = DHTRecord(
         dhtctx: dhtctx,
         recordDescriptor: recordDescriptor,
         defaultSubkey: defaultSubkey,
-        writer: null,
         crypto: crypto ?? const DHTRecordCryptoPublic());
 
     return rec;
@@ -53,7 +64,7 @@ class DHTRecord {
     int defaultSubkey = 0,
     DHTRecordCrypto? crypto,
   }) async {
-    DHTRecordDescriptor recordDescriptor =
+    final recordDescriptor =
         await dhtctx.openDHTRecord(recordKey, writer);
     final rec = DHTRecord(
         dhtctx: dhtctx,
@@ -66,35 +77,15 @@ class DHTRecord {
     return rec;
   }
 
-  DHTRecord(
-      {required VeilidRoutingContext dhtctx,
-      required DHTRecordDescriptor recordDescriptor,
-      int defaultSubkey = 0,
-      KeyPair? writer,
-      DHTRecordCrypto crypto = const DHTRecordCryptoPublic()})
-      : _dhtctx = dhtctx,
-        _recordDescriptor = recordDescriptor,
-        _defaultSubkey = defaultSubkey,
-        _writer = writer,
-        _crypto = crypto;
-
   int subkeyOrDefault(int subkey) => (subkey == -1) ? _defaultSubkey : subkey;
 
-  TypedKey key() {
-    return _recordDescriptor.key;
-  }
+  TypedKey key() => _recordDescriptor.key;
 
-  PublicKey owner() {
-    return _recordDescriptor.owner;
-  }
+  PublicKey owner() => _recordDescriptor.owner;
 
-  KeyPair? ownerKeyPair() {
-    return _recordDescriptor.ownerKeyPair();
-  }
+  KeyPair? ownerKeyPair() => _recordDescriptor.ownerKeyPair();
 
-  KeyPair? writer() {
-    return _writer;
-  }
+  KeyPair? writer() => _writer;
 
   void setCrypto(DHTRecordCrypto crypto) {
     _crypto = crypto;
@@ -112,24 +103,24 @@ class DHTRecord {
     try {
       return await scopeFunction(this);
     } finally {
-      close();
+      await close();
     }
   }
 
   Future<T> deleteScope<T>(Future<T> Function(DHTRecord) scopeFunction) async {
     try {
       final out = await scopeFunction(this);
-      close();
+      await close();
       return out;
     } catch (_) {
-      delete();
+      await delete();
       rethrow;
     }
   }
 
   Future<Uint8List?> get({int subkey = -1, bool forceRefresh = false}) async {
     subkey = subkeyOrDefault(subkey);
-    ValueData? valueData =
+    final valueData =
         await _dhtctx.getDHTValue(_recordDescriptor.key, subkey, false);
     if (valueData == null) {
       return null;
@@ -165,12 +156,12 @@ class DHTRecord {
       {int subkey = -1}) async {
     subkey = subkeyOrDefault(subkey);
     // Get existing identity key
-    ValueData? valueData =
+    var valueData =
         await _dhtctx.getDHTValue(_recordDescriptor.key, subkey, false);
     do {
       // Ensure it exists already
       if (valueData == null) {
-        throw const FormatException("value does not exist");
+        throw const FormatException('value does not exist');
       }
 
       // Update the data
@@ -186,25 +177,17 @@ class DHTRecord {
     } while (valueData != null);
   }
 
-  Future<void> eventualWriteJson<T>(T newValue, {int subkey = -1}) {
-    return eventualWriteBytes(jsonEncodeBytes(newValue), subkey: subkey);
-  }
+  Future<void> eventualWriteJson<T>(T newValue, {int subkey = -1}) => eventualWriteBytes(jsonEncodeBytes(newValue), subkey: subkey);
 
   Future<void> eventualWriteProtobuf<T extends GeneratedMessage>(T newValue,
-      {int subkey = -1}) {
-    return eventualWriteBytes(newValue.writeToBuffer(), subkey: subkey);
-  }
+      {int subkey = -1}) => eventualWriteBytes(newValue.writeToBuffer(), subkey: subkey);
 
   Future<void> eventualUpdateJson<T>(
       T Function(Map<String, dynamic>) fromJson, Future<T> Function(T) update,
-      {int subkey = -1}) {
-    return eventualUpdateBytes(jsonUpdate(fromJson, update), subkey: subkey);
-  }
+      {int subkey = -1}) => eventualUpdateBytes(jsonUpdate(fromJson, update), subkey: subkey);
 
   Future<void> eventualUpdateProtobuf<T extends GeneratedMessage>(
       T Function(List<int>) fromBuffer, Future<T> Function(T) update,
-      {int subkey = -1}) {
-    return eventualUpdateBytes(protobufUpdate(fromBuffer, update),
+      {int subkey = -1}) => eventualUpdateBytes(protobufUpdate(fromBuffer, update),
         subkey: subkey);
-  }
 }

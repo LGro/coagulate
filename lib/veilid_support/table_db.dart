@@ -5,7 +5,7 @@ Future<T> tableScope<T>(
     String name, Future<T> Function(VeilidTableDB tdb) callback,
     {int columnCount = 1}) async {
   final veilid = await eventualVeilid.future;
-  VeilidTableDB tableDB = await veilid.openTableDB(name, columnCount);
+  final tableDB = await veilid.openTableDB(name, columnCount);
   try {
     return await callback(tableDB);
   } finally {
@@ -17,7 +17,7 @@ Future<T> transactionScope<T>(
   VeilidTableDB tdb,
   Future<T> Function(VeilidTableDBTransaction tdbt) callback,
 ) async {
-  VeilidTableDBTransaction tdbt = tdb.transact();
+  final tdbt = tdb.transact();
   try {
     final ret = await callback(tdbt);
     if (!tdbt.isDone()) {

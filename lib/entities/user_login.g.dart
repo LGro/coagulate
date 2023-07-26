@@ -24,7 +24,7 @@ Map<String, dynamic> _$$_UserLoginToJson(_$_UserLogin instance) =>
 _$_ActiveLogins _$$_ActiveLoginsFromJson(Map<String, dynamic> json) =>
     _$_ActiveLogins(
       userLogins: IList<UserLogin>.fromJson(
-          json['user_logins'], (value) => UserLogin.fromJson(value)),
+          json['user_logins'], UserLogin.fromJson),
       activeUserLogin: json['active_user_login'] == null
           ? null
           : Typed<FixedEncodedString43>.fromJson(json['active_user_login']),

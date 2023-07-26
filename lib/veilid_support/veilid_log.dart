@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:veilid/veilid.dart';
 import 'package:loggy/loggy.dart';
+import 'package:veilid/veilid.dart';
+
 import '../log/loggy.dart';
 
 VeilidConfigLogLevel convertToVeilidConfigLogLevel(LogLevel? level) {
@@ -23,7 +24,7 @@ VeilidConfigLogLevel convertToVeilidConfigLogLevel(LogLevel? level) {
 }
 
 void setVeilidLogLevel(LogLevel? level) {
-  Veilid.instance.changeLogLevel("all", convertToVeilidConfigLogLevel(level));
+  Veilid.instance.changeLogLevel('all', convertToVeilidConfigLogLevel(level));
 }
 
 class VeilidLoggy implements LoggyType {
@@ -39,7 +40,7 @@ Future<void> processLog(VeilidLog log) async {
   final backtrace = log.backtrace;
   if (backtrace != null) {
     stackTrace =
-        StackTrace.fromString("$backtrace\n${StackTrace.current.toString()}");
+        StackTrace.fromString('$backtrace\n${StackTrace.current}');
     error = 'embedded stack trace for ${log.logLevel} ${log.message}';
   }
 
@@ -63,7 +64,7 @@ Future<void> processLog(VeilidLog log) async {
 }
 
 void initVeilidLog() {
-  const isTrace = String.fromEnvironment("logTrace", defaultValue: "") != "";
+  const isTrace = String.fromEnvironment('logTrace') != '';
   LogLevel logLevel;
   if (isTrace) {
     logLevel = traceLevel;

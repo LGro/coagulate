@@ -6,15 +6,13 @@ class HomePage extends ConsumerWidget {
   static const path = '/home';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("VeilidChat")),
-      body: Center(
+  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
+      appBar: AppBar(title: const Text('VeilidChat')),
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text("Home Page"),
+            Text('Home Page'),
             // ElevatedButton(
             //   onPressed: () {
             //     ref.watch(authNotifierProvider.notifier).logout();
@@ -25,5 +23,4 @@ class HomePage extends ConsumerWidget {
         ),
       ),
     );
-  }
 }

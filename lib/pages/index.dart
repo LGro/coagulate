@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:radix_colors/radix_colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:radix_colors/radix_colors.dart';
 
 import '../tools/desktop_control.dart';
 
@@ -30,12 +30,11 @@ class IndexPage extends StatelessWidget {
                     Expanded(
                         flex: 2,
                         child: SvgPicture.asset(
-                          "assets/images/icon.svg",
+                          'assets/images/icon.svg',
                         )),
                     Expanded(
-                        flex: 1,
                         child: SvgPicture.asset(
-                          "assets/images/title.svg",
+                          'assets/images/title.svg',
                         ))
                   ]))),
     ));

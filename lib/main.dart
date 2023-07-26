@@ -1,22 +1,21 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 
-import 'log/log.dart';
-import 'veilid_support/veilid_support.dart';
-import 'theming/theming.dart';
-import 'app.dart';
-import 'dart:io';
-
 import '../tools/desktop_control.dart';
+import 'app.dart';
+import 'log/log.dart';
+import 'theming/theming.dart';
+import 'veilid_support/veilid_support.dart';
 
 void main() async {
   // Disable all debugprints in release mode
   if (kReleaseMode) {
-    debugPrint = (String? message, {int? wrapWidth}) {};
+    debugPrint = (message, {wrapWidth}) {};
   }
 
   // Print our PID for debugging
@@ -30,13 +29,13 @@ void main() async {
   // Prepare theme
   WidgetsFlutterBinding.ensureInitialized();
   final themeService = await ThemeService.instance;
-  var initTheme = themeService.initial;
+  final initTheme = themeService.initial;
 
   // Manage window on desktop platforms
   await setupDesktopWindow();
 
   // Make localization delegate
-  var delegate = await LocalizationDelegate.create(
+  final delegate = await LocalizationDelegate.create(
       fallbackLocale: 'en_US', supportedLocales: ['en_US']);
 
   // Start up Veilid and Veilid processor in the background

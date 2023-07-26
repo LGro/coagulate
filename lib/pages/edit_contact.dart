@@ -6,15 +6,12 @@ class ContactsPage extends ConsumerWidget {
   static const path = '/contacts';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: null,
+  Widget build(BuildContext context, WidgetRef ref) => const Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text("Contacts Page"),
+            Text('Contacts Page'),
             // ElevatedButton(
             //   onPressed: () async {
             //     ref.watch(authNotifierProvider.notifier).login(
@@ -28,5 +25,4 @@ class ContactsPage extends ConsumerWidget {
         ),
       ),
     );
-  }
 }

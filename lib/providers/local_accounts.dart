@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:veilid/veilid.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:veilid/veilid.dart';
 
-import '../tools/tools.dart';
-import '../veilid_support/veilid_support.dart';
 import '../entities/entities.dart';
 import '../entities/proto.dart' as proto;
+import '../tools/tools.dart';
+import '../veilid_support/veilid_support.dart';
 import 'logins.dart';
 
 part 'local_accounts.g.dart';
@@ -21,9 +21,9 @@ class LocalAccounts extends _$LocalAccounts
   //////////////////////////////////////////////////////////////
   /// AsyncTableDBBacked
   @override
-  String tableName() => "local_account_manager";
+  String tableName() => 'local_account_manager';
   @override
-  String tableKeyName() => "local_accounts";
+  String tableKeyName() => 'local_accounts';
   @override
   IList<LocalAccount> valueFromJson(Object? obj) => obj != null
       ? IList<LocalAccount>.fromJson(
@@ -35,9 +35,7 @@ class LocalAccounts extends _$LocalAccounts
 
   /// Get all local account information
   @override
-  FutureOr<IList<LocalAccount>> build() async {
-    return await load();
-  }
+  FutureOr<IList<LocalAccount>> build() async => await load();
 
   //////////////////////////////////////////////////////////////
   /// Mutators and Selectors
@@ -45,7 +43,7 @@ class LocalAccounts extends _$LocalAccounts
   /// Reorder accounts
   Future<void> reorderAccount(int oldIndex, int newIndex) async {
     final localAccounts = state.requireValue;
-    var removedItem = Output<LocalAccount>();
+    final removedItem = Output<LocalAccount>();
     final updated = localAccounts
         .removeAt(oldIndex, removedItem)
         .insert(newIndex, removedItem.value!);
@@ -57,9 +55,8 @@ class LocalAccounts extends _$LocalAccounts
   Future<LocalAccount> newAccount(
       {required IdentityMaster identityMaster,
       required SecretKey identitySecret,
-      EncryptionKeyType encryptionKeyType = EncryptionKeyType.none,
-      String encryptionKey = "",
-      required proto.Account account}) async {
+      required proto.Account account, EncryptionKeyType encryptionKeyType = EncryptionKeyType.none,
+      String encryptionKey = ''}) async {
     final veilid = await eventualVeilid.future;
     final localAccounts = state.requireValue;
 
@@ -78,7 +75,7 @@ class LocalAccounts extends _$LocalAccounts
         final ekbytes = Uint8List.fromList(utf8.encode(encryptionKey));
         final nonce = await cs.randomNonce();
         identitySecretSaltBytes = nonce.decode();
-        SharedSecret sharedSecret =
+        final sharedSecret =
             await cs.deriveSharedSecret(ekbytes, identitySecretSaltBytes);
         identitySecretBytes =
             await cs.cryptNoAuth(identitySecret.decode(), nonce, sharedSecret);
@@ -102,11 +99,11 @@ class LocalAccounts extends _$LocalAccounts
         .withSequencing(Sequencing.ensureOrdered);
 
     // Open identity key for writing
-    (await DHTRecord.openWrite(dhtctx, identityMaster.identityRecordKey,
+    await (await DHTRecord.openWrite(dhtctx, identityMaster.identityRecordKey,
             identityMaster.identityWriter(identitySecret)))
         .scope((identityRec) async {
       // Create new account to insert into identity
-      (await DHTRecord.create(dhtctx)).deleteScope((accountRec) async {
+      await (await DHTRecord.create(dhtctx)).deleteScope((accountRec) async {
         // Write account key
         await accountRec.eventualWriteProtobuf(account);
 
@@ -117,7 +114,7 @@ class LocalAccounts extends _$LocalAccounts
         await identityRec.eventualUpdateJson(Identity.fromJson,
             (oldIdentity) async {
           final accountRecords = IMapOfSets.from(oldIdentity.accountRecords)
-              .add("com.veilid.veilidchat", newAccountRecordInfo)
+              .add('com.veilid.veilidchat', newAccountRecordInfo)
               .asIMap();
           return oldIdentity.copyWith(accountRecords: accountRecords);
         });

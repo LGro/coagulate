@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:veilid/veilid.dart';
-import 'dart:typed_data';
 
 import 'veilid_init.dart';
 
@@ -13,13 +13,13 @@ abstract class DHTRecordCrypto {
 ////////////////////////////////////
 /// Private DHT Record: Encrypted for a specific symmetric key
 class DHTRecordCryptoPrivate implements DHTRecordCrypto {
-  final VeilidCryptoSystem _cryptoSystem;
-  final SharedSecret _secretKey;
 
   DHTRecordCryptoPrivate._(
       VeilidCryptoSystem cryptoSystem, SharedSecret secretKey)
       : _cryptoSystem = cryptoSystem,
         _secretKey = secretKey;
+  final VeilidCryptoSystem _cryptoSystem;
+  final SharedSecret _secretKey;
 
   static Future<DHTRecordCryptoPrivate> fromTypedKeyPair(
       TypedKeyPair typedKeyPair) async {
@@ -41,7 +41,7 @@ class DHTRecordCryptoPrivate implements DHTRecordCrypto {
     // generate nonce
     final nonce = await _cryptoSystem.randomNonce();
     // crypt and append nonce
-    var b = BytesBuilder();
+    final b = BytesBuilder();
     b.add(await _cryptoSystem.cryptNoAuth(data, nonce, _secretKey));
     b.add(nonce.decode());
     return b.toBytes();
@@ -51,7 +51,7 @@ class DHTRecordCryptoPrivate implements DHTRecordCrypto {
   FutureOr<Uint8List> decrypt(Uint8List data, int subkey) async {
     // split off nonce from end
     if (data.length <= Nonce.decodedLength()) {
-      throw const FormatException("not enough data to decrypt");
+      throw const FormatException('not enough data to decrypt');
     }
     final nonce =
         Nonce.fromBytes(data.sublist(data.length - Nonce.decodedLength()));
@@ -67,12 +67,8 @@ class DHTRecordCryptoPublic implements DHTRecordCrypto {
   const DHTRecordCryptoPublic();
 
   @override
-  FutureOr<Uint8List> encrypt(Uint8List data, int subkey) {
-    return data;
-  }
+  FutureOr<Uint8List> encrypt(Uint8List data, int subkey) => data;
 
   @override
-  FutureOr<Uint8List> decrypt(Uint8List data, int subkey) {
-    return data;
-  }
+  FutureOr<Uint8List> decrypt(Uint8List data, int subkey) => data;
 }

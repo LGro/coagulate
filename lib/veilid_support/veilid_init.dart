@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:veilid/veilid.dart';
-import 'package:flutter/foundation.dart';
+
 import 'processor.dart';
 import 'veilid_log.dart';
 
@@ -23,7 +23,7 @@ Future<String> getVeilidVersion() async {
 // Call only once.
 void _initVeilid() {
   if (kIsWeb) {
-    var platformConfig = const VeilidWASMConfig(
+    const platformConfig = VeilidWASMConfig(
         logging: VeilidWASMConfigLogging(
             performance: VeilidWASMConfigLoggingPerformance(
                 enabled: true,
@@ -34,7 +34,7 @@ void _initVeilid() {
                 enabled: true, level: VeilidConfigLogLevel.info)));
     Veilid.instance.initializeVeilidCore(platformConfig.toJson());
   } else {
-    var platformConfig = const VeilidFFIConfig(
+    const platformConfig = VeilidFFIConfig(
         logging: VeilidFFIConfigLogging(
             terminal: VeilidFFIConfigLoggingTerminal(
               enabled: false,
@@ -43,8 +43,8 @@ void _initVeilid() {
             otlp: VeilidFFIConfigLoggingOtlp(
                 enabled: false,
                 level: VeilidConfigLogLevel.trace,
-                grpcEndpoint: "192.168.1.40:4317",
-                serviceName: "VeilidChat"),
+                grpcEndpoint: '192.168.1.40:4317',
+                serviceName: 'VeilidChat'),
             api: VeilidFFIConfigLoggingApi(
                 enabled: true, level: VeilidConfigLogLevel.info)));
     Veilid.instance.initializeVeilidCore(platformConfig.toJson());
@@ -75,6 +75,4 @@ Future<void> initializeVeilid() async {
 
 // Expose the Veilid instance as a FutureProvider
 @riverpod
-FutureOr<Veilid> veilidInstance(VeilidInstanceRef ref) async {
-  return await eventualVeilid.future;
-}
+FutureOr<Veilid> veilidInstance(VeilidInstanceRef ref) async => await eventualVeilid.future;

@@ -24,7 +24,7 @@ _$_Identity _$$_IdentityFromJson(Map<String, dynamic> json) => _$_Identity(
           json['account_records'] as Map<String, dynamic>,
           (value) => value as String,
           (value) => ISet<AccountRecordInfo>.fromJson(
-              value, (value) => AccountRecordInfo.fromJson(value))),
+              value, AccountRecordInfo.fromJson)),
     );
 
 Map<String, dynamic> _$$_IdentityToJson(_$_Identity instance) =>

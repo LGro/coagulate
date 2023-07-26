@@ -4,7 +4,7 @@ import 'package:flutter_translate/flutter_translate.dart';
 
 class DefaultAppBar extends AppBar {
   DefaultAppBar(BuildContext context,
-      {super.key, required super.title, Widget? leading, List<Widget>? actions})
+      {required super.title, super.key, Widget? leading, List<Widget>? actions})
       : super(
             leading: leading ??
                 Container(
@@ -12,7 +12,7 @@ class DefaultAppBar extends AppBar {
                     decoration: BoxDecoration(
                         color: Colors.black.withAlpha(32),
                         shape: BoxShape.circle),
-                    child: SvgPicture.asset("assets/images/vlogo.svg",
+                    child: SvgPicture.asset('assets/images/vlogo.svg',
                         height: 48)),
             actions: (actions ?? <Widget>[])
               ..add(

@@ -6,15 +6,12 @@ class LoginPage extends ConsumerWidget {
   static const path = '/settings';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: null,
+  Widget build(BuildContext context, WidgetRef ref) => const Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text("Settings Page"),
+            Text('Settings Page'),
             // ElevatedButton(
             //   onPressed: () async {
             //     ref.watch(authNotifierProvider.notifier).login(
@@ -28,5 +25,4 @@ class LoginPage extends ConsumerWidget {
         ),
       ),
     );
-  }
 }

@@ -265,9 +265,9 @@ const _byteToPhono = [
 Map<String, int> _phonoToByte = _buildPhonoToByte();
 
 Map<String, int> _buildPhonoToByte() {
-  Map<String, int> phonoToByte = {};
-  for (int b = 0; b < 256; b++) {
-    String ph = _byteToPhono[b];
+  final phonoToByte = <String, int>{};
+  for (var b = 0; b < 256; b++) {
+    final ph = _byteToPhono[b];
     phonoToByte[ph] = b;
   }
   return phonoToByte;
@@ -278,10 +278,10 @@ String prettyPhonoString(String s,
   assert(wordsPerLine >= 1);
   assert(phonoPerWord >= 1);
   final cs = canonicalPhonoString(s).toUpperCase();
-  String out = "";
-  int words = 0;
-  int phonos = 0;
-  for (int i = 0; i < cs.length; i += 3) {
+  var out = '';
+  var words = 0;
+  var phonos = 0;
+  for (var i = 0; i < cs.length; i += 3) {
     if (i != 0) {
       phonos += 1;
       if (phonos == phonoPerWord) {
@@ -289,9 +289,9 @@ String prettyPhonoString(String s,
         words += 1;
         if (words == wordsPerLine) {
           words = 0;
-          out += "\n";
+          out += '\n';
         } else {
-          out += " ";
+          out += ' ';
         }
       }
     }
@@ -301,22 +301,22 @@ String prettyPhonoString(String s,
 }
 
 String canonicalPhonoString(String s) {
-  Uint8List bytes = Uint8List.fromList(utf8.encode(s.toLowerCase()));
-  String cs = "";
-  for (int i = 0; i < bytes.length; i++) {
-    int ch = bytes[i];
+  final bytes = Uint8List.fromList(utf8.encode(s.toLowerCase()));
+  var cs = '';
+  for (var i = 0; i < bytes.length; i++) {
+    final ch = bytes[i];
     if (ch >= $a && ch <= $z) {
       cs += String.fromCharCode(ch);
     }
   }
   if (cs.length % 3 != 0) {
     throw const FormatException(
-        "phonobyte string length should be a multiple of 3");
+        'phonobyte string length should be a multiple of 3');
   }
-  for (int i = 0; i < cs.length; i += 3) {
-    String ph = cs.substring(i, i + 3);
+  for (var i = 0; i < cs.length; i += 3) {
+    final ph = cs.substring(i, i + 3);
     if (!_phonoToByte.containsKey(ph)) {
-      throw const FormatException("phonobyte string contains invalid sequence");
+      throw const FormatException('phonobyte string contains invalid sequence');
     }
   }
   return cs;
@@ -325,17 +325,17 @@ String canonicalPhonoString(String s) {
 Uint8List decodePhono(String s) {
   final cs = canonicalPhonoString(s);
   final out = Uint8List(cs.length ~/ 3);
-  for (int i = 0; i < cs.length; i += 3) {
-    String ph = cs.substring(i, i + 3);
-    int b = _phonoToByte[ph]!;
+  for (var i = 0; i < cs.length; i += 3) {
+    final ph = cs.substring(i, i + 3);
+    final b = _phonoToByte[ph]!;
     out[i] = b;
   }
   return out;
 }
 
 String encodePhono(Uint8List b) {
-  String out = "";
-  for (int i = 0; i < b.length; i++) {
+  var out = '';
+  for (var i = 0; i < b.length; i++) {
     out += _byteToPhono[b[i]];
   }
   return out;

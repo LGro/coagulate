@@ -21,7 +21,7 @@ class ThemeService {
   };
 
   String get previousThemeName {
-    String? themeName = prefs.getString('previousThemeName');
+    var themeName = prefs.getString('previousThemeName');
     if (themeName == null) {
       final isPlatformDark =
           WidgetsBinding.instance.platformDispatcher.platformBrightness ==
@@ -31,8 +31,8 @@ class ThemeService {
     return themeName;
   }
 
-  get initial {
-    String? themeName = prefs.getString('theme');
+  ThemeData? get initial {
+    var themeName = prefs.getString('theme');
     if (themeName == null) {
       final isPlatformDark =
           WidgetsBinding.instance.platformDispatcher.platformBrightness ==
@@ -43,14 +43,12 @@ class ThemeService {
   }
 
   save(String newThemeName) {
-    var currentThemeName = prefs.getString('theme');
+    final currentThemeName = prefs.getString('theme');
     if (currentThemeName != null) {
       prefs.setString('previousThemeName', currentThemeName);
     }
     prefs.setString('theme', newThemeName);
   }
 
-  ThemeData getByName(String name) {
-    return allThemes[name]!;
-  }
+  ThemeData getByName(String name) => allThemes[name]!;
 }

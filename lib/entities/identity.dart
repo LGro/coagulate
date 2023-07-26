@@ -71,11 +71,7 @@ class IdentityMaster with _$IdentityMaster {
 }
 
 extension IdentityMasterExtension on IdentityMaster {
-  KeyPair identityWriter(SecretKey secret) {
-    return KeyPair(key: identityPublicKey, secret: secret);
-  }
+  KeyPair identityWriter(SecretKey secret) => KeyPair(key: identityPublicKey, secret: secret);
 
-  KeyPair masterWriter(SecretKey secret) {
-    return KeyPair(key: masterPublicKey, secret: secret);
-  }
+  KeyPair masterWriter(SecretKey secret) => KeyPair(key: masterPublicKey, secret: secret);
 }

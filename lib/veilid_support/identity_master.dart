@@ -9,13 +9,13 @@ import 'veilid_support.dart';
 // Identity Master with secrets
 // Not freezed because we never persist this class in its entirety
 class IdentityMasterWithSecrets {
-  IdentityMaster identityMaster;
-  SecretKey masterSecret;
-  SecretKey identitySecret;
   IdentityMasterWithSecrets(
       {required this.identityMaster,
       required this.masterSecret,
       required this.identitySecret});
+  IdentityMaster identityMaster;
+  SecretKey masterSecret;
+  SecretKey identitySecret;
 
   Future<void> delete() async {
     final veilid = await eventualVeilid.future;

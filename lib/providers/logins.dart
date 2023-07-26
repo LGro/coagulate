@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:veilid/veilid.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:veilid/veilid.dart';
 
-import '../veilid_support/veilid_support.dart';
 import '../entities/entities.dart';
+import '../veilid_support/veilid_support.dart';
 import 'local_accounts.dart';
 
 part 'logins.g.dart';
@@ -17,9 +17,9 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
   //////////////////////////////////////////////////////////////
   /// AsyncTableDBBacked
   @override
-  String tableName() => "local_account_manager";
+  String tableName() => 'local_account_manager';
   @override
-  String tableKeyName() => "active_logins";
+  String tableKeyName() => 'active_logins';
   @override
   ActiveLogins valueFromJson(Object? obj) => obj != null
       ? ActiveLogins.fromJson(obj as Map<String, dynamic>)
@@ -29,9 +29,7 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
 
   /// Get all local account information
   @override
-  FutureOr<ActiveLogins> build() async {
-    return await load();
-  }
+  FutureOr<ActiveLogins> build() async => await load();
 
   //////////////////////////////////////////////////////////////
   /// Mutators and Selectors
@@ -60,7 +58,7 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
 
     // Derive key from password
     if (localAccount.encryptionKeyType != EncryptionKeyType.none) {
-      throw Exception("Wrong authentication type");
+      throw Exception('Wrong authentication type');
     }
 
     final identitySecret =
@@ -72,7 +70,7 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
     final keyOk = await cs.validateKeyPair(
         localAccount.identityMaster.identityPublicKey, identitySecret);
     if (!keyOk) {
-      throw Exception("Identity is corrupted");
+      throw Exception('Identity is corrupted');
     }
 
     // Add to user logins and select it
@@ -110,14 +108,14 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
     // Derive key from password
     if (localAccount.encryptionKeyType != EncryptionKeyType.password ||
         localAccount.encryptionKeyType != EncryptionKeyType.pin) {
-      throw Exception("Wrong authentication type");
+      throw Exception('Wrong authentication type');
     }
     final cs = await veilid
         .getCryptoSystem(localAccount.identityMaster.identityRecordKey.kind);
     final ekbytes = Uint8List.fromList(utf8.encode(encryptionKey));
     final eksalt = localAccount.identitySecretSaltBytes;
     final nonce = Nonce.fromBytes(eksalt);
-    SharedSecret sharedSecret = await cs.deriveSharedSecret(ekbytes, eksalt);
+    final sharedSecret = await cs.deriveSharedSecret(ekbytes, eksalt);
     final identitySecret = SecretKey.fromBytes(await cs.cryptNoAuth(
         localAccount.identitySecretKeyBytes, nonce, sharedSecret));
 

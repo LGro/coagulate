@@ -5,15 +5,13 @@ class Chat extends ConsumerWidget {
   const Chat({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Chat")),
-      body: Center(
+  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
+      appBar: AppBar(title: const Text('Chat')),
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text("Home Page"),
+            Text('Home Page'),
             // ElevatedButton(
             //   onPressed: () {
             //     ref.watch(authNotifierProvider.notifier).logout();
@@ -24,5 +22,4 @@ class Chat extends ConsumerWidget {
         ),
       ),
     );
-  }
 }

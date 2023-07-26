@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:reorderable_grid/reorderable_grid.dart';
 
 import '../components/account_bubble.dart';
 import '../providers/local_accounts.dart';
@@ -41,10 +40,9 @@ class LoginPage extends ConsumerWidget {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(height: 100, color: Color.fromARGB(255, 255, 0, 0)),
-          Spacer(),
+          Container(height: 100, color: const Color.fromARGB(255, 255, 0, 0)),
+          const Spacer(),
           // accounts.when(
           //     error: (obj, err) => Text("error loading accounts: $err"),
           //     loading: () => CircularProgressIndicator(),
@@ -58,9 +56,9 @@ class LoginPage extends ConsumerWidget {
           //                 account: account);
           //           }).toList(),
           //         )),
-          AddAccountBubble(key: ValueKey("+")),
-          Spacer(),
-          Container(height: 100, color: Color.fromARGB(255, 0, 255, 0)),
+          const AddAccountBubble(key: ValueKey('+')),
+          const Spacer(),
+          Container(height: 100, color: const Color.fromARGB(255, 0, 255, 0)),
         ],
       ),
     );

@@ -1,18 +1,16 @@
+import 'package:awesome_extensions/awesome_extensions.dart';
+import 'package:circular_profile_avatar/circular_profile_avatar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:circular_profile_avatar/circular_profile_avatar.dart';
-import 'package:badges/badges.dart';
-import 'package:awesome_extensions/awesome_extensions.dart';
 
 import '../entities/local_account.dart';
 import '../providers/logins.dart';
 
 class AccountBubble extends ConsumerWidget {
+  const AccountBubble({required this.account, super.key});
   final LocalAccount account;
-
-  const AccountBubble({super.key, required this.account});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,10 +22,16 @@ class AccountBubble extends ConsumerWidget {
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Expanded(
               flex: 4,
-              child: CircularProfileAvatar("",
+              child: CircularProfileAvatar('',
                   child: Container(color: Theme.of(context).disabledColor))),
-          Expanded(flex: 1, child: Text("Placeholder"))
+          const Expanded(child: Text('Placeholder'))
         ]));
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<LocalAccount>('account', account));
   }
 }
 
@@ -40,12 +44,12 @@ class AddAccountBubble extends ConsumerWidget {
     final logins = ref.watch(loginsProvider);
 
     return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      CircularProfileAvatar("",
+      CircularProfileAvatar('',
           borderWidth: 4,
           borderColor: Theme.of(context).unselectedWidgetColor,
           child: Container(
               color: Colors.blue, child: const Icon(Icons.add, size: 50))),
-      const Text("Add Account").paddingLTRB(0, 4, 0, 0)
+      const Text('Add Account').paddingLTRB(0, 4, 0, 0)
     ]);
   }
 }

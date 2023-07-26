@@ -1,7 +1,8 @@
 import 'dart:io';
-import 'package:window_manager/window_manager.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:window_manager/window_manager.dart';
 
 Future<void> setupDesktopWindow() async {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
@@ -15,7 +16,7 @@ Future<void> setupDesktopWindow() async {
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.hidden,
     );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
       await windowManager.focus();
     });

@@ -1,3 +1,5 @@
+import 'package:riverpod/src/stream_provider.dart';
+
 import '../tools/tools.dart';
 
 enum ConnectionState {
@@ -13,4 +15,4 @@ enum ConnectionState {
 
 ExternalStreamState<ConnectionState> globalConnectionState =
     ExternalStreamState<ConnectionState>(ConnectionState.detached);
-var globalConnectionStateProvider = globalConnectionState.provider();
+AutoDisposeStreamProvider<ConnectionState> globalConnectionStateProvider = globalConnectionState.provider();

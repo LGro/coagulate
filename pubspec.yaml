@@ -54,12 +54,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.1
   build_runner: ^2.4.6
   freezed: ^2.3.5
   json_serializable: ^6.7.1
   riverpod_generator: ^2.2.3
   flutter_launcher_icons: "^0.13.1"
+  lint_hard: ^4.0.0
 
 flutter_launcher_icons:
   image_path: "assets/launcher/icon.png"

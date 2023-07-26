@@ -1,9 +1,10 @@
-export 'proto/veilidchat.pb.dart';
 import 'dart:typed_data';
 
 import 'package:veilid/veilid.dart';
 
 import 'proto/veilidchat.pb.dart' as proto;
+
+export 'proto/veilidchat.pb.dart';
 
 /// CryptoKey protobuf marshaling
 ///
@@ -120,7 +121,5 @@ extension TypedKeyProto on TypedKey {
     return out;
   }
 
-  static TypedKey fromProto(proto.TypedKey p) {
-    return TypedKey(kind: p.kind, value: CryptoKeyProto.fromProto(p.value));
-  }
+  static TypedKey fromProto(proto.TypedKey p) => TypedKey(kind: p.kind, value: CryptoKeyProto.fromProto(p.value));
 }

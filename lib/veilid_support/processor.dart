@@ -1,17 +1,19 @@
 import 'dart:async';
+
 import 'package:veilid/veilid.dart';
-import 'config.dart';
-import 'veilid_log.dart';
+
 import '../log/log.dart';
 import '../providers/providers.dart';
+import 'config.dart';
+import 'veilid_log.dart';
 
 class Processor {
-  String _veilidVersion = "";
+
+  Processor();
+  String _veilidVersion = '';
   bool _startedUp = false;
   Stream<VeilidUpdate>? _updateStream;
   Future<void>? _updateProcessor;
-
-  Processor();
 
   Future<void> startup() async {
     if (_startedUp) {
@@ -24,7 +26,7 @@ class Processor {
       _veilidVersion = 'Failed to get veilid version.';
     }
 
-    log.info("Veilid version: $_veilidVersion");
+    log.info('Veilid version: $_veilidVersion');
 
     // In case of hot restart shut down first
     try {
@@ -33,7 +35,7 @@ class Processor {
       //
     }
 
-    var updateStream =
+    final updateStream =
         await Veilid.instance.startupVeilidCore(await getVeilidChatConfig());
     _updateStream = updateStream;
     _updateProcessor = processUpdates();
@@ -113,7 +115,7 @@ class Processor {
   }
 
   Future<void> processUpdates() async {
-    var stream = _updateStream;
+    final stream = _updateStream;
     if (stream != null) {
       await for (final update in stream) {
         if (update is VeilidLog) {
@@ -125,11 +127,11 @@ class Processor {
         } else if (update is VeilidUpdateNetwork) {
           await processUpdateNetwork(update);
         } else if (update is VeilidAppMessage) {
-          log.info("AppMessage: ${update.toJson()}");
+          log.info('AppMessage: ${update.toJson()}');
         } else if (update is VeilidAppCall) {
-          log.info("AppCall: ${update.toJson()}");
+          log.info('AppCall: ${update.toJson()}');
         } else {
-          log.trace("Update: ${update.toJson()}");
+          log.trace('Update: ${update.toJson()}');
         }
       }
     }

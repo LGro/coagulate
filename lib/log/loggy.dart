@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
+
+import 'package:ansicolor/ansicolor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:loggy/loggy.dart';
-import 'package:ansicolor/ansicolor.dart';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 // Loggy tools
 const LogLevel traceLevel = LogLevel('Trace', 1);
@@ -73,19 +72,17 @@ class CallbackPrinter extends LoggyPrinter {
   }
 }
 
-var globalTerminalPrinter = CallbackPrinter();
+CallbackPrinter globalTerminalPrinter = CallbackPrinter();
 
 extension TraceLoggy on Loggy {
   void trace(dynamic message, [Object? error, StackTrace? stackTrace]) =>
       this.log(traceLevel, message, error, stackTrace);
 }
 
-LogOptions getLogOptions(LogLevel? level) {
-  return LogOptions(
+LogOptions getLogOptions(LogLevel? level) => LogOptions(
     level ?? LogLevel.all,
     stackTraceLevel: LogLevel.error,
   );
-}
 
 class RootLoggy implements LoggyType {
   @override
@@ -100,7 +97,7 @@ void initLoggy() {
     logOptions: getLogOptions(null),
   );
 
-  const isTrace = String.fromEnvironment("logTrace", defaultValue: "") != "";
+  const isTrace = String.fromEnvironment('logTrace') != '';
   LogLevel logLevel;
   if (isTrace) {
     logLevel = traceLevel;
