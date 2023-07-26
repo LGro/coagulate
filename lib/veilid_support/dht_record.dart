@@ -118,12 +118,12 @@ class DHTRecord {
 
   Future<T> deleteScope<T>(Future<T> Function(DHTRecord) scopeFunction) async {
     try {
-      return await scopeFunction(this);
+      final out = await scopeFunction(this);
+      close();
+      return out;
     } catch (_) {
       delete();
       rethrow;
-    } finally {
-      close();
     }
   }
 

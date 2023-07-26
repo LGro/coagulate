@@ -21,9 +21,11 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
   @override
   String tableKeyName() => "active_logins";
   @override
-  ActiveLogins reviveJson(Object? obj) => obj != null
+  ActiveLogins valueFromJson(Object? obj) => obj != null
       ? ActiveLogins.fromJson(obj as Map<String, dynamic>)
       : ActiveLogins.empty();
+  @override
+  Object? valueToJson(ActiveLogins val) => val.toJson();
 
   /// Get all local account information
   @override

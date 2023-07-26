@@ -25,10 +25,13 @@ class LocalAccounts extends _$LocalAccounts
   @override
   String tableKeyName() => "local_accounts";
   @override
-  IList<LocalAccount> reviveJson(Object? obj) => obj != null
+  IList<LocalAccount> valueFromJson(Object? obj) => obj != null
       ? IList<LocalAccount>.fromJson(
           obj, genericFromJson(LocalAccount.fromJson))
       : IList<LocalAccount>();
+  @override
+  Object? valueToJson(IList<LocalAccount> val) =>
+      val.toJson((la) => la.toJson());
 
   /// Get all local account information
   @override

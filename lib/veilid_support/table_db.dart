@@ -34,13 +34,14 @@ Future<T> transactionScope<T>(
 abstract mixin class AsyncTableDBBacked<T> {
   String tableName();
   String tableKeyName();
-  T reviveJson(Object? obj);
+  T valueFromJson(Object? obj);
+  Object? valueToJson(T val);
 
   /// Load things from storage
   Future<T> load() async {
     final obj = await tableScope(tableName(), (tdb) async {
       final objJson = await tdb.loadStringJson(0, tableKeyName());
-      return reviveJson(objJson);
+      return valueFromJson(objJson);
     });
     return obj;
   }
@@ -48,7 +49,7 @@ abstract mixin class AsyncTableDBBacked<T> {
   /// Store things to storage
   Future<void> store(T obj) async {
     await tableScope(tableName(), (tdb) async {
-      await tdb.storeStringJson(0, tableKeyName(), obj);
+      await tdb.storeStringJson(0, tableKeyName(), valueToJson(obj));
     });
   }
 }
