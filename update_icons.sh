@@ -1,2 +1,3 @@
 #!/bin/bash
-dart run flutter_launcher_icons
+flutter pub get
+dart run icons_launcher:create

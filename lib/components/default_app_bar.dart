@@ -1,3 +1,4 @@
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_translate/flutter_translate.dart';
@@ -12,8 +13,9 @@ class DefaultAppBar extends AppBar {
                     decoration: BoxDecoration(
                         color: Colors.black.withAlpha(32),
                         shape: BoxShape.circle),
-                    child: SvgPicture.asset('assets/images/vlogo.svg',
-                        height: 48)),
+                    child:
+                        SvgPicture.asset('assets/images/vlogo.svg', height: 32)
+                            .paddingAll(4)),
             actions: (actions ?? <Widget>[])
               ..add(
                 IconButton(

@@ -114,8 +114,11 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
     enableTitleBar(true);
     portraitOnly();
 
-//    final localAccountsData = ref.watch(localAccountsProvider);
-    final displayModalHUD = isInAsyncCall; // || !localAccountsData.hasValue;
+    final localAccounts = ref.watch(localAccountsProvider);
+    final logins = ref.watch(loginsProvider);
+
+    final displayModalHUD =
+        isInAsyncCall || !localAccounts.hasValue || !logins.hasValue;
 
     return Scaffold(
       // resizeToAvoidBottomInset: false,

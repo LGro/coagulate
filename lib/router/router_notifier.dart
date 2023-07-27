@@ -37,9 +37,13 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
       return null;
     }
 
+    // No matter where we are, if there's not
+
     switch (state.location) {
       case IndexPage.path:
         return hasAnyAccount ? HomePage.path : NewAccountPage.path;
+      case NewAccountPage.path:
+        return hasAnyAccount ? HomePage.path : null;
       default:
         return hasAnyAccount ? null : NewAccountPage.path;
     }

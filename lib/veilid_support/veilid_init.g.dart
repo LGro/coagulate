@@ -6,7 +6,7 @@ part of 'veilid_init.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$veilidInstanceHash() => r'6086fc1e7a83e7af81ee05ee84954507d38cb748';
+String _$veilidInstanceHash() => r'cca5cf288bafc4a051a1713e285f4c1d3ef4b680';
 
 /// See also [veilidInstance].
 @ProviderFor(veilidInstance)
