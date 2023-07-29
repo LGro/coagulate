@@ -198,16 +198,199 @@ abstract class _LockPreference implements LockPreference {
       throw _privateConstructorUsedError;
 }
 
+ThemePreferences _$ThemePreferencesFromJson(Map<String, dynamic> json) {
+  return _ThemePreferences.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ThemePreferences {
+  BrightnessPreference get brightnessPreference =>
+      throw _privateConstructorUsedError;
+  ColorPreference get colorPreference => throw _privateConstructorUsedError;
+  double get displayScale => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $ThemePreferencesCopyWith<ThemePreferences> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ThemePreferencesCopyWith<$Res> {
+  factory $ThemePreferencesCopyWith(
+          ThemePreferences value, $Res Function(ThemePreferences) then) =
+      _$ThemePreferencesCopyWithImpl<$Res, ThemePreferences>;
+  @useResult
+  $Res call(
+      {BrightnessPreference brightnessPreference,
+      ColorPreference colorPreference,
+      double displayScale});
+}
+
+/// @nodoc
+class _$ThemePreferencesCopyWithImpl<$Res, $Val extends ThemePreferences>
+    implements $ThemePreferencesCopyWith<$Res> {
+  _$ThemePreferencesCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? brightnessPreference = null,
+    Object? colorPreference = null,
+    Object? displayScale = null,
+  }) {
+    return _then(_value.copyWith(
+      brightnessPreference: null == brightnessPreference
+          ? _value.brightnessPreference
+          : brightnessPreference // ignore: cast_nullable_to_non_nullable
+              as BrightnessPreference,
+      colorPreference: null == colorPreference
+          ? _value.colorPreference
+          : colorPreference // ignore: cast_nullable_to_non_nullable
+              as ColorPreference,
+      displayScale: null == displayScale
+          ? _value.displayScale
+          : displayScale // ignore: cast_nullable_to_non_nullable
+              as double,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$_ThemePreferencesCopyWith<$Res>
+    implements $ThemePreferencesCopyWith<$Res> {
+  factory _$$_ThemePreferencesCopyWith(
+          _$_ThemePreferences value, $Res Function(_$_ThemePreferences) then) =
+      __$$_ThemePreferencesCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {BrightnessPreference brightnessPreference,
+      ColorPreference colorPreference,
+      double displayScale});
+}
+
+/// @nodoc
+class __$$_ThemePreferencesCopyWithImpl<$Res>
+    extends _$ThemePreferencesCopyWithImpl<$Res, _$_ThemePreferences>
+    implements _$$_ThemePreferencesCopyWith<$Res> {
+  __$$_ThemePreferencesCopyWithImpl(
+      _$_ThemePreferences _value, $Res Function(_$_ThemePreferences) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? brightnessPreference = null,
+    Object? colorPreference = null,
+    Object? displayScale = null,
+  }) {
+    return _then(_$_ThemePreferences(
+      brightnessPreference: null == brightnessPreference
+          ? _value.brightnessPreference
+          : brightnessPreference // ignore: cast_nullable_to_non_nullable
+              as BrightnessPreference,
+      colorPreference: null == colorPreference
+          ? _value.colorPreference
+          : colorPreference // ignore: cast_nullable_to_non_nullable
+              as ColorPreference,
+      displayScale: null == displayScale
+          ? _value.displayScale
+          : displayScale // ignore: cast_nullable_to_non_nullable
+              as double,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$_ThemePreferences implements _ThemePreferences {
+  const _$_ThemePreferences(
+      {required this.brightnessPreference,
+      required this.colorPreference,
+      required this.displayScale});
+
+  factory _$_ThemePreferences.fromJson(Map<String, dynamic> json) =>
+      _$$_ThemePreferencesFromJson(json);
+
+  @override
+  final BrightnessPreference brightnessPreference;
+  @override
+  final ColorPreference colorPreference;
+  @override
+  final double displayScale;
+
+  @override
+  String toString() {
+    return 'ThemePreferences(brightnessPreference: $brightnessPreference, colorPreference: $colorPreference, displayScale: $displayScale)';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$_ThemePreferences &&
+            (identical(other.brightnessPreference, brightnessPreference) ||
+                other.brightnessPreference == brightnessPreference) &&
+            (identical(other.colorPreference, colorPreference) ||
+                other.colorPreference == colorPreference) &&
+            (identical(other.displayScale, displayScale) ||
+                other.displayScale == displayScale));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, brightnessPreference, colorPreference, displayScale);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$_ThemePreferencesCopyWith<_$_ThemePreferences> get copyWith =>
+      __$$_ThemePreferencesCopyWithImpl<_$_ThemePreferences>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$_ThemePreferencesToJson(
+      this,
+    );
+  }
+}
+
+abstract class _ThemePreferences implements ThemePreferences {
+  const factory _ThemePreferences(
+      {required final BrightnessPreference brightnessPreference,
+      required final ColorPreference colorPreference,
+      required final double displayScale}) = _$_ThemePreferences;
+
+  factory _ThemePreferences.fromJson(Map<String, dynamic> json) =
+      _$_ThemePreferences.fromJson;
+
+  @override
+  BrightnessPreference get brightnessPreference;
+  @override
+  ColorPreference get colorPreference;
+  @override
+  double get displayScale;
+  @override
+  @JsonKey(ignore: true)
+  _$$_ThemePreferencesCopyWith<_$_ThemePreferences> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 Preferences _$PreferencesFromJson(Map<String, dynamic> json) {
   return _Preferences.fromJson(json);
 }
 
 /// @nodoc
 mixin _$Preferences {
-  DarkModePreference get darkMode => throw _privateConstructorUsedError;
-  ColorPreference get themeColor => throw _privateConstructorUsedError;
+  ThemePreferences get themePreferences => throw _privateConstructorUsedError;
   LanguagePreference get language => throw _privateConstructorUsedError;
-  int get displayScale => throw _privateConstructorUsedError;
   LockPreference get locking => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -223,12 +406,11 @@ abstract class $PreferencesCopyWith<$Res> {
       _$PreferencesCopyWithImpl<$Res, Preferences>;
   @useResult
   $Res call(
-      {DarkModePreference darkMode,
-      ColorPreference themeColor,
+      {ThemePreferences themePreferences,
       LanguagePreference language,
-      int displayScale,
       LockPreference locking});
 
+  $ThemePreferencesCopyWith<$Res> get themePreferences;
   $LockPreferenceCopyWith<$Res> get locking;
 }
 
@@ -245,34 +427,32 @@ class _$PreferencesCopyWithImpl<$Res, $Val extends Preferences>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? darkMode = null,
-    Object? themeColor = null,
+    Object? themePreferences = null,
     Object? language = null,
-    Object? displayScale = null,
     Object? locking = null,
   }) {
     return _then(_value.copyWith(
-      darkMode: null == darkMode
-          ? _value.darkMode
-          : darkMode // ignore: cast_nullable_to_non_nullable
-              as DarkModePreference,
-      themeColor: null == themeColor
-          ? _value.themeColor
-          : themeColor // ignore: cast_nullable_to_non_nullable
-              as ColorPreference,
+      themePreferences: null == themePreferences
+          ? _value.themePreferences
+          : themePreferences // ignore: cast_nullable_to_non_nullable
+              as ThemePreferences,
       language: null == language
           ? _value.language
           : language // ignore: cast_nullable_to_non_nullable
               as LanguagePreference,
-      displayScale: null == displayScale
-          ? _value.displayScale
-          : displayScale // ignore: cast_nullable_to_non_nullable
-              as int,
       locking: null == locking
           ? _value.locking
           : locking // ignore: cast_nullable_to_non_nullable
               as LockPreference,
     ) as $Val);
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $ThemePreferencesCopyWith<$Res> get themePreferences {
+    return $ThemePreferencesCopyWith<$Res>(_value.themePreferences, (value) {
+      return _then(_value.copyWith(themePreferences: value) as $Val);
+    });
   }
 
   @override
@@ -293,12 +473,12 @@ abstract class _$$_PreferencesCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {DarkModePreference darkMode,
-      ColorPreference themeColor,
+      {ThemePreferences themePreferences,
       LanguagePreference language,
-      int displayScale,
       LockPreference locking});
 
+  @override
+  $ThemePreferencesCopyWith<$Res> get themePreferences;
   @override
   $LockPreferenceCopyWith<$Res> get locking;
 }
@@ -314,29 +494,19 @@ class __$$_PreferencesCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? darkMode = null,
-    Object? themeColor = null,
+    Object? themePreferences = null,
     Object? language = null,
-    Object? displayScale = null,
     Object? locking = null,
   }) {
     return _then(_$_Preferences(
-      darkMode: null == darkMode
-          ? _value.darkMode
-          : darkMode // ignore: cast_nullable_to_non_nullable
-              as DarkModePreference,
-      themeColor: null == themeColor
-          ? _value.themeColor
-          : themeColor // ignore: cast_nullable_to_non_nullable
-              as ColorPreference,
+      themePreferences: null == themePreferences
+          ? _value.themePreferences
+          : themePreferences // ignore: cast_nullable_to_non_nullable
+              as ThemePreferences,
       language: null == language
           ? _value.language
           : language // ignore: cast_nullable_to_non_nullable
               as LanguagePreference,
-      displayScale: null == displayScale
-          ? _value.displayScale
-          : displayScale // ignore: cast_nullable_to_non_nullable
-              as int,
       locking: null == locking
           ? _value.locking
           : locking // ignore: cast_nullable_to_non_nullable
@@ -349,29 +519,23 @@ class __$$_PreferencesCopyWithImpl<$Res>
 @JsonSerializable()
 class _$_Preferences implements _Preferences {
   const _$_Preferences(
-      {required this.darkMode,
-      required this.themeColor,
+      {required this.themePreferences,
       required this.language,
-      required this.displayScale,
       required this.locking});
 
   factory _$_Preferences.fromJson(Map<String, dynamic> json) =>
       _$$_PreferencesFromJson(json);
 
   @override
-  final DarkModePreference darkMode;
-  @override
-  final ColorPreference themeColor;
+  final ThemePreferences themePreferences;
   @override
   final LanguagePreference language;
-  @override
-  final int displayScale;
   @override
   final LockPreference locking;
 
   @override
   String toString() {
-    return 'Preferences(darkMode: $darkMode, themeColor: $themeColor, language: $language, displayScale: $displayScale, locking: $locking)';
+    return 'Preferences(themePreferences: $themePreferences, language: $language, locking: $locking)';
   }
 
   @override
@@ -379,21 +543,17 @@ class _$_Preferences implements _Preferences {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_Preferences &&
-            (identical(other.darkMode, darkMode) ||
-                other.darkMode == darkMode) &&
-            (identical(other.themeColor, themeColor) ||
-                other.themeColor == themeColor) &&
+            (identical(other.themePreferences, themePreferences) ||
+                other.themePreferences == themePreferences) &&
             (identical(other.language, language) ||
                 other.language == language) &&
-            (identical(other.displayScale, displayScale) ||
-                other.displayScale == displayScale) &&
             (identical(other.locking, locking) || other.locking == locking));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, darkMode, themeColor, language, displayScale, locking);
+  int get hashCode =>
+      Object.hash(runtimeType, themePreferences, language, locking);
 
   @JsonKey(ignore: true)
   @override
@@ -411,23 +571,17 @@ class _$_Preferences implements _Preferences {
 
 abstract class _Preferences implements Preferences {
   const factory _Preferences(
-      {required final DarkModePreference darkMode,
-      required final ColorPreference themeColor,
+      {required final ThemePreferences themePreferences,
       required final LanguagePreference language,
-      required final int displayScale,
       required final LockPreference locking}) = _$_Preferences;
 
   factory _Preferences.fromJson(Map<String, dynamic> json) =
       _$_Preferences.fromJson;
 
   @override
-  DarkModePreference get darkMode;
-  @override
-  ColorPreference get themeColor;
+  ThemePreferences get themePreferences;
   @override
   LanguagePreference get language;
-  @override
-  int get displayScale;
   @override
   LockPreference get locking;
   @override

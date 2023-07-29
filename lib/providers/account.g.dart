@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'local_accounts.dart';
+part of 'account.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$fetchLocalAccountHash() => r'e9f8ea0dd15031cc8145532e9cac73ab7f0f81be';
+String _$fetchAccountHash() => r'4d94703d07a21509650e19f60ea67ac96a39742e';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,29 +29,29 @@ class _SystemHash {
   }
 }
 
-typedef FetchLocalAccountRef = AutoDisposeFutureProviderRef<LocalAccount?>;
+typedef FetchAccountRef = AutoDisposeFutureProviderRef<AccountInfo>;
 
-/// See also [fetchLocalAccount].
-@ProviderFor(fetchLocalAccount)
-const fetchLocalAccountProvider = FetchLocalAccountFamily();
+/// See also [fetchAccount].
+@ProviderFor(fetchAccount)
+const fetchAccountProvider = FetchAccountFamily();
 
-/// See also [fetchLocalAccount].
-class FetchLocalAccountFamily extends Family<AsyncValue<LocalAccount?>> {
-  /// See also [fetchLocalAccount].
-  const FetchLocalAccountFamily();
+/// See also [fetchAccount].
+class FetchAccountFamily extends Family<AsyncValue<AccountInfo>> {
+  /// See also [fetchAccount].
+  const FetchAccountFamily();
 
-  /// See also [fetchLocalAccount].
-  FetchLocalAccountProvider call({
+  /// See also [fetchAccount].
+  FetchAccountProvider call({
     required Typed<FixedEncodedString43> accountMasterRecordKey,
   }) {
-    return FetchLocalAccountProvider(
+    return FetchAccountProvider(
       accountMasterRecordKey: accountMasterRecordKey,
     );
   }
 
   @override
-  FetchLocalAccountProvider getProviderOverride(
-    covariant FetchLocalAccountProvider provider,
+  FetchAccountProvider getProviderOverride(
+    covariant FetchAccountProvider provider,
   ) {
     return call(
       accountMasterRecordKey: provider.accountMasterRecordKey,
@@ -70,36 +70,35 @@ class FetchLocalAccountFamily extends Family<AsyncValue<LocalAccount?>> {
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'fetchLocalAccountProvider';
+  String? get name => r'fetchAccountProvider';
 }
 
-/// See also [fetchLocalAccount].
-class FetchLocalAccountProvider
-    extends AutoDisposeFutureProvider<LocalAccount?> {
-  /// See also [fetchLocalAccount].
-  FetchLocalAccountProvider({
+/// See also [fetchAccount].
+class FetchAccountProvider extends AutoDisposeFutureProvider<AccountInfo> {
+  /// See also [fetchAccount].
+  FetchAccountProvider({
     required this.accountMasterRecordKey,
   }) : super.internal(
-          (ref) => fetchLocalAccount(
+          (ref) => fetchAccount(
             ref,
             accountMasterRecordKey: accountMasterRecordKey,
           ),
-          from: fetchLocalAccountProvider,
-          name: r'fetchLocalAccountProvider',
+          from: fetchAccountProvider,
+          name: r'fetchAccountProvider',
           debugGetCreateSourceHash:
               const bool.fromEnvironment('dart.vm.product')
                   ? null
-                  : _$fetchLocalAccountHash,
-          dependencies: FetchLocalAccountFamily._dependencies,
+                  : _$fetchAccountHash,
+          dependencies: FetchAccountFamily._dependencies,
           allTransitiveDependencies:
-              FetchLocalAccountFamily._allTransitiveDependencies,
+              FetchAccountFamily._allTransitiveDependencies,
         );
 
   final Typed<FixedEncodedString43> accountMasterRecordKey;
 
   @override
   bool operator ==(Object other) {
-    return other is FetchLocalAccountProvider &&
+    return other is FetchAccountProvider &&
         other.accountMasterRecordKey == accountMasterRecordKey;
   }
 
@@ -111,21 +110,4 @@ class FetchLocalAccountProvider
     return _SystemHash.finish(hash);
   }
 }
-
-String _$localAccountsHash() => r'c8214abbc9720449910e74e32fc52d53ca4453c0';
-
-/// See also [LocalAccounts].
-@ProviderFor(LocalAccounts)
-final localAccountsProvider = AutoDisposeAsyncNotifierProvider<LocalAccounts,
-    IList<LocalAccount>>.internal(
-  LocalAccounts.new,
-  name: r'localAccountsProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$localAccountsHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$LocalAccounts = AutoDisposeAsyncNotifier<IList<LocalAccount>>;
 // ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions

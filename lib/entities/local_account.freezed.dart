@@ -34,7 +34,9 @@ mixin _$LocalAccount {
   bool get biometricsEnabled =>
       throw _privateConstructorUsedError; // Keep account hidden unless account password is entered
 // (tries all hidden accounts with auth method (no biometrics))
-  bool get hiddenAccount => throw _privateConstructorUsedError;
+  bool get hiddenAccount =>
+      throw _privateConstructorUsedError; // Display name for account until it is unlocked
+  String get name => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -54,7 +56,8 @@ abstract class $LocalAccountCopyWith<$Res> {
       @Uint8ListJsonConverter() Uint8List identitySecretSaltBytes,
       EncryptionKeyType encryptionKeyType,
       bool biometricsEnabled,
-      bool hiddenAccount});
+      bool hiddenAccount,
+      String name});
 
   $IdentityMasterCopyWith<$Res> get identityMaster;
 }
@@ -78,6 +81,7 @@ class _$LocalAccountCopyWithImpl<$Res, $Val extends LocalAccount>
     Object? encryptionKeyType = null,
     Object? biometricsEnabled = null,
     Object? hiddenAccount = null,
+    Object? name = null,
   }) {
     return _then(_value.copyWith(
       identityMaster: null == identityMaster
@@ -104,6 +108,10 @@ class _$LocalAccountCopyWithImpl<$Res, $Val extends LocalAccount>
           ? _value.hiddenAccount
           : hiddenAccount // ignore: cast_nullable_to_non_nullable
               as bool,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 
@@ -130,7 +138,8 @@ abstract class _$$_LocalAccountCopyWith<$Res>
       @Uint8ListJsonConverter() Uint8List identitySecretSaltBytes,
       EncryptionKeyType encryptionKeyType,
       bool biometricsEnabled,
-      bool hiddenAccount});
+      bool hiddenAccount,
+      String name});
 
   @override
   $IdentityMasterCopyWith<$Res> get identityMaster;
@@ -153,6 +162,7 @@ class __$$_LocalAccountCopyWithImpl<$Res>
     Object? encryptionKeyType = null,
     Object? biometricsEnabled = null,
     Object? hiddenAccount = null,
+    Object? name = null,
   }) {
     return _then(_$_LocalAccount(
       identityMaster: null == identityMaster
@@ -179,6 +189,10 @@ class __$$_LocalAccountCopyWithImpl<$Res>
           ? _value.hiddenAccount
           : hiddenAccount // ignore: cast_nullable_to_non_nullable
               as bool,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -192,7 +206,8 @@ class _$_LocalAccount implements _LocalAccount {
       @Uint8ListJsonConverter() required this.identitySecretSaltBytes,
       required this.encryptionKeyType,
       required this.biometricsEnabled,
-      required this.hiddenAccount});
+      required this.hiddenAccount,
+      required this.name});
 
   factory _$_LocalAccount.fromJson(Map<String, dynamic> json) =>
       _$$_LocalAccountFromJson(json);
@@ -218,10 +233,13 @@ class _$_LocalAccount implements _LocalAccount {
 // (tries all hidden accounts with auth method (no biometrics))
   @override
   final bool hiddenAccount;
+// Display name for account until it is unlocked
+  @override
+  final String name;
 
   @override
   String toString() {
-    return 'LocalAccount(identityMaster: $identityMaster, identitySecretKeyBytes: $identitySecretKeyBytes, identitySecretSaltBytes: $identitySecretSaltBytes, encryptionKeyType: $encryptionKeyType, biometricsEnabled: $biometricsEnabled, hiddenAccount: $hiddenAccount)';
+    return 'LocalAccount(identityMaster: $identityMaster, identitySecretKeyBytes: $identitySecretKeyBytes, identitySecretSaltBytes: $identitySecretSaltBytes, encryptionKeyType: $encryptionKeyType, biometricsEnabled: $biometricsEnabled, hiddenAccount: $hiddenAccount, name: $name)';
   }
 
   @override
@@ -240,7 +258,8 @@ class _$_LocalAccount implements _LocalAccount {
             (identical(other.biometricsEnabled, biometricsEnabled) ||
                 other.biometricsEnabled == biometricsEnabled) &&
             (identical(other.hiddenAccount, hiddenAccount) ||
-                other.hiddenAccount == hiddenAccount));
+                other.hiddenAccount == hiddenAccount) &&
+            (identical(other.name, name) || other.name == name));
   }
 
   @JsonKey(ignore: true)
@@ -252,7 +271,8 @@ class _$_LocalAccount implements _LocalAccount {
       const DeepCollectionEquality().hash(identitySecretSaltBytes),
       encryptionKeyType,
       biometricsEnabled,
-      hiddenAccount);
+      hiddenAccount,
+      name);
 
   @JsonKey(ignore: true)
   @override
@@ -276,7 +296,8 @@ abstract class _LocalAccount implements LocalAccount {
       required final Uint8List identitySecretSaltBytes,
       required final EncryptionKeyType encryptionKeyType,
       required final bool biometricsEnabled,
-      required final bool hiddenAccount}) = _$_LocalAccount;
+      required final bool hiddenAccount,
+      required final String name}) = _$_LocalAccount;
 
   factory _LocalAccount.fromJson(Map<String, dynamic> json) =
       _$_LocalAccount.fromJson;
@@ -296,6 +317,8 @@ abstract class _LocalAccount implements LocalAccount {
   @override // Keep account hidden unless account password is entered
 // (tries all hidden accounts with auth method (no biometrics))
   bool get hiddenAccount;
+  @override // Display name for account until it is unlocked
+  String get name;
   @override
   @JsonKey(ignore: true)
   _$$_LocalAccountCopyWith<_$_LocalAccount> get copyWith =>

@@ -20,20 +20,31 @@ Map<String, dynamic> _$$_LockPreferenceToJson(_$_LockPreference instance) =>
       'lock_with_system_lock': instance.lockWithSystemLock,
     };
 
+_$_ThemePreferences _$$_ThemePreferencesFromJson(Map<String, dynamic> json) =>
+    _$_ThemePreferences(
+      brightnessPreference:
+          BrightnessPreference.fromJson(json['brightness_preference']),
+      colorPreference: ColorPreference.fromJson(json['color_preference']),
+      displayScale: (json['display_scale'] as num).toDouble(),
+    );
+
+Map<String, dynamic> _$$_ThemePreferencesToJson(_$_ThemePreferences instance) =>
+    <String, dynamic>{
+      'brightness_preference': instance.brightnessPreference.toJson(),
+      'color_preference': instance.colorPreference.toJson(),
+      'display_scale': instance.displayScale,
+    };
+
 _$_Preferences _$$_PreferencesFromJson(Map<String, dynamic> json) =>
     _$_Preferences(
-      darkMode: DarkModePreference.fromJson(json['dark_mode']),
-      themeColor: ColorPreference.fromJson(json['theme_color']),
+      themePreferences: ThemePreferences.fromJson(json['theme_preferences']),
       language: LanguagePreference.fromJson(json['language']),
-      displayScale: json['display_scale'] as int,
       locking: LockPreference.fromJson(json['locking']),
     );
 
 Map<String, dynamic> _$$_PreferencesToJson(_$_Preferences instance) =>
     <String, dynamic>{
-      'dark_mode': instance.darkMode.toJson(),
-      'theme_color': instance.themeColor.toJson(),
+      'theme_preferences': instance.themePreferences.toJson(),
       'language': instance.language.toJson(),
-      'display_scale': instance.displayScale,
       'locking': instance.locking.toJson(),
     };

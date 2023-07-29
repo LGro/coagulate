@@ -5,6 +5,11 @@
     "app_bar": {
         "settings_tooltip": "Settings"
     },
+    "pager": {
+        "account": "Account",
+        "chats": "Chats",
+        "contacts": "Contacts"
+    },
     "account": {
         "form_name": "Name",
         "form_title": "Title (optional)",
@@ -22,25 +27,26 @@
     },
     "button": {
         "ok": "Ok",
-        "cancel": "Cancel",
-        "change_language": "Change Language"
+        "cancel": "Cancel"
     },
     "language": {
         "name": {
             "en": "English"
         },
+        "change_language": "Change Language",
         "selected_message": "Currently selected language is {language}",
         "selection": {
             "message": "Please select a language from the list",
             "title": "Language Selection"
         }
     },
-    "plural": {
-        "demo": {
-            "zero": "Please start pushing the 'plus' button.",
-            "one": "You have pushed the button one time.",
-            "two": "You have pushed the button two times.",
-            "other": "You have pushed the button {{value}} times."
-        }
+    "account_page": {
+        "missing_account_title": "Missing Account",
+        "missing_account_text": "Account is missing, removing from list",
+        "invalid_account_title": "Missing Account",
+        "invalid_account_text": "Account is missing, removing from list"
+    },
+    "themes": {
+        "vapor": "Vapor"
     }
 }

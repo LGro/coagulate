@@ -17,6 +17,7 @@ _$_LocalAccount _$$_LocalAccountFromJson(Map<String, dynamic> json) =>
           EncryptionKeyType.fromJson(json['encryption_key_type']),
       biometricsEnabled: json['biometrics_enabled'] as bool,
       hiddenAccount: json['hidden_account'] as bool,
+      name: json['name'] as String,
     );
 
 Map<String, dynamic> _$$_LocalAccountToJson(_$_LocalAccount instance) =>
@@ -29,4 +30,5 @@ Map<String, dynamic> _$$_LocalAccountToJson(_$_LocalAccount instance) =>
       'encryption_key_type': instance.encryptionKeyType.toJson(),
       'biometrics_enabled': instance.biometricsEnabled,
       'hidden_account': instance.hiddenAccount,
+      'name': instance.name,
     };

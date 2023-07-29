@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:radix_colors/radix_colors.dart';
 
-import '../tools/desktop_control.dart';
+import '../providers/window_control.dart';
 
-class IndexPage extends StatelessWidget {
+class IndexPage extends ConsumerWidget {
   const IndexPage({super.key});
   static const path = '/';
 
   @override
-  Widget build(BuildContext context) {
-    enableTitleBar(false);
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(windowControlProvider);
+
     return Scaffold(
         body: DecoratedBox(
       decoration: BoxDecoration(
@@ -34,8 +36,8 @@ class IndexPage extends StatelessWidget {
                         )),
                     Expanded(
                         child: SvgPicture.asset(
-                          'assets/images/title.svg',
-                        ))
+                      'assets/images/title.svg',
+                    ))
                   ]))),
     ));
   }

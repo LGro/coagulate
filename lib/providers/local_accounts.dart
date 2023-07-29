@@ -14,6 +14,8 @@ import 'logins.dart';
 
 part 'local_accounts.g.dart';
 
+const String veilidChatAccountKey = 'com.veilid.veilidchat';
+
 // Local account manager
 @riverpod
 class LocalAccounts extends _$LocalAccounts
@@ -90,6 +92,7 @@ class LocalAccounts extends _$LocalAccounts
       encryptionKeyType: encryptionKeyType,
       biometricsEnabled: false,
       hiddenAccount: false,
+      name: account.profile.name,
     );
 
     /////// Add account with profile to DHT
@@ -114,8 +117,14 @@ class LocalAccounts extends _$LocalAccounts
 
         await identityRec.eventualUpdateJson(Identity.fromJson,
             (oldIdentity) async {
-          final accountRecords = IMapOfSets.from(oldIdentity.accountRecords)
-              .add('com.veilid.veilidchat', newAccountRecordInfo)
+          final oldAccountRecords = IMapOfSets.from(oldIdentity.accountRecords);
+          // Only allow one account per identity for veilidchat
+          if (oldAccountRecords.get(veilidChatAccountKey).isNotEmpty) {
+            throw StateError(
+                'Only one account per identity allowed for VeilidChat');
+          }
+          final accountRecords = oldAccountRecords
+              .add(veilidChatAccountKey, newAccountRecordInfo)
               .asIMap();
           return oldIdentity.copyWith(accountRecords: accountRecords);
         });
@@ -150,4 +159,19 @@ class LocalAccounts extends _$LocalAccounts
   /// Import an account from another VeilidChat instance
 
   /// Recover an account with the master identity secret
+}
+
+@riverpod
+Future<LocalAccount?> fetchLocalAccount(FetchLocalAccountRef ref,
+    {required TypedKey accountMasterRecordKey}) async {
+  final localAccounts = await ref.watch(localAccountsProvider.future);
+  try {
+    return localAccounts.firstWhere(
+        (e) => e.identityMaster.masterRecordKey == accountMasterRecordKey);
+  } on Exception catch (e) {
+    if (e is StateError) {
+      return null;
+    }
+    rethrow;
+  }
 }

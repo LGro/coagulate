@@ -11,6 +11,7 @@ import '../components/default_app_bar.dart';
 import '../entities/proto.dart' as proto;
 import '../providers/local_accounts.dart';
 import '../providers/logins.dart';
+import '../providers/window_control.dart';
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 
@@ -111,8 +112,7 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    enableTitleBar(true);
-    portraitOnly();
+    ref.watch(windowControlProvider);
 
     final localAccounts = ref.watch(localAccountsProvider);
     final logins = ref.watch(loginsProvider);
@@ -132,15 +132,8 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
           try {
             await createAccount();
           } on Exception catch (e) {
-            await QuickAlert.show(
-              context: context,
-              type: QuickAlertType.error,
-              title: translate('new_account_page.error'),
-              text: 'Exception: $e',
-              //backgroundColor: Colors.black,
-              //titleColor: Colors.white,
-              //textColor: Colors.white,
-            );
+            await showErrorModal(
+                context, translate('new_account_page.error'), 'Exception: $e');
           }
         },
       ).paddingSymmetric(horizontal: 24, vertical: 8),

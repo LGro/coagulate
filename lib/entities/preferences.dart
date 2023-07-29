@@ -6,13 +6,13 @@ part 'preferences.g.dart';
 
 // Theme supports light and dark mode, optionally selected by the
 // operating system
-enum DarkModePreference {
+enum BrightnessPreference {
   system,
   light,
   dark;
 
-  factory DarkModePreference.fromJson(dynamic j) =>
-      DarkModePreference.values.byName((j as String).toCamelCase());
+  factory BrightnessPreference.fromJson(dynamic j) =>
+      BrightnessPreference.values.byName((j as String).toCamelCase());
 
   String toJson() => name.toPascalCase();
 }
@@ -33,34 +33,20 @@ class LockPreference with _$LockPreference {
 
 // Theme supports multiple color variants based on 'Radix'
 enum ColorPreference {
-  amber,
-  blue,
-  bronze,
-  brown,
-  crimson,
-  cyan,
+  // Radix Colors
+  scarlet,
+  babydoll,
+  vapor,
   gold,
-  grass,
-  gray,
-  green,
-  indigo,
+  garden,
+  forest,
+  arctic,
+  lapis,
+  eggplant,
   lime,
-  mauve,
-  mint,
-  olive,
-  orange,
-  pink,
-  plum,
-  purple,
-  red,
-  sage,
-  sand,
-  sky,
-  slate,
-  teal,
-  tomato,
-  violet,
-  yellow;
+  grim,
+  // Accessible Colors
+  contrast;
 
   factory ColorPreference.fromJson(dynamic j) =>
       ColorPreference.values.byName((j as String).toCamelCase());
@@ -76,15 +62,25 @@ enum LanguagePreference {
   String toJson() => name.toPascalCase();
 }
 
+@freezed
+class ThemePreferences with _$ThemePreferences {
+  const factory ThemePreferences({
+    required BrightnessPreference brightnessPreference,
+    required ColorPreference colorPreference,
+    required double displayScale,
+  }) = _ThemePreferences;
+
+  factory ThemePreferences.fromJson(dynamic json) =>
+      _$ThemePreferencesFromJson(json as Map<String, dynamic>);
+}
+
 // Preferences are stored in a table locally and globally affect all
 // accounts imported/added and the app in general
 @freezed
 class Preferences with _$Preferences {
   const factory Preferences({
-    required DarkModePreference darkMode,
-    required ColorPreference themeColor,
+    required ThemePreferences themePreferences,
     required LanguagePreference language,
-    required int displayScale,
     required LockPreference locking,
   }) = _Preferences;
 

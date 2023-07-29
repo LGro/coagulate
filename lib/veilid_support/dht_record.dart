@@ -129,6 +129,17 @@ class DHTRecord {
     return jsonDecodeBytes(fromJson, data);
   }
 
+  Future<T?> getProtobuf<T extends GeneratedMessage>(
+      T Function(List<int> i) fromBuffer,
+      {int subkey = -1,
+      bool forceRefresh = false}) async {
+    final data = await get(subkey: subkey, forceRefresh: forceRefresh);
+    if (data == null) {
+      return null;
+    }
+    return fromBuffer(data.toList());
+  }
+
   Future<void> eventualWriteBytes(Uint8List newValue, {int subkey = -1}) async {
     subkey = subkeyOrDefault(subkey);
     newValue = await crypto.encrypt(newValue, subkey);

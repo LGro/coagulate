@@ -48,6 +48,8 @@ class LocalAccount with _$LocalAccount {
     // Keep account hidden unless account password is entered
     // (tries all hidden accounts with auth method (no biometrics))
     required bool hiddenAccount,
+    // Display name for account until it is unlocked
+    required String name,
   }) = _LocalAccount;
 
   factory LocalAccount.fromJson(dynamic json) =>

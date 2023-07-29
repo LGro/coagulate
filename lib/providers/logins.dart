@@ -163,3 +163,18 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
     state = AsyncValue.data(updated);
   }
 }
+
+@riverpod
+Future<UserLogin?> fetchLogin(FetchLoginRef ref,
+    {required TypedKey accountMasterRecordKey}) async {
+  final activeLogins = await ref.watch(loginsProvider.future);
+  try {
+    return activeLogins.userLogins
+        .firstWhere((e) => e.accountMasterRecordKey == accountMasterRecordKey);
+  } on Exception catch (e) {
+    if (e is StateError) {
+      return null;
+    }
+    rethrow;
+  }
+}

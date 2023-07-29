@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 
-import '../tools/desktop_control.dart';
 import 'app.dart';
 import 'log/log.dart';
-import 'theming/theming.dart';
+import 'providers/window_control.dart';
+import 'tools/theme_service.dart';
 import 'veilid_support/veilid_support.dart';
 
 void main() async {
@@ -32,7 +32,7 @@ void main() async {
   final initTheme = themeService.initial;
 
   // Manage window on desktop platforms
-  await setupDesktopWindow();
+  await WindowControl.initialize();
 
   // Make localization delegate
   final delegate = await LocalizationDelegate.create(
