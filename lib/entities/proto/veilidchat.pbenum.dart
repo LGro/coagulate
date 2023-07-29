@@ -51,5 +51,22 @@ class Availability extends $pb.ProtobufEnum {
   const Availability._($core.int v, $core.String n) : super(v, n);
 }
 
+class EncryptionKind extends $pb.ProtobufEnum {
+  static const EncryptionKind ENCRYPTION_KIND_UNSPECIFIED = EncryptionKind._(0, _omitEnumNames ? '' : 'ENCRYPTION_KIND_UNSPECIFIED');
+  static const EncryptionKind ENCRYPTION_KIND_PIN = EncryptionKind._(1, _omitEnumNames ? '' : 'ENCRYPTION_KIND_PIN');
+  static const EncryptionKind ENCRYPTION_KIND_PASSWORD = EncryptionKind._(2, _omitEnumNames ? '' : 'ENCRYPTION_KIND_PASSWORD');
+
+  static const $core.List<EncryptionKind> values = <EncryptionKind> [
+    ENCRYPTION_KIND_UNSPECIFIED,
+    ENCRYPTION_KIND_PIN,
+    ENCRYPTION_KIND_PASSWORD,
+  ];
+
+  static final $core.Map<$core.int, EncryptionKind> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static EncryptionKind? valueOf($core.int value) => _byValue[value];
+
+  const EncryptionKind._($core.int v, $core.String n) : super(v, n);
+}
+
 
 const _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:protobuf/protobuf.dart';
 import 'package:veilid/veilid.dart';
 
+import '../entities/proto.dart' as proto;
 import '../tools/tools.dart';
 import 'veilid_support.dart';
 

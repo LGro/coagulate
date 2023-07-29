@@ -47,6 +47,7 @@ dependencies:
   radix_colors: ^1.0.4
   reorderable_grid: ^1.0.7
   riverpod_annotation: ^2.1.1
+  share_plus: ^7.0.2
   shared_preferences: ^2.0.15
   signal_strength_indicator: ^0.4.1
   split_view: ^3.2.1

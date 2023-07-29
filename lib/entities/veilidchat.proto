@@ -61,6 +61,7 @@ message TypedKey {
 
 message DHTData {
     // Other keys to concatenate
+    // Uses the same writer as this DHTList with SMPL schema
     repeated TypedKey keys = 1;
     // Hash of reassembled data to verify contents
     TypedKey hash = 2;
@@ -80,6 +81,7 @@ message DHTData {
 // Keys must use writable schema in order to make this list mutable
 message DHTList {
     // Other keys to concatenate
+    // Uses the same writer as this DHTList with SMPL schema
     repeated TypedKey keys = 1;
     // Item position index
     // Actual item location is:
@@ -223,6 +225,16 @@ message Profile  {
     optional TypedKey avatar = 5;
 }
 
+// A pointer to an owned DHT record
+message OwnedDHTRecordPointer {
+    // DHT Record key
+    TypedKey record_key = 1;
+    // DHT record owner key
+    CryptoKey owner_key = 2;
+    // DHT record owner secret
+    CryptoKey owner_secret = 3;
+}
+
 // A record of an individual account
 // Pointed to by the identity account map in the identity key
 //
@@ -236,6 +248,95 @@ message Account {
     // Auto-away sets 'away' mode after an inactivity time
     uint32 auto_away_timeout_sec = 3;
     // The contacts DHTList for this account
-    // DHT Private: accountSecretKey
-    TypedKey contact_list = 4;
+    // DHT Private
+    OwnedDHTRecordPointer contact_list = 4;
+    // The contact requests DHTList for this account
+    // DHT Private
+    OwnedDHTRecordPointer contact_requests = 5;
+}
+
+// EncryptionKind
+// Encryption of secret
+enum EncryptionKind {
+    ENCRYPTION_KIND_UNSPECIFIED = 0;
+    ENCRYPTION_KIND_PIN = 1;
+    ENCRYPTION_KIND_PASSWORD =2;
+}
+
+// Invitation that is shared for VeilidChat contact connections
+// serialized to QR code or data blob, not send over DHT, out of band.
+// Writer secret is unique to this invitation
+message ContactInvitation {
+    // Contact request DHT record key
+    TypedKey contact_request_record_key = 1;
+    // Writer secret key bytes possibly encrypted 
+    bytes writer_secret = 2;
+}
+
+// Signature of invitation with identity
+message SignedContactInvitation {
+    // The serialized bytes for the contact invitation
+    bytes contact_invitation = 1;
+    // The signature of the contact_invitation bytes with the identity
+    Signature identity_signature = 2;
+}
+
+// Contact request unicastinbox on the DHT
+// DHTSchema: SMPL 2 owner key, 1 writer key symmetrically encrypted with writer secret
+message ContactRequest {
+    // The salt for the encryption used on the unicastinbox writer secret
+    bytes writer_salt = 1;
+    // The kind of encryption used on the unicastinbox writer key
+    EncryptionKind encryption_key_type = 2;
+    // The private part encoded and symmetrically encrypted with the unicastinbox writer secret
+    bytes private = 3;
+}
+
+// The private part of a possibly encrypted contact request
+// Symmetrically encrypted with writer secret
+message ContactRequestPrivate {
+    // Writer public key for signing writes to contact request unicastinbox
+    CryptoKey writer_key = 1;
+    // Snapshot of profile
+    Profile profile = 2;
+    // Account master dht key
+    TypedKey account_master_record_key = 3;
+    // Local chat DHT record key
+    TypedKey chat_record_key = 4;
+    // Expiration timestamp
+    uint64 expiration = 5;
+}
+
+// To accept or reject a contact request, fill this out and send to the ContactRequest unicastinbox
+message ContactResponse {
+    // Accept or reject
+    bool accept = 1;
+    // Account master record key
+    TypedKey account_master_record_key = 2;
+    // Local chat DHT record key if accepted
+    TypedKey chat_record_key = 3;
+}
+
+// Signature of response with identity
+// Symmetrically encrypted with writer secret
+message SignedContactResponse {
+    // Serialized bytes for ContactResponse
+    bytes contact_response = 1;
+    // Signature of the contact_accept bytes with the identity
+    Signature identity_signature = 2;
+}
+
+// Contact request record kept in Account DHTList to keep track of extant contact invitations
+message ContactRequestRecord {
+    // Contact request unicastinbox DHT record key
+    TypedKey contact_request_record_key = 1;
+    // Unencrypted writer key for this request
+    CryptoKey writer_key = 2;
+    CryptoKey writer_secret = 3;
+    // Local chat DHT record key
+    TypedKey chat_record_key = 4;
+    // Expiration timestamp
+    uint64 expiration = 5;
+    // A copy of the raw invitation bytes post-encryption
+    bytes invitation = 6;
 }

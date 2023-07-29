@@ -46,6 +46,21 @@ final $typed_data.Uint8List availabilityDescriptor = $convert.base64Decode(
     'lMSVRZX09GRkxJTkUQARIVChFBVkFJTEFCSUxJVFlfRlJFRRACEhUKEUFWQUlMQUJJTElUWV9C'
     'VVNZEAMSFQoRQVZBSUxBQklMSVRZX0FXQVkQBA==');
 
+@$core.Deprecated('Use encryptionKindDescriptor instead')
+const EncryptionKind$json = {
+  '1': 'EncryptionKind',
+  '2': [
+    {'1': 'ENCRYPTION_KIND_UNSPECIFIED', '2': 0},
+    {'1': 'ENCRYPTION_KIND_PIN', '2': 1},
+    {'1': 'ENCRYPTION_KIND_PASSWORD', '2': 2},
+  ],
+};
+
+/// Descriptor for `EncryptionKind`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List encryptionKindDescriptor = $convert.base64Decode(
+    'Cg5FbmNyeXB0aW9uS2luZBIfChtFTkNSWVBUSU9OX0tJTkRfVU5TUEVDSUZJRUQQABIXChNFTk'
+    'NSWVBUSU9OX0tJTkRfUElOEAESHAoYRU5DUllQVElPTl9LSU5EX1BBU1NXT1JEEAI=');
+
 @$core.Deprecated('Use cryptoKeyDescriptor instead')
 const CryptoKey$json = {
   '1': 'CryptoKey',
@@ -301,6 +316,7 @@ const Account$json = {
     {'1': 'invisible', '3': 2, '4': 1, '5': 8, '10': 'invisible'},
     {'1': 'auto_away_timeout_sec', '3': 3, '4': 1, '5': 13, '10': 'autoAwayTimeoutSec'},
     {'1': 'contact_list', '3': 4, '4': 1, '5': 11, '6': '.TypedKey', '10': 'contactList'},
+    {'1': 'contact_requests', '3': 5, '4': 1, '5': 11, '6': '.TypedKey', '10': 'contactRequests'},
   ],
 };
 
@@ -309,5 +325,125 @@ final $typed_data.Uint8List accountDescriptor = $convert.base64Decode(
     'CgdBY2NvdW50EiIKB3Byb2ZpbGUYASABKAsyCC5Qcm9maWxlUgdwcm9maWxlEhwKCWludmlzaW'
     'JsZRgCIAEoCFIJaW52aXNpYmxlEjEKFWF1dG9fYXdheV90aW1lb3V0X3NlYxgDIAEoDVISYXV0'
     'b0F3YXlUaW1lb3V0U2VjEiwKDGNvbnRhY3RfbGlzdBgEIAEoCzIJLlR5cGVkS2V5Ugtjb250YW'
-    'N0TGlzdA==');
+    'N0TGlzdBI0ChBjb250YWN0X3JlcXVlc3RzGAUgASgLMgkuVHlwZWRLZXlSD2NvbnRhY3RSZXF1'
+    'ZXN0cw==');
+
+@$core.Deprecated('Use contactInvitationDescriptor instead')
+const ContactInvitation$json = {
+  '1': 'ContactInvitation',
+  '2': [
+    {'1': 'contact_request_record_key', '3': 1, '4': 1, '5': 11, '6': '.TypedKey', '10': 'contactRequestRecordKey'},
+    {'1': 'writer_secret', '3': 2, '4': 1, '5': 12, '10': 'writerSecret'},
+  ],
+};
+
+/// Descriptor for `ContactInvitation`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List contactInvitationDescriptor = $convert.base64Decode(
+    'ChFDb250YWN0SW52aXRhdGlvbhJGChpjb250YWN0X3JlcXVlc3RfcmVjb3JkX2tleRgBIAEoCz'
+    'IJLlR5cGVkS2V5Uhdjb250YWN0UmVxdWVzdFJlY29yZEtleRIjCg13cml0ZXJfc2VjcmV0GAIg'
+    'ASgMUgx3cml0ZXJTZWNyZXQ=');
+
+@$core.Deprecated('Use signedContactInvitationDescriptor instead')
+const SignedContactInvitation$json = {
+  '1': 'SignedContactInvitation',
+  '2': [
+    {'1': 'contact_invitation', '3': 1, '4': 1, '5': 12, '10': 'contactInvitation'},
+    {'1': 'identity_signature', '3': 2, '4': 1, '5': 11, '6': '.Signature', '10': 'identitySignature'},
+  ],
+};
+
+/// Descriptor for `SignedContactInvitation`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List signedContactInvitationDescriptor = $convert.base64Decode(
+    'ChdTaWduZWRDb250YWN0SW52aXRhdGlvbhItChJjb250YWN0X2ludml0YXRpb24YASABKAxSEW'
+    'NvbnRhY3RJbnZpdGF0aW9uEjkKEmlkZW50aXR5X3NpZ25hdHVyZRgCIAEoCzIKLlNpZ25hdHVy'
+    'ZVIRaWRlbnRpdHlTaWduYXR1cmU=');
+
+@$core.Deprecated('Use contactRequestDescriptor instead')
+const ContactRequest$json = {
+  '1': 'ContactRequest',
+  '2': [
+    {'1': 'writer_salt', '3': 1, '4': 1, '5': 12, '10': 'writerSalt'},
+    {'1': 'encryption_key_type', '3': 2, '4': 1, '5': 14, '6': '.EncryptionKind', '10': 'encryptionKeyType'},
+    {'1': 'private', '3': 3, '4': 1, '5': 12, '10': 'private'},
+  ],
+};
+
+/// Descriptor for `ContactRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List contactRequestDescriptor = $convert.base64Decode(
+    'Cg5Db250YWN0UmVxdWVzdBIfCgt3cml0ZXJfc2FsdBgBIAEoDFIKd3JpdGVyU2FsdBI/ChNlbm'
+    'NyeXB0aW9uX2tleV90eXBlGAIgASgOMg8uRW5jcnlwdGlvbktpbmRSEWVuY3J5cHRpb25LZXlU'
+    'eXBlEhgKB3ByaXZhdGUYAyABKAxSB3ByaXZhdGU=');
+
+@$core.Deprecated('Use contactRequestPrivateDescriptor instead')
+const ContactRequestPrivate$json = {
+  '1': 'ContactRequestPrivate',
+  '2': [
+    {'1': 'writer_key', '3': 1, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'writerKey'},
+    {'1': 'profile', '3': 2, '4': 1, '5': 11, '6': '.Profile', '10': 'profile'},
+    {'1': 'account_master_record_key', '3': 3, '4': 1, '5': 11, '6': '.TypedKey', '10': 'accountMasterRecordKey'},
+    {'1': 'chat_record_key', '3': 4, '4': 1, '5': 11, '6': '.TypedKey', '10': 'chatRecordKey'},
+    {'1': 'expiration', '3': 5, '4': 1, '5': 4, '10': 'expiration'},
+  ],
+};
+
+/// Descriptor for `ContactRequestPrivate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List contactRequestPrivateDescriptor = $convert.base64Decode(
+    'ChVDb250YWN0UmVxdWVzdFByaXZhdGUSKQoKd3JpdGVyX2tleRgBIAEoCzIKLkNyeXB0b0tleV'
+    'IJd3JpdGVyS2V5EiIKB3Byb2ZpbGUYAiABKAsyCC5Qcm9maWxlUgdwcm9maWxlEkQKGWFjY291'
+    'bnRfbWFzdGVyX3JlY29yZF9rZXkYAyABKAsyCS5UeXBlZEtleVIWYWNjb3VudE1hc3RlclJlY2'
+    '9yZEtleRIxCg9jaGF0X3JlY29yZF9rZXkYBCABKAsyCS5UeXBlZEtleVINY2hhdFJlY29yZEtl'
+    'eRIeCgpleHBpcmF0aW9uGAUgASgEUgpleHBpcmF0aW9u');
+
+@$core.Deprecated('Use contactResponseDescriptor instead')
+const ContactResponse$json = {
+  '1': 'ContactResponse',
+  '2': [
+    {'1': 'accept', '3': 1, '4': 1, '5': 8, '10': 'accept'},
+    {'1': 'account_master_record_key', '3': 2, '4': 1, '5': 11, '6': '.TypedKey', '10': 'accountMasterRecordKey'},
+    {'1': 'chat_record_key', '3': 3, '4': 1, '5': 11, '6': '.TypedKey', '10': 'chatRecordKey'},
+  ],
+};
+
+/// Descriptor for `ContactResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List contactResponseDescriptor = $convert.base64Decode(
+    'Cg9Db250YWN0UmVzcG9uc2USFgoGYWNjZXB0GAEgASgIUgZhY2NlcHQSRAoZYWNjb3VudF9tYX'
+    'N0ZXJfcmVjb3JkX2tleRgCIAEoCzIJLlR5cGVkS2V5UhZhY2NvdW50TWFzdGVyUmVjb3JkS2V5'
+    'EjEKD2NoYXRfcmVjb3JkX2tleRgDIAEoCzIJLlR5cGVkS2V5Ug1jaGF0UmVjb3JkS2V5');
+
+@$core.Deprecated('Use signedContactResponseDescriptor instead')
+const SignedContactResponse$json = {
+  '1': 'SignedContactResponse',
+  '2': [
+    {'1': 'contact_response', '3': 1, '4': 1, '5': 12, '10': 'contactResponse'},
+    {'1': 'identity_signature', '3': 2, '4': 1, '5': 11, '6': '.Signature', '10': 'identitySignature'},
+  ],
+};
+
+/// Descriptor for `SignedContactResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List signedContactResponseDescriptor = $convert.base64Decode(
+    'ChVTaWduZWRDb250YWN0UmVzcG9uc2USKQoQY29udGFjdF9yZXNwb25zZRgBIAEoDFIPY29udG'
+    'FjdFJlc3BvbnNlEjkKEmlkZW50aXR5X3NpZ25hdHVyZRgCIAEoCzIKLlNpZ25hdHVyZVIRaWRl'
+    'bnRpdHlTaWduYXR1cmU=');
+
+@$core.Deprecated('Use contactRequestRecordDescriptor instead')
+const ContactRequestRecord$json = {
+  '1': 'ContactRequestRecord',
+  '2': [
+    {'1': 'contact_request_record_key', '3': 1, '4': 1, '5': 11, '6': '.TypedKey', '10': 'contactRequestRecordKey'},
+    {'1': 'writer_key', '3': 2, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'writerKey'},
+    {'1': 'writer_secret', '3': 3, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'writerSecret'},
+    {'1': 'chat_record_key', '3': 4, '4': 1, '5': 11, '6': '.TypedKey', '10': 'chatRecordKey'},
+    {'1': 'expiration', '3': 5, '4': 1, '5': 4, '10': 'expiration'},
+    {'1': 'invitation', '3': 6, '4': 1, '5': 12, '10': 'invitation'},
+  ],
+};
+
+/// Descriptor for `ContactRequestRecord`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List contactRequestRecordDescriptor = $convert.base64Decode(
+    'ChRDb250YWN0UmVxdWVzdFJlY29yZBJGChpjb250YWN0X3JlcXVlc3RfcmVjb3JkX2tleRgBIA'
+    'EoCzIJLlR5cGVkS2V5Uhdjb250YWN0UmVxdWVzdFJlY29yZEtleRIpCgp3cml0ZXJfa2V5GAIg'
+    'ASgLMgouQ3J5cHRvS2V5Ugl3cml0ZXJLZXkSLwoNd3JpdGVyX3NlY3JldBgDIAEoCzIKLkNyeX'
+    'B0b0tleVIMd3JpdGVyU2VjcmV0EjEKD2NoYXRfcmVjb3JkX2tleRgEIAEoCzIJLlR5cGVkS2V5'
+    'Ug1jaGF0UmVjb3JkS2V5Eh4KCmV4cGlyYXRpb24YBSABKARSCmV4cGlyYXRpb24SHgoKaW52aX'
+    'RhdGlvbhgGIAEoDFIKaW52aXRhdGlvbg==');
 
