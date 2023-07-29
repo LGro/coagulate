@@ -7,7 +7,6 @@ import 'package:stylish_bottom_bar/model/bar_items.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
 import 'account_page.dart';
-import 'contacts_page.dart';
 import 'chats_page.dart';
 
 class MainPager extends ConsumerStatefulWidget {
@@ -26,30 +25,22 @@ class MainPagerState extends ConsumerState<MainPager>
   final _pageController = PageController();
   var _currentPage = 0;
 
-  final _selectedIconList = <IconData>[
-    Icons.chat,
-    Icons.contacts,
-    Icons.person
-  ];
+  final _selectedIconList = <IconData>[Icons.person, Icons.chat];
   // final _unselectedIconList = <IconData>[
   //   Icons.chat_outlined,
-  //   Icons.contacts_outlined,
   //   Icons.person_outlined
   // ];
   final _fabIconList = <IconData>[
-    Icons.add_comment_sharp,
     Icons.person_add_sharp,
-    Icons.settings_sharp,
+    Icons.add_comment_sharp,
   ];
   final _labelList = <String>[
-    translate('pager.chats'),
-    translate('pager.contacts'),
     translate('pager.account'),
+    translate('pager.chats'),
   ];
   final List<Widget> _bottomBarPages = [
-    const ChatsPage(),
-    const ContactsPage(),
     const AccountPage(),
+    const ChatsPage(),
   ];
 
   //////////////////////////////////////////////////////////////////
@@ -154,7 +145,7 @@ class MainPagerState extends ConsumerState<MainPager>
         currentIndex: _currentPage,
         onTap: (index) async {
           await _pageController.animateToPage(index,
-              duration: 250.ms, curve: Curves.bounceOut);
+              duration: 250.ms, curve: Curves.easeInOut);
           setState(() {
             _currentPage = index;
           });

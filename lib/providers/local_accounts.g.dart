@@ -112,7 +112,7 @@ class FetchLocalAccountProvider
   }
 }
 
-String _$localAccountsHash() => r'c8214abbc9720449910e74e32fc52d53ca4453c0';
+String _$localAccountsHash() => r'd6ced0ad7108c1111603235cf394faa5f6bcdae1';
 
 /// See also [LocalAccounts].
 @ProviderFor(LocalAccounts)

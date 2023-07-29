@@ -46,6 +46,9 @@
         "invalid_account_title": "Missing Account",
         "invalid_account_text": "Account is missing, removing from list"
     },
+    "empty_contact_list": {
+        "invite_people": "Invite people to VeilidChat"
+    },
     "themes": {
         "vapor": "Vapor"
     }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../pages/pages.dart';
+import '../pages/home.dart';
+import '../pages/index.dart';
+import '../pages/new_account.dart';
 import '../providers/local_accounts.dart';
 
 part 'router_notifier.g.dart';

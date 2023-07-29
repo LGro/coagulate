@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:multi_split_view/multi_split_view.dart';
+import 'package:split_view/split_view.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
 
-import '../components/chat.dart';
-import '../components/chat_list.dart';
+import '../components/chat_component.dart';
 import '../providers/window_control.dart';
 import '../tools/tools.dart';
 import 'main_pager/main_pager.dart';
@@ -22,36 +21,9 @@ class HomePageState extends ConsumerState<HomePage>
     with TickerProviderStateMixin {
   final _unfocusNode = FocusNode();
 
-  final MultiSplitViewController _splitController = MultiSplitViewController(
-      areas: [Area(minimalSize: 300, weight: 0.25), Area(minimalSize: 300)]);
-  final scaffoldKey = GlobalKey<ScaffoldState>();
-  bool hasContainerTriggered = false;
-  final animationsMap = {
-    'containerOnActionTriggerAnimation': AnimationInfo(
-      trigger: AnimationTrigger.onActionTrigger,
-      applyInitialState: false,
-      effects: [
-        MoveEffect(
-          curve: Curves.bounceOut,
-          delay: 0.ms,
-          duration: 500.ms,
-          begin: const Offset(100, 0),
-          end: Offset.zero,
-        ),
-      ],
-    ),
-  };
-
   @override
   void initState() {
     super.initState();
-
-    setupAnimations(
-      animationsMap.values.where((anim) =>
-          anim.trigger == AnimationTrigger.onActionTrigger ||
-          !anim.applyInitialState),
-      this,
-    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       setState(() {});
@@ -83,34 +55,35 @@ class HomePageState extends ConsumerState<HomePage>
   // ignore: prefer_expression_function_bodies
   Widget buildTabletRightPane(BuildContext context) {
     //
-    return Chat();
+    return ChatComponent();
   }
 
   // ignore: prefer_expression_function_bodies
   Widget buildTablet(BuildContext context) {
+    final theme = Theme.of(context);
+    final w = MediaQuery.of(context).size.width;
     final children = [
-      buildTabletLeftPane(context),
-      buildTabletRightPane(context),
+      ConstrainedBox(
+          constraints: BoxConstraints(minWidth: 300, maxWidth: 300),
+          child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: w / 2),
+              child: buildTabletLeftPane(context))),
+      Expanded(child: buildTabletRightPane(context)),
     ];
 
-    final multiSplitView = MultiSplitView(
-        // onWeightChange: _onWeightChange,
-        // onDividerTap: _onDividerTap,
-        // onDividerDoubleTap: _onDividerDoubleTap,
-        controller: _splitController,
-        children: children);
+    return Row(
+      children: children,
+    );
 
-    final theme = MultiSplitViewTheme(
-        data: isDesktop
-            ? MultiSplitViewThemeData(
-                dividerThickness: 1,
-                dividerPainter: DividerPainters.grooved2(thickness: 1))
-            : MultiSplitViewThemeData(
-                dividerThickness: 3,
-                dividerPainter: DividerPainters.grooved2(thickness: 1)),
-        child: multiSplitView);
-
-    return theme;
+    // final theme = MultiSplitViewTheme(
+    //     data: isDesktop
+    //         ? MultiSplitViewThemeData(
+    //             dividerThickness: 1,
+    //             dividerPainter: DividerPainters.grooved2(thickness: 1))
+    //         : MultiSplitViewThemeData(
+    //             dividerThickness: 3,
+    //             dividerPainter: DividerPainters.grooved2(thickness: 1)),
+    //     child: multiSplitView);
   }
 
   @override

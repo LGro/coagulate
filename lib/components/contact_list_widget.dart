@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class EmptyContactListComponentWidget extends ConsumerWidget {
-  const EmptyContactListComponentWidget({super.key});
+import '../../entities/proto.dart' as proto;
+import 'empty_contact_list_widget.dart';
+
+class ContactListWidget extends ConsumerWidget {
+  const ContactListWidget({required this.contactList, super.key});
+  final List<proto.Contact> contactList;
 
   @override
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context, WidgetRef ref) {
     //
+    if (contactList.isEmpty) {
+      return const EmptyContactListWidget();
+    }
+
     return Container(
-      width: double.infinity,
-      height: double.infinity,
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
       ),
@@ -23,7 +29,7 @@ class EmptyContactListComponentWidget extends ConsumerWidget {
             size: 48,
           ),
           Text(
-            'Start A Conversation',
+            'Contacts',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).disabledColor,
                 ),

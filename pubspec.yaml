@@ -24,6 +24,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_animate: ^4.2.0+1
+  flutter_chat_ui: ^1.6.9
   flutter_form_builder: ^9.1.0
   flutter_hooks: ^0.18.0
   flutter_localizations:
@@ -39,7 +40,6 @@ dependencies:
   intl: ^0.18.0
   json_annotation: ^4.8.1
   loggy: ^2.0.3
-  multi_split_view: ^2.4.0
   path: ^1.8.2
   path_provider: ^2.0.11
   protobuf: ^3.0.0
@@ -49,6 +49,7 @@ dependencies:
   riverpod_annotation: ^2.1.1
   shared_preferences: ^2.0.15
   signal_strength_indicator: ^0.4.1
+  split_view: ^3.2.1
   stylish_bottom_bar: ^1.0.3
   uuid: ^3.0.7
   veilid:

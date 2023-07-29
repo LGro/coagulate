@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_translate/flutter_translate.dart';
 
-class EmptyChatComponentWidget extends ConsumerWidget {
-  const EmptyChatComponentWidget({super.key});
+class EmptyContactListWidget extends ConsumerWidget {
+  const EmptyContactListWidget({super.key});
 
   @override
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context, WidgetRef ref) {
     //
-
     return Container(
-      width: double.infinity,
-      height: double.infinity,
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
       ),
@@ -19,12 +17,12 @@ class EmptyChatComponentWidget extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.chat,
+            Icons.person_add_sharp,
             color: Theme.of(context).disabledColor,
             size: 48,
           ),
           Text(
-            'Say Something',
+            translate('empty_contact_list.invite_people'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).disabledColor,
                 ),

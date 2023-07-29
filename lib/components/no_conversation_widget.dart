@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class NoContactComponentWidget extends ConsumerWidget {
-  const NoContactComponentWidget({super.key});
+class NoContactWidget extends ConsumerWidget {
+  const NoContactWidget({super.key});
 
   @override
   // ignore: prefer_expression_function_bodies

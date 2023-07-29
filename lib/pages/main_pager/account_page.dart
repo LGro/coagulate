@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:veilid/veilid.dart';
 
+import '../../components/contact_list_widget.dart';
 import '../../components/profile.dart';
 import '../../entities/local_account.dart';
 import '../../entities/proto.dart' as proto;
@@ -23,6 +24,7 @@ class AccountPage extends ConsumerStatefulWidget {
 class AccountPageState extends ConsumerState<AccountPage> {
   final _unfocusNode = FocusNode();
   TypedKey? _selectedAccount;
+  List<proto.Contact> _contactList = List<proto.Contact>.empty(growable: true);
 
   @override
   void initState() {
@@ -36,13 +38,11 @@ class AccountPageState extends ConsumerState<AccountPage> {
     super.dispose();
   }
 
-  @override
   // ignore: prefer_expression_function_bodies
   Widget buildAccountList(BuildContext context) {
     return Center(child: Text("account list"));
   }
 
-  @override
   Widget buildUnlockAccount(
     BuildContext context,
     IList<LocalAccount> localAccounts,
@@ -51,7 +51,6 @@ class AccountPageState extends ConsumerState<AccountPage> {
     return Center(child: Text("unlock account"));
   }
 
-  @override
   Widget buildUserAccount(
     BuildContext context,
     IList<LocalAccount> localAccounts,
@@ -59,8 +58,10 @@ class AccountPageState extends ConsumerState<AccountPage> {
     proto.Account account,
     // ignore: prefer_expression_function_bodies
   ) {
-    return ProfileWidget(
-        name: account.profile.name, title: account.profile.title);
+    return Column(children: <Widget>[
+      ProfileWidget(name: account.profile.name, title: account.profile.title),
+      ContactListWidget(contactList: _contactList)
+    ]);
   }
 
   @override

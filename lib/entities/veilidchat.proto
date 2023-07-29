@@ -143,7 +143,7 @@ message Attachment {
 }
 
 // A single message as part of a series of messages
-// Messages are stored in an append-only log in DHT
+// Messages are stored in a DHTLog
 message Message {
     // Author of the message
     TypedKey author = 1;
@@ -210,9 +210,6 @@ enum Availability {
 // Name - Friendly name
 // Title - Title of user
 // Icon - Little picture to represent user in contact list
-//
-// DHT Key: None
-// Encryption: None
 message Profile  {
     // Friendy name
     string name = 1;
@@ -230,8 +227,7 @@ message Profile  {
 // Pointed to by the identity account map in the identity key
 //
 // DHT Schema: DFLT(1)
-// DHT Key (Private): accountPublicKey
-// DHT Secret: accountSecretKey
+// DHT Private: accountSecretKey
 message Account {
     // The user's profile that gets shared with contacts
     Profile profile = 1;
@@ -240,6 +236,6 @@ message Account {
     // Auto-away sets 'away' mode after an inactivity time
     uint32 auto_away_timeout_sec = 3;
     // The contacts DHTList for this account
-    // Schema: SMPL(0,64,[accountPublicKey]) Encryption: accountSecretKey
+    // DHT Private: accountSecretKey
     TypedKey contact_list = 4;
 }

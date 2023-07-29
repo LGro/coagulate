@@ -29,6 +29,17 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
   static const String formFieldName = 'name';
   static const String formFieldTitle = 'title';
 
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() {});
+      await ref.read(windowControlProvider.notifier).changeWindowSetup(
+          TitleBarStyle.normal, OrientationCapability.portraitOnly);
+    });
+  }
+
   Future<void> createAccount() async {
     final imws = await newIdentityMaster();
     try {
