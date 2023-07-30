@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_expression_function_bodies
+
 import 'dart:typed_data';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';

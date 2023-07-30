@@ -4,6 +4,9 @@ import 'dart:typed_data';
 T jsonDecodeBytes<T>(T Function(dynamic) fromJson, Uint8List data) =>
     fromJson(jsonDecode(utf8.decode(data)));
 
+T? jsonDecodeOptBytes<T>(T Function(dynamic) fromJson, Uint8List? data) =>
+    (data == null) ? null : fromJson(jsonDecode(utf8.decode(data)));
+
 Uint8List jsonEncodeBytes(Object? object,
         {Object? Function(Object?)? toEncodable}) =>
     Uint8List.fromList(
