@@ -32,11 +32,11 @@ class DHTShortArray {
       case DHTSchemaSMPL():
         throw StateError('Wrote kind of DHT record for DHTShortArray');
     }
-    assert(stride <= MAX_ELEMENTS, 'stride too long');
+    assert(stride <= maxElements, 'stride too long');
     _stride = stride;
   }
 
-  static const MAX_ELEMENTS = 256;
+  static const maxElements = 256;
 
   // Head DHT record
   final DHTRecord _headRecord;
@@ -47,7 +47,7 @@ class DHTShortArray {
 
   static Future<DHTShortArray> create(VeilidRoutingContext dhtctx, int stride,
       {DHTRecordCrypto? crypto}) async {
-    assert(stride <= MAX_ELEMENTS, 'stride too long');
+    assert(stride <= maxElements, 'stride too long');
     final dhtRecord = await DHTRecord.create(dhtctx,
         schema: DHTSchema.dflt(oCnt: stride + 1), crypto: crypto);
     try {
@@ -116,14 +116,17 @@ class DHTShortArray {
       List<Typed<FixedEncodedString43>> linkedKeys, List<int> index) {
     // Ensure nothing is duplicated in the linked keys set
     final newKeys = linkedKeys.toSet();
+    assert(newKeys.length <= (maxElements + (_stride - 1)) ~/ _stride,
+        'too many keys');
     assert(newKeys.length == linkedKeys.length, 'duplicated linked keys');
     final newIndex = index.toSet();
-    assert(newIndex.length == newIndex.length, 'duplicated index locations');
+    assert(newIndex.length <= maxElements, 'too many indexes');
+    assert(newIndex.length == index.length, 'duplicated index locations');
     // Ensure all the index keys fit into the existing records
-    final indexCount = (linkedKeys.length + 1) * _stride;
+    final indexCapacity = (linkedKeys.length + 1) * _stride;
     int? maxIndex;
     for (final idx in newIndex) {
-      assert(idx >= 0 || idx < indexCount, 'index out of range');
+      assert(idx >= 0 || idx < indexCapacity, 'index out of range');
       if (maxIndex == null || idx > maxIndex) {
         maxIndex = idx;
       }
