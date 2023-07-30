@@ -32,8 +32,11 @@ class DHTShortArray {
       case DHTSchemaSMPL():
         throw StateError('Wrote kind of DHT record for DHTShortArray');
     }
+    assert(stride <= MAX_ELEMENTS, 'stride too long');
     _stride = stride;
   }
+
+  static const MAX_ELEMENTS = 256;
 
   // Head DHT record
   final DHTRecord _headRecord;
@@ -44,10 +47,16 @@ class DHTShortArray {
 
   static Future<DHTShortArray> create(VeilidRoutingContext dhtctx, int stride,
       {DHTRecordCrypto? crypto}) async {
+    assert(stride <= MAX_ELEMENTS, 'stride too long');
     final dhtRecord = await DHTRecord.create(dhtctx,
         schema: DHTSchema.dflt(oCnt: stride + 1), crypto: crypto);
-    final dhtShortArray = DHTShortArray(dhtRecord: dhtRecord);
-    return dhtShortArray;
+    try {
+      final dhtShortArray = DHTShortArray(dhtRecord: dhtRecord);
+      return dhtShortArray;
+    } on Exception catch (_) {
+      await dhtRecord.delete();
+      rethrow;
+    }
   }
 
   static Future<DHTShortArray> openRead(
@@ -55,9 +64,14 @@ class DHTShortArray {
       {DHTRecordCrypto? crypto}) async {
     final dhtRecord =
         await DHTRecord.openRead(dhtctx, dhtRecordKey, crypto: crypto);
-    final dhtShortArray = DHTShortArray(dhtRecord: dhtRecord);
-    await dhtShortArray._refreshHead();
-    return dhtShortArray;
+    try {
+      final dhtShortArray = DHTShortArray(dhtRecord: dhtRecord);
+      await dhtShortArray._refreshHead();
+      return dhtShortArray;
+    } on Exception catch (_) {
+      await dhtRecord.close();
+      rethrow;
+    }
   }
 
   static Future<DHTShortArray> openWrite(
@@ -68,9 +82,14 @@ class DHTShortArray {
   }) async {
     final dhtRecord =
         await DHTRecord.openWrite(dhtctx, dhtRecordKey, writer, crypto: crypto);
-    final dhtShortArray = DHTShortArray(dhtRecord: dhtRecord);
-    await dhtShortArray._refreshHead();
-    return dhtShortArray;
+    try {
+      final dhtShortArray = DHTShortArray(dhtRecord: dhtRecord);
+      await dhtShortArray._refreshHead();
+      return dhtShortArray;
+    } on Exception catch (_) {
+      await dhtRecord.close();
+      rethrow;
+    }
   }
 
   ////////////////////////////////////////////////////////////////
@@ -232,6 +251,7 @@ class DHTShortArray {
   // xxx: swap
   // xxx: remove
   // xxx: clear
+  // xxx ensure these write the head back out because they change it
 
   Future<Uint8List?> getItem(int index, {bool forceRefresh = false}) async {
     await _refreshHead(forceRefresh: forceRefresh, onlyUpdates: true);
