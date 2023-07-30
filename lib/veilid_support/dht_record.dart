@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:protobuf/protobuf.dart';
 import 'package:veilid/veilid.dart';
 
-import '../entities/proto.dart' as proto;
 import '../tools/tools.dart';
 import 'veilid_support.dart';
 
@@ -17,11 +17,13 @@ class DHTRecord {
       : _dhtctx = dhtctx,
         _recordDescriptor = recordDescriptor,
         _defaultSubkey = defaultSubkey,
-        _writer = writer;
+        _writer = writer,
+        _subkeySeqCache = {};
   final VeilidRoutingContext _dhtctx;
   final DHTRecordDescriptor _recordDescriptor;
   final int _defaultSubkey;
   final KeyPair? _writer;
+  final Map<int, int> _subkeySeqCache;
   DHTRecordCrypto crypto;
 
   static Future<DHTRecord> create(VeilidRoutingContext dhtctx,
@@ -76,12 +78,11 @@ class DHTRecord {
 
   int subkeyOrDefault(int subkey) => (subkey == -1) ? _defaultSubkey : subkey;
 
+  VeilidRoutingContext get routingContext => _dhtctx;
   TypedKey get key => _recordDescriptor.key;
-
   PublicKey get owner => _recordDescriptor.owner;
-
   KeyPair? get ownerKeyPair => _recordDescriptor.ownerKeyPair();
-
+  DHTSchema get schema => _recordDescriptor.schema;
   KeyPair? get writer => _writer;
 
   Future<void> close() async {
@@ -111,19 +112,31 @@ class DHTRecord {
     }
   }
 
-  Future<Uint8List?> get({int subkey = -1, bool forceRefresh = false}) async {
+  Future<Uint8List?> get(
+      {int subkey = -1,
+      bool forceRefresh = false,
+      bool onlyUpdates = false}) async {
     subkey = subkeyOrDefault(subkey);
     final valueData =
-        await _dhtctx.getDHTValue(_recordDescriptor.key, subkey, false);
+        await _dhtctx.getDHTValue(_recordDescriptor.key, subkey, forceRefresh);
     if (valueData == null) {
       return null;
     }
-    return crypto.decrypt(valueData.data, subkey);
+    final lastSeq = _subkeySeqCache[subkey];
+    if (lastSeq != null && valueData.seq <= lastSeq) {
+      return null;
+    }
+    final out = crypto.decrypt(valueData.data, subkey);
+    _subkeySeqCache[subkey] = valueData.seq;
+    return out;
   }
 
   Future<T?> getJson<T>(T Function(dynamic) fromJson,
-      {int subkey = -1, bool forceRefresh = false}) async {
-    final data = await get(subkey: subkey, forceRefresh: forceRefresh);
+      {int subkey = -1,
+      bool forceRefresh = false,
+      bool onlyUpdates = false}) async {
+    final data = await get(
+        subkey: subkey, forceRefresh: forceRefresh, onlyUpdates: onlyUpdates);
     if (data == null) {
       return null;
     }
@@ -133,18 +146,34 @@ class DHTRecord {
   Future<T?> getProtobuf<T extends GeneratedMessage>(
       T Function(List<int> i) fromBuffer,
       {int subkey = -1,
-      bool forceRefresh = false}) async {
-    final data = await get(subkey: subkey, forceRefresh: forceRefresh);
+      bool forceRefresh = false,
+      bool onlyUpdates = false}) async {
+    final data = await get(
+        subkey: subkey, forceRefresh: forceRefresh, onlyUpdates: onlyUpdates);
     if (data == null) {
       return null;
     }
     return fromBuffer(data.toList());
   }
 
+  Future<Uint8List?> tryWriteBytes(Uint8List newValue,
+      {int subkey = -1}) async {
+    subkey = subkeyOrDefault(subkey);
+    newValue = await crypto.encrypt(newValue, subkey);
+
+    // Set the new data if possible
+    final valueData =
+        await _dhtctx.setDHTValue(_recordDescriptor.key, subkey, newValue);
+    if (valueData == null) {
+      return null;
+    }
+    return valueData.data;
+  }
+
   Future<void> eventualWriteBytes(Uint8List newValue, {int subkey = -1}) async {
     subkey = subkeyOrDefault(subkey);
     newValue = await crypto.encrypt(newValue, subkey);
-    // Get existing identity key
+
     ValueData? valueData;
     do {
       // Set the new data
@@ -159,14 +188,17 @@ class DHTRecord {
       Future<Uint8List> Function(Uint8List oldValue) update,
       {int subkey = -1}) async {
     subkey = subkeyOrDefault(subkey);
-    // Get existing identity key
+    // Get existing identity key, do not allow force refresh here
+    // because if we need a refresh the setDHTValue will fail anyway
     var valueData =
         await _dhtctx.getDHTValue(_recordDescriptor.key, subkey, false);
+    // Ensure it exists already
+    if (valueData == null) {
+      throw const FormatException('value does not exist');
+    }
     do {
-      // Ensure it exists already
-      if (valueData == null) {
-        throw const FormatException('value does not exist');
-      }
+      // Update cache
+      _subkeySeqCache[subkey] = valueData!.seq;
 
       // Update the data
       final oldData = await crypto.decrypt(valueData.data, subkey);
@@ -180,6 +212,25 @@ class DHTRecord {
       // Repeat if newer data on the network was found
     } while (valueData != null);
   }
+
+  Future<T?> tryWriteJson<T>(T Function(dynamic) fromJson, T newValue,
+          {int subkey = -1}) =>
+      tryWriteBytes(jsonEncodeBytes(newValue), subkey: subkey).then((out) {
+        if (out == null) {
+          return null;
+        }
+        return jsonDecodeBytes(fromJson, out);
+      });
+
+  Future<T?> tryWriteProtobuf<T extends GeneratedMessage>(
+          T Function(List<int>) fromBuffer, T newValue,
+          {int subkey = -1}) =>
+      tryWriteBytes(newValue.writeToBuffer(), subkey: subkey).then((out) {
+        if (out == null) {
+          return null;
+        }
+        return fromBuffer(out);
+      });
 
   Future<void> eventualWriteJson<T>(T newValue, {int subkey = -1}) =>
       eventualWriteBytes(jsonEncodeBytes(newValue), subkey: subkey);

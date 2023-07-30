@@ -536,15 +536,15 @@ class DHTData extends $pb.GeneratedMessage {
   void clearSize() => clearField(4);
 }
 
-class DHTList extends $pb.GeneratedMessage {
-  factory DHTList() => create();
-  DHTList._() : super();
-  factory DHTList.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory DHTList.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+class DHTShortArray extends $pb.GeneratedMessage {
+  factory DHTShortArray() => create();
+  DHTShortArray._() : super();
+  factory DHTShortArray.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory DHTShortArray.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DHTList', createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DHTShortArray', createEmptyInstance: create)
     ..pc<TypedKey>(1, _omitFieldNames ? '' : 'keys', $pb.PbFieldType.PM, subBuilder: TypedKey.create)
-    ..p<$core.int>(2, _omitFieldNames ? '' : 'index', $pb.PbFieldType.KU3)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'index', $pb.PbFieldType.OY)
     ..hasRequiredFields = false
   ;
 
@@ -552,28 +552,34 @@ class DHTList extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  DHTList clone() => DHTList()..mergeFromMessage(this);
+  DHTShortArray clone() => DHTShortArray()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  DHTList copyWith(void Function(DHTList) updates) => super.copyWith((message) => updates(message as DHTList)) as DHTList;
+  DHTShortArray copyWith(void Function(DHTShortArray) updates) => super.copyWith((message) => updates(message as DHTShortArray)) as DHTShortArray;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static DHTList create() => DHTList._();
-  DHTList createEmptyInstance() => create();
-  static $pb.PbList<DHTList> createRepeated() => $pb.PbList<DHTList>();
+  static DHTShortArray create() => DHTShortArray._();
+  DHTShortArray createEmptyInstance() => create();
+  static $pb.PbList<DHTShortArray> createRepeated() => $pb.PbList<DHTShortArray>();
   @$core.pragma('dart2js:noInline')
-  static DHTList getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DHTList>(create);
-  static DHTList? _defaultInstance;
+  static DHTShortArray getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DHTShortArray>(create);
+  static DHTShortArray? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<TypedKey> get keys => $_getList(0);
 
   @$pb.TagNumber(2)
-  $core.List<$core.int> get index => $_getList(1);
+  $core.List<$core.int> get index => $_getN(1);
+  @$pb.TagNumber(2)
+  set index($core.List<$core.int> v) { $_setBytes(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasIndex() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearIndex() => clearField(2);
 }
 
 class DHTLog extends $pb.GeneratedMessage {
@@ -1111,6 +1117,74 @@ class Profile extends $pb.GeneratedMessage {
   TypedKey ensureAvatar() => $_ensure(4);
 }
 
+class OwnedDHTRecordPointer extends $pb.GeneratedMessage {
+  factory OwnedDHTRecordPointer() => create();
+  OwnedDHTRecordPointer._() : super();
+  factory OwnedDHTRecordPointer.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory OwnedDHTRecordPointer.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'OwnedDHTRecordPointer', createEmptyInstance: create)
+    ..aOM<TypedKey>(1, _omitFieldNames ? '' : 'recordKey', subBuilder: TypedKey.create)
+    ..aOM<CryptoKey>(2, _omitFieldNames ? '' : 'ownerKey', subBuilder: CryptoKey.create)
+    ..aOM<CryptoKey>(3, _omitFieldNames ? '' : 'ownerSecret', subBuilder: CryptoKey.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  OwnedDHTRecordPointer clone() => OwnedDHTRecordPointer()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  OwnedDHTRecordPointer copyWith(void Function(OwnedDHTRecordPointer) updates) => super.copyWith((message) => updates(message as OwnedDHTRecordPointer)) as OwnedDHTRecordPointer;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static OwnedDHTRecordPointer create() => OwnedDHTRecordPointer._();
+  OwnedDHTRecordPointer createEmptyInstance() => create();
+  static $pb.PbList<OwnedDHTRecordPointer> createRepeated() => $pb.PbList<OwnedDHTRecordPointer>();
+  @$core.pragma('dart2js:noInline')
+  static OwnedDHTRecordPointer getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<OwnedDHTRecordPointer>(create);
+  static OwnedDHTRecordPointer? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  TypedKey get recordKey => $_getN(0);
+  @$pb.TagNumber(1)
+  set recordKey(TypedKey v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasRecordKey() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRecordKey() => clearField(1);
+  @$pb.TagNumber(1)
+  TypedKey ensureRecordKey() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  CryptoKey get ownerKey => $_getN(1);
+  @$pb.TagNumber(2)
+  set ownerKey(CryptoKey v) { setField(2, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasOwnerKey() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearOwnerKey() => clearField(2);
+  @$pb.TagNumber(2)
+  CryptoKey ensureOwnerKey() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  CryptoKey get ownerSecret => $_getN(2);
+  @$pb.TagNumber(3)
+  set ownerSecret(CryptoKey v) { setField(3, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasOwnerSecret() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearOwnerSecret() => clearField(3);
+  @$pb.TagNumber(3)
+  CryptoKey ensureOwnerSecret() => $_ensure(2);
+}
+
 class Account extends $pb.GeneratedMessage {
   factory Account() => create();
   Account._() : super();
@@ -1121,8 +1195,8 @@ class Account extends $pb.GeneratedMessage {
     ..aOM<Profile>(1, _omitFieldNames ? '' : 'profile', subBuilder: Profile.create)
     ..aOB(2, _omitFieldNames ? '' : 'invisible')
     ..a<$core.int>(3, _omitFieldNames ? '' : 'autoAwayTimeoutSec', $pb.PbFieldType.OU3)
-    ..aOM<TypedKey>(4, _omitFieldNames ? '' : 'contactList', subBuilder: TypedKey.create)
-    ..aOM<TypedKey>(5, _omitFieldNames ? '' : 'contactRequests', subBuilder: TypedKey.create)
+    ..aOM<OwnedDHTRecordPointer>(4, _omitFieldNames ? '' : 'contactList', subBuilder: OwnedDHTRecordPointer.create)
+    ..aOM<OwnedDHTRecordPointer>(5, _omitFieldNames ? '' : 'contactRequests', subBuilder: OwnedDHTRecordPointer.create)
     ..hasRequiredFields = false
   ;
 
@@ -1177,26 +1251,26 @@ class Account extends $pb.GeneratedMessage {
   void clearAutoAwayTimeoutSec() => clearField(3);
 
   @$pb.TagNumber(4)
-  TypedKey get contactList => $_getN(3);
+  OwnedDHTRecordPointer get contactList => $_getN(3);
   @$pb.TagNumber(4)
-  set contactList(TypedKey v) { setField(4, v); }
+  set contactList(OwnedDHTRecordPointer v) { setField(4, v); }
   @$pb.TagNumber(4)
   $core.bool hasContactList() => $_has(3);
   @$pb.TagNumber(4)
   void clearContactList() => clearField(4);
   @$pb.TagNumber(4)
-  TypedKey ensureContactList() => $_ensure(3);
+  OwnedDHTRecordPointer ensureContactList() => $_ensure(3);
 
   @$pb.TagNumber(5)
-  TypedKey get contactRequests => $_getN(4);
+  OwnedDHTRecordPointer get contactRequests => $_getN(4);
   @$pb.TagNumber(5)
-  set contactRequests(TypedKey v) { setField(5, v); }
+  set contactRequests(OwnedDHTRecordPointer v) { setField(5, v); }
   @$pb.TagNumber(5)
   $core.bool hasContactRequests() => $_has(4);
   @$pb.TagNumber(5)
   void clearContactRequests() => clearField(5);
   @$pb.TagNumber(5)
-  TypedKey ensureContactRequests() => $_ensure(4);
+  OwnedDHTRecordPointer ensureContactRequests() => $_ensure(4);
 }
 
 class ContactInvitation extends $pb.GeneratedMessage {

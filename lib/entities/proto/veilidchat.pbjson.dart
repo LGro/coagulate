@@ -163,19 +163,19 @@ final $typed_data.Uint8List dHTDataDescriptor = $convert.base64Decode(
     'kuVHlwZWRLZXlSBGhhc2gSFAoFY2h1bmsYAyABKA1SBWNodW5rEhIKBHNpemUYBCABKA1SBHNp'
     'emU=');
 
-@$core.Deprecated('Use dHTListDescriptor instead')
-const DHTList$json = {
-  '1': 'DHTList',
+@$core.Deprecated('Use dHTShortArrayDescriptor instead')
+const DHTShortArray$json = {
+  '1': 'DHTShortArray',
   '2': [
     {'1': 'keys', '3': 1, '4': 3, '5': 11, '6': '.TypedKey', '10': 'keys'},
-    {'1': 'index', '3': 2, '4': 3, '5': 13, '10': 'index'},
+    {'1': 'index', '3': 2, '4': 1, '5': 12, '10': 'index'},
   ],
 };
 
-/// Descriptor for `DHTList`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List dHTListDescriptor = $convert.base64Decode(
-    'CgdESFRMaXN0Eh0KBGtleXMYASADKAsyCS5UeXBlZEtleVIEa2V5cxIUCgVpbmRleBgCIAMoDV'
-    'IFaW5kZXg=');
+/// Descriptor for `DHTShortArray`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List dHTShortArrayDescriptor = $convert.base64Decode(
+    'Cg1ESFRTaG9ydEFycmF5Eh0KBGtleXMYASADKAsyCS5UeXBlZEtleVIEa2V5cxIUCgVpbmRleB'
+    'gCIAEoDFIFaW5kZXg=');
 
 @$core.Deprecated('Use dHTLogDescriptor instead')
 const DHTLog$json = {
@@ -308,6 +308,22 @@ final $typed_data.Uint8List profileDescriptor = $convert.base64Decode(
     'eVIMYXZhaWxhYmlsaXR5EiYKBmF2YXRhchgFIAEoCzIJLlR5cGVkS2V5SABSBmF2YXRhcogBAU'
     'IJCgdfYXZhdGFy');
 
+@$core.Deprecated('Use ownedDHTRecordPointerDescriptor instead')
+const OwnedDHTRecordPointer$json = {
+  '1': 'OwnedDHTRecordPointer',
+  '2': [
+    {'1': 'record_key', '3': 1, '4': 1, '5': 11, '6': '.TypedKey', '10': 'recordKey'},
+    {'1': 'owner_key', '3': 2, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'ownerKey'},
+    {'1': 'owner_secret', '3': 3, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'ownerSecret'},
+  ],
+};
+
+/// Descriptor for `OwnedDHTRecordPointer`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List ownedDHTRecordPointerDescriptor = $convert.base64Decode(
+    'ChVPd25lZERIVFJlY29yZFBvaW50ZXISKAoKcmVjb3JkX2tleRgBIAEoCzIJLlR5cGVkS2V5Ug'
+    'lyZWNvcmRLZXkSJwoJb3duZXJfa2V5GAIgASgLMgouQ3J5cHRvS2V5Ughvd25lcktleRItCgxv'
+    'd25lcl9zZWNyZXQYAyABKAsyCi5DcnlwdG9LZXlSC293bmVyU2VjcmV0');
+
 @$core.Deprecated('Use accountDescriptor instead')
 const Account$json = {
   '1': 'Account',
@@ -315,8 +331,8 @@ const Account$json = {
     {'1': 'profile', '3': 1, '4': 1, '5': 11, '6': '.Profile', '10': 'profile'},
     {'1': 'invisible', '3': 2, '4': 1, '5': 8, '10': 'invisible'},
     {'1': 'auto_away_timeout_sec', '3': 3, '4': 1, '5': 13, '10': 'autoAwayTimeoutSec'},
-    {'1': 'contact_list', '3': 4, '4': 1, '5': 11, '6': '.TypedKey', '10': 'contactList'},
-    {'1': 'contact_requests', '3': 5, '4': 1, '5': 11, '6': '.TypedKey', '10': 'contactRequests'},
+    {'1': 'contact_list', '3': 4, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'contactList'},
+    {'1': 'contact_requests', '3': 5, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'contactRequests'},
   ],
 };
 
@@ -324,9 +340,9 @@ const Account$json = {
 final $typed_data.Uint8List accountDescriptor = $convert.base64Decode(
     'CgdBY2NvdW50EiIKB3Byb2ZpbGUYASABKAsyCC5Qcm9maWxlUgdwcm9maWxlEhwKCWludmlzaW'
     'JsZRgCIAEoCFIJaW52aXNpYmxlEjEKFWF1dG9fYXdheV90aW1lb3V0X3NlYxgDIAEoDVISYXV0'
-    'b0F3YXlUaW1lb3V0U2VjEiwKDGNvbnRhY3RfbGlzdBgEIAEoCzIJLlR5cGVkS2V5Ugtjb250YW'
-    'N0TGlzdBI0ChBjb250YWN0X3JlcXVlc3RzGAUgASgLMgkuVHlwZWRLZXlSD2NvbnRhY3RSZXF1'
-    'ZXN0cw==');
+    'b0F3YXlUaW1lb3V0U2VjEjkKDGNvbnRhY3RfbGlzdBgEIAEoCzIWLk93bmVkREhUUmVjb3JkUG'
+    '9pbnRlclILY29udGFjdExpc3QSQQoQY29udGFjdF9yZXF1ZXN0cxgFIAEoCzIWLk93bmVkREhU'
+    'UmVjb3JkUG9pbnRlclIPY29udGFjdFJlcXVlc3Rz');
 
 @$core.Deprecated('Use contactInvitationDescriptor instead')
 const ContactInvitation$json = {

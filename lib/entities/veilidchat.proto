@@ -71,7 +71,7 @@ message DHTData {
     uint32 size = 4;
 }
 
-// DHTList - represents a re-orderable collection of individual elements
+// DHTShortArray - represents a re-orderable collection of up to 256 individual elements
 // Header in subkey 0 of first key follows this structure
 //
 // stride = descriptor subkey count on first key - 1
@@ -79,16 +79,17 @@ message DHTData {
 // Subkeys 0..stride on the 'keys' keys are also individual elements
 //
 // Keys must use writable schema in order to make this list mutable
-message DHTList {
+message DHTShortArray {
     // Other keys to concatenate
     // Uses the same writer as this DHTList with SMPL schema
     repeated TypedKey keys = 1;
-    // Item position index
+    
+    // Item position index (uint8[256])
     // Actual item location is:
     //   idx = index[n] + 1 (offset for header at idx 0)
     //   key = idx / stride
     //   subkey = idx % stride
-    repeated uint32 index = 2;
+    bytes index = 2;
     // Free items are not represented in the list but can be
     // calculated through iteration
 }
@@ -250,7 +251,7 @@ message Account {
     // The contacts DHTList for this account
     // DHT Private
     OwnedDHTRecordPointer contact_list = 4;
-    // The contact requests DHTList for this account
+    // The contact requests DHTShortArray for this account
     // DHT Private
     OwnedDHTRecordPointer contact_requests = 5;
 }

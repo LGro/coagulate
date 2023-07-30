@@ -9,14 +9,15 @@ import 'package:veilid/veilid.dart';
 import '../entities/entities.dart';
 import '../entities/proto.dart' as proto;
 import '../tools/tools.dart';
+import '../veilid_support/dht_short_array.dart';
 import '../veilid_support/veilid_support.dart';
 import 'logins.dart';
 
 part 'contact_request_records.g.dart';
 
 // Contact invitation records stored in Account
-class ContactRequestRecords extends DHTList<proto.ContactRequestRecord> {
-  //
+class ContactRequestRecords {
+  DHTShortArray _backingArray;
 
   Future<proto.ContactRequestRecord> newContactRequest(
     proto.EncryptionKind encryptionKind,
