@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:change_case/change_case.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'package:veilid/veilid.dart';
+import '../veilid_support/veilid_support.dart';
 import 'identity.dart';
 
 part 'local_account.freezed.dart';
@@ -37,10 +37,9 @@ class LocalAccount with _$LocalAccount {
   const factory LocalAccount({
     // The master key record for the account, containing the identityPublicKey
     required IdentityMaster identityMaster,
-    // The encrypted identity secret that goes with the identityPublicKey
-    @Uint8ListJsonConverter() required Uint8List identitySecretKeyBytes,
-    // The salt for the identity secret key encryption
-    @Uint8ListJsonConverter() required Uint8List identitySecretSaltBytes,
+    // The encrypted identity secret that goes with
+    // the identityPublicKey with appended salt
+    @Uint8ListJsonConverter() required Uint8List identitySecretBytes,
     // The kind of encryption input used on the account
     required EncryptionKeyType encryptionKeyType,
     // If account is not hidden, password can be retrieved via

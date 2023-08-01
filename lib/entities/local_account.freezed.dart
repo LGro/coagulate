@@ -22,12 +22,10 @@ LocalAccount _$LocalAccountFromJson(Map<String, dynamic> json) {
 mixin _$LocalAccount {
 // The master key record for the account, containing the identityPublicKey
   IdentityMaster get identityMaster =>
-      throw _privateConstructorUsedError; // The encrypted identity secret that goes with the identityPublicKey
+      throw _privateConstructorUsedError; // The encrypted identity secret that goes with
+// the identityPublicKey with appended salt
   @Uint8ListJsonConverter()
-  Uint8List get identitySecretKeyBytes =>
-      throw _privateConstructorUsedError; // The salt for the identity secret key encryption
-  @Uint8ListJsonConverter()
-  Uint8List get identitySecretSaltBytes =>
+  Uint8List get identitySecretBytes =>
       throw _privateConstructorUsedError; // The kind of encryption input used on the account
   EncryptionKeyType get encryptionKeyType =>
       throw _privateConstructorUsedError; // If account is not hidden, password can be retrieved via
@@ -52,8 +50,7 @@ abstract class $LocalAccountCopyWith<$Res> {
   @useResult
   $Res call(
       {IdentityMaster identityMaster,
-      @Uint8ListJsonConverter() Uint8List identitySecretKeyBytes,
-      @Uint8ListJsonConverter() Uint8List identitySecretSaltBytes,
+      @Uint8ListJsonConverter() Uint8List identitySecretBytes,
       EncryptionKeyType encryptionKeyType,
       bool biometricsEnabled,
       bool hiddenAccount,
@@ -76,8 +73,7 @@ class _$LocalAccountCopyWithImpl<$Res, $Val extends LocalAccount>
   @override
   $Res call({
     Object? identityMaster = null,
-    Object? identitySecretKeyBytes = null,
-    Object? identitySecretSaltBytes = null,
+    Object? identitySecretBytes = null,
     Object? encryptionKeyType = null,
     Object? biometricsEnabled = null,
     Object? hiddenAccount = null,
@@ -88,13 +84,9 @@ class _$LocalAccountCopyWithImpl<$Res, $Val extends LocalAccount>
           ? _value.identityMaster
           : identityMaster // ignore: cast_nullable_to_non_nullable
               as IdentityMaster,
-      identitySecretKeyBytes: null == identitySecretKeyBytes
-          ? _value.identitySecretKeyBytes
-          : identitySecretKeyBytes // ignore: cast_nullable_to_non_nullable
-              as Uint8List,
-      identitySecretSaltBytes: null == identitySecretSaltBytes
-          ? _value.identitySecretSaltBytes
-          : identitySecretSaltBytes // ignore: cast_nullable_to_non_nullable
+      identitySecretBytes: null == identitySecretBytes
+          ? _value.identitySecretBytes
+          : identitySecretBytes // ignore: cast_nullable_to_non_nullable
               as Uint8List,
       encryptionKeyType: null == encryptionKeyType
           ? _value.encryptionKeyType
@@ -134,8 +126,7 @@ abstract class _$$_LocalAccountCopyWith<$Res>
   @useResult
   $Res call(
       {IdentityMaster identityMaster,
-      @Uint8ListJsonConverter() Uint8List identitySecretKeyBytes,
-      @Uint8ListJsonConverter() Uint8List identitySecretSaltBytes,
+      @Uint8ListJsonConverter() Uint8List identitySecretBytes,
       EncryptionKeyType encryptionKeyType,
       bool biometricsEnabled,
       bool hiddenAccount,
@@ -157,8 +148,7 @@ class __$$_LocalAccountCopyWithImpl<$Res>
   @override
   $Res call({
     Object? identityMaster = null,
-    Object? identitySecretKeyBytes = null,
-    Object? identitySecretSaltBytes = null,
+    Object? identitySecretBytes = null,
     Object? encryptionKeyType = null,
     Object? biometricsEnabled = null,
     Object? hiddenAccount = null,
@@ -169,13 +159,9 @@ class __$$_LocalAccountCopyWithImpl<$Res>
           ? _value.identityMaster
           : identityMaster // ignore: cast_nullable_to_non_nullable
               as IdentityMaster,
-      identitySecretKeyBytes: null == identitySecretKeyBytes
-          ? _value.identitySecretKeyBytes
-          : identitySecretKeyBytes // ignore: cast_nullable_to_non_nullable
-              as Uint8List,
-      identitySecretSaltBytes: null == identitySecretSaltBytes
-          ? _value.identitySecretSaltBytes
-          : identitySecretSaltBytes // ignore: cast_nullable_to_non_nullable
+      identitySecretBytes: null == identitySecretBytes
+          ? _value.identitySecretBytes
+          : identitySecretBytes // ignore: cast_nullable_to_non_nullable
               as Uint8List,
       encryptionKeyType: null == encryptionKeyType
           ? _value.encryptionKeyType
@@ -202,8 +188,7 @@ class __$$_LocalAccountCopyWithImpl<$Res>
 class _$_LocalAccount implements _LocalAccount {
   const _$_LocalAccount(
       {required this.identityMaster,
-      @Uint8ListJsonConverter() required this.identitySecretKeyBytes,
-      @Uint8ListJsonConverter() required this.identitySecretSaltBytes,
+      @Uint8ListJsonConverter() required this.identitySecretBytes,
       required this.encryptionKeyType,
       required this.biometricsEnabled,
       required this.hiddenAccount,
@@ -215,14 +200,11 @@ class _$_LocalAccount implements _LocalAccount {
 // The master key record for the account, containing the identityPublicKey
   @override
   final IdentityMaster identityMaster;
-// The encrypted identity secret that goes with the identityPublicKey
+// The encrypted identity secret that goes with
+// the identityPublicKey with appended salt
   @override
   @Uint8ListJsonConverter()
-  final Uint8List identitySecretKeyBytes;
-// The salt for the identity secret key encryption
-  @override
-  @Uint8ListJsonConverter()
-  final Uint8List identitySecretSaltBytes;
+  final Uint8List identitySecretBytes;
 // The kind of encryption input used on the account
   @override
   final EncryptionKeyType encryptionKeyType;
@@ -239,7 +221,7 @@ class _$_LocalAccount implements _LocalAccount {
 
   @override
   String toString() {
-    return 'LocalAccount(identityMaster: $identityMaster, identitySecretKeyBytes: $identitySecretKeyBytes, identitySecretSaltBytes: $identitySecretSaltBytes, encryptionKeyType: $encryptionKeyType, biometricsEnabled: $biometricsEnabled, hiddenAccount: $hiddenAccount, name: $name)';
+    return 'LocalAccount(identityMaster: $identityMaster, identitySecretBytes: $identitySecretBytes, encryptionKeyType: $encryptionKeyType, biometricsEnabled: $biometricsEnabled, hiddenAccount: $hiddenAccount, name: $name)';
   }
 
   @override
@@ -250,9 +232,7 @@ class _$_LocalAccount implements _LocalAccount {
             (identical(other.identityMaster, identityMaster) ||
                 other.identityMaster == identityMaster) &&
             const DeepCollectionEquality()
-                .equals(other.identitySecretKeyBytes, identitySecretKeyBytes) &&
-            const DeepCollectionEquality().equals(
-                other.identitySecretSaltBytes, identitySecretSaltBytes) &&
+                .equals(other.identitySecretBytes, identitySecretBytes) &&
             (identical(other.encryptionKeyType, encryptionKeyType) ||
                 other.encryptionKeyType == encryptionKeyType) &&
             (identical(other.biometricsEnabled, biometricsEnabled) ||
@@ -267,8 +247,7 @@ class _$_LocalAccount implements _LocalAccount {
   int get hashCode => Object.hash(
       runtimeType,
       identityMaster,
-      const DeepCollectionEquality().hash(identitySecretKeyBytes),
-      const DeepCollectionEquality().hash(identitySecretSaltBytes),
+      const DeepCollectionEquality().hash(identitySecretBytes),
       encryptionKeyType,
       biometricsEnabled,
       hiddenAccount,
@@ -291,9 +270,7 @@ class _$_LocalAccount implements _LocalAccount {
 abstract class _LocalAccount implements LocalAccount {
   const factory _LocalAccount(
       {required final IdentityMaster identityMaster,
-      @Uint8ListJsonConverter() required final Uint8List identitySecretKeyBytes,
-      @Uint8ListJsonConverter()
-      required final Uint8List identitySecretSaltBytes,
+      @Uint8ListJsonConverter() required final Uint8List identitySecretBytes,
       required final EncryptionKeyType encryptionKeyType,
       required final bool biometricsEnabled,
       required final bool hiddenAccount,
@@ -304,12 +281,10 @@ abstract class _LocalAccount implements LocalAccount {
 
   @override // The master key record for the account, containing the identityPublicKey
   IdentityMaster get identityMaster;
-  @override // The encrypted identity secret that goes with the identityPublicKey
+  @override // The encrypted identity secret that goes with
+// the identityPublicKey with appended salt
   @Uint8ListJsonConverter()
-  Uint8List get identitySecretKeyBytes;
-  @override // The salt for the identity secret key encryption
-  @Uint8ListJsonConverter()
-  Uint8List get identitySecretSaltBytes;
+  Uint8List get identitySecretBytes;
   @override // The kind of encryption input used on the account
   EncryptionKeyType get encryptionKeyType;
   @override // If account is not hidden, password can be retrieved via

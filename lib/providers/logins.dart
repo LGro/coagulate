@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:veilid/veilid.dart';
 
 import '../entities/entities.dart';
 import '../veilid_support/veilid_support.dart';
@@ -46,8 +45,44 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
     state = AsyncValue.data(updated);
   }
 
-  Future<bool> loginWithNone(TypedKey accountMasterRecordKey) async {
+  Future<bool> _loginCommon(
+      IdentityMaster identityMaster, SecretKey identitySecret) async {
     final veilid = await eventualVeilid.future;
+    final cs =
+        await veilid.getCryptoSystem(identityMaster.identityRecordKey.kind);
+    final keyOk = await cs.validateKeyPair(
+        identityMaster.identityPublicKey, identitySecret);
+    if (!keyOk) {
+      throw Exception('Identity is corrupted');
+    }
+
+    // Read the identity key to get the account keys
+    final accountRecordInfo = await identityMaster.readAccountFromIdentity(
+        identitySecret: identitySecret);
+
+    // Add to user logins and select it
+    final current = state.requireValue;
+    final now = veilid.now();
+    final updated = current.copyWith(
+        userLogins: current.userLogins.replaceFirstWhere(
+            (ul) => ul.accountMasterRecordKey == identityMaster.masterRecordKey,
+            (ul) => ul != null
+                ? ul.copyWith(lastActive: now)
+                : UserLogin(
+                    accountMasterRecordKey: identityMaster.masterRecordKey,
+                    identitySecret:
+                        TypedSecret(kind: cs.kind(), value: identitySecret),
+                    accountRecordInfo: accountRecordInfo,
+                    lastActive: now),
+            addIfNotFound: true),
+        activeUserLogin: identityMaster.masterRecordKey);
+    await store(updated);
+    state = AsyncValue.data(updated);
+
+    return true;
+  }
+
+  Future<bool> loginWithNone(TypedKey accountMasterRecordKey) async {
     final localAccounts = ref.read(localAccountsProvider).requireValue;
 
     // Get account, throws if not found
@@ -62,36 +97,10 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
     }
 
     final identitySecret =
-        SecretKey.fromBytes(localAccount.identitySecretKeyBytes);
+        SecretKey.fromBytes(localAccount.identitySecretBytes);
 
-    // Validate this secret with the identity public key
-    final cs = await veilid
-        .getCryptoSystem(localAccount.identityMaster.identityRecordKey.kind);
-    final keyOk = await cs.validateKeyPair(
-        localAccount.identityMaster.identityPublicKey, identitySecret);
-    if (!keyOk) {
-      throw Exception('Identity is corrupted');
-    }
-
-    // Add to user logins and select it
-    final current = state.requireValue;
-    final now = veilid.now();
-    final updated = current.copyWith(
-        userLogins: current.userLogins.replaceFirstWhere(
-            (ul) => ul.accountMasterRecordKey == accountMasterRecordKey,
-            (ul) => ul != null
-                ? ul.copyWith(lastActive: now)
-                : UserLogin(
-                    accountMasterRecordKey: accountMasterRecordKey,
-                    identitySecret:
-                        TypedSecret(kind: cs.kind(), value: identitySecret),
-                    lastActive: now),
-            addIfNotFound: true),
-        activeUserLogin: accountMasterRecordKey);
-    await store(updated);
-    state = AsyncValue.data(updated);
-
-    return true;
+    // Validate this secret with the identity public key and log in
+    return _loginCommon(localAccount.identityMaster, identitySecret);
   }
 
   Future<bool> loginWithPasswordOrPin(
@@ -112,39 +121,21 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
     }
     final cs = await veilid
         .getCryptoSystem(localAccount.identityMaster.identityRecordKey.kind);
-    final ekbytes = Uint8List.fromList(utf8.encode(encryptionKey));
-    final eksalt = localAccount.identitySecretSaltBytes;
-    final nonce = Nonce.fromBytes(eksalt);
-    final sharedSecret = await cs.deriveSharedSecret(ekbytes, eksalt);
-    final identitySecret = SecretKey.fromBytes(await cs.cryptNoAuth(
-        localAccount.identitySecretKeyBytes, nonce, sharedSecret));
+    final encryptionKeyBytes = Uint8List.fromList(utf8.encode(encryptionKey));
 
-    // Validate this secret with the identity public key
-    final keyOk = await cs.validateKeyPair(
-        localAccount.identityMaster.identityPublicKey, identitySecret);
-    if (!keyOk) {
-      return false;
-    }
+    final identitySecretKeyBytes =
+        localAccount.identitySecretBytes.sublist(0, SecretKey.decodedLength());
+    final identitySecretSaltBytes =
+        localAccount.identitySecretBytes.sublist(SecretKey.decodedLength());
 
-    // Add to user logins and select it
-    final current = state.requireValue;
-    final now = veilid.now();
-    final updated = current.copyWith(
-        userLogins: current.userLogins.replaceFirstWhere(
-            (ul) => ul.accountMasterRecordKey == accountMasterRecordKey,
-            (ul) => ul != null
-                ? ul.copyWith(lastActive: now)
-                : UserLogin(
-                    accountMasterRecordKey: accountMasterRecordKey,
-                    identitySecret:
-                        TypedSecret(kind: cs.kind(), value: identitySecret),
-                    lastActive: now),
-            addIfNotFound: true),
-        activeUserLogin: accountMasterRecordKey);
-    await store(updated);
-    state = AsyncValue.data(updated);
+    final nonce = Nonce.fromBytes(identitySecretSaltBytes);
+    final sharedSecret = await cs.deriveSharedSecret(
+        encryptionKeyBytes, identitySecretSaltBytes);
+    final identitySecret = SecretKey.fromBytes(
+        await cs.cryptNoAuth(identitySecretKeyBytes, nonce, sharedSecret));
 
-    return true;
+    // Validate this secret with the identity public key and log in
+    return _loginCommon(localAccount.identityMaster, identitySecret);
   }
 
   Future<void> logout(TypedKey? accountMasterRecordKey) async {

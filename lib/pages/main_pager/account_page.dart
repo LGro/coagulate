@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
-import 'package:veilid/veilid.dart';
 
 import '../../components/contact_list_widget.dart';
 import '../../components/profile.dart';
@@ -13,6 +12,7 @@ import '../../providers/account.dart';
 import '../../providers/local_accounts.dart';
 import '../../providers/logins.dart';
 import '../../tools/tools.dart';
+import '../../veilid_support/veilid_support.dart';
 
 class AccountPage extends ConsumerStatefulWidget {
   const AccountPage({super.key});
@@ -40,7 +40,11 @@ class AccountPageState extends ConsumerState<AccountPage> {
 
   // ignore: prefer_expression_function_bodies
   Widget buildAccountList(BuildContext context) {
-    return Center(child: Text("account list"));
+    return Column(children: [
+      Center(child: Text("Small Profile")),
+      Center(child: Text("Contact invitations")),
+      Center(child: Text("Contacts"))
+    ]);
   }
 
   Widget buildUnlockAccount(
@@ -97,7 +101,9 @@ class AccountPageState extends ConsumerState<AccountPage> {
           // Delete account
           await ref
               .read(localAccountsProvider.notifier)
-              .deleteAccount(activeUserLogin);
+              .deleteLocalAccount(activeUserLogin);
+          // Switch to no active user login
+          await ref.read(loginsProvider.notifier).switchToAccount(null);
         });
         return waitingPage(context);
       case AccountInfoStatus.accountInvalid:
@@ -109,7 +115,9 @@ class AccountPageState extends ConsumerState<AccountPage> {
           // Delete account
           await ref
               .read(localAccountsProvider.notifier)
-              .deleteAccount(activeUserLogin);
+              .deleteLocalAccount(activeUserLogin);
+          // Switch to no active user login
+          await ref.read(loginsProvider.notifier).switchToAccount(null);
         });
         return waitingPage(context);
       case AccountInfoStatus.accountLocked:

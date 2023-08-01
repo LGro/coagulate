@@ -42,13 +42,22 @@ message Nonce {
     fixed32 u5 = 6;
 }
 
-// 36-byte typed crpyto key
+// 36-byte typed crypto key
 message TypedKey {
     // CryptoKind FourCC in bigendian format
     fixed32 kind = 1;
     // Key value
     CryptoKey value = 2;
 }
+
+// Key pair
+message KeyPair {
+    // Public key
+    CryptoKey key = 1;
+    // Private key
+    CryptoKey secret = 2;
+}
+
 
 // DHTData - represents chunked blob data in the DHT
 // Header in subkey 0 follows this structure
@@ -226,14 +235,12 @@ message Profile  {
     optional TypedKey avatar = 5;
 }
 
-// A pointer to an owned DHT record
+// A pointer to an child DHT record
 message OwnedDHTRecordPointer {
     // DHT Record key
     TypedKey record_key = 1;
     // DHT record owner key
-    CryptoKey owner_key = 2;
-    // DHT record owner secret
-    CryptoKey owner_secret = 3;
+    KeyPair owner = 2;
 }
 
 // A record of an individual account

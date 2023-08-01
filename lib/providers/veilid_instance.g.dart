@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'veilid_init.dart';
+part of 'veilid_instance.dart';
 
 // **************************************************************************
 // RiverpodGenerator

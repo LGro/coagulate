@@ -6,7 +6,7 @@ part of 'account.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$fetchAccountHash() => r'4d94703d07a21509650e19f60ea67ac96a39742e';
+String _$fetchAccountHash() => r'88dadc0d005cef8b3df1d03088c8a5da728c333c';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -31,16 +31,28 @@ class _SystemHash {
 
 typedef FetchAccountRef = AutoDisposeFutureProviderRef<AccountInfo>;
 
-/// See also [fetchAccount].
+/// Get an account from the identity key and if it is logged in and we
+/// have its secret available, return the account record contents
+///
+/// Copied from [fetchAccount].
 @ProviderFor(fetchAccount)
 const fetchAccountProvider = FetchAccountFamily();
 
-/// See also [fetchAccount].
+/// Get an account from the identity key and if it is logged in and we
+/// have its secret available, return the account record contents
+///
+/// Copied from [fetchAccount].
 class FetchAccountFamily extends Family<AsyncValue<AccountInfo>> {
-  /// See also [fetchAccount].
+  /// Get an account from the identity key and if it is logged in and we
+  /// have its secret available, return the account record contents
+  ///
+  /// Copied from [fetchAccount].
   const FetchAccountFamily();
 
-  /// See also [fetchAccount].
+  /// Get an account from the identity key and if it is logged in and we
+  /// have its secret available, return the account record contents
+  ///
+  /// Copied from [fetchAccount].
   FetchAccountProvider call({
     required Typed<FixedEncodedString43> accountMasterRecordKey,
   }) {
@@ -73,9 +85,15 @@ class FetchAccountFamily extends Family<AsyncValue<AccountInfo>> {
   String? get name => r'fetchAccountProvider';
 }
 
-/// See also [fetchAccount].
+/// Get an account from the identity key and if it is logged in and we
+/// have its secret available, return the account record contents
+///
+/// Copied from [fetchAccount].
 class FetchAccountProvider extends AutoDisposeFutureProvider<AccountInfo> {
-  /// See also [fetchAccount].
+  /// Get an account from the identity key and if it is logged in and we
+  /// have its secret available, return the account record contents
+  ///
+  /// Copied from [fetchAccount].
   FetchAccountProvider({
     required this.accountMasterRecordKey,
   }) : super.internal(

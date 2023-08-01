@@ -1,8 +1,5 @@
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:veilid/veilid.dart';
 
-import '../entities/entities.dart';
 import '../entities/proto.dart' as proto;
 import '../veilid_support/veilid_support.dart';
 
@@ -30,11 +27,12 @@ class AccountInfo {
   proto.Account? account;
 }
 
+/// Get an account from the identity key and if it is logged in and we
+/// have its secret available, return the account record contents
 @riverpod
 Future<AccountInfo> fetchAccount(FetchAccountRef ref,
     {required TypedKey accountMasterRecordKey}) async {
   // Get which local account we want to fetch the profile for
-  final veilid = await eventualVeilid.future;
   final localAccount = await ref.watch(
       fetchLocalAccountProvider(accountMasterRecordKey: accountMasterRecordKey)
           .future);
@@ -56,55 +54,17 @@ Future<AccountInfo> fetchAccount(FetchAccountRef ref,
     return AccountInfo(status: AccountInfoStatus.accountLocked, active: active);
   }
 
-  // Read the identity key to get the account keys
-  final dhtctx = (await veilid.routingContext())
-      .withPrivacy()
-      .withSequencing(Sequencing.ensureOrdered);
-  final identityRecordCrypto = await DHTRecordCryptoPrivate.fromSecret(
-      localAccount.identityMaster.identityRecordKey.kind,
-      login.identitySecret.value);
-
-  late final TypedKey accountRecordKey;
-  late final KeyPair accountRecordOwner;
-
-  await (await DHTRecord.openRead(
-          dhtctx, localAccount.identityMaster.identityRecordKey,
-          crypto: identityRecordCrypto))
-      .scope((identityRec) async {
-    final identity = await identityRec.getJson(Identity.fromJson);
-    if (identity == null) {
-      // Identity could not be read or decrypted from DHT
-      return AccountInfo(
-          status: AccountInfoStatus.accountInvalid, active: active);
-    }
-    final accountRecords = IMapOfSets.from(identity.accountRecords);
-    final vcAccounts = accountRecords.get(veilidChatAccountKey);
-    if (vcAccounts.length != 1) {
-      // No veilidchat account, or multiple accounts
-      // somehow associated with identity
-      return AccountInfo(
-          status: AccountInfoStatus.accountInvalid, active: active);
-    }
-    final accountRecordInfo = vcAccounts.first;
-    accountRecordKey = accountRecordInfo.key;
-    accountRecordOwner = accountRecordInfo.owner;
-  });
-
   // Pull the account DHT key, decode it and return it
-  final accountRecordCrypto = await DHTRecordCryptoPrivate.fromSecret(
-      accountRecordKey.kind, accountRecordOwner.secret);
-  late final proto.Account account;
-  await (await DHTRecord.openRead(dhtctx, accountRecordKey,
-          crypto: accountRecordCrypto))
-      .scope((accountRec) async {
-    final protoAccount = await accountRec.getProtobuf(proto.Account.fromBuffer);
-    if (protoAccount == null) {
-      // Account could not be read or decrypted from DHT
-      return AccountInfo(
-          status: AccountInfoStatus.accountInvalid, active: active);
-    }
-    account = protoAccount;
-  });
+  final pool = await DHTRecordPool.instance();
+  final account = await (await pool.openOwned(
+          login.accountRecordInfo.accountRecord,
+          parent: localAccount.identityMaster.identityRecordKey))
+      .scope((accountRec) => accountRec.getProtobuf(proto.Account.fromBuffer));
+  if (account == null) {
+    // Account could not be read or decrypted from DHT
+    return AccountInfo(
+        status: AccountInfoStatus.accountInvalid, active: active);
+  }
 
   // Got account, decrypted and decoded
   return AccountInfo(

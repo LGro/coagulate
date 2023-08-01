@@ -4,17 +4,15 @@ import 'dart:typed_data';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:veilid/veilid.dart';
 
 import '../entities/entities.dart';
 import '../entities/proto.dart' as proto;
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
+import 'account.dart';
 import 'logins.dart';
 
 part 'local_accounts.g.dart';
-
-const String veilidChatAccountKey = 'com.veilid.veilidchat';
 
 // Local account manager
 @riverpod
@@ -53,83 +51,70 @@ class LocalAccounts extends _$LocalAccounts
     state = AsyncValue.data(updated);
   }
 
-  /// Creates a new account associated with master identity
-  Future<LocalAccount> newAccount(
-      {required IdentityMaster identityMaster,
-      required SecretKey identitySecret,
-      required proto.Account account,
+  /// Make encrypted identitySecret
+  Future<Uint8List> _encryptIdentitySecret(
+      {required SecretKey identitySecret,
+      required CryptoKind cryptoKind,
       EncryptionKeyType encryptionKeyType = EncryptionKeyType.none,
       String encryptionKey = ''}) async {
     final veilid = await eventualVeilid.future;
-    final localAccounts = state.requireValue;
 
-    // Encrypt identitySecret with key
     late final Uint8List identitySecretBytes;
-    late final Uint8List identitySecretSaltBytes;
-
     switch (encryptionKeyType) {
       case EncryptionKeyType.none:
         identitySecretBytes = identitySecret.decode();
-        identitySecretSaltBytes = Uint8List(0);
       case EncryptionKeyType.pin:
       case EncryptionKeyType.password:
-        final cs =
-            await veilid.getCryptoSystem(identityMaster.identityRecordKey.kind);
+        final cs = await veilid.getCryptoSystem(cryptoKind);
         final ekbytes = Uint8List.fromList(utf8.encode(encryptionKey));
         final nonce = await cs.randomNonce();
-        identitySecretSaltBytes = nonce.decode();
+        final identitySecretSaltBytes = nonce.decode();
         final sharedSecret =
             await cs.deriveSharedSecret(ekbytes, identitySecretSaltBytes);
-        identitySecretBytes =
-            await cs.cryptNoAuth(identitySecret.decode(), nonce, sharedSecret);
+        identitySecretBytes = (await cs.cryptNoAuth(
+            identitySecret.decode(), nonce, sharedSecret))
+          ..addAll(identitySecretSaltBytes);
     }
+    return identitySecretBytes;
+  }
+
+  /// Creates a new Account associated with master identity
+  /// Adds a logged-out LocalAccount to track its existence on this device
+  Future<LocalAccount> newLocalAccount(
+      {required IdentityMaster identityMaster,
+      required SecretKey identitySecret,
+      required String name,
+      required String title,
+      EncryptionKeyType encryptionKeyType = EncryptionKeyType.none,
+      String encryptionKey = ''}) async {
+    final localAccounts = state.requireValue;
+
+    /////// Add account with profile to DHT
+    await identityMaster.newAccount(
+      identitySecret: identitySecret,
+      name: name,
+      title: title,
+    );
+
+    // Encrypt identitySecret with key
+    final identitySecretBytes = await _encryptIdentitySecret(
+        identitySecret: identitySecret,
+        cryptoKind: identityMaster.identityRecordKey.kind,
+        encryptionKey: encryptionKey,
+        encryptionKeyType: encryptionKeyType);
 
     // Create local account object
+    // Does not contain the account key or its secret
+    // as that is not to be persisted, and only pulled from the identity key
+    // and optionally decrypted with the unlock password
     final localAccount = LocalAccount(
       identityMaster: identityMaster,
-      identitySecretKeyBytes: identitySecretBytes,
-      identitySecretSaltBytes: identitySecretSaltBytes,
+      identitySecretBytes: identitySecretBytes,
       encryptionKeyType: encryptionKeyType,
       biometricsEnabled: false,
       hiddenAccount: false,
-      name: account.profile.name,
+      name: name,
     );
-
-    /////// Add account with profile to DHT
-
-    // Create private routing context
-    final dhtctx = (await veilid.routingContext())
-        .withPrivacy()
-        .withSequencing(Sequencing.ensureOrdered);
-
-    // Open identity key for writing
-    await (await DHTRecord.openWrite(dhtctx, identityMaster.identityRecordKey,
-            identityMaster.identityWriter(identitySecret)))
-        .scope((identityRec) async {
-      // Create new account to insert into identity
-      await (await DHTRecord.create(dhtctx)).deleteScope((accountRec) async {
-        // Write account key
-        await accountRec.eventualWriteProtobuf(account);
-
-        // Update identity key to include account
-        final newAccountRecordInfo = AccountRecordInfo(
-            key: accountRec.key, owner: accountRec.ownerKeyPair!);
-
-        await identityRec.eventualUpdateJson(Identity.fromJson,
-            (oldIdentity) async {
-          final oldAccountRecords = IMapOfSets.from(oldIdentity.accountRecords);
-          // Only allow one account per identity for veilidchat
-          if (oldAccountRecords.get(veilidChatAccountKey).isNotEmpty) {
-            throw StateError(
-                'Only one account per identity allowed for VeilidChat');
-          }
-          final accountRecords = oldAccountRecords
-              .add(veilidChatAccountKey, newAccountRecordInfo)
-              .asIMap();
-          return oldIdentity.copyWith(accountRecords: accountRecords);
-        });
-      });
-    });
 
     // Add local account object to internal store
     final newLocalAccounts = localAccounts.add(localAccount);
@@ -141,7 +126,7 @@ class LocalAccounts extends _$LocalAccounts
   }
 
   /// Remove an account and wipe the messages for this account from this device
-  Future<bool> deleteAccount(TypedKey accountMasterRecordKey) async {
+  Future<bool> deleteLocalAccount(TypedKey accountMasterRecordKey) async {
     final logins = ref.read(loginsProvider.notifier);
     await logins.logout(accountMasterRecordKey);
 
@@ -159,6 +144,8 @@ class LocalAccounts extends _$LocalAccounts
   /// Import an account from another VeilidChat instance
 
   /// Recover an account with the master identity secret
+
+  /// Delete an account from all devices
 }
 
 @riverpod

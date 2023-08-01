@@ -5,10 +5,8 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:quickalert/quickalert.dart';
 
 import '../components/default_app_bar.dart';
-import '../entities/proto.dart' as proto;
 import '../providers/local_accounts.dart';
 import '../providers/logins.dart';
 import '../providers/window_control.dart';
@@ -40,21 +38,24 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
     });
   }
 
+  /// Creates a new master identity, an account associated with the master
+  /// identity, stores the account in the identity key and then logs into
+  /// that account with no password set at this time
   Future<void> createAccount() async {
-    final imws = await newIdentityMaster();
-    try {
-      final localAccounts = ref.read(localAccountsProvider.notifier);
-      final logins = ref.read(loginsProvider.notifier);
+    final localAccounts = ref.read(localAccountsProvider.notifier);
+    final logins = ref.read(loginsProvider.notifier);
 
-      final profile = proto.Profile()
-        ..name = _formKey.currentState!.fields[formFieldName]!.value as String
-        ..title =
-            _formKey.currentState!.fields[formFieldTitle]!.value as String;
-      final account = proto.Account()..profile = profile;
-      final localAccount = await localAccounts.newAccount(
+    final name = _formKey.currentState!.fields[formFieldName]!.value as String;
+    final title =
+        _formKey.currentState!.fields[formFieldTitle]!.value as String;
+
+    final imws = await IdentityMasterWithSecrets.create();
+    try {
+      final localAccount = await localAccounts.newLocalAccount(
           identityMaster: imws.identityMaster,
           identitySecret: imws.identitySecret,
-          account: account);
+          name: name,
+          title: title);
 
       // Log in the new account by default with no pin
       final ok = await logins

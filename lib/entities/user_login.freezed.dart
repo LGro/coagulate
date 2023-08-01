@@ -24,6 +24,8 @@ mixin _$UserLogin {
   Typed<FixedEncodedString43> get accountMasterRecordKey =>
       throw _privateConstructorUsedError; // The identity secret as unlocked from the local accounts table
   Typed<FixedEncodedString43> get identitySecret =>
+      throw _privateConstructorUsedError; // The account record key, owner key and secret pulled from the identity
+  AccountRecordInfo get accountRecordInfo =>
       throw _privateConstructorUsedError; // The time this login was most recently used
   Timestamp get lastActive => throw _privateConstructorUsedError;
 
@@ -41,7 +43,10 @@ abstract class $UserLoginCopyWith<$Res> {
   $Res call(
       {Typed<FixedEncodedString43> accountMasterRecordKey,
       Typed<FixedEncodedString43> identitySecret,
+      AccountRecordInfo accountRecordInfo,
       Timestamp lastActive});
+
+  $AccountRecordInfoCopyWith<$Res> get accountRecordInfo;
 }
 
 /// @nodoc
@@ -59,6 +64,7 @@ class _$UserLoginCopyWithImpl<$Res, $Val extends UserLogin>
   $Res call({
     Object? accountMasterRecordKey = null,
     Object? identitySecret = null,
+    Object? accountRecordInfo = null,
     Object? lastActive = null,
   }) {
     return _then(_value.copyWith(
@@ -70,11 +76,23 @@ class _$UserLoginCopyWithImpl<$Res, $Val extends UserLogin>
           ? _value.identitySecret
           : identitySecret // ignore: cast_nullable_to_non_nullable
               as Typed<FixedEncodedString43>,
+      accountRecordInfo: null == accountRecordInfo
+          ? _value.accountRecordInfo
+          : accountRecordInfo // ignore: cast_nullable_to_non_nullable
+              as AccountRecordInfo,
       lastActive: null == lastActive
           ? _value.lastActive
           : lastActive // ignore: cast_nullable_to_non_nullable
               as Timestamp,
     ) as $Val);
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $AccountRecordInfoCopyWith<$Res> get accountRecordInfo {
+    return $AccountRecordInfoCopyWith<$Res>(_value.accountRecordInfo, (value) {
+      return _then(_value.copyWith(accountRecordInfo: value) as $Val);
+    });
   }
 }
 
@@ -88,7 +106,11 @@ abstract class _$$_UserLoginCopyWith<$Res> implements $UserLoginCopyWith<$Res> {
   $Res call(
       {Typed<FixedEncodedString43> accountMasterRecordKey,
       Typed<FixedEncodedString43> identitySecret,
+      AccountRecordInfo accountRecordInfo,
       Timestamp lastActive});
+
+  @override
+  $AccountRecordInfoCopyWith<$Res> get accountRecordInfo;
 }
 
 /// @nodoc
@@ -104,6 +126,7 @@ class __$$_UserLoginCopyWithImpl<$Res>
   $Res call({
     Object? accountMasterRecordKey = null,
     Object? identitySecret = null,
+    Object? accountRecordInfo = null,
     Object? lastActive = null,
   }) {
     return _then(_$_UserLogin(
@@ -115,6 +138,10 @@ class __$$_UserLoginCopyWithImpl<$Res>
           ? _value.identitySecret
           : identitySecret // ignore: cast_nullable_to_non_nullable
               as Typed<FixedEncodedString43>,
+      accountRecordInfo: null == accountRecordInfo
+          ? _value.accountRecordInfo
+          : accountRecordInfo // ignore: cast_nullable_to_non_nullable
+              as AccountRecordInfo,
       lastActive: null == lastActive
           ? _value.lastActive
           : lastActive // ignore: cast_nullable_to_non_nullable
@@ -129,6 +156,7 @@ class _$_UserLogin implements _UserLogin {
   const _$_UserLogin(
       {required this.accountMasterRecordKey,
       required this.identitySecret,
+      required this.accountRecordInfo,
       required this.lastActive});
 
   factory _$_UserLogin.fromJson(Map<String, dynamic> json) =>
@@ -140,13 +168,16 @@ class _$_UserLogin implements _UserLogin {
 // The identity secret as unlocked from the local accounts table
   @override
   final Typed<FixedEncodedString43> identitySecret;
+// The account record key, owner key and secret pulled from the identity
+  @override
+  final AccountRecordInfo accountRecordInfo;
 // The time this login was most recently used
   @override
   final Timestamp lastActive;
 
   @override
   String toString() {
-    return 'UserLogin(accountMasterRecordKey: $accountMasterRecordKey, identitySecret: $identitySecret, lastActive: $lastActive)';
+    return 'UserLogin(accountMasterRecordKey: $accountMasterRecordKey, identitySecret: $identitySecret, accountRecordInfo: $accountRecordInfo, lastActive: $lastActive)';
   }
 
   @override
@@ -158,14 +189,16 @@ class _$_UserLogin implements _UserLogin {
                 other.accountMasterRecordKey == accountMasterRecordKey) &&
             (identical(other.identitySecret, identitySecret) ||
                 other.identitySecret == identitySecret) &&
+            (identical(other.accountRecordInfo, accountRecordInfo) ||
+                other.accountRecordInfo == accountRecordInfo) &&
             (identical(other.lastActive, lastActive) ||
                 other.lastActive == lastActive));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, accountMasterRecordKey, identitySecret, lastActive);
+  int get hashCode => Object.hash(runtimeType, accountMasterRecordKey,
+      identitySecret, accountRecordInfo, lastActive);
 
   @JsonKey(ignore: true)
   @override
@@ -185,6 +218,7 @@ abstract class _UserLogin implements UserLogin {
   const factory _UserLogin(
       {required final Typed<FixedEncodedString43> accountMasterRecordKey,
       required final Typed<FixedEncodedString43> identitySecret,
+      required final AccountRecordInfo accountRecordInfo,
       required final Timestamp lastActive}) = _$_UserLogin;
 
   factory _UserLogin.fromJson(Map<String, dynamic> json) =
@@ -194,6 +228,8 @@ abstract class _UserLogin implements UserLogin {
   Typed<FixedEncodedString43> get accountMasterRecordKey;
   @override // The identity secret as unlocked from the local accounts table
   Typed<FixedEncodedString43> get identitySecret;
+  @override // The account record key, owner key and secret pulled from the identity
+  AccountRecordInfo get accountRecordInfo;
   @override // The time this login was most recently used
   Timestamp get lastActive;
   @override

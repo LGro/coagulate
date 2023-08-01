@@ -1,6 +1,8 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:veilid/veilid.dart';
+
+import '../veilid_support/veilid_support.dart';
+import 'identity.dart';
 
 part 'user_login.freezed.dart';
 part 'user_login.g.dart';
@@ -15,6 +17,9 @@ class UserLogin with _$UserLogin {
     required TypedKey accountMasterRecordKey,
     // The identity secret as unlocked from the local accounts table
     required TypedSecret identitySecret,
+    // The account record key, owner key and secret pulled from the identity
+    required AccountRecordInfo accountRecordInfo,
+
     // The time this login was most recently used
     required Timestamp lastActive,
   }) = _UserLogin;

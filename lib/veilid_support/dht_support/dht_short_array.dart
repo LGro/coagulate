@@ -1,11 +1,11 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:protobuf/protobuf.dart';
-import 'package:veilid/veilid.dart';
 
-import '../entities/proto.dart' as proto;
-import '../tools/tools.dart';
-import 'veilid_support.dart';
+import '../../entities/proto.dart' as proto;
+import '../../tools/tools.dart';
+import '../veilid_support.dart';
 
 class _DHTShortArrayCache {
   _DHTShortArrayCache()
@@ -23,11 +23,11 @@ class _DHTShortArrayCache {
 }
 
 class DHTShortArray {
-  DHTShortArray({required DHTRecord dhtRecord})
-      : _headRecord = dhtRecord,
+  DHTShortArray._({required DHTRecord headRecord})
+      : _headRecord = headRecord,
         _head = _DHTShortArrayCache() {
     late final int stride;
-    switch (dhtRecord.schema) {
+    switch (headRecord.schema) {
       case DHTSchemaDFLT(oCnt: final oCnt):
         stride = oCnt - 1;
         if (stride <= 0) {
@@ -49,13 +49,21 @@ class DHTShortArray {
   // Cached representation refreshed from head record
   _DHTShortArrayCache _head;
 
-  static Future<DHTShortArray> create(VeilidRoutingContext dhtctx, int stride,
-      {DHTRecordCrypto? crypto}) async {
+  static Future<DHTShortArray> create(
+      {int stride = maxElements,
+      VeilidRoutingContext? routingContext,
+      TypedKey? parent,
+      DHTRecordCrypto? crypto}) async {
     assert(stride <= maxElements, 'stride too long');
-    final dhtRecord = await DHTRecord.create(dhtctx,
-        schema: DHTSchema.dflt(oCnt: stride + 1), crypto: crypto);
+    final pool = await DHTRecordPool.instance();
+
+    final dhtRecord = await pool.create(
+        parent: parent,
+        routingContext: routingContext,
+        schema: DHTSchema.dflt(oCnt: stride + 1),
+        crypto: crypto);
     try {
-      final dhtShortArray = DHTShortArray(dhtRecord: dhtRecord);
+      final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
       return dhtShortArray;
     } on Exception catch (_) {
       await dhtRecord.delete();
@@ -63,13 +71,16 @@ class DHTShortArray {
     }
   }
 
-  static Future<DHTShortArray> openRead(
-      VeilidRoutingContext dhtctx, TypedKey dhtRecordKey,
-      {DHTRecordCrypto? crypto}) async {
-    final dhtRecord =
-        await DHTRecord.openRead(dhtctx, dhtRecordKey, crypto: crypto);
+  static Future<DHTShortArray> openRead(TypedKey headRecordKey,
+      {VeilidRoutingContext? routingContext,
+      TypedKey? parent,
+      DHTRecordCrypto? crypto}) async {
+    final pool = await DHTRecordPool.instance();
+
+    final dhtRecord = await pool.openRead(headRecordKey,
+        parent: parent, routingContext: routingContext, crypto: crypto);
     try {
-      final dhtShortArray = DHTShortArray(dhtRecord: dhtRecord);
+      final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
       await dhtShortArray._refreshHead();
       return dhtShortArray;
     } on Exception catch (_) {
@@ -79,15 +90,17 @@ class DHTShortArray {
   }
 
   static Future<DHTShortArray> openWrite(
-    VeilidRoutingContext dhtctx,
-    TypedKey dhtRecordKey,
+    TypedKey headRecordKey,
     KeyPair writer, {
+    VeilidRoutingContext? routingContext,
+    TypedKey? parent,
     DHTRecordCrypto? crypto,
   }) async {
-    final dhtRecord =
-        await DHTRecord.openWrite(dhtctx, dhtRecordKey, writer, crypto: crypto);
+    final pool = await DHTRecordPool.instance();
+    final dhtRecord = await pool.openWrite(headRecordKey, writer,
+        parent: parent, routingContext: routingContext, crypto: crypto);
     try {
-      final dhtShortArray = DHTShortArray(dhtRecord: dhtRecord);
+      final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
       await dhtShortArray._refreshHead();
       return dhtShortArray;
     } on Exception catch (_) {
@@ -95,6 +108,22 @@ class DHTShortArray {
       rethrow;
     }
   }
+
+  static Future<DHTShortArray> openOwned(
+    OwnedDHTRecordPointer ownedDHTRecordPointer, {
+    required TypedKey parent,
+    VeilidRoutingContext? routingContext,
+    DHTRecordCrypto? crypto,
+  }) =>
+      openWrite(
+        ownedDHTRecordPointer.recordKey,
+        ownedDHTRecordPointer.owner,
+        routingContext: routingContext,
+        parent: parent,
+        crypto: crypto,
+      );
+
+  DHTRecord get record => _headRecord;
 
   ////////////////////////////////////////////////////////////////
 
@@ -151,11 +180,21 @@ class DHTShortArray {
 
   /// Open a linked record for reading or writing, same as the head record
   Future<DHTRecord> _openLinkedRecord(TypedKey recordKey) async {
+    final pool = await DHTRecordPool.instance();
+
     final writer = _headRecord.writer;
     return (writer != null)
-        ? await DHTRecord.openWrite(
-            _headRecord.routingContext, recordKey, writer)
-        : await DHTRecord.openRead(_headRecord.routingContext, recordKey);
+        ? await pool.openWrite(
+            recordKey,
+            writer,
+            parent: _headRecord.key,
+            routingContext: _headRecord.routingContext,
+          )
+        : await pool.openRead(
+            recordKey,
+            parent: _headRecord.key,
+            routingContext: _headRecord.routingContext,
+          );
   }
 
   /// Validate a new head record
@@ -242,7 +281,7 @@ class DHTShortArray {
     await Future.wait(futures);
   }
 
-  Future<T> scope<T>(Future<T> Function(DHTShortArray) scopeFunction) async {
+  Future<T> scope<T>(FutureOr<T> Function(DHTShortArray) scopeFunction) async {
     try {
       return await scopeFunction(this);
     } finally {
@@ -251,7 +290,7 @@ class DHTShortArray {
   }
 
   Future<T> deleteScope<T>(
-      Future<T> Function(DHTShortArray) scopeFunction) async {
+      FutureOr<T> Function(DHTShortArray) scopeFunction) async {
     try {
       final out = await scopeFunction(this);
       await close();

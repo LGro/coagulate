@@ -21,8 +21,7 @@ AccountRecordInfo _$AccountRecordInfoFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$AccountRecordInfo {
 // Top level account keys and secrets
-  Typed<FixedEncodedString43> get key => throw _privateConstructorUsedError;
-  KeyPair get owner => throw _privateConstructorUsedError;
+  OwnedDHTRecordPointer get accountRecord => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -36,7 +35,9 @@ abstract class $AccountRecordInfoCopyWith<$Res> {
           AccountRecordInfo value, $Res Function(AccountRecordInfo) then) =
       _$AccountRecordInfoCopyWithImpl<$Res, AccountRecordInfo>;
   @useResult
-  $Res call({Typed<FixedEncodedString43> key, KeyPair owner});
+  $Res call({OwnedDHTRecordPointer accountRecord});
+
+  $OwnedDHTRecordPointerCopyWith<$Res> get accountRecord;
 }
 
 /// @nodoc
@@ -52,19 +53,22 @@ class _$AccountRecordInfoCopyWithImpl<$Res, $Val extends AccountRecordInfo>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? key = null,
-    Object? owner = null,
+    Object? accountRecord = null,
   }) {
     return _then(_value.copyWith(
-      key: null == key
-          ? _value.key
-          : key // ignore: cast_nullable_to_non_nullable
-              as Typed<FixedEncodedString43>,
-      owner: null == owner
-          ? _value.owner
-          : owner // ignore: cast_nullable_to_non_nullable
-              as KeyPair,
+      accountRecord: null == accountRecord
+          ? _value.accountRecord
+          : accountRecord // ignore: cast_nullable_to_non_nullable
+              as OwnedDHTRecordPointer,
     ) as $Val);
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $OwnedDHTRecordPointerCopyWith<$Res> get accountRecord {
+    return $OwnedDHTRecordPointerCopyWith<$Res>(_value.accountRecord, (value) {
+      return _then(_value.copyWith(accountRecord: value) as $Val);
+    });
   }
 }
 
@@ -76,7 +80,10 @@ abstract class _$$_AccountRecordInfoCopyWith<$Res>
       __$$_AccountRecordInfoCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({Typed<FixedEncodedString43> key, KeyPair owner});
+  $Res call({OwnedDHTRecordPointer accountRecord});
+
+  @override
+  $OwnedDHTRecordPointerCopyWith<$Res> get accountRecord;
 }
 
 /// @nodoc
@@ -90,18 +97,13 @@ class __$$_AccountRecordInfoCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? key = null,
-    Object? owner = null,
+    Object? accountRecord = null,
   }) {
     return _then(_$_AccountRecordInfo(
-      key: null == key
-          ? _value.key
-          : key // ignore: cast_nullable_to_non_nullable
-              as Typed<FixedEncodedString43>,
-      owner: null == owner
-          ? _value.owner
-          : owner // ignore: cast_nullable_to_non_nullable
-              as KeyPair,
+      accountRecord: null == accountRecord
+          ? _value.accountRecord
+          : accountRecord // ignore: cast_nullable_to_non_nullable
+              as OwnedDHTRecordPointer,
     ));
   }
 }
@@ -109,20 +111,18 @@ class __$$_AccountRecordInfoCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$_AccountRecordInfo implements _AccountRecordInfo {
-  const _$_AccountRecordInfo({required this.key, required this.owner});
+  const _$_AccountRecordInfo({required this.accountRecord});
 
   factory _$_AccountRecordInfo.fromJson(Map<String, dynamic> json) =>
       _$$_AccountRecordInfoFromJson(json);
 
 // Top level account keys and secrets
   @override
-  final Typed<FixedEncodedString43> key;
-  @override
-  final KeyPair owner;
+  final OwnedDHTRecordPointer accountRecord;
 
   @override
   String toString() {
-    return 'AccountRecordInfo(key: $key, owner: $owner)';
+    return 'AccountRecordInfo(accountRecord: $accountRecord)';
   }
 
   @override
@@ -130,13 +130,13 @@ class _$_AccountRecordInfo implements _AccountRecordInfo {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_AccountRecordInfo &&
-            (identical(other.key, key) || other.key == key) &&
-            (identical(other.owner, owner) || other.owner == owner));
+            (identical(other.accountRecord, accountRecord) ||
+                other.accountRecord == accountRecord));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, key, owner);
+  int get hashCode => Object.hash(runtimeType, accountRecord);
 
   @JsonKey(ignore: true)
   @override
@@ -155,16 +155,14 @@ class _$_AccountRecordInfo implements _AccountRecordInfo {
 
 abstract class _AccountRecordInfo implements AccountRecordInfo {
   const factory _AccountRecordInfo(
-      {required final Typed<FixedEncodedString43> key,
-      required final KeyPair owner}) = _$_AccountRecordInfo;
+          {required final OwnedDHTRecordPointer accountRecord}) =
+      _$_AccountRecordInfo;
 
   factory _AccountRecordInfo.fromJson(Map<String, dynamic> json) =
       _$_AccountRecordInfo.fromJson;
 
   @override // Top level account keys and secrets
-  Typed<FixedEncodedString43> get key;
-  @override
-  KeyPair get owner;
+  OwnedDHTRecordPointer get accountRecord;
   @override
   @JsonKey(ignore: true)
   _$$_AccountRecordInfoCopyWith<_$_AccountRecordInfo> get copyWith =>

@@ -3,7 +3,6 @@
 import 'dart:typed_data';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:veilid/veilid.dart';
 
 import '../entities/identity.dart';
 import 'veilid_support.dart';
@@ -11,7 +10,7 @@ import 'veilid_support.dart';
 // Identity Master with secrets
 // Not freezed because we never persist this class in its entirety
 class IdentityMasterWithSecrets {
-  IdentityMasterWithSecrets(
+  IdentityMasterWithSecrets._(
       {required this.identityMaster,
       required this.masterSecret,
       required this.identitySecret});
@@ -19,28 +18,15 @@ class IdentityMasterWithSecrets {
   SecretKey masterSecret;
   SecretKey identitySecret;
 
-  Future<void> delete() async {
-    final veilid = await eventualVeilid.future;
-    final dhtctx = (await veilid.routingContext())
-        .withPrivacy()
-        .withSequencing(Sequencing.ensureOrdered);
-    await dhtctx.deleteDHTRecord(identityMaster.masterRecordKey);
-    await dhtctx.deleteDHTRecord(identityMaster.identityRecordKey);
-  }
-}
+  /// Creates a new master identity and returns it with its secrets
+  static Future<IdentityMasterWithSecrets> create() async {
+    final pool = await DHTRecordPool.instance();
 
-/// Creates a new master identity and returns it with its secrets
-Future<IdentityMasterWithSecrets> newIdentityMaster() async {
-  final veilid = await eventualVeilid.future;
-  final dhtctx = (await veilid.routingContext())
-      .withPrivacy()
-      .withSequencing(Sequencing.ensureOrdered);
-
-  // IdentityMaster DHT record is public/unencrypted
-  return (await DHTRecord.create(dhtctx, crypto: const DHTRecordCryptoPublic()))
-      .deleteScope((masterRec) async {
-    // Identity record is private
-    return (await DHTRecord.create(dhtctx)).deleteScope((identityRec) async {
+    // IdentityMaster DHT record is public/unencrypted
+    return (await pool.create(crypto: const DHTRecordCryptoPublic()))
+        .deleteScope((masterRec) async {
+      // Identity record is private
+      final identityRec = await pool.create(parent: masterRec.key);
       // Make IdentityMaster
       final masterRecordKey = masterRec.key;
       final masterOwner = masterRec.ownerKeyPair!;
@@ -56,7 +42,7 @@ Future<IdentityMasterWithSecrets> newIdentityMaster() async {
 
       assert(masterRecordKey.kind == identityRecordKey.kind,
           'new master and identity should have same cryptosystem');
-      final crypto = await veilid.getCryptoSystem(masterRecordKey.kind);
+      final crypto = await pool.veilid.getCryptoSystem(masterRecordKey.kind);
 
       final identitySignature =
           await crypto.signWithKeyPair(masterOwner, identitySigBuf.toBytes());
@@ -80,10 +66,16 @@ Future<IdentityMasterWithSecrets> newIdentityMaster() async {
       // Write empty identity to identity dht key
       await identityRec.eventualWriteJson(identity);
 
-      return IdentityMasterWithSecrets(
+      return IdentityMasterWithSecrets._(
           identityMaster: identityMaster,
           masterSecret: masterOwner.secret,
           identitySecret: identityOwner.secret);
     });
-  });
+  }
+
+  /// Creates a new master identity and returns it with its secrets
+  Future<void> delete() async {
+    final pool = await DHTRecordPool.instance();
+    await pool.deleteDeep(identityMaster.masterRecordKey);
+  }
 }

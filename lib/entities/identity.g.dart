@@ -8,15 +8,13 @@ part of 'identity.dart';
 
 _$_AccountRecordInfo _$$_AccountRecordInfoFromJson(Map<String, dynamic> json) =>
     _$_AccountRecordInfo(
-      key: Typed<FixedEncodedString43>.fromJson(json['key']),
-      owner: KeyPair.fromJson(json['owner']),
+      accountRecord: OwnedDHTRecordPointer.fromJson(json['account_record']),
     );
 
 Map<String, dynamic> _$$_AccountRecordInfoToJson(
         _$_AccountRecordInfo instance) =>
     <String, dynamic>{
-      'key': instance.key.toJson(),
-      'owner': instance.owner.toJson(),
+      'account_record': instance.accountRecord.toJson(),
     };
 
 _$_Identity _$$_IdentityFromJson(Map<String, dynamic> json) => _$_Identity(

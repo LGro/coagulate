@@ -11,6 +11,8 @@ _$_UserLogin _$$_UserLoginFromJson(Map<String, dynamic> json) => _$_UserLogin(
           json['account_master_record_key']),
       identitySecret:
           Typed<FixedEncodedString43>.fromJson(json['identity_secret']),
+      accountRecordInfo:
+          AccountRecordInfo.fromJson(json['account_record_info']),
       lastActive: Timestamp.fromJson(json['last_active']),
     );
 
@@ -18,6 +20,7 @@ Map<String, dynamic> _$$_UserLoginToJson(_$_UserLogin instance) =>
     <String, dynamic>{
       'account_master_record_key': instance.accountMasterRecordKey.toJson(),
       'identity_secret': instance.identitySecret.toJson(),
+      'account_record_info': instance.accountRecordInfo.toJson(),
       'last_active': instance.lastActive.toJson(),
     };
 

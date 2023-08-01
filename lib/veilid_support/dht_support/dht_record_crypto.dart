@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:veilid/veilid.dart';
 
-import 'veilid_init.dart';
+import '../veilid_init.dart';
 
 abstract class DHTRecordCrypto {
   FutureOr<Uint8List> encrypt(Uint8List data, int subkey);

@@ -1,9 +1,13 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:veilid/veilid.dart';
+
+import '../veilid_support/veilid_support.dart';
+import 'proto.dart' as proto;
 
 part 'identity.freezed.dart';
 part 'identity.g.dart';
+
+const String veilidChatAccountKey = 'com.veilid.veilidchat';
 
 // AccountOwnerInfo is the key and owner info for the account dht key that is
 // stored in the identity key
@@ -11,8 +15,7 @@ part 'identity.g.dart';
 class AccountRecordInfo with _$AccountRecordInfo {
   const factory AccountRecordInfo({
     // Top level account keys and secrets
-    required TypedKey key,
-    required KeyPair owner,
+    required OwnedDHTRecordPointer accountRecord,
   }) = _AccountRecordInfo;
 
   factory AccountRecordInfo.fromJson(dynamic json) =>
@@ -77,4 +80,89 @@ extension IdentityMasterExtension on IdentityMaster {
 
   KeyPair masterWriter(SecretKey secret) =>
       KeyPair(key: masterPublicKey, secret: secret);
+
+  Future<AccountRecordInfo> readAccountFromIdentity(
+      {required SharedSecret identitySecret}) async {
+    // Read the identity key to get the account keys
+    final pool = await DHTRecordPool.instance();
+
+    final identityRecordCrypto = await DHTRecordCryptoPrivate.fromSecret(
+        identityRecordKey.kind, identitySecret);
+
+    late final AccountRecordInfo accountRecordInfo;
+    await (await pool.openRead(identityRecordKey,
+            parent: masterRecordKey, crypto: identityRecordCrypto))
+        .scope((identityRec) async {
+      final identity = await identityRec.getJson(Identity.fromJson);
+      if (identity == null) {
+        // Identity could not be read or decrypted from DHT
+        throw StateError('identity could not be read');
+      }
+      final accountRecords = IMapOfSets.from(identity.accountRecords);
+      final vcAccounts = accountRecords.get(veilidChatAccountKey);
+      if (vcAccounts.length != 1) {
+        // No veilidchat account, or multiple accounts
+        // somehow associated with identity
+        throw StateError('no single veilidchat account');
+      }
+
+      accountRecordInfo = vcAccounts.first;
+    });
+
+    return accountRecordInfo;
+  }
+
+  /// Creates a new Account associated with master identity and store it in the
+  /// identity key.
+  Future<void> newAccount({
+    required SharedSecret identitySecret,
+    required String name,
+    required String title,
+  }) async {
+    final pool = await DHTRecordPool.instance();
+
+    /////// Add account with profile to DHT
+
+    // Open identity key for writing
+    await (await pool.openWrite(
+            identityRecordKey, identityWriter(identitySecret),
+            parent: masterRecordKey))
+        .scope((identityRec) async {
+      // Create new account to insert into identity
+      await (await pool.create(parent: identityRec.key))
+          .deleteScope((accountRec) async {
+        // Make empty contact request list
+        final contactRequests = await (await DHTShortArray.create())
+            .scope((r) => r.record.ownedDHTRecordPointer);
+
+        // Make account object
+        final account = proto.Account()
+          ..profile = (proto.Profile()
+            ..name = name
+            ..title = title)
+          ..contactRequests = contactRequests.toProto();
+
+        // Write account key
+        await accountRec.eventualWriteProtobuf(account);
+
+        // Update identity key to include account
+        final newAccountRecordInfo = AccountRecordInfo(
+            accountRecord: OwnedDHTRecordPointer(
+                recordKey: accountRec.key, owner: accountRec.ownerKeyPair!));
+        await identityRec.eventualUpdateJson(Identity.fromJson,
+            (oldIdentity) async {
+          final oldAccountRecords = IMapOfSets.from(oldIdentity.accountRecords);
+          // Only allow one account per identity for veilidchat
+          if (oldAccountRecords.get(veilidChatAccountKey).isNotEmpty) {
+            throw StateError(
+                'Only one account per identity allowed for VeilidChat');
+          }
+          final accountRecords = oldAccountRecords
+              .add(veilidChatAccountKey, newAccountRecordInfo)
+              .asIMap();
+          return oldIdentity.copyWith(accountRecords: accountRecords);
+        });
+      });
+    });
+  }
 }

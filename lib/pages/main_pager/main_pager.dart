@@ -6,6 +6,7 @@ import 'package:flutter_translate/flutter_translate.dart';
 import 'package:stylish_bottom_bar/model/bar_items.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
+import '../../components/contact_invitation_display.dart';
 import 'account_page.dart';
 import 'chats_page.dart';
 
@@ -101,6 +102,25 @@ class MainPagerState extends ConsumerState<MainPager>
     return bottomBarItems;
   }
 
+  Future<void> _onNewContactInvitation(BuildContext context) async {
+    Scaffold.of(context).showBottomSheet<void>((context) => SizedBox(
+        height: 200, child: Center(child: ContactInvitationDisplay())));
+  }
+
+  Future<void> _onNewChat(BuildContext context) async {
+    //
+  }
+
+  Future<void> _onFloatingActionButtonPressed(BuildContext context) async {
+    if (_currentPage == 0) {
+      // New contact invitation
+      return _onNewContactInvitation(context);
+    } else if (_currentPage == 1) {
+      // New chat
+      return _onNewChat(context);
+    }
+  }
+
   @override
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context) {
@@ -153,18 +173,15 @@ class MainPagerState extends ConsumerState<MainPager>
       ),
 
       floatingActionButton: FloatingActionButton(
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14))),
-        //foregroundColor: theme.colorScheme.secondary,
-        backgroundColor: theme.colorScheme.secondaryContainer,
-        child: Icon(
-          _fabIconList[_currentPage],
-          color: theme.colorScheme.onSecondaryContainer,
-        ),
-        onPressed: () {
-          // xxx
-        },
-      ),
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(14))),
+          //foregroundColor: theme.colorScheme.secondary,
+          backgroundColor: theme.colorScheme.secondaryContainer,
+          child: Icon(
+            _fabIconList[_currentPage],
+            color: theme.colorScheme.onSecondaryContainer,
+          ),
+          onPressed: () async => _onFloatingActionButtonPressed(context)),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }

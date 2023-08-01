@@ -3,12 +3,11 @@ import 'dart:async';
 import 'package:veilid/veilid.dart';
 
 import '../log/log.dart';
-import '../providers/providers.dart';
+import '../providers/connection_state.dart';
 import 'config.dart';
 import 'veilid_log.dart';
 
 class Processor {
-
   Processor();
   String _veilidVersion = '';
   bool _startedUp = false;

@@ -1,6 +1,7 @@
+export 'package:veilid/veilid.dart';
+
 export 'config.dart';
-export 'dht_record.dart';
-export 'dht_record_crypto.dart';
+export 'dht_support/dht_support.dart';
 export 'identity_master.dart';
 export 'processor.dart';
 export 'table_db.dart';

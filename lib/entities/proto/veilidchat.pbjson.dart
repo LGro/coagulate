@@ -146,6 +146,20 @@ final $typed_data.Uint8List typedKeyDescriptor = $convert.base64Decode(
     'CghUeXBlZEtleRISCgRraW5kGAEgASgHUgRraW5kEiAKBXZhbHVlGAIgASgLMgouQ3J5cHRvS2'
     'V5UgV2YWx1ZQ==');
 
+@$core.Deprecated('Use keyPairDescriptor instead')
+const KeyPair$json = {
+  '1': 'KeyPair',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'key'},
+    {'1': 'secret', '3': 2, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'secret'},
+  ],
+};
+
+/// Descriptor for `KeyPair`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List keyPairDescriptor = $convert.base64Decode(
+    'CgdLZXlQYWlyEhwKA2tleRgBIAEoCzIKLkNyeXB0b0tleVIDa2V5EiIKBnNlY3JldBgCIAEoCz'
+    'IKLkNyeXB0b0tleVIGc2VjcmV0');
+
 @$core.Deprecated('Use dHTDataDescriptor instead')
 const DHTData$json = {
   '1': 'DHTData',
@@ -313,16 +327,14 @@ const OwnedDHTRecordPointer$json = {
   '1': 'OwnedDHTRecordPointer',
   '2': [
     {'1': 'record_key', '3': 1, '4': 1, '5': 11, '6': '.TypedKey', '10': 'recordKey'},
-    {'1': 'owner_key', '3': 2, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'ownerKey'},
-    {'1': 'owner_secret', '3': 3, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'ownerSecret'},
+    {'1': 'owner', '3': 2, '4': 1, '5': 11, '6': '.KeyPair', '10': 'owner'},
   ],
 };
 
 /// Descriptor for `OwnedDHTRecordPointer`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List ownedDHTRecordPointerDescriptor = $convert.base64Decode(
     'ChVPd25lZERIVFJlY29yZFBvaW50ZXISKAoKcmVjb3JkX2tleRgBIAEoCzIJLlR5cGVkS2V5Ug'
-    'lyZWNvcmRLZXkSJwoJb3duZXJfa2V5GAIgASgLMgouQ3J5cHRvS2V5Ughvd25lcktleRItCgxv'
-    'd25lcl9zZWNyZXQYAyABKAsyCi5DcnlwdG9LZXlSC293bmVyU2VjcmV0');
+    'lyZWNvcmRLZXkSHgoFb3duZXIYAiABKAsyCC5LZXlQYWlyUgVvd25lcg==');
 
 @$core.Deprecated('Use accountDescriptor instead')
 const Account$json = {

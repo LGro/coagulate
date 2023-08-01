@@ -111,7 +111,7 @@ class FetchLoginProvider extends AutoDisposeFutureProvider<UserLogin?> {
   }
 }
 
-String _$loginsHash() => r'ed9dbe91a248f662ccb0fac6edf5b1892cf2ef92';
+String _$loginsHash() => r'5720eaacf858b2e1d69ebf9d2a981173a30f8592';
 
 /// See also [Logins].
 @ProviderFor(Logins)

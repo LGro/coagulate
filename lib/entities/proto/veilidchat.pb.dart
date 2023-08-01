@@ -468,6 +468,62 @@ class TypedKey extends $pb.GeneratedMessage {
   CryptoKey ensureValue() => $_ensure(1);
 }
 
+class KeyPair extends $pb.GeneratedMessage {
+  factory KeyPair() => create();
+  KeyPair._() : super();
+  factory KeyPair.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory KeyPair.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'KeyPair', createEmptyInstance: create)
+    ..aOM<CryptoKey>(1, _omitFieldNames ? '' : 'key', subBuilder: CryptoKey.create)
+    ..aOM<CryptoKey>(2, _omitFieldNames ? '' : 'secret', subBuilder: CryptoKey.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  KeyPair clone() => KeyPair()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  KeyPair copyWith(void Function(KeyPair) updates) => super.copyWith((message) => updates(message as KeyPair)) as KeyPair;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static KeyPair create() => KeyPair._();
+  KeyPair createEmptyInstance() => create();
+  static $pb.PbList<KeyPair> createRepeated() => $pb.PbList<KeyPair>();
+  @$core.pragma('dart2js:noInline')
+  static KeyPair getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<KeyPair>(create);
+  static KeyPair? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  CryptoKey get key => $_getN(0);
+  @$pb.TagNumber(1)
+  set key(CryptoKey v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasKey() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearKey() => clearField(1);
+  @$pb.TagNumber(1)
+  CryptoKey ensureKey() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  CryptoKey get secret => $_getN(1);
+  @$pb.TagNumber(2)
+  set secret(CryptoKey v) { setField(2, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasSecret() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSecret() => clearField(2);
+  @$pb.TagNumber(2)
+  CryptoKey ensureSecret() => $_ensure(1);
+}
+
 class DHTData extends $pb.GeneratedMessage {
   factory DHTData() => create();
   DHTData._() : super();
@@ -1125,8 +1181,7 @@ class OwnedDHTRecordPointer extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'OwnedDHTRecordPointer', createEmptyInstance: create)
     ..aOM<TypedKey>(1, _omitFieldNames ? '' : 'recordKey', subBuilder: TypedKey.create)
-    ..aOM<CryptoKey>(2, _omitFieldNames ? '' : 'ownerKey', subBuilder: CryptoKey.create)
-    ..aOM<CryptoKey>(3, _omitFieldNames ? '' : 'ownerSecret', subBuilder: CryptoKey.create)
+    ..aOM<KeyPair>(2, _omitFieldNames ? '' : 'owner', subBuilder: KeyPair.create)
     ..hasRequiredFields = false
   ;
 
@@ -1163,26 +1218,15 @@ class OwnedDHTRecordPointer extends $pb.GeneratedMessage {
   TypedKey ensureRecordKey() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  CryptoKey get ownerKey => $_getN(1);
+  KeyPair get owner => $_getN(1);
   @$pb.TagNumber(2)
-  set ownerKey(CryptoKey v) { setField(2, v); }
+  set owner(KeyPair v) { setField(2, v); }
   @$pb.TagNumber(2)
-  $core.bool hasOwnerKey() => $_has(1);
+  $core.bool hasOwner() => $_has(1);
   @$pb.TagNumber(2)
-  void clearOwnerKey() => clearField(2);
+  void clearOwner() => clearField(2);
   @$pb.TagNumber(2)
-  CryptoKey ensureOwnerKey() => $_ensure(1);
-
-  @$pb.TagNumber(3)
-  CryptoKey get ownerSecret => $_getN(2);
-  @$pb.TagNumber(3)
-  set ownerSecret(CryptoKey v) { setField(3, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasOwnerSecret() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearOwnerSecret() => clearField(3);
-  @$pb.TagNumber(3)
-  CryptoKey ensureOwnerSecret() => $_ensure(2);
+  KeyPair ensureOwner() => $_ensure(1);
 }
 
 class Account extends $pb.GeneratedMessage {

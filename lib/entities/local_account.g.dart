@@ -9,10 +9,8 @@ part of 'local_account.dart';
 _$_LocalAccount _$$_LocalAccountFromJson(Map<String, dynamic> json) =>
     _$_LocalAccount(
       identityMaster: IdentityMaster.fromJson(json['identity_master']),
-      identitySecretKeyBytes: const Uint8ListJsonConverter()
-          .fromJson(json['identity_secret_key_bytes'] as String),
-      identitySecretSaltBytes: const Uint8ListJsonConverter()
-          .fromJson(json['identity_secret_salt_bytes'] as String),
+      identitySecretBytes: const Uint8ListJsonConverter()
+          .fromJson(json['identity_secret_bytes'] as String),
       encryptionKeyType:
           EncryptionKeyType.fromJson(json['encryption_key_type']),
       biometricsEnabled: json['biometrics_enabled'] as bool,
@@ -23,10 +21,8 @@ _$_LocalAccount _$$_LocalAccountFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$$_LocalAccountToJson(_$_LocalAccount instance) =>
     <String, dynamic>{
       'identity_master': instance.identityMaster.toJson(),
-      'identity_secret_key_bytes': const Uint8ListJsonConverter()
-          .toJson(instance.identitySecretKeyBytes),
-      'identity_secret_salt_bytes': const Uint8ListJsonConverter()
-          .toJson(instance.identitySecretSaltBytes),
+      'identity_secret_bytes':
+          const Uint8ListJsonConverter().toJson(instance.identitySecretBytes),
       'encryption_key_type': instance.encryptionKeyType.toJson(),
       'biometrics_enabled': instance.biometricsEnabled,
       'hidden_account': instance.hiddenAccount,
