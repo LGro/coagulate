@@ -10,30 +10,30 @@ export 'proto/veilidchat.pb.dart';
 ///
 extension CryptoKeyProto on CryptoKey {
   proto.CryptoKey toProto() {
-    final b = decode();
+    final b = decode().buffer.asByteData();
     final out = proto.CryptoKey()
-      ..u0 = b[0]
-      ..u1 = b[1]
-      ..u2 = b[2]
-      ..u3 = b[3]
-      ..u4 = b[4]
-      ..u5 = b[5]
-      ..u6 = b[6]
-      ..u7 = b[7];
+      ..u0 = b.getUint32(0 * 4)
+      ..u1 = b.getUint32(1 * 4)
+      ..u2 = b.getUint32(2 * 4)
+      ..u3 = b.getUint32(3 * 4)
+      ..u4 = b.getUint32(4 * 4)
+      ..u5 = b.getUint32(5 * 4)
+      ..u6 = b.getUint32(6 * 4)
+      ..u7 = b.getUint32(7 * 4);
     return out;
   }
 
   static CryptoKey fromProto(proto.CryptoKey p) {
-    final b = Uint8List(8);
-    b[0] = p.u0;
-    b[1] = p.u1;
-    b[2] = p.u2;
-    b[3] = p.u3;
-    b[4] = p.u4;
-    b[5] = p.u5;
-    b[6] = p.u6;
-    b[7] = p.u7;
-    return CryptoKey.fromBytes(b);
+    final b = ByteData(32)
+      ..setUint32(0 * 4, p.u0)
+      ..setUint32(1 * 4, p.u1)
+      ..setUint32(2 * 4, p.u2)
+      ..setUint32(3 * 4, p.u3)
+      ..setUint32(4 * 4, p.u4)
+      ..setUint32(5 * 4, p.u5)
+      ..setUint32(6 * 4, p.u6)
+      ..setUint32(7 * 4, p.u7);
+    return CryptoKey.fromBytes(Uint8List.view(b.buffer));
   }
 }
 
@@ -41,73 +41,73 @@ extension CryptoKeyProto on CryptoKey {
 ///
 extension SignatureProto on Signature {
   proto.Signature toProto() {
-    final b = decode();
+    final b = decode().buffer.asByteData();
     final out = proto.Signature()
-      ..u0 = b[0]
-      ..u1 = b[1]
-      ..u2 = b[2]
-      ..u3 = b[3]
-      ..u4 = b[4]
-      ..u5 = b[5]
-      ..u6 = b[6]
-      ..u7 = b[7]
-      ..u8 = b[8]
-      ..u9 = b[9]
-      ..u10 = b[10]
-      ..u11 = b[11]
-      ..u12 = b[12]
-      ..u13 = b[13]
-      ..u14 = b[14]
-      ..u15 = b[15];
+      ..u0 = b.getUint32(0 * 4)
+      ..u1 = b.getUint32(1 * 4)
+      ..u2 = b.getUint32(2 * 4)
+      ..u3 = b.getUint32(3 * 4)
+      ..u4 = b.getUint32(4 * 4)
+      ..u5 = b.getUint32(5 * 4)
+      ..u6 = b.getUint32(6 * 4)
+      ..u7 = b.getUint32(7 * 4)
+      ..u8 = b.getUint32(8 * 4)
+      ..u9 = b.getUint32(9 * 4)
+      ..u10 = b.getUint32(10 * 4)
+      ..u11 = b.getUint32(11 * 4)
+      ..u12 = b.getUint32(12 * 4)
+      ..u13 = b.getUint32(13 * 4)
+      ..u14 = b.getUint32(14 * 4)
+      ..u15 = b.getUint32(15 * 4);
     return out;
   }
 
   static Signature fromProto(proto.Signature p) {
-    final b = Uint8List(16);
-    b[0] = p.u0;
-    b[1] = p.u1;
-    b[2] = p.u2;
-    b[3] = p.u3;
-    b[4] = p.u4;
-    b[5] = p.u5;
-    b[6] = p.u6;
-    b[7] = p.u7;
-    b[8] = p.u8;
-    b[9] = p.u9;
-    b[10] = p.u10;
-    b[11] = p.u11;
-    b[12] = p.u12;
-    b[13] = p.u13;
-    b[14] = p.u14;
-    b[15] = p.u15;
-    return Signature.fromBytes(b);
+    final b = ByteData(64)
+      ..setUint32(0 * 4, p.u0)
+      ..setUint32(1 * 4, p.u1)
+      ..setUint32(2 * 4, p.u2)
+      ..setUint32(3 * 4, p.u3)
+      ..setUint32(4 * 4, p.u4)
+      ..setUint32(5 * 4, p.u5)
+      ..setUint32(6 * 4, p.u6)
+      ..setUint32(7 * 4, p.u7)
+      ..setUint32(8 * 4, p.u8)
+      ..setUint32(9 * 4, p.u9)
+      ..setUint32(10 * 4, p.u10)
+      ..setUint32(11 * 4, p.u11)
+      ..setUint32(12 * 4, p.u12)
+      ..setUint32(13 * 4, p.u13)
+      ..setUint32(14 * 4, p.u14)
+      ..setUint32(15 * 4, p.u15);
+    return Signature.fromBytes(Uint8List.view(b.buffer));
   }
 }
 
 /// Nonce protobuf marshaling
 ///
 extension NonceProto on Nonce {
-  proto.Signature toProto() {
-    final b = decode();
-    final out = proto.Signature()
-      ..u0 = b[0]
-      ..u1 = b[1]
-      ..u2 = b[2]
-      ..u3 = b[3]
-      ..u4 = b[4]
-      ..u5 = b[5];
+  proto.Nonce toProto() {
+    final b = decode().buffer.asByteData();
+    final out = proto.Nonce()
+      ..u0 = b.getUint32(0 * 4)
+      ..u1 = b.getUint32(1 * 4)
+      ..u2 = b.getUint32(2 * 4)
+      ..u3 = b.getUint32(3 * 4)
+      ..u4 = b.getUint32(4 * 4)
+      ..u5 = b.getUint32(5 * 4);
     return out;
   }
 
   static Nonce fromProto(proto.Nonce p) {
-    final b = Uint8List(6);
-    b[0] = p.u0;
-    b[1] = p.u1;
-    b[2] = p.u2;
-    b[3] = p.u3;
-    b[4] = p.u4;
-    b[5] = p.u5;
-    return Nonce.fromBytes(b);
+    final b = ByteData(24)
+      ..setUint32(0 * 4, p.u0)
+      ..setUint32(1 * 4, p.u1)
+      ..setUint32(2 * 4, p.u2)
+      ..setUint32(3 * 4, p.u3)
+      ..setUint32(4 * 4, p.u4)
+      ..setUint32(5 * 4, p.u5);
+    return Nonce.fromBytes(Uint8List.view(b.buffer));
   }
 }
 

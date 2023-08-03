@@ -1,11 +1,18 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:awesome_extensions/awesome_extensions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:quickalert/quickalert.dart';
 
 import '../entities/local_account.dart';
+import '../providers/account.dart';
+import '../providers/contact.dart';
 import '../tools/tools.dart';
+import '../veilid_support/veilid_support.dart';
 import 'contact_invitation_display.dart';
 import 'enter_pin.dart';
 
@@ -17,11 +24,12 @@ class SendInviteDialog extends ConsumerStatefulWidget {
 }
 
 class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
-  final messageTextController = TextEditingController(
+  final _messageTextController = TextEditingController(
       text: translate('send_invite_dialog.connect_with_me'));
 
   EncryptionKeyType _encryptionKeyType = EncryptionKeyType.none;
   String _encryptionKey = '';
+  Timestamp? _expiration;
 
   @override
   void initState() {
@@ -84,13 +92,34 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
   }
 
   Future<void> _onGenerateButtonPressed() async {
+    final navigator = Navigator.of(context);
+
+    // Start generation
+    final activeAccountInfo = await ref.read(fetchActiveAccountProvider.future);
+    if (activeAccountInfo == null) {
+      navigator.pop();
+      return;
+    }
+    final generator = createContactInvitation(
+        activeAccountInfo: activeAccountInfo,
+        encryptionKeyType: _encryptionKeyType,
+        encryptionKey: _encryptionKey,
+        expiration: _expiration);
+    // ignore: use_build_context_synchronously
+    if (!context.mounted) {
+      return;
+    }
     await showDialog<void>(
         context: context,
-        builder: (context) => ContactInvitationDisplayDialog());
+        builder: (context) => ContactInvitationDisplayDialog(
+              name: activeAccountInfo.localAccount.name,
+              message: _messageTextController.text,
+              generator: generator,
+            ));
     // if (ret == null) {
     //   return;
     // }
-    Navigator.of(context).pop();
+    navigator.pop();
   }
 
   @override
@@ -111,7 +140,7 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
               translate('send_invite_dialog.message_to_contact'),
             ).paddingAll(8),
             TextField(
-              controller: messageTextController,
+              controller: _messageTextController,
               decoration: InputDecoration(
                   border: const OutlineInputBorder(),
                   hintText: translate('send_invite_dialog.enter_message_hint'),
@@ -158,5 +187,12 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
         ),
       ),
     );
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<TextEditingController>(
+        'messageTextController', _messageTextController));
   }
 }

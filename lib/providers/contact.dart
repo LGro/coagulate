@@ -1,19 +1,18 @@
 import 'dart:typed_data';
 
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:fixnum/fixnum.dart';
 
 import '../entities/local_account.dart';
 import '../entities/proto.dart' as proto;
-import '../entities/user_login.dart';
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';
 
 Future<Uint8List> createContactInvitation(
-    ActiveAccountInfo activeAccountInfo,
-    EncryptionKeyType encryptionKeyType,
-    String encryptionKey,
-    Timestamp expiration) async {
+    {required ActiveAccountInfo activeAccountInfo,
+    required EncryptionKeyType encryptionKeyType,
+    required String encryptionKey,
+    required Timestamp? expiration}) async {
   final pool = await DHTRecordPool.instance();
   final accountRecordKey =
       activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
@@ -46,7 +45,7 @@ Future<Uint8List> createContactInvitation(
       ..accountMasterRecordKey =
           activeAccountInfo.userLogin.accountMasterRecordKey.toProto()
       ..chatRecordKey = localChatRecord.key.toProto()
-      ..expiration = expiration.toInt64();
+      ..expiration = expiration?.toInt64() ?? Int64.ZERO;
     final crprivbytes = crpriv.writeToBuffer();
     final encryptedContactRequestPrivate =
         await cs.encryptNoAuthWithNonce(crprivbytes, writer.secret);
@@ -83,10 +82,11 @@ Future<Uint8List> createContactInvitation(
         ..writerKey = writer.key.toProto()
         ..writerSecret = writer.secret.toProto()
         ..chatRecordKey = localChatRecord.key.toProto()
-        ..expiration = expiration.toInt64()
+        ..expiration = expiration?.toInt64() ?? Int64.ZERO
         ..invitation = signedContactInvitationBytes;
 
-      // Add ContactInvitationRecord to local table
+      // Add ContactInvitationRecord to local table if possible
+      // if this fails, don't keep retrying, user can try again later
       await (await DHTShortArray.openOwned(
               proto.OwnedDHTRecordPointerProto.fromProto(
                   activeAccountInfo.account.contactInvitationRecords),

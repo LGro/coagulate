@@ -130,7 +130,7 @@ class FetchAccountProvider extends AutoDisposeFutureProvider<AccountInfo> {
 }
 
 String _$fetchActiveAccountHash() =>
-    r'8c7e571c135deeb5cacf56c61459d71f7447baaf';
+    r'd074ab2c160bab41ed3dd979b7054603b7d5b2b1';
 
 /// Get the active account info
 ///

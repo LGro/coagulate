@@ -87,7 +87,7 @@ class ActiveAccountInfo {
 
 /// Get the active account info
 @riverpod
-Future<ActiveAccountInfo?> fetchActiveAccount(FetchAccountRef ref) async {
+Future<ActiveAccountInfo?> fetchActiveAccount(FetchActiveAccountRef ref) async {
   // See if we've logged into this account or if it is locked
   final activeUserLogin = await ref.watch(loginsProvider.future
       .select((value) async => (await value).activeUserLogin));
