@@ -51,21 +51,23 @@ class Availability extends $pb.ProtobufEnum {
   const Availability._($core.int v, $core.String n) : super(v, n);
 }
 
-class EncryptionKind extends $pb.ProtobufEnum {
-  static const EncryptionKind ENCRYPTION_KIND_UNSPECIFIED = EncryptionKind._(0, _omitEnumNames ? '' : 'ENCRYPTION_KIND_UNSPECIFIED');
-  static const EncryptionKind ENCRYPTION_KIND_PIN = EncryptionKind._(1, _omitEnumNames ? '' : 'ENCRYPTION_KIND_PIN');
-  static const EncryptionKind ENCRYPTION_KIND_PASSWORD = EncryptionKind._(2, _omitEnumNames ? '' : 'ENCRYPTION_KIND_PASSWORD');
+class EncryptionKeyType extends $pb.ProtobufEnum {
+  static const EncryptionKeyType ENCRYPTION_KEY_TYPE_UNSPECIFIED = EncryptionKeyType._(0, _omitEnumNames ? '' : 'ENCRYPTION_KEY_TYPE_UNSPECIFIED');
+  static const EncryptionKeyType ENCRYPTION_KEY_TYPE_NONE = EncryptionKeyType._(1, _omitEnumNames ? '' : 'ENCRYPTION_KEY_TYPE_NONE');
+  static const EncryptionKeyType ENCRYPTION_KEY_TYPE_PIN = EncryptionKeyType._(2, _omitEnumNames ? '' : 'ENCRYPTION_KEY_TYPE_PIN');
+  static const EncryptionKeyType ENCRYPTION_KEY_TYPE_PASSWORD = EncryptionKeyType._(3, _omitEnumNames ? '' : 'ENCRYPTION_KEY_TYPE_PASSWORD');
 
-  static const $core.List<EncryptionKind> values = <EncryptionKind> [
-    ENCRYPTION_KIND_UNSPECIFIED,
-    ENCRYPTION_KIND_PIN,
-    ENCRYPTION_KIND_PASSWORD,
+  static const $core.List<EncryptionKeyType> values = <EncryptionKeyType> [
+    ENCRYPTION_KEY_TYPE_UNSPECIFIED,
+    ENCRYPTION_KEY_TYPE_NONE,
+    ENCRYPTION_KEY_TYPE_PIN,
+    ENCRYPTION_KEY_TYPE_PASSWORD,
   ];
 
-  static final $core.Map<$core.int, EncryptionKind> _byValue = $pb.ProtobufEnum.initByValue(values);
-  static EncryptionKind? valueOf($core.int value) => _byValue[value];
+  static final $core.Map<$core.int, EncryptionKeyType> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static EncryptionKeyType? valueOf($core.int value) => _byValue[value];
 
-  const EncryptionKind._($core.int v, $core.String n) : super(v, n);
+  const EncryptionKeyType._($core.int v, $core.String n) : super(v, n);
 }
 
 

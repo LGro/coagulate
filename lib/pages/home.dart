@@ -5,6 +5,8 @@ import 'package:split_view/split_view.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
 
 import '../components/chat_component.dart';
+import '../providers/local_accounts.dart';
+import '../providers/logins.dart';
 import '../providers/window_control.dart';
 import '../tools/tools.dart';
 import 'main_pager/main_pager.dart';

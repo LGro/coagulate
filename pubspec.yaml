@@ -40,8 +40,10 @@ dependencies:
   intl: ^0.18.0
   json_annotation: ^4.8.1
   loggy: ^2.0.3
+  motion_toast: ^2.7.8
   path: ^1.8.2
   path_provider: ^2.0.11
+  pinput: ^2.3.0
   protobuf: ^3.0.0
   quickalert: ^1.0.1
   radix_colors: ^1.0.4

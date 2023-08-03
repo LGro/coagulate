@@ -36,28 +36,12 @@ class DHTRecordCryptoPrivate implements DHTRecordCrypto {
   }
 
   @override
-  FutureOr<Uint8List> encrypt(Uint8List data, int subkey) async {
-    // generate nonce
-    final nonce = await _cryptoSystem.randomNonce();
-    // crypt and append nonce
-    final b = BytesBuilder()
-      ..add(await _cryptoSystem.cryptNoAuth(data, nonce, _secretKey))
-      ..add(nonce.decode());
-    return b.toBytes();
-  }
+  FutureOr<Uint8List> encrypt(Uint8List data, int subkey) =>
+      _cryptoSystem.encryptNoAuthWithNonce(data, _secretKey);
 
   @override
-  FutureOr<Uint8List> decrypt(Uint8List data, int subkey) async {
-    // split off nonce from end
-    if (data.length <= Nonce.decodedLength()) {
-      throw const FormatException('not enough data to decrypt');
-    }
-    final nonce =
-        Nonce.fromBytes(data.sublist(data.length - Nonce.decodedLength()));
-    final encryptedData = data.sublist(0, data.length - Nonce.decodedLength());
-    // decrypt
-    return await _cryptoSystem.cryptNoAuth(encryptedData, nonce, _secretKey);
-  }
+  FutureOr<Uint8List> decrypt(Uint8List data, int subkey) =>
+      _cryptoSystem.decryptNoAuthWithNonce(data, _secretKey);
 }
 
 ////////////////////////////////////

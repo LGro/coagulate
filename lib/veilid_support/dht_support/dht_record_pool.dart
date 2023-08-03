@@ -10,8 +10,10 @@ part 'dht_record_pool.g.dart';
 @freezed
 class DHTRecordPoolAllocations with _$DHTRecordPoolAllocations {
   const factory DHTRecordPoolAllocations({
-    required IMap<TypedKey, ISet<TypedKey>> childrenByParent,
-    required IMap<TypedKey, TypedKey> parentByChild,
+    required IMap<String, ISet<TypedKey>>
+        childrenByParent, // String key due to IMap<> json unsupported in key
+    required IMap<String, TypedKey>
+        parentByChild, // String key due to IMap<> json unsupported in key
   }) = _DHTRecordPoolAllocations;
 
   factory DHTRecordPoolAllocations.fromJson(dynamic json) =>
@@ -100,13 +102,14 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
       final nextDep = currentDeps.removeLast();
 
       // Remove this child from its parent
-      _removeDependency(nextDep);
+      await _removeDependency(nextDep);
 
       // Ensure all records are closed before delete
       assert(!_opened.containsKey(nextDep), 'should not delete opened record');
 
       allDeps.add(nextDep);
-      final childDeps = _state.childrenByParent[nextDep]?.toList() ?? [];
+      final childDeps =
+          _state.childrenByParent[nextDep.toJson()]?.toList() ?? [];
       currentDeps.addAll(childDeps);
     }
 
@@ -118,41 +121,45 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
     await Future.wait(allFutures);
   }
 
-  void _addDependency(TypedKey parent, TypedKey child) {
+  Future<void> _addDependency(TypedKey parent, TypedKey child) async {
     final childrenOfParent =
-        _state.childrenByParent[parent] ?? ISet<TypedKey>();
+        _state.childrenByParent[parent.toJson()] ?? ISet<TypedKey>();
     if (childrenOfParent.contains(child)) {
-      throw StateError('Dependency added twice: $parent -> $child');
+      // Dependency already added (consecutive opens, etc)
+      return;
     }
-    if (_state.parentByChild.containsKey(child)) {
+    if (_state.parentByChild.containsKey(child.toJson())) {
       throw StateError('Child has two parents: $child <- $parent');
     }
-    if (_state.childrenByParent.containsKey(child)) {
+    if (_state.childrenByParent.containsKey(child.toJson())) {
       // dependencies should be opened after their parents
       throw StateError('Child is not a leaf: $child');
     }
 
-    _state = _state.copyWith(
-        childrenByParent:
-            _state.childrenByParent.add(parent, childrenOfParent.add(child)),
-        parentByChild: _state.parentByChild.add(child, parent));
+    _state = await store(_state.copyWith(
+        childrenByParent: _state.childrenByParent
+            .add(parent.toJson(), childrenOfParent.add(child)),
+        parentByChild: _state.parentByChild.add(child.toJson(), parent)));
   }
 
-  void _removeDependency(TypedKey child) {
-    final parent = _state.parentByChild[child];
+  Future<void> _removeDependency(TypedKey child) async {
+    final parent = _state.parentByChild[child.toJson()];
     if (parent == null) {
       return;
     }
-    final children = _state.childrenByParent[parent]!.remove(child);
+    final children = _state.childrenByParent[parent.toJson()]!.remove(child);
+    late final DHTRecordPoolAllocations newState;
     if (children.isEmpty) {
-      _state = _state.copyWith(
-          childrenByParent: _state.childrenByParent.remove(parent),
-          parentByChild: _state.parentByChild.remove(child));
+      newState = _state.copyWith(
+          childrenByParent: _state.childrenByParent.remove(parent.toJson()),
+          parentByChild: _state.parentByChild.remove(child.toJson()));
     } else {
-      _state = _state.copyWith(
-          childrenByParent: _state.childrenByParent.add(parent, children),
-          parentByChild: _state.parentByChild.remove(child));
+      newState = _state.copyWith(
+          childrenByParent:
+              _state.childrenByParent.add(parent.toJson(), children),
+          parentByChild: _state.parentByChild.remove(child.toJson()));
     }
+    _state = await store(newState);
   }
 
   ///////////////////////////////////////////////////////////////////////
@@ -177,7 +184,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
                 recordDescriptor.ownerTypedKeyPair()!));
 
     if (parent != null) {
-      _addDependency(parent, rec.key);
+      await _addDependency(parent, rec.key);
     }
     _recordOpened(rec);
 
@@ -192,7 +199,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
       DHTRecordCrypto? crypto}) async {
     // If we are opening a key that already exists
     // make sure we are using the same parent if one was specified
-    final existingParent = _state.parentByChild[recordKey];
+    final existingParent = _state.parentByChild[recordKey.toJson()];
     assert(existingParent == parent, 'wrong parent for opened key');
 
     // Open from the veilid api
@@ -206,7 +213,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
 
     // Register the dependency if specified
     if (parent != null) {
-      _addDependency(parent, rec.key);
+      await _addDependency(parent, rec.key);
     }
     _recordOpened(rec);
 
@@ -224,7 +231,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
   }) async {
     // If we are opening a key that already exists
     // make sure we are using the same parent if one was specified
-    final existingParent = _state.parentByChild[recordKey];
+    final existingParent = _state.parentByChild[recordKey.toJson()];
     assert(existingParent == parent, 'wrong parent for opened key');
 
     // Open from the veilid api
@@ -241,7 +248,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
 
     // Register the dependency if specified
     if (parent != null) {
-      _addDependency(parent, rec.key);
+      await _addDependency(parent, rec.key);
     }
     _recordOpened(rec);
 

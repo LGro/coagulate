@@ -258,17 +258,18 @@ message Account {
     // The contacts DHTList for this account
     // DHT Private
     OwnedDHTRecordPointer contact_list = 4;
-    // The contact requests DHTShortArray for this account
+    // The ContactInvitationRecord DHTShortArray for this account
     // DHT Private
-    OwnedDHTRecordPointer contact_requests = 5;
+    OwnedDHTRecordPointer contact_invitation_records = 5;
 }
 
-// EncryptionKind
+// EncryptionKeyType
 // Encryption of secret
-enum EncryptionKind {
-    ENCRYPTION_KIND_UNSPECIFIED = 0;
-    ENCRYPTION_KIND_PIN = 1;
-    ENCRYPTION_KIND_PASSWORD =2;
+enum EncryptionKeyType {
+    ENCRYPTION_KEY_TYPE_UNSPECIFIED = 0;
+    ENCRYPTION_KEY_TYPE_NONE = 1;
+    ENCRYPTION_KEY_TYPE_PIN = 2;
+    ENCRYPTION_KEY_TYPE_PASSWORD = 3;
 }
 
 // Invitation that is shared for VeilidChat contact connections
@@ -277,7 +278,7 @@ enum EncryptionKind {
 message ContactInvitation {
     // Contact request DHT record key
     TypedKey contact_request_record_key = 1;
-    // Writer secret key bytes possibly encrypted 
+    // Writer secret key bytes possibly encrypted with nonce appended
     bytes writer_secret = 2;
 }
 
@@ -290,14 +291,12 @@ message SignedContactInvitation {
 }
 
 // Contact request unicastinbox on the DHT
-// DHTSchema: SMPL 2 owner key, 1 writer key symmetrically encrypted with writer secret
+// DHTSchema: SMPL 1 owner key, 1 writer key symmetrically encrypted with writer secret
 message ContactRequest {
-    // The salt for the encryption used on the unicastinbox writer secret
-    bytes writer_salt = 1;
     // The kind of encryption used on the unicastinbox writer key
-    EncryptionKind encryption_key_type = 2;
+    EncryptionKeyType encryption_key_type = 1;
     // The private part encoded and symmetrically encrypted with the unicastinbox writer secret
-    bytes private = 3;
+    bytes private = 2;
 }
 
 // The private part of a possibly encrypted contact request
@@ -335,7 +334,7 @@ message SignedContactResponse {
 }
 
 // Contact request record kept in Account DHTList to keep track of extant contact invitations
-message ContactRequestRecord {
+message ContactInvitationRecord {
     // Contact request unicastinbox DHT record key
     TypedKey contact_request_record_key = 1;
     // Unencrypted writer key for this request
@@ -345,6 +344,6 @@ message ContactRequestRecord {
     TypedKey chat_record_key = 4;
     // Expiration timestamp
     uint64 expiration = 5;
-    // A copy of the raw invitation bytes post-encryption
+    // A copy of the raw SignedContactResponse invitation bytes post-encryption and signing
     bytes invitation = 6;
 }

@@ -19,7 +19,7 @@ class DHTRecord {
         _recordDescriptor = recordDescriptor,
         _defaultSubkey = defaultSubkey,
         _writer = writer,
-        _open = false,
+        _open = true,
         _valid = true,
         _subkeySeqCache = {};
   final VeilidRoutingContext _routingContext;

@@ -131,8 +131,8 @@ extension IdentityMasterExtension on IdentityMaster {
       // Create new account to insert into identity
       await (await pool.create(parent: identityRec.key))
           .deleteScope((accountRec) async {
-        // Make empty contact request list
-        final contactRequests = await (await DHTShortArray.create())
+        // Make empty contact invitation record list
+        final contactInvitationRecords = await (await DHTShortArray.create())
             .scope((r) => r.record.ownedDHTRecordPointer);
 
         // Make account object
@@ -140,7 +140,7 @@ extension IdentityMasterExtension on IdentityMaster {
           ..profile = (proto.Profile()
             ..name = name
             ..title = title)
-          ..contactRequests = contactRequests.toProto();
+          ..contactInvitationRecords = contactInvitationRecords.toProto();
 
         // Write account key
         await accountRec.eventualWriteProtobuf(account);

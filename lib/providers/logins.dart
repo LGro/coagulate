@@ -121,18 +121,10 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
     }
     final cs = await veilid
         .getCryptoSystem(localAccount.identityMaster.identityRecordKey.kind);
-    final encryptionKeyBytes = Uint8List.fromList(utf8.encode(encryptionKey));
 
-    final identitySecretKeyBytes =
-        localAccount.identitySecretBytes.sublist(0, SecretKey.decodedLength());
-    final identitySecretSaltBytes =
-        localAccount.identitySecretBytes.sublist(SecretKey.decodedLength());
-
-    final nonce = Nonce.fromBytes(identitySecretSaltBytes);
-    final sharedSecret = await cs.deriveSharedSecret(
-        encryptionKeyBytes, identitySecretSaltBytes);
     final identitySecret = SecretKey.fromBytes(
-        await cs.cryptNoAuth(identitySecretKeyBytes, nonce, sharedSecret));
+        await cs.decryptNoAuthWithPassword(
+            localAccount.identitySecretBytes, encryptionKey));
 
     // Validate this secret with the identity public key and log in
     return _loginCommon(localAccount.identityMaster, identitySecret);

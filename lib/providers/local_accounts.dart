@@ -51,33 +51,6 @@ class LocalAccounts extends _$LocalAccounts
     state = AsyncValue.data(updated);
   }
 
-  /// Make encrypted identitySecret
-  Future<Uint8List> _encryptIdentitySecret(
-      {required SecretKey identitySecret,
-      required CryptoKind cryptoKind,
-      EncryptionKeyType encryptionKeyType = EncryptionKeyType.none,
-      String encryptionKey = ''}) async {
-    final veilid = await eventualVeilid.future;
-
-    late final Uint8List identitySecretBytes;
-    switch (encryptionKeyType) {
-      case EncryptionKeyType.none:
-        identitySecretBytes = identitySecret.decode();
-      case EncryptionKeyType.pin:
-      case EncryptionKeyType.password:
-        final cs = await veilid.getCryptoSystem(cryptoKind);
-        final ekbytes = Uint8List.fromList(utf8.encode(encryptionKey));
-        final nonce = await cs.randomNonce();
-        final identitySecretSaltBytes = nonce.decode();
-        final sharedSecret =
-            await cs.deriveSharedSecret(ekbytes, identitySecretSaltBytes);
-        identitySecretBytes = (await cs.cryptNoAuth(
-            identitySecret.decode(), nonce, sharedSecret))
-          ..addAll(identitySecretSaltBytes);
-    }
-    return identitySecretBytes;
-  }
-
   /// Creates a new Account associated with master identity
   /// Adds a logged-out LocalAccount to track its existence on this device
   Future<LocalAccount> newLocalAccount(
@@ -97,8 +70,8 @@ class LocalAccounts extends _$LocalAccounts
     );
 
     // Encrypt identitySecret with key
-    final identitySecretBytes = await _encryptIdentitySecret(
-        identitySecret: identitySecret,
+    final identitySecretBytes = await encryptSecretToBytes(
+        secret: identitySecret,
         cryptoKind: identityMaster.identityRecordKey.kind,
         encryptionKey: encryptionKey,
         encryptionKeyType: encryptionKeyType);

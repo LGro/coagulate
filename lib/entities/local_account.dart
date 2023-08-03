@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:change_case/change_case.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../entities/proto.dart' as proto;
 import '../veilid_support/veilid_support.dart';
 import 'identity.dart';
 
@@ -22,7 +23,27 @@ enum EncryptionKeyType {
   factory EncryptionKeyType.fromJson(dynamic j) =>
       EncryptionKeyType.values.byName((j as String).toCamelCase());
 
+  factory EncryptionKeyType.fromProto(proto.EncryptionKeyType p) {
+    // ignore: exhaustive_cases
+    switch (p) {
+      case proto.EncryptionKeyType.ENCRYPTION_KEY_TYPE_NONE:
+        return EncryptionKeyType.none;
+      case proto.EncryptionKeyType.ENCRYPTION_KEY_TYPE_PIN:
+        return EncryptionKeyType.pin;
+      case proto.EncryptionKeyType.ENCRYPTION_KEY_TYPE_PASSWORD:
+        return EncryptionKeyType.password;
+    }
+    throw StateError('unknown EncryptionKeyType enum value');
+  }
   String toJson() => name.toPascalCase();
+  proto.EncryptionKeyType toProto() => switch (this) {
+        EncryptionKeyType.none =>
+          proto.EncryptionKeyType.ENCRYPTION_KEY_TYPE_NONE,
+        EncryptionKeyType.pin =>
+          proto.EncryptionKeyType.ENCRYPTION_KEY_TYPE_PIN,
+        EncryptionKeyType.password =>
+          proto.EncryptionKeyType.ENCRYPTION_KEY_TYPE_PASSWORD,
+      };
 }
 
 // Local Accounts are stored in a table locally and not backed by a DHT key

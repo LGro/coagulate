@@ -5,6 +5,8 @@ import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:uuid/uuid.dart';
 
+import '../tools/theme_service.dart';
+
 class ChatComponent extends ConsumerStatefulWidget {
   const ChatComponent({super.key});
 
@@ -63,56 +65,68 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
     _addMessage(textMessage);
   }
 
+  void _handleAttachmentPressed() {
+    //
+  }
+
   @override
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scale = theme.extension<ScaleScheme>()!;
+    final chatTheme = scale.toChatTheme();
+    final textTheme = Theme.of(context).textTheme;
+
     //
-    return Align(
-        alignment: AlignmentDirectional.centerEnd,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-          ),
-          child: Stack(
-            children: [
-              Column(
+    return DefaultTextStyle(
+        style: textTheme.bodySmall!,
+        child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Container(
+              decoration: BoxDecoration(
+                color: scale.primaryScale.appBackground,
+              ),
+              child: Stack(
                 children: [
-                  Container(
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
-                        child: Text("current contact",
-                            textAlign: TextAlign.start,
-                            style: Theme.of(context).textTheme.titleMedium),
+                  Column(
+                    children: [
+                      Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: scale.primaryScale.subtleBackground,
+                        ),
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                16, 0, 16, 0),
+                            child: Text("current contact",
+                                textAlign: TextAlign.start,
+                                style: textTheme.titleMedium),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      decoration: const BoxDecoration(),
-                      child: Chat(
-                        //theme: _chatTheme,
-                        messages: _messages,
-                        //onAttachmentPressed: _handleAttachmentPressed,
-                        //onMessageTap: _handleMessageTap,
-                        //onPreviewDataFetched: _handlePreviewDataFetched,
-                        onSendPressed: _handleSendPressed,
-                        showUserAvatars: true,
-                        showUserNames: true,
-                        user: _user,
+                      Expanded(
+                        child: Container(
+                          decoration: const BoxDecoration(),
+                          child: Chat(
+                            theme: chatTheme,
+                            messages: _messages,
+                            //onAttachmentPressed: _handleAttachmentPressed,
+                            //onMessageTap: _handleMessageTap,
+                            //onPreviewDataFetched: _handlePreviewDataFetched,
+
+                            onSendPressed: _handleSendPressed,
+                            showUserAvatars: true,
+                            showUserNames: true,
+                            user: _user,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ));
+            )));
   }
 }

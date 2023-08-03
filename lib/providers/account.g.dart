@@ -128,4 +128,25 @@ class FetchAccountProvider extends AutoDisposeFutureProvider<AccountInfo> {
     return _SystemHash.finish(hash);
   }
 }
+
+String _$fetchActiveAccountHash() =>
+    r'8c7e571c135deeb5cacf56c61459d71f7447baaf';
+
+/// Get the active account info
+///
+/// Copied from [fetchActiveAccount].
+@ProviderFor(fetchActiveAccount)
+final fetchActiveAccountProvider =
+    AutoDisposeFutureProvider<ActiveAccountInfo?>.internal(
+  fetchActiveAccount,
+  name: r'fetchActiveAccountProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$fetchActiveAccountHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef FetchActiveAccountRef
+    = AutoDisposeFutureProviderRef<ActiveAccountInfo?>;
 // ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions

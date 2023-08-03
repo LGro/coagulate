@@ -47,9 +47,10 @@ abstract mixin class AsyncTableDBBacked<T> {
   }
 
   /// Store things to storage
-  Future<void> store(T obj) async {
+  Future<T> store(T obj) async {
     await tableScope(tableName(), (tdb) async {
       await tdb.storeStringJson(0, tableKeyName(), valueToJson(obj));
     });
+    return obj;
   }
 }

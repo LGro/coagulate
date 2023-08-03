@@ -9,16 +9,15 @@ part of 'dht_record_pool.dart';
 _$_DHTRecordPoolAllocations _$$_DHTRecordPoolAllocationsFromJson(
         Map<String, dynamic> json) =>
     _$_DHTRecordPoolAllocations(
-      childrenByParent: IMap<Typed<FixedEncodedString43>,
-              ISet<Typed<FixedEncodedString43>>>.fromJson(
-          json['children_by_parent'] as Map<String, dynamic>,
-          (value) => Typed<FixedEncodedString43>.fromJson(value),
-          (value) => ISet<Typed<FixedEncodedString43>>.fromJson(
-              value, (value) => Typed<FixedEncodedString43>.fromJson(value))),
-      parentByChild: IMap<Typed<FixedEncodedString43>,
-              Typed<FixedEncodedString43>>.fromJson(
+      childrenByParent:
+          IMap<String, ISet<Typed<FixedEncodedString43>>>.fromJson(
+              json['children_by_parent'] as Map<String, dynamic>,
+              (value) => value as String,
+              (value) => ISet<Typed<FixedEncodedString43>>.fromJson(value,
+                  (value) => Typed<FixedEncodedString43>.fromJson(value))),
+      parentByChild: IMap<String, Typed<FixedEncodedString43>>.fromJson(
           json['parent_by_child'] as Map<String, dynamic>,
-          (value) => Typed<FixedEncodedString43>.fromJson(value),
+          (value) => value as String,
           (value) => Typed<FixedEncodedString43>.fromJson(value)),
     );
 
@@ -26,13 +25,13 @@ Map<String, dynamic> _$$_DHTRecordPoolAllocationsToJson(
         _$_DHTRecordPoolAllocations instance) =>
     <String, dynamic>{
       'children_by_parent': instance.childrenByParent.toJson(
-        (value) => value.toJson(),
+        (value) => value,
         (value) => value.toJson(
           (value) => value.toJson(),
         ),
       ),
       'parent_by_child': instance.parentByChild.toJson(
-        (value) => value.toJson(),
+        (value) => value,
         (value) => value.toJson(),
       ),
     };

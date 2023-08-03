@@ -1240,7 +1240,7 @@ class Account extends $pb.GeneratedMessage {
     ..aOB(2, _omitFieldNames ? '' : 'invisible')
     ..a<$core.int>(3, _omitFieldNames ? '' : 'autoAwayTimeoutSec', $pb.PbFieldType.OU3)
     ..aOM<OwnedDHTRecordPointer>(4, _omitFieldNames ? '' : 'contactList', subBuilder: OwnedDHTRecordPointer.create)
-    ..aOM<OwnedDHTRecordPointer>(5, _omitFieldNames ? '' : 'contactRequests', subBuilder: OwnedDHTRecordPointer.create)
+    ..aOM<OwnedDHTRecordPointer>(5, _omitFieldNames ? '' : 'contactInvitationRecords', subBuilder: OwnedDHTRecordPointer.create)
     ..hasRequiredFields = false
   ;
 
@@ -1306,15 +1306,15 @@ class Account extends $pb.GeneratedMessage {
   OwnedDHTRecordPointer ensureContactList() => $_ensure(3);
 
   @$pb.TagNumber(5)
-  OwnedDHTRecordPointer get contactRequests => $_getN(4);
+  OwnedDHTRecordPointer get contactInvitationRecords => $_getN(4);
   @$pb.TagNumber(5)
-  set contactRequests(OwnedDHTRecordPointer v) { setField(5, v); }
+  set contactInvitationRecords(OwnedDHTRecordPointer v) { setField(5, v); }
   @$pb.TagNumber(5)
-  $core.bool hasContactRequests() => $_has(4);
+  $core.bool hasContactInvitationRecords() => $_has(4);
   @$pb.TagNumber(5)
-  void clearContactRequests() => clearField(5);
+  void clearContactInvitationRecords() => clearField(5);
   @$pb.TagNumber(5)
-  OwnedDHTRecordPointer ensureContactRequests() => $_ensure(4);
+  OwnedDHTRecordPointer ensureContactInvitationRecords() => $_ensure(4);
 }
 
 class ContactInvitation extends $pb.GeneratedMessage {
@@ -1432,9 +1432,8 @@ class ContactRequest extends $pb.GeneratedMessage {
   factory ContactRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ContactRequest', createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'writerSalt', $pb.PbFieldType.OY)
-    ..e<EncryptionKind>(2, _omitFieldNames ? '' : 'encryptionKeyType', $pb.PbFieldType.OE, defaultOrMaker: EncryptionKind.ENCRYPTION_KIND_UNSPECIFIED, valueOf: EncryptionKind.valueOf, enumValues: EncryptionKind.values)
-    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'private', $pb.PbFieldType.OY)
+    ..e<EncryptionKeyType>(1, _omitFieldNames ? '' : 'encryptionKeyType', $pb.PbFieldType.OE, defaultOrMaker: EncryptionKeyType.ENCRYPTION_KEY_TYPE_UNSPECIFIED, valueOf: EncryptionKeyType.valueOf, enumValues: EncryptionKeyType.values)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'private', $pb.PbFieldType.OY)
     ..hasRequiredFields = false
   ;
 
@@ -1460,31 +1459,22 @@ class ContactRequest extends $pb.GeneratedMessage {
   static ContactRequest? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<$core.int> get writerSalt => $_getN(0);
+  EncryptionKeyType get encryptionKeyType => $_getN(0);
   @$pb.TagNumber(1)
-  set writerSalt($core.List<$core.int> v) { $_setBytes(0, v); }
+  set encryptionKeyType(EncryptionKeyType v) { setField(1, v); }
   @$pb.TagNumber(1)
-  $core.bool hasWriterSalt() => $_has(0);
+  $core.bool hasEncryptionKeyType() => $_has(0);
   @$pb.TagNumber(1)
-  void clearWriterSalt() => clearField(1);
+  void clearEncryptionKeyType() => clearField(1);
 
   @$pb.TagNumber(2)
-  EncryptionKind get encryptionKeyType => $_getN(1);
+  $core.List<$core.int> get private => $_getN(1);
   @$pb.TagNumber(2)
-  set encryptionKeyType(EncryptionKind v) { setField(2, v); }
+  set private($core.List<$core.int> v) { $_setBytes(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasEncryptionKeyType() => $_has(1);
+  $core.bool hasPrivate() => $_has(1);
   @$pb.TagNumber(2)
-  void clearEncryptionKeyType() => clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.List<$core.int> get private => $_getN(2);
-  @$pb.TagNumber(3)
-  set private($core.List<$core.int> v) { $_setBytes(2, v); }
-  @$pb.TagNumber(3)
-  $core.bool hasPrivate() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearPrivate() => clearField(3);
+  void clearPrivate() => clearField(2);
 }
 
 class ContactRequestPrivate extends $pb.GeneratedMessage {
@@ -1697,13 +1687,13 @@ class SignedContactResponse extends $pb.GeneratedMessage {
   Signature ensureIdentitySignature() => $_ensure(1);
 }
 
-class ContactRequestRecord extends $pb.GeneratedMessage {
-  factory ContactRequestRecord() => create();
-  ContactRequestRecord._() : super();
-  factory ContactRequestRecord.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory ContactRequestRecord.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+class ContactInvitationRecord extends $pb.GeneratedMessage {
+  factory ContactInvitationRecord() => create();
+  ContactInvitationRecord._() : super();
+  factory ContactInvitationRecord.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory ContactInvitationRecord.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ContactRequestRecord', createEmptyInstance: create)
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ContactInvitationRecord', createEmptyInstance: create)
     ..aOM<TypedKey>(1, _omitFieldNames ? '' : 'contactRequestRecordKey', subBuilder: TypedKey.create)
     ..aOM<CryptoKey>(2, _omitFieldNames ? '' : 'writerKey', subBuilder: CryptoKey.create)
     ..aOM<CryptoKey>(3, _omitFieldNames ? '' : 'writerSecret', subBuilder: CryptoKey.create)
@@ -1717,22 +1707,22 @@ class ContactRequestRecord extends $pb.GeneratedMessage {
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
   'Will be removed in next major version')
-  ContactRequestRecord clone() => ContactRequestRecord()..mergeFromMessage(this);
+  ContactInvitationRecord clone() => ContactInvitationRecord()..mergeFromMessage(this);
   @$core.Deprecated(
   'Using this can add significant overhead to your binary. '
   'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
   'Will be removed in next major version')
-  ContactRequestRecord copyWith(void Function(ContactRequestRecord) updates) => super.copyWith((message) => updates(message as ContactRequestRecord)) as ContactRequestRecord;
+  ContactInvitationRecord copyWith(void Function(ContactInvitationRecord) updates) => super.copyWith((message) => updates(message as ContactInvitationRecord)) as ContactInvitationRecord;
 
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static ContactRequestRecord create() => ContactRequestRecord._();
-  ContactRequestRecord createEmptyInstance() => create();
-  static $pb.PbList<ContactRequestRecord> createRepeated() => $pb.PbList<ContactRequestRecord>();
+  static ContactInvitationRecord create() => ContactInvitationRecord._();
+  ContactInvitationRecord createEmptyInstance() => create();
+  static $pb.PbList<ContactInvitationRecord> createRepeated() => $pb.PbList<ContactInvitationRecord>();
   @$core.pragma('dart2js:noInline')
-  static ContactRequestRecord getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ContactRequestRecord>(create);
-  static ContactRequestRecord? _defaultInstance;
+  static ContactInvitationRecord getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ContactInvitationRecord>(create);
+  static ContactInvitationRecord? _defaultInstance;
 
   @$pb.TagNumber(1)
   TypedKey get contactRequestRecordKey => $_getN(0);

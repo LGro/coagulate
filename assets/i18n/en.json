@@ -43,11 +43,36 @@
     "account_page": {
         "missing_account_title": "Missing Account",
         "missing_account_text": "Account is missing, removing from list",
-        "invalid_account_title": "Missing Account",
-        "invalid_account_text": "Account is missing, removing from list"
+        "invalid_account_title": "Invalid Account",
+        "invalid_account_text": "Account is invalid, removing from list"
     },
     "empty_contact_list": {
         "invite_people": "Invite people to VeilidChat"
+    },
+    "accounts_menu": {
+        "invite_contact": "Invite Contact",
+        "send_invite": "Send Invite",
+        "receive_invite": "Receive Invite"
+    },
+    "send_invite_dialog": {
+        "connect_with_me": "Connect with me on VeilidChat!",
+        "enter_message_hint": "enter message for contact (optional)",
+        "message_to_contact": "Message to send with invitation (not encrypted)",
+        "generate": "Generate Invite",
+        "message": "Message",
+        "unlocked": "Unlocked",
+        "numeric_pin": "Numeric PIN",
+        "password": "Password",
+        "protect_this_invitation": "Protect this invitation:",
+        "note": "Note:",
+        "note_text": "Contact invitations can be used by anyone. Make sure you send the invitation to your contact over a secure medium, and preferably use a password or pin to ensure that they are the only ones who can unlock the invitation and accept it.",
+        "pin_description": "Choose a PIN to protect the contact invite.\n\nThis level of security is appropriate only for casual connections in public environments for 'shoulder surfing' protection.",
+        "password_description": "Choose a strong password to protect the contact invite.\n\nThis level of security is appropriate when you must be sure the contact invitation is only accepted by its intended recipient. Share this password over a different medium than the invite itself.",
+        "pin_does_not_match": "PIN does not match"
+    },
+    "enter_pin_dialog": {
+        "enter_pin": "Enter PIN",
+        "reenter_pin": "Re-Enter PIN To Confirm"
     },
     "themes": {
         "vapor": "Vapor"

@@ -46,20 +46,22 @@ final $typed_data.Uint8List availabilityDescriptor = $convert.base64Decode(
     'lMSVRZX09GRkxJTkUQARIVChFBVkFJTEFCSUxJVFlfRlJFRRACEhUKEUFWQUlMQUJJTElUWV9C'
     'VVNZEAMSFQoRQVZBSUxBQklMSVRZX0FXQVkQBA==');
 
-@$core.Deprecated('Use encryptionKindDescriptor instead')
-const EncryptionKind$json = {
-  '1': 'EncryptionKind',
+@$core.Deprecated('Use encryptionKeyTypeDescriptor instead')
+const EncryptionKeyType$json = {
+  '1': 'EncryptionKeyType',
   '2': [
-    {'1': 'ENCRYPTION_KIND_UNSPECIFIED', '2': 0},
-    {'1': 'ENCRYPTION_KIND_PIN', '2': 1},
-    {'1': 'ENCRYPTION_KIND_PASSWORD', '2': 2},
+    {'1': 'ENCRYPTION_KEY_TYPE_UNSPECIFIED', '2': 0},
+    {'1': 'ENCRYPTION_KEY_TYPE_NONE', '2': 1},
+    {'1': 'ENCRYPTION_KEY_TYPE_PIN', '2': 2},
+    {'1': 'ENCRYPTION_KEY_TYPE_PASSWORD', '2': 3},
   ],
 };
 
-/// Descriptor for `EncryptionKind`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List encryptionKindDescriptor = $convert.base64Decode(
-    'Cg5FbmNyeXB0aW9uS2luZBIfChtFTkNSWVBUSU9OX0tJTkRfVU5TUEVDSUZJRUQQABIXChNFTk'
-    'NSWVBUSU9OX0tJTkRfUElOEAESHAoYRU5DUllQVElPTl9LSU5EX1BBU1NXT1JEEAI=');
+/// Descriptor for `EncryptionKeyType`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List encryptionKeyTypeDescriptor = $convert.base64Decode(
+    'ChFFbmNyeXB0aW9uS2V5VHlwZRIjCh9FTkNSWVBUSU9OX0tFWV9UWVBFX1VOU1BFQ0lGSUVEEA'
+    'ASHAoYRU5DUllQVElPTl9LRVlfVFlQRV9OT05FEAESGwoXRU5DUllQVElPTl9LRVlfVFlQRV9Q'
+    'SU4QAhIgChxFTkNSWVBUSU9OX0tFWV9UWVBFX1BBU1NXT1JEEAM=');
 
 @$core.Deprecated('Use cryptoKeyDescriptor instead')
 const CryptoKey$json = {
@@ -344,7 +346,7 @@ const Account$json = {
     {'1': 'invisible', '3': 2, '4': 1, '5': 8, '10': 'invisible'},
     {'1': 'auto_away_timeout_sec', '3': 3, '4': 1, '5': 13, '10': 'autoAwayTimeoutSec'},
     {'1': 'contact_list', '3': 4, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'contactList'},
-    {'1': 'contact_requests', '3': 5, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'contactRequests'},
+    {'1': 'contact_invitation_records', '3': 5, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'contactInvitationRecords'},
   ],
 };
 
@@ -353,8 +355,8 @@ final $typed_data.Uint8List accountDescriptor = $convert.base64Decode(
     'CgdBY2NvdW50EiIKB3Byb2ZpbGUYASABKAsyCC5Qcm9maWxlUgdwcm9maWxlEhwKCWludmlzaW'
     'JsZRgCIAEoCFIJaW52aXNpYmxlEjEKFWF1dG9fYXdheV90aW1lb3V0X3NlYxgDIAEoDVISYXV0'
     'b0F3YXlUaW1lb3V0U2VjEjkKDGNvbnRhY3RfbGlzdBgEIAEoCzIWLk93bmVkREhUUmVjb3JkUG'
-    '9pbnRlclILY29udGFjdExpc3QSQQoQY29udGFjdF9yZXF1ZXN0cxgFIAEoCzIWLk93bmVkREhU'
-    'UmVjb3JkUG9pbnRlclIPY29udGFjdFJlcXVlc3Rz');
+    '9pbnRlclILY29udGFjdExpc3QSVAoaY29udGFjdF9pbnZpdGF0aW9uX3JlY29yZHMYBSABKAsy'
+    'Fi5Pd25lZERIVFJlY29yZFBvaW50ZXJSGGNvbnRhY3RJbnZpdGF0aW9uUmVjb3Jkcw==');
 
 @$core.Deprecated('Use contactInvitationDescriptor instead')
 const ContactInvitation$json = {
@@ -390,17 +392,15 @@ final $typed_data.Uint8List signedContactInvitationDescriptor = $convert.base64D
 const ContactRequest$json = {
   '1': 'ContactRequest',
   '2': [
-    {'1': 'writer_salt', '3': 1, '4': 1, '5': 12, '10': 'writerSalt'},
-    {'1': 'encryption_key_type', '3': 2, '4': 1, '5': 14, '6': '.EncryptionKind', '10': 'encryptionKeyType'},
-    {'1': 'private', '3': 3, '4': 1, '5': 12, '10': 'private'},
+    {'1': 'encryption_key_type', '3': 1, '4': 1, '5': 14, '6': '.EncryptionKeyType', '10': 'encryptionKeyType'},
+    {'1': 'private', '3': 2, '4': 1, '5': 12, '10': 'private'},
   ],
 };
 
 /// Descriptor for `ContactRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List contactRequestDescriptor = $convert.base64Decode(
-    'Cg5Db250YWN0UmVxdWVzdBIfCgt3cml0ZXJfc2FsdBgBIAEoDFIKd3JpdGVyU2FsdBI/ChNlbm'
-    'NyeXB0aW9uX2tleV90eXBlGAIgASgOMg8uRW5jcnlwdGlvbktpbmRSEWVuY3J5cHRpb25LZXlU'
-    'eXBlEhgKB3ByaXZhdGUYAyABKAxSB3ByaXZhdGU=');
+    'Cg5Db250YWN0UmVxdWVzdBJCChNlbmNyeXB0aW9uX2tleV90eXBlGAEgASgOMhIuRW5jcnlwdG'
+    'lvbktleVR5cGVSEWVuY3J5cHRpb25LZXlUeXBlEhgKB3ByaXZhdGUYAiABKAxSB3ByaXZhdGU=');
 
 @$core.Deprecated('Use contactRequestPrivateDescriptor instead')
 const ContactRequestPrivate$json = {
@@ -453,9 +453,9 @@ final $typed_data.Uint8List signedContactResponseDescriptor = $convert.base64Dec
     'FjdFJlc3BvbnNlEjkKEmlkZW50aXR5X3NpZ25hdHVyZRgCIAEoCzIKLlNpZ25hdHVyZVIRaWRl'
     'bnRpdHlTaWduYXR1cmU=');
 
-@$core.Deprecated('Use contactRequestRecordDescriptor instead')
-const ContactRequestRecord$json = {
-  '1': 'ContactRequestRecord',
+@$core.Deprecated('Use contactInvitationRecordDescriptor instead')
+const ContactInvitationRecord$json = {
+  '1': 'ContactInvitationRecord',
   '2': [
     {'1': 'contact_request_record_key', '3': 1, '4': 1, '5': 11, '6': '.TypedKey', '10': 'contactRequestRecordKey'},
     {'1': 'writer_key', '3': 2, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'writerKey'},
@@ -466,12 +466,12 @@ const ContactRequestRecord$json = {
   ],
 };
 
-/// Descriptor for `ContactRequestRecord`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List contactRequestRecordDescriptor = $convert.base64Decode(
-    'ChRDb250YWN0UmVxdWVzdFJlY29yZBJGChpjb250YWN0X3JlcXVlc3RfcmVjb3JkX2tleRgBIA'
-    'EoCzIJLlR5cGVkS2V5Uhdjb250YWN0UmVxdWVzdFJlY29yZEtleRIpCgp3cml0ZXJfa2V5GAIg'
-    'ASgLMgouQ3J5cHRvS2V5Ugl3cml0ZXJLZXkSLwoNd3JpdGVyX3NlY3JldBgDIAEoCzIKLkNyeX'
-    'B0b0tleVIMd3JpdGVyU2VjcmV0EjEKD2NoYXRfcmVjb3JkX2tleRgEIAEoCzIJLlR5cGVkS2V5'
-    'Ug1jaGF0UmVjb3JkS2V5Eh4KCmV4cGlyYXRpb24YBSABKARSCmV4cGlyYXRpb24SHgoKaW52aX'
-    'RhdGlvbhgGIAEoDFIKaW52aXRhdGlvbg==');
+/// Descriptor for `ContactInvitationRecord`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List contactInvitationRecordDescriptor = $convert.base64Decode(
+    'ChdDb250YWN0SW52aXRhdGlvblJlY29yZBJGChpjb250YWN0X3JlcXVlc3RfcmVjb3JkX2tleR'
+    'gBIAEoCzIJLlR5cGVkS2V5Uhdjb250YWN0UmVxdWVzdFJlY29yZEtleRIpCgp3cml0ZXJfa2V5'
+    'GAIgASgLMgouQ3J5cHRvS2V5Ugl3cml0ZXJLZXkSLwoNd3JpdGVyX3NlY3JldBgDIAEoCzIKLk'
+    'NyeXB0b0tleVIMd3JpdGVyU2VjcmV0EjEKD2NoYXRfcmVjb3JkX2tleRgEIAEoCzIJLlR5cGVk'
+    'S2V5Ug1jaGF0UmVjb3JkS2V5Eh4KCmV4cGlyYXRpb24YBSABKARSCmV4cGlyYXRpb24SHgoKaW'
+    '52aXRhdGlvbhgGIAEoDFIKaW52aXRhdGlvbg==');
 

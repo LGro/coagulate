@@ -1,12 +1,19 @@
+import 'dart:async';
+
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:stylish_bottom_bar/model/bar_items.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
+import '../../components/bottom_sheet_action_button.dart';
 import '../../components/contact_invitation_display.dart';
+import '../../components/send_invite_dialog.dart';
+import '../../tools/tools.dart';
 import 'account_page.dart';
 import 'chats_page.dart';
 
@@ -102,22 +109,81 @@ class MainPagerState extends ConsumerState<MainPager>
     return bottomBarItems;
   }
 
-  Future<void> _onNewContactInvitation(BuildContext context) async {
-    Scaffold.of(context).showBottomSheet<void>((context) => SizedBox(
-        height: 200, child: Center(child: ContactInvitationDisplay())));
+  Future<void> sendContactInvitationDialog(BuildContext context) async {
+    await showDialog<void>(
+        context: context,
+        // ignore: prefer_expression_function_bodies
+        builder: (context) {
+          return const AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
+              contentPadding: EdgeInsets.only(
+                top: 10,
+              ),
+              title: Text(
+                'Send Contact Invite',
+                style: TextStyle(fontSize: 24),
+              ),
+              content: SendInviteDialog());
+        });
   }
 
-  Future<void> _onNewChat(BuildContext context) async {
-    //
+  Widget _newContactInvitationBottomSheetBuilder(
+      // ignore: prefer_expression_function_bodies
+      BuildContext context) {
+    return KeyboardListener(
+        focusNode: FocusNode(),
+        onKeyEvent: (ke) {
+          if (ke.logicalKey == LogicalKeyboardKey.escape) {
+            Navigator.pop(context);
+          }
+        },
+        child: SizedBox(
+            height: 200,
+            child: Column(children: [
+              Text(translate('accounts_menu.invite_contact'),
+                      style: Theme.of(context).textTheme.titleMedium)
+                  .paddingAll(8),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  IconButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await sendContactInvitationDialog(context);
+                      },
+                      iconSize: 64,
+                      icon: const Icon(Icons.output)),
+                  Text(translate('accounts_menu.send_invite'))
+                ]),
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      iconSize: 64,
+                      icon: const Icon(Icons.input)),
+                  Text(translate('accounts_menu.receive_invite'))
+                ])
+              ]).expanded()
+            ])));
   }
 
-  Future<void> _onFloatingActionButtonPressed(BuildContext context) async {
+  // ignore: prefer_expression_function_bodies
+  Widget _onNewChatBottomSheetBuilder(BuildContext context) {
+    return const SizedBox(height: 200, child: Center(child: Text("test")));
+  }
+
+  Widget _bottomSheetBuilder(BuildContext context) {
     if (_currentPage == 0) {
       // New contact invitation
-      return _onNewContactInvitation(context);
+      return _newContactInvitationBottomSheetBuilder(context);
     } else if (_currentPage == 1) {
       // New chat
-      return _onNewChat(context);
+      return _onNewChatBottomSheetBuilder(context);
+    } else {
+      // Unknown error
+      return waitingPage(context);
     }
   }
 
@@ -151,6 +217,7 @@ class MainPagerState extends ConsumerState<MainPager>
         //       theme.colorScheme.primary,
         //       theme.colorScheme.primaryContainer,
         //     ]),
+        //borderRadius: BorderRadius.all(Radius.circular(16)),
         option: AnimatedBarOptions(
           // iconSize: 32,
           //barAnimation: BarAnimation.fade,
@@ -172,16 +239,16 @@ class MainPagerState extends ConsumerState<MainPager>
         },
       ),
 
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: BottomSheetActionButton(
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(14))),
           //foregroundColor: theme.colorScheme.secondary,
           backgroundColor: theme.colorScheme.secondaryContainer,
-          child: Icon(
-            _fabIconList[_currentPage],
-            color: theme.colorScheme.onSecondaryContainer,
-          ),
-          onPressed: () async => _onFloatingActionButtonPressed(context)),
+          builder: (context) => Icon(
+                _fabIconList[_currentPage],
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+          bottomSheetBuilder: _bottomSheetBuilder),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }

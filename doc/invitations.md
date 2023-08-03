@@ -3,12 +3,13 @@
 2. Encrypt secret with requested encryption type
 3. Create Local Chat DHT record (no content yet, will be encrypted with DH of contact identity key)
 4. Create ContactRequestPrivate and encrypt with the writer secret
-5. Create ContactRequest and embed possibly encrypted ContactRequestPrivate
+5. Create ContactRequest and embed encrypted ContactRequestPrivate
 6. Create DHT unicast inbox for ContactRequest and store ContactRequest in owner subkey
-7. Create ContactInvitation and add invitation record to local table
+7. Create ContactInvitation 
 8. Create SignedContactInvitation embedding ContactInvitation
-9. Render SignedContactInvitation to shareable encoding (qr code, text blob, etc)
-10. Share SignedContactInvitation out of band to desired contact, along with password somehow if used
+9. Create ContactInvitationRecord and add to local table in Account
+10. Render SignedContactInvitation to shareable encoding (qr code, text blob, etc)
+11. Share SignedContactInvitation out of band to desired contact, along with password somehow if used
 
 ## Receiving an invitation
 1. Receive SignedContactInvitation from out of band, and the password somehow if used

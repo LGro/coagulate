@@ -472,50 +472,48 @@ RadixScheme _radixScheme(Brightness brightness, RadixThemeColor themeColor) {
   return radixScheme;
 }
 
-ExtendedColorScheme _radixColorScheme(
-    Brightness brightness, RadixThemeColor themeColor) {
-  final radix = _radixScheme(brightness, themeColor);
-
-  return ExtendedColorScheme(
-    scaleScheme: radix.toScale(),
-    brightness: brightness,
-    primary: radix.primaryScale.step9,
-    onPrimary: radix.primaryScale.step12,
-    primaryContainer: radix.primaryScale.step4,
-    onPrimaryContainer: radix.primaryScale.step11,
-    secondary: radix.secondaryScale.step9,
-    onSecondary: radix.secondaryScale.step12,
-    secondaryContainer: radix.secondaryScale.step3,
-    onSecondaryContainer: radix.secondaryScale.step11,
-    tertiary: radix.tertiaryScale.step9,
-    onTertiary: radix.tertiaryScale.step12,
-    tertiaryContainer: radix.tertiaryScale.step3,
-    onTertiaryContainer: radix.tertiaryScale.step11,
-    error: radix.errorScale.step9,
-    onError: radix.errorScale.step12,
-    errorContainer: radix.errorScale.step3,
-    onErrorContainer: radix.errorScale.step11,
-    background: radix.grayScale.step1,
-    onBackground: radix.grayScale.step11,
-    surface: radix.primaryScale.step1,
-    onSurface: radix.primaryScale.step12,
-    surfaceVariant: radix.secondaryScale.step2,
-    onSurfaceVariant: radix.secondaryScale.step11,
-    outline: radix.primaryScale.step7,
-    outlineVariant: radix.primaryScale.step6,
-    shadow: RadixColors.dark.gray.step1,
-    scrim: radix.primaryScale.step9,
-    inverseSurface: radix.primaryScale.step11,
-    onInverseSurface: radix.primaryScale.step2,
-    inversePrimary: radix.primaryScale.step10,
-    surfaceTint: radix.primaryAlphaScale.step4,
-  );
-}
+ColorScheme _radixColorScheme(Brightness brightness, RadixScheme radix) =>
+    ColorScheme(
+      brightness: brightness,
+      primary: radix.primaryScale.step9,
+      onPrimary: radix.primaryScale.step12,
+      primaryContainer: radix.primaryScale.step4,
+      onPrimaryContainer: radix.primaryScale.step11,
+      secondary: radix.secondaryScale.step9,
+      onSecondary: radix.secondaryScale.step12,
+      secondaryContainer: radix.secondaryScale.step3,
+      onSecondaryContainer: radix.secondaryScale.step11,
+      tertiary: radix.tertiaryScale.step9,
+      onTertiary: radix.tertiaryScale.step12,
+      tertiaryContainer: radix.tertiaryScale.step3,
+      onTertiaryContainer: radix.tertiaryScale.step11,
+      error: radix.errorScale.step9,
+      onError: radix.errorScale.step12,
+      errorContainer: radix.errorScale.step3,
+      onErrorContainer: radix.errorScale.step11,
+      background: radix.grayScale.step1,
+      onBackground: radix.grayScale.step11,
+      surface: radix.primaryScale.step1,
+      onSurface: radix.primaryScale.step12,
+      surfaceVariant: radix.secondaryScale.step2,
+      onSurfaceVariant: radix.secondaryScale.step11,
+      outline: radix.primaryScale.step7,
+      outlineVariant: radix.primaryScale.step6,
+      shadow: RadixColors.dark.gray.step1,
+      scrim: radix.primaryScale.step9,
+      inverseSurface: radix.primaryScale.step11,
+      onInverseSurface: radix.primaryScale.step2,
+      inversePrimary: radix.primaryScale.step10,
+      surfaceTint: radix.primaryAlphaScale.step4,
+    );
 
 ThemeData radixGenerator(Brightness brightness, RadixThemeColor themeColor) {
   TextTheme? textTheme;
+  final radix = _radixScheme(brightness, themeColor);
+  final colorScheme = _radixColorScheme(brightness, radix);
   return ThemeData.from(
-      colorScheme: _radixColorScheme(brightness, themeColor),
-      textTheme: textTheme,
-      useMaterial3: true);
+          colorScheme: colorScheme, textTheme: textTheme, useMaterial3: true)
+      .copyWith(extensions: <ThemeExtension<dynamic>>[
+    radix.toScale(),
+  ]);
 }

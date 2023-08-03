@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../entities/local_account.dart';
 import '../entities/proto.dart' as proto;
+import '../entities/user_login.dart';
 import '../veilid_support/veilid_support.dart';
 
 import 'local_accounts.dart';
@@ -69,4 +71,62 @@ Future<AccountInfo> fetchAccount(FetchAccountRef ref,
   // Got account, decrypted and decoded
   return AccountInfo(
       status: AccountInfoStatus.accountReady, active: active, account: account);
+}
+
+class ActiveAccountInfo {
+  ActiveAccountInfo({
+    required this.localAccount,
+    required this.userLogin,
+    required this.account,
+  });
+
+  LocalAccount localAccount;
+  UserLogin userLogin;
+  proto.Account account;
+}
+
+/// Get the active account info
+@riverpod
+Future<ActiveAccountInfo?> fetchActiveAccount(FetchAccountRef ref) async {
+  // See if we've logged into this account or if it is locked
+  final activeUserLogin = await ref.watch(loginsProvider.future
+      .select((value) async => (await value).activeUserLogin));
+  if (activeUserLogin == null) {
+    return null;
+  }
+
+  // Get the user login
+  final userLogin = await ref.watch(
+      fetchLoginProvider(accountMasterRecordKey: activeUserLogin).future);
+  if (userLogin == null) {
+    // Account was locked
+    return null;
+  }
+
+  // Get which local account we want to fetch the profile for
+  final localAccount = await ref.watch(
+      fetchLocalAccountProvider(accountMasterRecordKey: activeUserLogin)
+          .future);
+  if (localAccount == null) {
+    // Local account does not exist
+    return null;
+  }
+
+  // Pull the account DHT key, decode it and return it
+  final pool = await DHTRecordPool.instance();
+  final account = await (await pool.openOwned(
+          userLogin.accountRecordInfo.accountRecord,
+          parent: localAccount.identityMaster.identityRecordKey))
+      .scope((accountRec) => accountRec.getProtobuf(proto.Account.fromBuffer));
+  if (account == null) {
+    // Account could not be read or decrypted from DHT
+    return null;
+  }
+
+  // Got account, decrypted and decoded
+  return ActiveAccountInfo(
+    localAccount: localAccount,
+    userLogin: userLogin,
+    account: account,
+  );
 }
