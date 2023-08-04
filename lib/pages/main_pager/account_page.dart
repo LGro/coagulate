@@ -4,11 +4,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 
+import '../../components/contact_invitation_list_widget.dart';
 import '../../components/contact_list_widget.dart';
 import '../../components/profile.dart';
 import '../../entities/local_account.dart';
 import '../../entities/proto.dart' as proto;
 import '../../providers/account.dart';
+import '../../providers/contact.dart';
 import '../../providers/local_accounts.dart';
 import '../../providers/logins.dart';
 import '../../tools/tools.dart';
@@ -24,7 +26,6 @@ class AccountPage extends ConsumerStatefulWidget {
 class AccountPageState extends ConsumerState<AccountPage> {
   final _unfocusNode = FocusNode();
   TypedKey? _selectedAccount;
-  List<proto.Contact> _contactList = List<proto.Contact>.empty(growable: true);
 
   @override
   void initState() {
@@ -62,9 +63,18 @@ class AccountPageState extends ConsumerState<AccountPage> {
     proto.Account account,
     // ignore: prefer_expression_function_bodies
   ) {
+    final contactInvitationRecordList =
+        ref.watch(fetchContactInvitationRecordsProvider).asData?.value ??
+            const IListConst([]);
+    final contactList = ref.watch(fetchContactListProvider).asData?.value ??
+        const IListConst([]);
+
     return Column(children: <Widget>[
       ProfileWidget(name: account.profile.name, title: account.profile.title),
-      ContactListWidget(contactList: _contactList)
+      if (contactInvitationRecordList.isNotEmpty)
+        ContactInvitationListWidget(
+            contactInvitationRecordList: contactInvitationRecordList),
+      ContactListWidget(contactList: contactList),
     ]);
   }
 

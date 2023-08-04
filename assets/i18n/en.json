@@ -29,6 +29,10 @@
         "ok": "Ok",
         "cancel": "Cancel"
     },
+    "toast": {
+        "error": "Error",
+        "info": "Info"
+    },
     "language": {
         "name": {
             "en": "English"
@@ -68,11 +72,19 @@
         "note_text": "Contact invitations can be used by anyone. Make sure you send the invitation to your contact over a secure medium, and preferably use a password or pin to ensure that they are the only ones who can unlock the invitation and accept it.",
         "pin_description": "Choose a PIN to protect the contact invite.\n\nThis level of security is appropriate only for casual connections in public environments for 'shoulder surfing' protection.",
         "password_description": "Choose a strong password to protect the contact invite.\n\nThis level of security is appropriate when you must be sure the contact invitation is only accepted by its intended recipient. Share this password over a different medium than the invite itself.",
-        "pin_does_not_match": "PIN does not match"
+        "pin_does_not_match": "PIN does not match",
+        "contact_invitation": "Contact Invitation",
+        "failed_to_generate": "Failed to generate contact invitation",
+        "copy_invitation": "Copy Invitation",
+        "invitation_copied": "Invitation Copied"
     },
     "enter_pin_dialog": {
         "enter_pin": "Enter PIN",
         "reenter_pin": "Re-Enter PIN To Confirm"
+    },
+    "contact_list": {
+        "search": "Search contacts",
+        "invitation": "Invitation"
     },
     "themes": {
         "vapor": "Vapor"

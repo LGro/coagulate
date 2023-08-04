@@ -64,6 +64,9 @@ class DHTShortArray {
         crypto: crypto);
     try {
       final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
+      if (!await dhtShortArray._tryWriteHead()) {
+        throw StateError('Failed to write head at this time');
+      }
       return dhtShortArray;
     } on Exception catch (_) {
       await dhtRecord.delete();
@@ -327,7 +330,7 @@ class DHTShortArray {
     // xxx: free list optimization here?
   }
 
-  int length() => _head.index.length;
+  int get length => _head.index.length;
 
   Future<Uint8List?> getItem(int pos, {bool forceRefresh = false}) async {
     await _refreshHead(forceRefresh: forceRefresh, onlyUpdates: true);

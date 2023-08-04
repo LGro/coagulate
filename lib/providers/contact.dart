@@ -1,17 +1,30 @@
 import 'dart:typed_data';
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../entities/local_account.dart';
 import '../entities/proto.dart' as proto;
+import '../entities/proto.dart'
+    show
+        Contact,
+        ContactInvitation,
+        ContactInvitationRecord,
+        ContactRequest,
+        ContactRequestPrivate,
+        SignedContactInvitation;
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';
+
+part 'contact.g.dart';
 
 Future<Uint8List> createContactInvitation(
     {required ActiveAccountInfo activeAccountInfo,
     required EncryptionKeyType encryptionKeyType,
     required String encryptionKey,
+    required String message,
     required Timestamp? expiration}) async {
   final pool = await DHTRecordPool.instance();
   final accountRecordKey =
@@ -39,7 +52,7 @@ Future<Uint8List> createContactInvitation(
   await (await pool.create(parent: accountRecordKey))
       .deleteScope((localChatRecord) async {
     // Make ContactRequestPrivate and encrypt with the writer secret
-    final crpriv = proto.ContactRequestPrivate()
+    final crpriv = ContactRequestPrivate()
       ..writerKey = writer.key.toProto()
       ..profile = activeAccountInfo.account.profile
       ..accountMasterRecordKey =
@@ -51,7 +64,7 @@ Future<Uint8List> createContactInvitation(
         await cs.encryptNoAuthWithNonce(crprivbytes, writer.secret);
 
     // Create ContactRequest and embed contactrequestprivate
-    final creq = proto.ContactRequest()
+    final creq = ContactRequest()
       ..encryptionKeyType = encryptionKeyType.toProto()
       ..private = encryptedContactRequestPrivate;
 
@@ -66,24 +79,25 @@ Future<Uint8List> createContactInvitation(
       await inboxRecord.eventualWriteProtobuf(creq);
 
       // Create ContactInvitation and SignedContactInvitation
-      final cinv = proto.ContactInvitation()
+      final cinv = ContactInvitation()
         ..contactRequestRecordKey = inboxRecord.key.toProto()
         ..writerSecret = encryptedSecret;
       final cinvbytes = cinv.writeToBuffer();
-      final scinv = proto.SignedContactInvitation()
+      final scinv = SignedContactInvitation()
         ..contactInvitation = cinvbytes
         ..identitySignature =
             (await cs.sign(identityKey, identitySecret, cinvbytes)).toProto();
       signedContactInvitationBytes = scinv.writeToBuffer();
 
       // Create ContactInvitationRecord
-      final cinvrec = proto.ContactInvitationRecord()
+      final cinvrec = ContactInvitationRecord()
         ..contactRequestRecordKey = inboxRecord.key.toProto()
         ..writerKey = writer.key.toProto()
         ..writerSecret = writer.secret.toProto()
         ..chatRecordKey = localChatRecord.key.toProto()
         ..expiration = expiration?.toInt64() ?? Int64.ZERO
-        ..invitation = signedContactInvitationBytes;
+        ..invitation = signedContactInvitationBytes
+        ..message = message;
 
       // Add ContactInvitationRecord to local table if possible
       // if this fails, don't keep retrying, user can try again later
@@ -100,4 +114,65 @@ Future<Uint8List> createContactInvitation(
   });
 
   return signedContactInvitationBytes;
+}
+
+/// Get the active account contact invitation list
+@riverpod
+Future<IList<ContactInvitationRecord>?> fetchContactInvitationRecords(
+    FetchContactInvitationRecordsRef ref) async {
+  // See if we've logged into this account or if it is locked
+  final activeAccountInfo = await ref.watch(fetchActiveAccountProvider.future);
+  if (activeAccountInfo == null) {
+    return null;
+  }
+  final accountRecordKey =
+      activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+
+  // Decode the contact invitation list from the DHT
+  IList<ContactInvitationRecord> out = const IListConst([]);
+  await (await DHTShortArray.openOwned(
+          proto.OwnedDHTRecordPointerProto.fromProto(
+              activeAccountInfo.account.contactInvitationRecords),
+          parent: accountRecordKey))
+      .scope((cirList) async {
+    for (var i = 0; i < cirList.length; i++) {
+      final cir = await cirList.getItem(i);
+      if (cir == null) {
+        throw StateError('Failed to get contact invitation record');
+      }
+      out = out.add(ContactInvitationRecord.fromBuffer(cir));
+    }
+  });
+
+  return out;
+}
+
+/// Get the active account contact list
+@riverpod
+Future<IList<Contact>?> fetchContactList(FetchContactListRef ref) async {
+  // See if we've logged into this account or if it is locked
+  final activeAccountInfo = await ref.watch(fetchActiveAccountProvider.future);
+  if (activeAccountInfo == null) {
+    return null;
+  }
+  final accountRecordKey =
+      activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+
+  // Decode the contact list from the DHT
+  IList<Contact> out = const IListConst([]);
+  await (await DHTShortArray.openOwned(
+          proto.OwnedDHTRecordPointerProto.fromProto(
+              activeAccountInfo.account.contactList),
+          parent: accountRecordKey))
+      .scope((cList) async {
+    for (var i = 0; i < cList.length; i++) {
+      final cir = await cList.getItem(i);
+      if (cir == null) {
+        throw StateError('Failed to get contact');
+      }
+      out = out.add(Contact.fromBuffer(cir));
+    }
+  });
+
+  return out;
 }

@@ -98,7 +98,7 @@ class DHTRecord {
       return null;
     }
     final lastSeq = _subkeySeqCache[subkey];
-    if (lastSeq != null && valueData.seq <= lastSeq) {
+    if (onlyUpdates && lastSeq != null && valueData.seq <= lastSeq) {
       return null;
     }
     final out = _crypto.decrypt(valueData.data, subkey);
@@ -137,11 +137,17 @@ class DHTRecord {
     newValue = await _crypto.encrypt(newValue, subkey);
 
     // Set the new data if possible
-    final valueData = await _routingContext.setDHTValue(
+    var valueData = await _routingContext.setDHTValue(
         _recordDescriptor.key, subkey, newValue);
     if (valueData == null) {
+      // Get the data to check its sequence number
+      valueData = await _routingContext.getDHTValue(
+          _recordDescriptor.key, subkey, false);
+      assert(valueData != null, "can't get value that was just set");
+      _subkeySeqCache[subkey] = valueData!.seq;
       return null;
     }
+    _subkeySeqCache[subkey] = valueData.seq;
     return valueData.data;
   }
 
@@ -157,6 +163,12 @@ class DHTRecord {
 
       // Repeat if newer data on the network was found
     } while (valueData != null);
+
+    // Get the data to check its sequence number
+    valueData =
+        await _routingContext.getDHTValue(_recordDescriptor.key, subkey, false);
+    assert(valueData != null, "can't get value that was just set");
+    _subkeySeqCache[subkey] = valueData!.seq;
   }
 
   Future<void> eventualUpdateBytes(
@@ -186,6 +198,12 @@ class DHTRecord {
 
       // Repeat if newer data on the network was found
     } while (valueData != null);
+
+    // Get the data to check its sequence number
+    valueData =
+        await _routingContext.getDHTValue(_recordDescriptor.key, subkey, false);
+    assert(valueData != null, "can't get value that was just set");
+    _subkeySeqCache[subkey] = valueData!.seq;
   }
 
   Future<T?> tryWriteJson<T>(T Function(dynamic) fromJson, T newValue,

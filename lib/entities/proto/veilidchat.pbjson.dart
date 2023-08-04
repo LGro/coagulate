@@ -463,6 +463,7 @@ const ContactInvitationRecord$json = {
     {'1': 'chat_record_key', '3': 4, '4': 1, '5': 11, '6': '.TypedKey', '10': 'chatRecordKey'},
     {'1': 'expiration', '3': 5, '4': 1, '5': 4, '10': 'expiration'},
     {'1': 'invitation', '3': 6, '4': 1, '5': 12, '10': 'invitation'},
+    {'1': 'message', '3': 7, '4': 1, '5': 9, '10': 'message'},
   ],
 };
 
@@ -473,5 +474,5 @@ final $typed_data.Uint8List contactInvitationRecordDescriptor = $convert.base64D
     'GAIgASgLMgouQ3J5cHRvS2V5Ugl3cml0ZXJLZXkSLwoNd3JpdGVyX3NlY3JldBgDIAEoCzIKLk'
     'NyeXB0b0tleVIMd3JpdGVyU2VjcmV0EjEKD2NoYXRfcmVjb3JkX2tleRgEIAEoCzIJLlR5cGVk'
     'S2V5Ug1jaGF0UmVjb3JkS2V5Eh4KCmV4cGlyYXRpb24YBSABKARSCmV4cGlyYXRpb24SHgoKaW'
-    '52aXRhdGlvbhgGIAEoDFIKaW52aXRhdGlvbg==');
+    '52aXRhdGlvbhgGIAEoDFIKaW52aXRhdGlvbhIYCgdtZXNzYWdlGAcgASgJUgdtZXNzYWdl');
 

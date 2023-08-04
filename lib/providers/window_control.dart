@@ -33,7 +33,7 @@ class WindowControl extends _$WindowControl {
 
       const windowOptions = WindowOptions(
         size: Size(768, 1024),
-        //minimumSize: Size(480, 640),
+        //minimumSize: Size(480, 480),
         center: true,
         backgroundColor: Colors.transparent,
         skipTaskbar: false,

@@ -1700,6 +1700,7 @@ class ContactInvitationRecord extends $pb.GeneratedMessage {
     ..aOM<TypedKey>(4, _omitFieldNames ? '' : 'chatRecordKey', subBuilder: TypedKey.create)
     ..a<$fixnum.Int64>(5, _omitFieldNames ? '' : 'expiration', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'invitation', $pb.PbFieldType.OY)
+    ..aOS(7, _omitFieldNames ? '' : 'message')
     ..hasRequiredFields = false
   ;
 
@@ -1785,6 +1786,15 @@ class ContactInvitationRecord extends $pb.GeneratedMessage {
   $core.bool hasInvitation() => $_has(5);
   @$pb.TagNumber(6)
   void clearInvitation() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get message => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set message($core.String v) { $_setString(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasMessage() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearMessage() => clearField(7);
 }
 
 

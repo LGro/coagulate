@@ -104,6 +104,7 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
         activeAccountInfo: activeAccountInfo,
         encryptionKeyType: _encryptionKeyType,
         encryptionKey: _encryptionKey,
+        message: _messageTextController.text,
         expiration: _expiration);
     // ignore: use_build_context_synchronously
     if (!context.mounted) {
@@ -119,6 +120,7 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
     // if (ret == null) {
     //   return;
     // }
+    ref.invalidate(fetchContactInvitationRecordsProvider);
     navigator.pop();
   }
 

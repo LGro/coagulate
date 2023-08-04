@@ -1,6 +1,7 @@
 import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:flutter_translate/flutter_translate.dart';
 import 'package:motion_toast/motion_toast.dart';
 import 'package:quickalert/quickalert.dart';
 
@@ -54,7 +55,14 @@ Future<void> showErrorModal(
 
 void showErrorToast(BuildContext context, String message) {
   MotionToast.error(
-    title: Text("Error"),
+    title: Text(translate('toast.error')),
+    description: Text(message),
+  ).show(context);
+}
+
+void showInfoToast(BuildContext context, String message) {
+  MotionToast.info(
+    title: Text(translate('toast.info')),
     description: Text(message),
   ).show(context);
 }

@@ -344,6 +344,8 @@ message ContactInvitationRecord {
     TypedKey chat_record_key = 4;
     // Expiration timestamp
     uint64 expiration = 5;
-    // A copy of the raw SignedContactResponse invitation bytes post-encryption and signing
+    // A copy of the raw SignedContactInvitation invitation bytes post-encryption and signing
     bytes invitation = 6;
+    // The message sent along with the invitation
+    string message = 7;
 }

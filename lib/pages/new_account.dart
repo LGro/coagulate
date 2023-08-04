@@ -110,9 +110,11 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
                   try {
                     await onSubmit(_formKey);
                   } finally {
-                    setState(() {
-                      isInAsyncCall = false;
-                    });
+                    if (mounted) {
+                      setState(() {
+                        isInAsyncCall = false;
+                      });
+                    }
                   }
                 }
               },
