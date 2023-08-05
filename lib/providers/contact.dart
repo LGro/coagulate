@@ -93,7 +93,7 @@ Future<Uint8List> createContactInvitation(
     final crpriv = ContactRequestPrivate()
       ..writerKey = writer.key.toProto()
       ..profile = activeAccountInfo.account.profile
-      ..accountMasterRecordKey =
+      ..identityMasterRecordKey =
           activeAccountInfo.userLogin.accountMasterRecordKey.toProto()
       ..chatRecordKey = localConversation.key.toProto()
       ..expiration = expiration?.toInt64() ?? Int64.ZERO;

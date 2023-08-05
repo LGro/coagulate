@@ -107,7 +107,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
 
       var lastline =
           lines.indexWhere((element) => element.contains('END VEILIDCHAT'));
-      if (lastline != -1) {
+      if (lastline == -1) {
         lastline = lines.length;
       }
       if (lastline <= firstline) {
@@ -126,6 +126,13 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
 
       final contactRequestInboxKey = proto.TypedKeyProto.fromProto(
           contactInvitation.contactRequestInboxKey);
+
+      // xxx should ensure contact request is not from ourselves
+      // xxx or implement as 'note to self' but this could be done more carefully
+      // xxx this operation gets the wrong parent. can we allow opening dht records
+      // xxx that we already have open for readonly?
+
+      // xxx test on multiple devices
 
       // Open context request inbox subkey zero to get the contact request object
       final pool = await DHTRecordPool.instance();
