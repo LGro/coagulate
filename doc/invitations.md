@@ -34,9 +34,10 @@
 3. Set ContactRequest unicastinbox DHT record writer subkey with SignedContactResponse, encrypted with writer secret
 
 ## Receiving an accept/reject
-1. Decrypt with writer secret
-2. Get DHT record for contact's AccountMaster
-3. Validate the SignedContactResponse signature
+1. Open and get SignedContactResponse from ContactRequest unicaseinbox DHT record
+2. Decrypt with writer secret
+3. Get DHT record for contact's AccountMaster
+4. Validate the SignedContactResponse signature
    
 If accept == false:
    1. Announce rejection

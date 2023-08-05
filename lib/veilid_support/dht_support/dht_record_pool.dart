@@ -1,5 +1,6 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:mutex/mutex.dart';
 
 import '../../log/loggy.dart';
 import '../veilid_support.dart';
@@ -38,14 +39,14 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
   DHTRecordPool._(Veilid veilid, VeilidRoutingContext routingContext)
       : _state = DHTRecordPoolAllocations(
             childrenByParent: IMap(), parentByChild: IMap()),
-        _opened = <TypedKey, DHTRecord>{},
+        _opened = <TypedKey, Mutex>{},
         _routingContext = routingContext,
         _veilid = veilid;
 
   // Persistent DHT record list
   DHTRecordPoolAllocations _state;
   // Which DHT records are currently open
-  final Map<TypedKey, DHTRecord> _opened;
+  final Map<TypedKey, Mutex> _opened;
   // Default routing context to use for new keys
   final VeilidRoutingContext _routingContext;
   // Convenience accessor
@@ -89,14 +90,20 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
 
   Veilid get veilid => _veilid;
 
-  void _recordOpened(DHTRecord record) {
-    assert(!_opened.containsKey(record.key), 'record already opened');
-    _opened[record.key] = record;
+  Future<void> _recordOpened(TypedKey key) async {
+    // no race because dart is single threaded until async breaks
+    final m = _opened[key] ?? Mutex();
+    _opened[key] = m;
+    await m.acquire();
+    _opened[key] = m;
   }
 
-  void recordClosed(DHTRecord record) {
-    assert(_opened.containsKey(record.key), 'record already closed');
-    _opened.remove(record.key);
+  void recordClosed(TypedKey key) {
+    final m = _opened.remove(key);
+    if (m == null) {
+      throw StateError('record already closed');
+    }
+    m.release();
   }
 
   Future<void> deleteDeep(TypedKey parent) async {
@@ -191,7 +198,8 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
     if (parent != null) {
       await _addDependency(parent, rec.key);
     }
-    _recordOpened(rec);
+
+    await _recordOpened(rec.key);
 
     return rec;
   }
@@ -202,25 +210,32 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
       TypedKey? parent,
       int defaultSubkey = 0,
       DHTRecordCrypto? crypto}) async {
-    // If we are opening a key that already exists
-    // make sure we are using the same parent if one was specified
-    final existingParent = _state.parentByChild[recordKey.toJson()];
-    assert(existingParent == parent, 'wrong parent for opened key');
+    await _recordOpened(recordKey);
 
-    // Open from the veilid api
-    final dhtctx = routingContext ?? _routingContext;
-    final recordDescriptor = await dhtctx.openDHTRecord(recordKey, null);
-    final rec = DHTRecord(
-        routingContext: dhtctx,
-        recordDescriptor: recordDescriptor,
-        defaultSubkey: defaultSubkey,
-        crypto: crypto ?? const DHTRecordCryptoPublic());
+    late final DHTRecord rec;
+    try {
+      // If we are opening a key that already exists
+      // make sure we are using the same parent if one was specified
+      final existingParent = _state.parentByChild[recordKey.toJson()];
+      assert(existingParent == parent, 'wrong parent for opened key');
 
-    // Register the dependency if specified
-    if (parent != null) {
-      await _addDependency(parent, rec.key);
+      // Open from the veilid api
+      final dhtctx = routingContext ?? _routingContext;
+      final recordDescriptor = await dhtctx.openDHTRecord(recordKey, null);
+      rec = DHTRecord(
+          routingContext: dhtctx,
+          recordDescriptor: recordDescriptor,
+          defaultSubkey: defaultSubkey,
+          crypto: crypto ?? const DHTRecordCryptoPublic());
+
+      // Register the dependency if specified
+      if (parent != null) {
+        await _addDependency(parent, rec.key);
+      }
+    } on Exception catch (_) {
+      recordClosed(recordKey);
+      rethrow;
     }
-    _recordOpened(rec);
 
     return rec;
   }
@@ -234,28 +249,35 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
     int defaultSubkey = 0,
     DHTRecordCrypto? crypto,
   }) async {
-    // If we are opening a key that already exists
-    // make sure we are using the same parent if one was specified
-    final existingParent = _state.parentByChild[recordKey.toJson()];
-    assert(existingParent == parent, 'wrong parent for opened key');
+    await _recordOpened(recordKey);
 
-    // Open from the veilid api
-    final dhtctx = routingContext ?? _routingContext;
-    final recordDescriptor = await dhtctx.openDHTRecord(recordKey, writer);
-    final rec = DHTRecord(
-        routingContext: dhtctx,
-        recordDescriptor: recordDescriptor,
-        defaultSubkey: defaultSubkey,
-        writer: writer,
-        crypto: crypto ??
-            await DHTRecordCryptoPrivate.fromTypedKeyPair(
-                TypedKeyPair.fromKeyPair(recordKey.kind, writer)));
+    late final DHTRecord rec;
+    try {
+      // If we are opening a key that already exists
+      // make sure we are using the same parent if one was specified
+      final existingParent = _state.parentByChild[recordKey.toJson()];
+      assert(existingParent == parent, 'wrong parent for opened key');
 
-    // Register the dependency if specified
-    if (parent != null) {
-      await _addDependency(parent, rec.key);
+      // Open from the veilid api
+      final dhtctx = routingContext ?? _routingContext;
+      final recordDescriptor = await dhtctx.openDHTRecord(recordKey, writer);
+      rec = DHTRecord(
+          routingContext: dhtctx,
+          recordDescriptor: recordDescriptor,
+          defaultSubkey: defaultSubkey,
+          writer: writer,
+          crypto: crypto ??
+              await DHTRecordCryptoPrivate.fromTypedKeyPair(
+                  TypedKeyPair.fromKeyPair(recordKey.kind, writer)));
+
+      // Register the dependency if specified
+      if (parent != null) {
+        await _addDependency(parent, rec.key);
+      }
+    } on Exception catch (_) {
+      recordClosed(recordKey);
+      rethrow;
     }
-    _recordOpened(rec);
 
     return rec;
   }

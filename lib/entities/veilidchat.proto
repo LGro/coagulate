@@ -307,7 +307,7 @@ message ContactRequestPrivate {
     CryptoKey writer_key = 1;
     // Snapshot of profile
     Profile profile = 2;
-    // Identity master dht key
+    // Identity master DHT record key
     TypedKey identity_master_record_key = 3;
     // Local chat DHT record key
     TypedKey chat_record_key = 4;
@@ -319,8 +319,8 @@ message ContactRequestPrivate {
 message ContactResponse {
     // Accept or reject
     bool accept = 1;
-    // Account master record key
-    TypedKey account_master_record_key = 2;
+    // Remote identity master DHT record key
+    TypedKey identity_master_record_key = 2;
     // Remote chat DHT record key if accepted
     TypedKey remote_conversation_key = 3;
 }

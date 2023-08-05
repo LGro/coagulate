@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:protobuf/protobuf.dart';
-import 'package:veilid/veilid.dart';
 
 import '../../tools/tools.dart';
 import '../veilid_support.dart';
@@ -51,7 +50,7 @@ class DHTRecord {
     }
     final pool = await DHTRecordPool.instance();
     await _routingContext.closeDHTRecord(_recordDescriptor.key);
-    pool.recordClosed(this);
+    pool.recordClosed(_recordDescriptor.key);
     _open = false;
   }
 
@@ -71,7 +70,9 @@ class DHTRecord {
     try {
       return await scopeFunction(this);
     } finally {
-      await close();
+      if (_valid) {
+        await close();
+      }
     }
   }
 
@@ -79,10 +80,14 @@ class DHTRecord {
       FutureOr<T> Function(DHTRecord) scopeFunction) async {
     try {
       final out = await scopeFunction(this);
-      await close();
+      if (_valid && _open) {
+        await close();
+      }
       return out;
     } on Exception catch (_) {
-      await delete();
+      if (_valid) {
+        await delete();
+      }
       rethrow;
     }
   }

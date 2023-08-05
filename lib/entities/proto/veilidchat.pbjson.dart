@@ -427,17 +427,17 @@ const ContactResponse$json = {
   '1': 'ContactResponse',
   '2': [
     {'1': 'accept', '3': 1, '4': 1, '5': 8, '10': 'accept'},
-    {'1': 'account_master_record_key', '3': 2, '4': 1, '5': 11, '6': '.TypedKey', '10': 'accountMasterRecordKey'},
+    {'1': 'identity_master_record_key', '3': 2, '4': 1, '5': 11, '6': '.TypedKey', '10': 'identityMasterRecordKey'},
     {'1': 'remote_conversation_key', '3': 3, '4': 1, '5': 11, '6': '.TypedKey', '10': 'remoteConversationKey'},
   ],
 };
 
 /// Descriptor for `ContactResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List contactResponseDescriptor = $convert.base64Decode(
-    'Cg9Db250YWN0UmVzcG9uc2USFgoGYWNjZXB0GAEgASgIUgZhY2NlcHQSRAoZYWNjb3VudF9tYX'
-    'N0ZXJfcmVjb3JkX2tleRgCIAEoCzIJLlR5cGVkS2V5UhZhY2NvdW50TWFzdGVyUmVjb3JkS2V5'
-    'EkEKF3JlbW90ZV9jb252ZXJzYXRpb25fa2V5GAMgASgLMgkuVHlwZWRLZXlSFXJlbW90ZUNvbn'
-    'ZlcnNhdGlvbktleQ==');
+    'Cg9Db250YWN0UmVzcG9uc2USFgoGYWNjZXB0GAEgASgIUgZhY2NlcHQSRgoaaWRlbnRpdHlfbW'
+    'FzdGVyX3JlY29yZF9rZXkYAiABKAsyCS5UeXBlZEtleVIXaWRlbnRpdHlNYXN0ZXJSZWNvcmRL'
+    'ZXkSQQoXcmVtb3RlX2NvbnZlcnNhdGlvbl9rZXkYAyABKAsyCS5UeXBlZEtleVIVcmVtb3RlQ2'
+    '9udmVyc2F0aW9uS2V5');
 
 @$core.Deprecated('Use signedContactResponseDescriptor instead')
 const SignedContactResponse$json = {

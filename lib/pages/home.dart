@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,10 +7,13 @@ import 'package:split_view/split_view.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
 
 import '../components/chat_component.dart';
+import '../providers/account.dart';
+import '../providers/contact.dart';
 import '../providers/local_accounts.dart';
 import '../providers/logins.dart';
 import '../providers/window_control.dart';
 import '../tools/tools.dart';
+import '../veilid_support/dht_support/dht_record_pool.dart';
 import 'main_pager/main_pager.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -19,9 +24,16 @@ class HomePage extends ConsumerStatefulWidget {
   HomePageState createState() => HomePageState();
 }
 
+// XXX Eliminate this when we have ValueChanged
+const int ticksPerContactInvitationCheck = 5;
+
 class HomePageState extends ConsumerState<HomePage>
     with TickerProviderStateMixin {
   final _unfocusNode = FocusNode();
+
+  Timer? _homeTickTimer;
+  bool _inHomeTick = false;
+  int _contactInvitationCheckTick = 0;
 
   @override
   void initState() {
@@ -31,13 +43,67 @@ class HomePageState extends ConsumerState<HomePage>
       setState(() {});
       await ref.read(windowControlProvider.notifier).changeWindowSetup(
           TitleBarStyle.normal, OrientationCapability.normal);
+
+      _homeTickTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!_inHomeTick) {
+          unawaited(_onHomeTick());
+        }
+      });
     });
   }
 
   @override
   void dispose() {
+    final homeTickTimer = _homeTickTimer;
+    if (homeTickTimer != null) {
+      homeTickTimer.cancel();
+    }
     _unfocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _onHomeTick() async {
+    _inHomeTick = true;
+    try {
+      // Check extant contact invitations once every 5 seconds
+      _contactInvitationCheckTick += 1;
+      if (_contactInvitationCheckTick >= ticksPerContactInvitationCheck) {
+        _contactInvitationCheckTick = 0;
+        await _doContactInvitationCheck();
+      }
+    } finally {
+      _inHomeTick = false;
+    }
+  }
+
+  Future<void> _doContactInvitationCheck() async {
+    final contactInvitationRecords =
+        await ref.read(fetchContactInvitationRecordsProvider.future);
+    final activeAccountInfo = await ref.read(fetchActiveAccountProvider.future);
+    if (contactInvitationRecords == null || activeAccountInfo == null) {
+      return;
+    }
+
+    final allChecks = <Future<void>>[];
+    for (final contactInvitationRecord in contactInvitationRecords) {
+      allChecks.add(() async {
+        final acceptReject = await checkAcceptRejectContact(
+            activeAccountInfo: activeAccountInfo,
+            contactInvitationRecord: contactInvitationRecord);
+        if (acceptReject != null) {
+          if (acceptReject) {
+            // Accept
+            ref
+              ..invalidate(fetchContactInvitationRecordsProvider)
+              ..invalidate(fetchContactListProvider);
+          } else {
+            // Reject
+            ref.invalidate(fetchContactInvitationRecordsProvider);
+          }
+        }
+      }());
+    }
+    await Future.wait(allChecks);
   }
 
   // ignore: prefer_expression_function_bodies

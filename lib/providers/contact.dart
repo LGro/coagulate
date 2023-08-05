@@ -14,8 +14,8 @@ import '../entities/proto.dart'
         ContactInvitationRecord,
         ContactRequest,
         ContactRequestPrivate,
-        SignedContactInvitation,
         ContactResponse,
+        SignedContactInvitation,
         SignedContactResponse;
 import '../log/loggy.dart';
 import '../tools/tools.dart';
@@ -24,8 +24,89 @@ import 'account.dart';
 
 part 'contact.g.dart';
 
-Future<void> deleteContactInvitation(
+Future<bool?> checkAcceptRejectContact(
     {required ActiveAccountInfo activeAccountInfo,
+    required ContactInvitationRecord contactInvitationRecord}) async {
+  // Open the contact request inbox
+  try {
+    final pool = await DHTRecordPool.instance();
+    final accountRecordKey =
+        activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+    final writerKey =
+        proto.CryptoKeyProto.fromProto(contactInvitationRecord.writerKey);
+    final writerSecret =
+        proto.CryptoKeyProto.fromProto(contactInvitationRecord.writerSecret);
+    final writer = TypedKeyPair(
+        kind: contactInvitationRecord.contactRequestInbox.recordKey.kind,
+        key: writerKey,
+        secret: writerSecret);
+    final acceptReject = await (await pool.openRead(
+            proto.TypedKeyProto.fromProto(
+                contactInvitationRecord.contactRequestInbox.recordKey),
+            crypto: await DHTRecordCryptoPrivate.fromTypedKeyPair(writer),
+            parent: accountRecordKey,
+            defaultSubkey: 1))
+        .scope((contactRequestInbox) async {
+      //
+      final signedContactResponse = await contactRequestInbox
+          .getProtobuf(SignedContactResponse.fromBuffer, forceRefresh: true);
+      if (signedContactResponse == null) {
+        return null;
+      }
+
+      final contactResponseBytes =
+          Uint8List.fromList(signedContactResponse.contactResponse);
+      final contactResponse = ContactResponse.fromBuffer(contactResponseBytes);
+      final contactIdentityMasterRecordKey = proto.TypedKeyProto.fromProto(
+          contactResponse.identityMasterRecordKey);
+      final cs = await pool.veilid.getCryptoSystem(
+          contactInvitationRecord.contactRequestInbox.recordKey.kind);
+
+      // Fetch the remote contact's account master
+      final contactIdentityMaster = await openIdentityMaster(
+          identityMasterRecordKey: contactIdentityMasterRecordKey);
+
+      // Verify
+      final signature = proto.SignatureProto.fromProto(
+          signedContactResponse.identitySignature);
+      try {
+        await cs.verify(contactIdentityMaster.identityPublicKey,
+            contactResponseBytes, signature);
+      } on Exception catch (e) {
+        log.error('Bad identity used, failed to verify: $e');
+        return false;
+      }
+      return contactResponse.accept;
+    });
+
+    if (acceptReject == null) {
+      return null;
+    }
+
+    // Add contact if accepted
+    if (acceptReject) {
+      //
+      await deleteContactInvitation(
+          accepted: true,
+          activeAccountInfo: activeAccountInfo,
+          contactInvitationRecord: contactInvitationRecord);
+      return true;
+    } else {
+      await deleteContactInvitation(
+          accepted: false,
+          activeAccountInfo: activeAccountInfo,
+          contactInvitationRecord: contactInvitationRecord);
+      return false;
+    }
+  } on Exception catch (e) {
+    log.error('Exception in checkAcceptRejectContact: $e');
+    return null;
+  }
+}
+
+Future<void> deleteContactInvitation(
+    {required bool accepted,
+    required ActiveAccountInfo activeAccountInfo,
     required ContactInvitationRecord contactInvitationRecord}) async {
   final pool = await DHTRecordPool.instance();
   final accountRecordKey =
@@ -53,12 +134,18 @@ Future<void> deleteContactInvitation(
             proto.OwnedDHTRecordPointerProto.fromProto(
                 contactInvitationRecord.contactRequestInbox),
             parent: accountRecordKey))
-        .delete();
-    await (await pool.openOwned(
-            proto.OwnedDHTRecordPointerProto.fromProto(
-                contactInvitationRecord.localConversation),
-            parent: accountRecordKey))
-        .delete();
+        .scope((contactRequestInbox) async {
+      // Wipe out old invitation so it shows up as invalid
+      await contactRequestInbox.tryWriteBytes(Uint8List(0));
+      await contactRequestInbox.delete();
+    });
+    if (!accepted) {
+      await (await pool.openOwned(
+              proto.OwnedDHTRecordPointerProto.fromProto(
+                  contactInvitationRecord.localConversation),
+              parent: accountRecordKey))
+          .delete();
+    }
   });
 }
 
@@ -255,7 +342,7 @@ Future<void> acceptContactInvitation(ActiveAccountInfo activeAccountInfo,
     // xxx
     final contactResponse = ContactResponse()
       ..accept = false
-      ..accountMasterRecordKey = activeAccountInfo
+      ..identityMasterRecordKey = activeAccountInfo
           .localAccount.identityMaster.masterRecordKey
           .toProto();
     final contactResponseBytes = contactResponse.writeToBuffer();
@@ -290,7 +377,7 @@ Future<void> rejectContactInvitation(ActiveAccountInfo activeAccountInfo,
 
     final contactResponse = ContactResponse()
       ..accept = false
-      ..accountMasterRecordKey = activeAccountInfo
+      ..identityMasterRecordKey = activeAccountInfo
           .localAccount.identityMaster.masterRecordKey
           .toProto();
     final contactResponseBytes = contactResponse.writeToBuffer();

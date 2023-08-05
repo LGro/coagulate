@@ -57,6 +57,7 @@ class ContactInvitationItemWidget extends ConsumerWidget {
                           await ref.read(fetchActiveAccountProvider.future);
                       if (activeAccountInfo != null) {
                         await deleteContactInvitation(
+                            accepted: false,
                             activeAccountInfo: activeAccountInfo,
                             contactInvitationRecord: contactInvitationRecord);
                         ref.invalidate(fetchContactInvitationRecordsProvider);

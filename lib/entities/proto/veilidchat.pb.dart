@@ -1575,7 +1575,7 @@ class ContactResponse extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ContactResponse', createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'accept')
-    ..aOM<TypedKey>(2, _omitFieldNames ? '' : 'accountMasterRecordKey', subBuilder: TypedKey.create)
+    ..aOM<TypedKey>(2, _omitFieldNames ? '' : 'identityMasterRecordKey', subBuilder: TypedKey.create)
     ..aOM<TypedKey>(3, _omitFieldNames ? '' : 'remoteConversationKey', subBuilder: TypedKey.create)
     ..hasRequiredFields = false
   ;
@@ -1611,15 +1611,15 @@ class ContactResponse extends $pb.GeneratedMessage {
   void clearAccept() => clearField(1);
 
   @$pb.TagNumber(2)
-  TypedKey get accountMasterRecordKey => $_getN(1);
+  TypedKey get identityMasterRecordKey => $_getN(1);
   @$pb.TagNumber(2)
-  set accountMasterRecordKey(TypedKey v) { setField(2, v); }
+  set identityMasterRecordKey(TypedKey v) { setField(2, v); }
   @$pb.TagNumber(2)
-  $core.bool hasAccountMasterRecordKey() => $_has(1);
+  $core.bool hasIdentityMasterRecordKey() => $_has(1);
   @$pb.TagNumber(2)
-  void clearAccountMasterRecordKey() => clearField(2);
+  void clearIdentityMasterRecordKey() => clearField(2);
   @$pb.TagNumber(2)
-  TypedKey ensureAccountMasterRecordKey() => $_ensure(1);
+  TypedKey ensureIdentityMasterRecordKey() => $_ensure(1);
 
   @$pb.TagNumber(3)
   TypedKey get remoteConversationKey => $_getN(2);
