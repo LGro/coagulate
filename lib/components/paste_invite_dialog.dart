@@ -216,8 +216,8 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
     if (_isAccepting) {
       return SizedBox(height: 400, child: waitingPage(context));
     }
-    return SizedBox(
-      height: 400,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 400),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(8),
         child: Column(
@@ -250,6 +250,13 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
                 Text(translate('paste_invite_dialog.validating')),
                 buildProgressIndicator(context),
               ]),
+            if (_validInvitation == null &&
+                !_validatingPaste &&
+                _pasteTextController.text.isNotEmpty)
+              Column(children: [
+                Text(translate('paste_invite_dialog.invalid_invitation')),
+                const Icon(Icons.error)
+              ]).paddingAll(16).toCenter(),
             if (_validInvitation != null && !_validatingPaste)
               Column(children: [
                 ProfileWidget(
@@ -275,7 +282,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
           ],
         ),
       ),
-    ).withModalHUD(context, _isAccepting);
+    );
   }
 
   @override
