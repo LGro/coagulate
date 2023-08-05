@@ -90,9 +90,8 @@ Future<IdentityMaster> openIdentityMaster(
   // IdentityMaster DHT record is public/unencrypted
   return (await pool.openRead(identityMasterRecordKey))
       .deleteScope((masterRec) async {
-    final identityMasterJson =
+    final identityMaster =
         (await masterRec.getJson(IdentityMaster.fromJson, forceRefresh: true))!;
-    final identityMaster = IdentityMaster.fromJson(identityMasterJson);
 
     // Validate IdentityMaster
     final masterRecordKey = masterRec.key;

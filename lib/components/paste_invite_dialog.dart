@@ -16,6 +16,7 @@ import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import 'contact_invitation_display.dart';
 import 'enter_pin.dart';
+import 'profile_widget.dart';
 
 class PasteInviteDialog extends ConsumerStatefulWidget {
   const PasteInviteDialog({super.key});
@@ -26,12 +27,12 @@ class PasteInviteDialog extends ConsumerStatefulWidget {
 
 class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
   final _pasteTextController = TextEditingController();
-  final _messageTextController = TextEditingController();
 
   EncryptionKeyType _encryptionKeyType = EncryptionKeyType.none;
   String _encryptionKey = '';
   Timestamp? _expiration;
-  proto.SignedContactInvitation? _validInvitation;
+  ValidContactInvitation? _validInvitation;
+  bool _validatingPaste = false;
 
   @override
   void initState() {
@@ -93,11 +94,28 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
   //   });
   // }
 
+  Future<void> _onAccept() async {
+    Navigator.of(context).pop();
+    if (_validInvitation != null) {
+      return acceptContactInvitation(_validInvitation);
+    }
+  }
+
+  Future<void> _onReject() async {
+    Navigator.of(context).pop();
+    if (_validInvitation != null) {
+      return rejectContactInvitation(_validInvitation);
+    }
+  }
+
   Future<void> _onPasteChanged(String text) async {
     try {
       final lines = text.split('\n');
       if (lines.isEmpty) {
-        _validInvitation = null;
+        setState(() {
+          _validatingPaste = false;
+          _validInvitation = null;
+        });
         return;
       }
 
@@ -111,74 +129,44 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
         lastline = lines.length;
       }
       if (lastline <= firstline) {
-        _validInvitation = null;
+        setState(() {
+          _validatingPaste = false;
+          _validInvitation = null;
+        });
         return;
       }
       final inviteDataBase64 = lines.sublist(firstline, lastline).join();
       final inviteData = base64UrlNoPadDecode(inviteDataBase64);
-      final signedContactInvitation =
-          proto.SignedContactInvitation.fromBuffer(inviteData);
 
-      final contactInvitationBytes =
-          Uint8List.fromList(signedContactInvitation.contactInvitation);
-      final contactInvitation =
-          proto.ContactInvitation.fromBuffer(contactInvitationBytes);
-
-      final contactRequestInboxKey = proto.TypedKeyProto.fromProto(
-          contactInvitation.contactRequestInboxKey);
-
-      // xxx should ensure contact request is not from ourselves
-      // xxx or implement as 'note to self' but this could be done more carefully
-      // xxx this operation gets the wrong parent. can we allow opening dht records
-      // xxx that we already have open for readonly?
-
-      // xxx test on multiple devices
-
-      // Open context request inbox subkey zero to get the contact request object
-      final pool = await DHTRecordPool.instance();
-      await (await pool.openRead(contactRequestInboxKey))
-          .deleteScope((contactRequestInbox) async {
-        //
-        final contactRequest = await contactRequestInbox
-            .getProtobuf(proto.ContactRequest.fromBuffer);
-        // Decrypt contact request private
-        final encryptionKeyType =
-            EncryptionKeyType.fromProto(contactRequest!.encryptionKeyType);
-        late final SecretKey writerSecret;
+      setState(() {
+        _validatingPaste = true;
+        _validInvitation = null;
+      });
+      final validatedContactInvitation = await validateContactInvitation(
+          inviteData, (encryptionKeyType, encryptedSecret) async {
         switch (encryptionKeyType) {
           case EncryptionKeyType.none:
-            writerSecret = SecretKey.fromBytes(
-                Uint8List.fromList(contactInvitation.writerSecret));
+            return SecretKey.fromBytes(encryptedSecret);
           case EncryptionKeyType.pin:
-          //
+            //xxx
+            return SecretKey.fromBytes(encryptedSecret);
           case EncryptionKeyType.password:
-          //
+            //xxx
+            return SecretKey.fromBytes(encryptedSecret);
         }
-        final cs =
-            await pool.veilid.getCryptoSystem(contactRequestInboxKey.kind);
-        final contactRequestPrivateBytes = await cs.decryptNoAuthWithNonce(
-            Uint8List.fromList(contactRequest.private), writerSecret);
-        final contactRequestPrivate =
-            proto.ContactRequestPrivate.fromBuffer(contactRequestPrivateBytes);
-        final contactIdentityMasterRecordKey = proto.TypedKeyProto.fromProto(
-            contactRequestPrivate.identityMasterRecordKey);
+      });
+      // Verify expiration
+      // xxx
 
-        // Fetch the account master
-        final contactIdentityMaster = await openIdentityMaster(
-            identityMasterRecordKey: contactIdentityMasterRecordKey);
-
-        // Verify
-        final signature = proto.SignatureProto.fromProto(
-            signedContactInvitation.identitySignature);
-        await cs.verify(contactIdentityMaster.identityPublicKey,
-            contactInvitationBytes, signature);
-
-        // Verify expiration
-        //xxx
-        _validInvitation = signedContactInvitation;
+      setState(() {
+        _validatingPaste = false;
+        _validInvitation = validatedContactInvitation;
       });
     } on Exception catch (_) {
-      _validInvitation = null;
+      setState(() {
+        _validatingPaste = false;
+        _validInvitation = null;
+      });
     }
   }
 
@@ -188,7 +176,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
     final theme = Theme.of(context);
     //final scale = theme.extension<ScaleScheme>()!;
     final textTheme = theme.textTheme;
-    final height = MediaQuery.of(context).size.height;
+    //final height = MediaQuery.of(context).size.height;
 
     return SizedBox(
       height: 400,
@@ -204,6 +192,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
             Container(
                 constraints: const BoxConstraints(maxHeight: 200),
                 child: TextField(
+                  enabled: !_validatingPaste,
                   onChanged: _onPasteChanged,
                   style: textTheme.labelSmall!
                       .copyWith(fontFamily: 'Victor Mono', fontSize: 11),
@@ -218,31 +207,28 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
                     //labelText: translate('paste_invite_dialog.paste')
                   ),
                 ).paddingAll(8)),
-            if (_validInvitation != null)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle),
-                    label: Text(translate('button.accept')),
-                    onPressed: () {
-                      //
-                    },
-                  ),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.cancel),
-                    label: Text(translate('button.reject')),
-                    onPressed: () {
-                      //
-                    },
-                  )
-                ],
-              ),
-            TextField(
-              enabled: false,
-              controller: _messageTextController,
-              style: Theme.of(context).textTheme.bodySmall,
-            ).paddingAll(8),
+            if (_validInvitation != null && !_validatingPaste)
+              Column(children: [
+                ProfileWidget(
+                    name: _validInvitation!.contactRequestPrivate.profile.name,
+                    title:
+                        _validInvitation!.contactRequestPrivate.profile.title),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.check_circle),
+                      label: Text(translate('button.accept')),
+                      onPressed: _onAccept,
+                    ),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.cancel),
+                      label: Text(translate('button.reject')),
+                      onPressed: _onReject,
+                    )
+                  ],
+                ),
+              ])
           ],
         ),
       ),
@@ -252,7 +238,5 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<TextEditingController>(
-        'messageTextController', _messageTextController));
   }
 }

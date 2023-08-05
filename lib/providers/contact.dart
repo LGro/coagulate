@@ -4,6 +4,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../entities/identity.dart';
 import '../entities/local_account.dart';
 import '../entities/proto.dart' as proto;
 import '../entities/proto.dart'
@@ -153,6 +154,93 @@ Future<Uint8List> createContactInvitation(
   });
 
   return signedContactInvitationBytes;
+}
+
+class ValidContactInvitation {
+  ValidContactInvitation(
+      {required this.signedContactInvitation,
+      required this.contactInvitation,
+      required this.contactRequestInboxKey,
+      required this.contactRequest,
+      required this.contactRequestPrivate,
+      required this.contactIdentityMaster});
+
+  SignedContactInvitation signedContactInvitation;
+  ContactInvitation contactInvitation;
+  TypedKey contactRequestInboxKey;
+  ContactRequest contactRequest;
+  ContactRequestPrivate contactRequestPrivate;
+  IdentityMaster contactIdentityMaster;
+}
+
+typedef GetEncryptionKeyCallback = Future<SecretKey> Function(
+    EncryptionKeyType encryptionKeyType, Uint8List encryptedSecret);
+
+Future<ValidContactInvitation> validateContactInvitation(Uint8List inviteData,
+    GetEncryptionKeyCallback getEncryptionKeyCallback) async {
+  final signedContactInvitation =
+      proto.SignedContactInvitation.fromBuffer(inviteData);
+
+  final contactInvitationBytes =
+      Uint8List.fromList(signedContactInvitation.contactInvitation);
+  final contactInvitation =
+      proto.ContactInvitation.fromBuffer(contactInvitationBytes);
+
+  final contactRequestInboxKey =
+      proto.TypedKeyProto.fromProto(contactInvitation.contactRequestInboxKey);
+
+  late final ValidContactInvitation out;
+
+  final pool = await DHTRecordPool.instance();
+  await (await pool.openRead(contactRequestInboxKey))
+      .deleteScope((contactRequestInbox) async {
+    //
+    final contactRequest =
+        await contactRequestInbox.getProtobuf(proto.ContactRequest.fromBuffer);
+    // Decrypt contact request private
+    final encryptionKeyType =
+        EncryptionKeyType.fromProto(contactRequest!.encryptionKeyType);
+    final writerSecret = await getEncryptionKeyCallback(
+        encryptionKeyType, Uint8List.fromList(contactInvitation.writerSecret));
+
+    final cs = await pool.veilid.getCryptoSystem(contactRequestInboxKey.kind);
+    final contactRequestPrivateBytes = await cs.decryptNoAuthWithNonce(
+        Uint8List.fromList(contactRequest.private), writerSecret);
+    final contactRequestPrivate =
+        proto.ContactRequestPrivate.fromBuffer(contactRequestPrivateBytes);
+    final contactIdentityMasterRecordKey = proto.TypedKeyProto.fromProto(
+        contactRequestPrivate.identityMasterRecordKey);
+
+    // Fetch the account master
+    final contactIdentityMaster = await openIdentityMaster(
+        identityMasterRecordKey: contactIdentityMasterRecordKey);
+
+    // Verify
+    final signature = proto.SignatureProto.fromProto(
+        signedContactInvitation.identitySignature);
+    await cs.verify(contactIdentityMaster.identityPublicKey,
+        contactInvitationBytes, signature);
+
+    out = ValidContactInvitation(
+        signedContactInvitation: signedContactInvitation,
+        contactInvitation: contactInvitation,
+        contactRequestInboxKey: contactRequestInboxKey,
+        contactRequest: contactRequest,
+        contactRequestPrivate: contactRequestPrivate,
+        contactIdentityMaster: contactIdentityMaster);
+  });
+
+  return out;
+}
+
+Future<void> acceptContactInvitation(
+    ValidContactInvitation validContactInvitation) async {
+  //
+}
+
+Future<void> rejectContactInvitation(
+    ValidContactInvitation validContactInvitation) async {
+  //
 }
 
 /// Get the active account contact invitation list

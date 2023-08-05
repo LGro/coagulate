@@ -7,7 +7,7 @@ import 'package:flutter_translate/flutter_translate.dart';
 
 import '../../components/contact_invitation_list_widget.dart';
 import '../../components/contact_list_widget.dart';
-import '../../components/profile.dart';
+import '../../components/profile_widget.dart';
 import '../../entities/local_account.dart';
 import '../../entities/proto.dart' as proto;
 import '../../providers/account.dart';

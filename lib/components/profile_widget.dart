@@ -30,11 +30,9 @@ class ProfileWidget extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(color: scale.primaryScale.border))),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(name, style: Theme.of(context).textTheme.headlineSmall)
-              .paddingAll(8),
+          Text(name, style: textTheme.headlineSmall).paddingAll(8),
           if (title != null && title!.isNotEmpty)
-            Text(title!, style: Theme.of(context).textTheme.bodyMedium)
-                .paddingLTRB(8, 0, 8, 8),
+            Text(title!, style: textTheme.bodyMedium).paddingLTRB(8, 0, 8, 8),
         ])).paddingAll(8);
   }
 
