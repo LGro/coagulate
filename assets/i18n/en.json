@@ -86,7 +86,8 @@
     "paste_invite_dialog": {
         "paste_invite_here": "Paste your contact invite here:",
         "paste": "Paste",
-        "message_from_contact": "Message from contact"
+        "message_from_contact": "Message from contact",
+        "validating": "Validating..."
     },
     "enter_pin_dialog": {
         "enter_pin": "Enter PIN",

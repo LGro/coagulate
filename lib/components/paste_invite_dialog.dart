@@ -33,6 +33,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
   Timestamp? _expiration;
   ValidContactInvitation? _validInvitation;
   bool _validatingPaste = false;
+  bool _isAccepting = false;
 
   @override
   void initState() {
@@ -95,17 +96,51 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
   // }
 
   Future<void> _onAccept() async {
-    Navigator.of(context).pop();
-    if (_validInvitation != null) {
-      return acceptContactInvitation(_validInvitation);
+    final navigator = Navigator.of(context);
+
+    setState(() {
+      _isAccepting = true;
+    });
+    final activeAccountInfo = await ref.read(fetchActiveAccountProvider.future);
+    if (activeAccountInfo == null) {
+      setState(() {
+        _isAccepting = false;
+      });
+      navigator.pop();
+      return;
     }
+    final validInvitation = _validInvitation;
+    if (validInvitation != null) {
+      await acceptContactInvitation(activeAccountInfo, validInvitation);
+    }
+    setState(() {
+      _isAccepting = false;
+    });
+    navigator.pop();
   }
 
   Future<void> _onReject() async {
-    Navigator.of(context).pop();
-    if (_validInvitation != null) {
-      return rejectContactInvitation(_validInvitation);
+    final navigator = Navigator.of(context);
+
+    setState(() {
+      _isAccepting = true;
+    });
+    final activeAccountInfo = await ref.read(fetchActiveAccountProvider.future);
+    if (activeAccountInfo == null) {
+      setState(() {
+        _isAccepting = false;
+      });
+      navigator.pop();
+      return;
     }
+    final validInvitation = _validInvitation;
+    if (validInvitation != null) {
+      await rejectContactInvitation(activeAccountInfo, validInvitation);
+    }
+    setState(() {
+      _isAccepting = false;
+    });
+    navigator.pop();
   }
 
   Future<void> _onPasteChanged(String text) async {
@@ -178,6 +213,9 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
     final textTheme = theme.textTheme;
     //final height = MediaQuery.of(context).size.height;
 
+    if (_isAccepting) {
+      return SizedBox(height: 400, child: waitingPage(context));
+    }
     return SizedBox(
       height: 400,
       child: SingleChildScrollView(
@@ -207,6 +245,11 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
                     //labelText: translate('paste_invite_dialog.paste')
                   ),
                 ).paddingAll(8)),
+            if (_validatingPaste)
+              Column(children: [
+                Text(translate('paste_invite_dialog.validating')),
+                buildProgressIndicator(context),
+              ]),
             if (_validInvitation != null && !_validatingPaste)
               Column(children: [
                 ProfileWidget(
@@ -232,7 +275,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
           ],
         ),
       ),
-    );
+    ).withModalHUD(context, _isAccepting);
   }
 
   @override

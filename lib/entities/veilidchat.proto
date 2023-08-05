@@ -321,7 +321,7 @@ message ContactResponse {
     bool accept = 1;
     // Account master record key
     TypedKey account_master_record_key = 2;
-    // Local chat DHT record key if accepted
+    // Remote chat DHT record key if accepted
     TypedKey remote_conversation_key = 3;
 }
 

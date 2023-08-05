@@ -23,13 +23,13 @@
 
 ## Accepting an invitation
 1. Create a Local Chat DHT record (no content yet, will be encrypted with DH of contact identity key)
-2. Create ContactAccept with chat dht record and account master
+2. Create ContactResponse with chat dht record and account master
 3. Create SignedContactResponse with accept=true signed with identity
 4. Set ContactRequest unicastinbox DHT record writer subkey with SignedContactResponse, encrypted with writer secret
 5. Add a local contact with the remote chat dht record, updating from the remote profile in it
 
 ## Rejecting an invitation
-1. Create ContactReject with account master
+1. Create ContactResponse with account master
 2. Create SignedContactResponse with accept=false signed with identity
 3. Set ContactRequest unicastinbox DHT record writer subkey with SignedContactResponse, encrypted with writer secret
 

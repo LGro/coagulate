@@ -14,7 +14,10 @@ import '../entities/proto.dart'
         ContactInvitationRecord,
         ContactRequest,
         ContactRequestPrivate,
-        SignedContactInvitation;
+        SignedContactInvitation,
+        ContactResponse,
+        SignedContactResponse;
+import '../log/loggy.dart';
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';
@@ -163,7 +166,8 @@ class ValidContactInvitation {
       required this.contactRequestInboxKey,
       required this.contactRequest,
       required this.contactRequestPrivate,
-      required this.contactIdentityMaster});
+      required this.contactIdentityMaster,
+      required this.writer});
 
   SignedContactInvitation signedContactInvitation;
   ContactInvitation contactInvitation;
@@ -171,6 +175,7 @@ class ValidContactInvitation {
   ContactRequest contactRequest;
   ContactRequestPrivate contactRequestPrivate;
   IdentityMaster contactIdentityMaster;
+  KeyPair writer;
 }
 
 typedef GetEncryptionKeyCallback = Future<SecretKey> Function(
@@ -221,26 +226,92 @@ Future<ValidContactInvitation> validateContactInvitation(Uint8List inviteData,
     await cs.verify(contactIdentityMaster.identityPublicKey,
         contactInvitationBytes, signature);
 
+    final writer = KeyPair(
+        key: proto.CryptoKeyProto.fromProto(contactRequestPrivate.writerKey),
+        secret: writerSecret);
+
     out = ValidContactInvitation(
         signedContactInvitation: signedContactInvitation,
         contactInvitation: contactInvitation,
         contactRequestInboxKey: contactRequestInboxKey,
         contactRequest: contactRequest,
         contactRequestPrivate: contactRequestPrivate,
-        contactIdentityMaster: contactIdentityMaster);
+        contactIdentityMaster: contactIdentityMaster,
+        writer: writer);
   });
 
   return out;
 }
 
-Future<void> acceptContactInvitation(
+Future<void> acceptContactInvitation(ActiveAccountInfo activeAccountInfo,
     ValidContactInvitation validContactInvitation) async {
-  //
+  final pool = await DHTRecordPool.instance();
+  await (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
+          validContactInvitation.writer))
+      .deleteScope((contactRequestInbox) async {
+    final cs = await pool.veilid
+        .getCryptoSystem(validContactInvitation.contactRequestInboxKey.kind);
+
+    // xxx
+    final contactResponse = ContactResponse()
+      ..accept = false
+      ..accountMasterRecordKey = activeAccountInfo
+          .localAccount.identityMaster.masterRecordKey
+          .toProto();
+    final contactResponseBytes = contactResponse.writeToBuffer();
+
+    final identitySignature = await cs.sign(
+        activeAccountInfo.localAccount.identityMaster.identityPublicKey,
+        activeAccountInfo.userLogin.identitySecret.value,
+        contactResponseBytes);
+
+    final signedContactResponse = SignedContactResponse()
+      ..contactResponse = contactResponseBytes
+      ..identitySignature = identitySignature.toProto();
+
+    // Write the rejection to the invox
+    if (await contactRequestInbox.tryWriteProtobuf(
+            SignedContactResponse.fromBuffer, signedContactResponse,
+            subkey: 1) !=
+        null) {
+      log.error('failed to accept contact invitation');
+    }
+  });
 }
 
-Future<void> rejectContactInvitation(
+Future<void> rejectContactInvitation(ActiveAccountInfo activeAccountInfo,
     ValidContactInvitation validContactInvitation) async {
-  //
+  final pool = await DHTRecordPool.instance();
+  await (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
+          validContactInvitation.writer))
+      .deleteScope((contactRequestInbox) async {
+    final cs = await pool.veilid
+        .getCryptoSystem(validContactInvitation.contactRequestInboxKey.kind);
+
+    final contactResponse = ContactResponse()
+      ..accept = false
+      ..accountMasterRecordKey = activeAccountInfo
+          .localAccount.identityMaster.masterRecordKey
+          .toProto();
+    final contactResponseBytes = contactResponse.writeToBuffer();
+
+    final identitySignature = await cs.sign(
+        activeAccountInfo.localAccount.identityMaster.identityPublicKey,
+        activeAccountInfo.userLogin.identitySecret.value,
+        contactResponseBytes);
+
+    final signedContactResponse = SignedContactResponse()
+      ..contactResponse = contactResponseBytes
+      ..identitySignature = identitySignature.toProto();
+
+    // Write the rejection to the invox
+    if (await contactRequestInbox.tryWriteProtobuf(
+            SignedContactResponse.fromBuffer, signedContactResponse,
+            subkey: 1) !=
+        null) {
+      log.error('failed to reject contact invitation');
+    }
+  });
 }
 
 /// Get the active account contact invitation list
