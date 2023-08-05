@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import '../entities/local_account.dart';
 import '../veilid_support/veilid_support.dart';

@@ -151,15 +151,16 @@ class ScaleScheme extends ThemeExtension<ScaleScheme> {
   ChatTheme toChatTheme() => DefaultChatTheme(
         primaryColor: primaryScale.background,
         secondaryColor: secondaryScale.background,
-        backgroundColor: grayScale.subtleBackground,
-        inputBackgroundColor: primaryScale.appBackground,
+        backgroundColor: grayScale.appBackground,
+        inputBackgroundColor: grayScale.subtleBackground,
         inputBorderRadius: BorderRadius.zero,
         inputTextDecoration: InputDecoration(
           border: OutlineInputBorder(
               borderSide: BorderSide(color: primaryScale.subtleBorder),
               borderRadius: const BorderRadius.all(Radius.circular(16))),
         ),
-        inputContainerDecoration: BoxDecoration(color: grayScale.appBackground),
+        inputContainerDecoration:
+            BoxDecoration(color: primaryScale.appBackground),
         inputPadding: EdgeInsets.all(5),
         inputTextStyle: const TextStyle(
           fontSize: 16,

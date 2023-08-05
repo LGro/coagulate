@@ -1,6 +1,7 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../log/loggy.dart';
 import '../veilid_support.dart';
 
 part 'dht_record_pool.freezed.dart';
@@ -76,7 +77,11 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
           .withSequencing(Sequencing.preferOrdered);
 
       final globalPool = DHTRecordPool._(veilid, routingContext);
-      globalPool._state = await globalPool.load();
+      try {
+        globalPool._state = await globalPool.load();
+      } on Exception catch (e) {
+        log.error('Failed to load DHTRecordPool: $e');
+      }
       _singleton = globalPool;
     }
     return _singleton!;

@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../entities/entities.dart';
+import '../log/loggy.dart';
 import '../veilid_support/veilid_support.dart';
 import 'local_accounts.dart';
 
@@ -28,7 +28,14 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
 
   /// Get all local account information
   @override
-  FutureOr<ActiveLogins> build() async => await load();
+  FutureOr<ActiveLogins> build() async {
+    try {
+      return await load();
+    } on Exception catch (e) {
+      log.error('Failed to load ActiveLogins table: $e');
+      return const ActiveLogins(userLogins: IListConst([]));
+    }
+  }
 
   //////////////////////////////////////////////////////////////
   /// Mutators and Selectors

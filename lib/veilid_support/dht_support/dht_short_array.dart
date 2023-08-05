@@ -20,6 +20,14 @@ class _DHTShortArrayCache {
   final List<DHTRecord> linkedRecords;
   final List<int> index;
   final List<int> free;
+
+  proto.DHTShortArray toProto() {
+    final head = proto.DHTShortArray();
+    head.keys.addAll(linkedRecords.map((lr) => lr.key.toProto()));
+    head.index = head.index..addAll(index);
+    // Do not serialize free list, it gets recreated
+    return head;
+  }
 }
 
 class DHTShortArray {
@@ -134,9 +142,7 @@ class DHTShortArray {
   /// if a newer copy is available online. Returns true if the write was
   /// successful
   Future<bool> _tryWriteHead() async {
-    final head = proto.DHTShortArray();
-    head.keys.addAll(_head.linkedRecords.map((lr) => lr.key.toProto()));
-    head.index.addAll(_head.index);
+    final head = _head.toProto();
     final headBuffer = head.writeToBuffer();
 
     final existingData = await _headRecord.tryWriteBytes(headBuffer);

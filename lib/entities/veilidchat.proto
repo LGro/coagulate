@@ -201,9 +201,9 @@ message Contact {
     // Copy of friend's identity (JSON) from remote conversation
     string remote_identity = 3;
     // Remote conversation key to sync from friend
-    TypedKey remote_conversation = 4;
+    TypedKey remote_conversation_key = 4;
     // Our conversation key for friend to sync
-    TypedKey local_conversation = 5;
+    OwnedDHTRecordPointer local_conversation = 5;
     // Show availability
     bool show_availability = 6;
 }
@@ -274,10 +274,11 @@ enum EncryptionKeyType {
 
 // Invitation that is shared for VeilidChat contact connections
 // serialized to QR code or data blob, not send over DHT, out of band.
-// Writer secret is unique to this invitation
+// Writer secret is unique to this invitation. Writer public key is in the ContactRequestPrivate
+// in the ContactRequestInbox subkey 0 DHT key
 message ContactInvitation {
     // Contact request DHT record key
-    TypedKey contact_request_record_key = 1;
+    TypedKey contact_request_inbox_key = 1;
     // Writer secret key bytes possibly encrypted with nonce appended
     bytes writer_secret = 2;
 }
@@ -306,8 +307,8 @@ message ContactRequestPrivate {
     CryptoKey writer_key = 1;
     // Snapshot of profile
     Profile profile = 2;
-    // Account master dht key
-    TypedKey account_master_record_key = 3;
+    // Identity master dht key
+    TypedKey identity_master_record_key = 3;
     // Local chat DHT record key
     TypedKey chat_record_key = 4;
     // Expiration timestamp
@@ -321,7 +322,7 @@ message ContactResponse {
     // Account master record key
     TypedKey account_master_record_key = 2;
     // Local chat DHT record key if accepted
-    TypedKey chat_record_key = 3;
+    TypedKey remote_conversation_key = 3;
 }
 
 // Signature of response with identity
@@ -335,13 +336,14 @@ message SignedContactResponse {
 
 // Contact request record kept in Account DHTList to keep track of extant contact invitations
 message ContactInvitationRecord {
-    // Contact request unicastinbox DHT record key
-    TypedKey contact_request_record_key = 1;
-    // Unencrypted writer key for this request
+    // Contact request unicastinbox DHT record key (parent is accountkey)
+    OwnedDHTRecordPointer contact_request_inbox = 1;
+    // Writer key sent to contact for the contact_request_inbox smpl inbox subkey
     CryptoKey writer_key = 2;
-    CryptoKey writer_secret = 3;
-    // Local chat DHT record key
-    TypedKey chat_record_key = 4;
+    // Writer secret sent encrypted in the invitation
+    CryptoKey writer_secret = 3; 
+    // Local chat DHT record key (parent is accountkey, will be moved to Contact if accepted)
+    OwnedDHTRecordPointer local_conversation = 4;
     // Expiration timestamp
     uint64 expiration = 5;
     // A copy of the raw SignedContactInvitation invitation bytes post-encryption and signing

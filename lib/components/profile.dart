@@ -1,6 +1,9 @@
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../tools/tools.dart';
 
 class ProfileWidget extends ConsumerWidget {
   const ProfileWidget({
@@ -15,16 +18,24 @@ class ProfileWidget extends ConsumerWidget {
   @override
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context, WidgetRef ref) {
-//    final logins = ref.watch(loginsProvider);
+    final theme = Theme.of(context);
+    final scale = theme.extension<ScaleScheme>()!;
+    final textTheme = theme.textTheme;
 
-    return ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 300),
-        child: Column(children: [
-          Text('Profile', style: Theme.of(context).textTheme.headlineMedium),
-          Text(name, style: Theme.of(context).textTheme.bodyMedium),
+    return Container(
+        width: double.infinity,
+        decoration: ShapeDecoration(
+            color: scale.primaryScale.subtleBackground,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: scale.primaryScale.border))),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(name, style: Theme.of(context).textTheme.headlineSmall)
+              .paddingAll(8),
           if (title != null && title!.isNotEmpty)
-            Text(title!, style: Theme.of(context).textTheme.bodySmall),
-        ]));
+            Text(title!, style: Theme.of(context).textTheme.bodyMedium)
+                .paddingLTRB(8, 0, 8, 8),
+        ])).paddingAll(8);
   }
 
   @override

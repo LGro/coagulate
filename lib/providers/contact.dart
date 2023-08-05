@@ -20,6 +20,44 @@ import 'account.dart';
 
 part 'contact.g.dart';
 
+Future<void> deleteContactInvitation(
+    {required ActiveAccountInfo activeAccountInfo,
+    required ContactInvitationRecord contactInvitationRecord}) async {
+  final pool = await DHTRecordPool.instance();
+  final accountRecordKey =
+      activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+
+  // Remove ContactInvitationRecord from account's list
+  await (await DHTShortArray.openOwned(
+          proto.OwnedDHTRecordPointerProto.fromProto(
+              activeAccountInfo.account.contactInvitationRecords),
+          parent: accountRecordKey))
+      .scope((cirList) async {
+    for (var i = 0; i < cirList.length; i++) {
+      final item = await cirList.getItemProtobuf(
+          proto.ContactInvitationRecord.fromBuffer, i);
+      if (item == null) {
+        throw StateError('Failed to get contact invitation record');
+      }
+      if (item.contactRequestInbox.recordKey ==
+          contactInvitationRecord.contactRequestInbox.recordKey) {
+        await cirList.tryRemoveItem(i);
+        break;
+      }
+    }
+    await (await pool.openOwned(
+            proto.OwnedDHTRecordPointerProto.fromProto(
+                contactInvitationRecord.contactRequestInbox),
+            parent: accountRecordKey))
+        .delete();
+    await (await pool.openOwned(
+            proto.OwnedDHTRecordPointerProto.fromProto(
+                contactInvitationRecord.localConversation),
+            parent: accountRecordKey))
+        .delete();
+  });
+}
+
 Future<Uint8List> createContactInvitation(
     {required ActiveAccountInfo activeAccountInfo,
     required EncryptionKeyType encryptionKeyType,
@@ -50,14 +88,14 @@ Future<Uint8List> createContactInvitation(
   // identity key
   late final Uint8List signedContactInvitationBytes;
   await (await pool.create(parent: accountRecordKey))
-      .deleteScope((localChatRecord) async {
+      .deleteScope((localConversation) async {
     // Make ContactRequestPrivate and encrypt with the writer secret
     final crpriv = ContactRequestPrivate()
       ..writerKey = writer.key.toProto()
       ..profile = activeAccountInfo.account.profile
       ..accountMasterRecordKey =
           activeAccountInfo.userLogin.accountMasterRecordKey.toProto()
-      ..chatRecordKey = localChatRecord.key.toProto()
+      ..chatRecordKey = localConversation.key.toProto()
       ..expiration = expiration?.toInt64() ?? Int64.ZERO;
     final crprivbytes = crpriv.writeToBuffer();
     final encryptedContactRequestPrivate =
@@ -74,13 +112,13 @@ Future<Uint8List> createContactInvitation(
             schema: DHTSchema.smpl(
                 oCnt: 1, members: [DHTSchemaMember(mCnt: 1, mKey: writer.key)]),
             crypto: const DHTRecordCryptoPublic()))
-        .deleteScope((inboxRecord) async {
+        .deleteScope((contactRequestInbox) async {
       // Store ContactRequest in owner subkey
-      await inboxRecord.eventualWriteProtobuf(creq);
+      await contactRequestInbox.eventualWriteProtobuf(creq);
 
       // Create ContactInvitation and SignedContactInvitation
       final cinv = ContactInvitation()
-        ..contactRequestRecordKey = inboxRecord.key.toProto()
+        ..contactRequestInboxKey = contactRequestInbox.key.toProto()
         ..writerSecret = encryptedSecret;
       final cinvbytes = cinv.writeToBuffer();
       final scinv = SignedContactInvitation()
@@ -91,15 +129,16 @@ Future<Uint8List> createContactInvitation(
 
       // Create ContactInvitationRecord
       final cinvrec = ContactInvitationRecord()
-        ..contactRequestRecordKey = inboxRecord.key.toProto()
+        ..contactRequestInbox =
+            contactRequestInbox.ownedDHTRecordPointer.toProto()
         ..writerKey = writer.key.toProto()
         ..writerSecret = writer.secret.toProto()
-        ..chatRecordKey = localChatRecord.key.toProto()
+        ..localConversation = localConversation.ownedDHTRecordPointer.toProto()
         ..expiration = expiration?.toInt64() ?? Int64.ZERO
         ..invitation = signedContactInvitationBytes
         ..message = message;
 
-      // Add ContactInvitationRecord to local table if possible
+      // Add ContactInvitationRecord to account's list
       // if this fails, don't keep retrying, user can try again later
       await (await DHTShortArray.openOwned(
               proto.OwnedDHTRecordPointerProto.fromProto(

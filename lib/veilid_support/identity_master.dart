@@ -75,9 +75,57 @@ class IdentityMasterWithSecrets {
     });
   }
 
-  /// Creates a new master identity and returns it with its secrets
+  /// Deletes a master identity and the identity record under it
   Future<void> delete() async {
     final pool = await DHTRecordPool.instance();
-    await pool.deleteDeep(identityMaster.masterRecordKey);
+    await (await pool.openRead(identityMaster.masterRecordKey)).delete();
+  }
+}
+
+/// Opens an existing master identity and validates it
+Future<IdentityMaster> openIdentityMaster(
+    {required TypedKey identityMasterRecordKey}) async {
+  final pool = await DHTRecordPool.instance();
+
+  // IdentityMaster DHT record is public/unencrypted
+  return (await pool.openRead(identityMasterRecordKey))
+      .deleteScope((masterRec) async {
+    final identityMasterJson =
+        (await masterRec.getJson(IdentityMaster.fromJson, forceRefresh: true))!;
+    final identityMaster = IdentityMaster.fromJson(identityMasterJson);
+
+    // Validate IdentityMaster
+    final masterRecordKey = masterRec.key;
+    final masterOwnerKey = masterRec.owner;
+    final masterSigBuf = BytesBuilder()
+      ..add(masterRecordKey.decode())
+      ..add(masterOwnerKey.decode());
+    final masterSignature = identityMaster.masterSignature;
+
+    final identityRecordKey = identityMaster.identityRecordKey;
+    final identityOwnerKey = identityMaster.identityPublicKey;
+    final identitySigBuf = BytesBuilder()
+      ..add(identityRecordKey.decode())
+      ..add(identityOwnerKey.decode());
+    final identitySignature = identityMaster.identitySignature;
+
+    assert(masterRecordKey.kind == identityRecordKey.kind,
+        'new master and identity should have same cryptosystem');
+    final crypto = await pool.veilid.getCryptoSystem(masterRecordKey.kind);
+
+    await crypto.verify(
+        masterOwnerKey, identitySigBuf.toBytes(), identitySignature);
+    await crypto.verify(
+        identityOwnerKey, masterSigBuf.toBytes(), masterSignature);
+
+    return identityMaster;
+  });
+}
+
+extension IdentityMasterX on IdentityMaster {
+  /// Deletes a master identity and the identity record under it
+  Future<void> delete() async {
+    final pool = await DHTRecordPool.instance();
+    await (await pool.openRead(masterRecordKey)).delete();
   }
 }

@@ -2,33 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 
+import '../tools/tools.dart';
+
 class EmptyContactListWidget extends ConsumerWidget {
   const EmptyContactListWidget({super.key});
 
   @override
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context, WidgetRef ref) {
-    //
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.person_add_sharp,
-            color: Theme.of(context).disabledColor,
-            size: 48,
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scale = theme.extension<ScaleScheme>()!;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.person_add_sharp,
+          color: scale.primaryScale.border,
+          size: 48,
+        ),
+        Text(
+          translate('empty_contact_list.invite_people'),
+          style: textTheme.bodyMedium?.copyWith(
+            color: scale.primaryScale.border,
           ),
-          Text(
-            translate('empty_contact_list.invite_people'),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).disabledColor,
-                ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -1,15 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../entities/entities.dart';
-import '../entities/proto.dart' as proto;
+import '../log/loggy.dart';
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
-import 'account.dart';
 import 'logins.dart';
 
 part 'local_accounts.g.dart';
@@ -35,7 +32,14 @@ class LocalAccounts extends _$LocalAccounts
 
   /// Get all local account information
   @override
-  FutureOr<IList<LocalAccount>> build() async => await load();
+  FutureOr<IList<LocalAccount>> build() async {
+    try {
+      return await load();
+    } on Exception catch (e) {
+      log.error('Failed to load LocalAccounts table: $e');
+      return const IListConst([]);
+    }
+  }
 
   //////////////////////////////////////////////////////////////
   /// Mutators and Selectors

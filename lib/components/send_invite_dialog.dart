@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:quickalert/quickalert.dart';
@@ -143,6 +144,9 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
             ).paddingAll(8),
             TextField(
               controller: _messageTextController,
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(256),
+              ],
               decoration: InputDecoration(
                   border: const OutlineInputBorder(),
                   hintText: translate('send_invite_dialog.enter_message_hint'),

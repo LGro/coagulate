@@ -1,3 +1,4 @@
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -56,6 +57,7 @@ class AccountPageState extends ConsumerState<AccountPage> {
     return Center(child: Text("unlock account"));
   }
 
+  /// We have an active, unlocked, user login
   Widget buildUserAccount(
     BuildContext context,
     IList<LocalAccount> localAccounts,
@@ -72,9 +74,15 @@ class AccountPageState extends ConsumerState<AccountPage> {
     return Column(children: <Widget>[
       ProfileWidget(name: account.profile.name, title: account.profile.title),
       if (contactInvitationRecordList.isNotEmpty)
-        ContactInvitationListWidget(
-            contactInvitationRecordList: contactInvitationRecordList),
-      ContactListWidget(contactList: contactList),
+        ExpansionTile(
+          title: Text(translate('account_page.contact_invitations')),
+          initiallyExpanded: true,
+          children: [
+            ContactInvitationListWidget(
+                contactInvitationRecordList: contactInvitationRecordList)
+          ],
+        ),
+      ContactListWidget(contactList: contactList).expanded(),
     ]);
   }
 

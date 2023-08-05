@@ -81,52 +81,48 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
     return DefaultTextStyle(
         style: textTheme.bodySmall!,
         child: Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: Container(
-              decoration: BoxDecoration(
-                color: scale.primaryScale.appBackground,
-              ),
-              child: Stack(
+          alignment: AlignmentDirectional.centerEnd,
+          child: Stack(
+            children: [
+              Column(
                 children: [
-                  Column(
-                    children: [
-                      Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: scale.primaryScale.subtleBackground,
-                        ),
-                        child: Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: Padding(
-                            padding: const EdgeInsetsDirectional.fromSTEB(
-                                16, 0, 16, 0),
-                            child: Text("current contact",
-                                textAlign: TextAlign.start,
-                                style: textTheme.titleMedium),
-                          ),
-                        ),
+                  Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: scale.primaryScale.subtleBackground,
+                    ),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Padding(
+                        padding:
+                            const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
+                        child: Text("current contact",
+                            textAlign: TextAlign.start,
+                            style: textTheme.titleMedium),
                       ),
-                      Expanded(
-                        child: Container(
-                          decoration: const BoxDecoration(),
-                          child: Chat(
-                            theme: chatTheme,
-                            messages: _messages,
-                            //onAttachmentPressed: _handleAttachmentPressed,
-                            //onMessageTap: _handleMessageTap,
-                            //onPreviewDataFetched: _handlePreviewDataFetched,
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(),
+                      child: Chat(
+                        theme: chatTheme,
+                        messages: _messages,
+                        //onAttachmentPressed: _handleAttachmentPressed,
+                        //onMessageTap: _handleMessageTap,
+                        //onPreviewDataFetched: _handlePreviewDataFetched,
 
-                            onSendPressed: _handleSendPressed,
-                            showUserAvatars: true,
-                            showUserNames: true,
-                            user: _user,
-                          ),
-                        ),
+                        onSendPressed: _handleSendPressed,
+                        showUserAvatars: true,
+                        showUserNames: true,
+                        user: _user,
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
-            )));
+            ],
+          ),
+        ));
   }
 }

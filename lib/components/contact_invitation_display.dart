@@ -23,7 +23,7 @@ class ContactInvitationDisplayDialog extends ConsumerStatefulWidget {
 
   final String name;
   final String message;
-  final Future<Uint8List> generator;
+  final FutureOr<Uint8List> generator;
 
   @override
   ContactInvitationDisplayDialogState createState() =>
@@ -35,7 +35,7 @@ class ContactInvitationDisplayDialog extends ConsumerStatefulWidget {
     properties
       ..add(StringProperty('name', name))
       ..add(StringProperty('message', message))
-      ..add(DiagnosticsProperty<Future<Uint8List>?>('generator', generator));
+      ..add(DiagnosticsProperty<FutureOr<Uint8List>?>('generator', generator));
   }
 }
 
@@ -65,9 +65,9 @@ class ContactInvitationDisplayDialogState
         repeat: true);
     final msg = message.isNotEmpty ? '$message\n' : '';
     return '$msg'
-        '--- BEGIN VEILIDCHAT CONTACT INVITE ---\n'
+        '--- BEGIN VEILIDCHAT CONTACT INVITE ----\n'
         '$invite\n'
-        '--- END VEILIDCHAT CONTACT INVITE ---\n';
+        '---- END VEILIDCHAT CONTACT INVITE -----\n';
   }
 
   @override
@@ -92,8 +92,6 @@ class ContactInvitationDisplayDialogState
                     Navigator.of(context).pop();
                     return const Text('');
                   }
-                  final compressedData =
-                      Uint8List.fromList(BZip2Encoder().encode(data));
                   return Form(
                       key: formKey,
                       child: Column(
@@ -113,7 +111,7 @@ class ContactInvitationDisplayDialogState
                                 child: QrImageView.withQr(
                                     size: 300,
                                     qr: QrCode.fromUint8List(
-                                        data: compressedData,
+                                        data: data,
                                         errorCorrectLevel:
                                             QrErrorCorrectLevel.L))),
                             FittedBox(
@@ -132,8 +130,8 @@ class ContactInvitationDisplayDialogState
                                     translate(
                                         'send_invite_dialog.invitation_copied'));
                                 await Clipboard.setData(ClipboardData(
-                                    text: makeTextInvite(
-                                        widget.message, compressedData)));
+                                    text:
+                                        makeTextInvite(widget.message, data)));
                               },
                             ),
                           ]));

@@ -12,6 +12,7 @@ import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
 import '../../components/bottom_sheet_action_button.dart';
 import '../../components/contact_invitation_display.dart';
+import '../../components/paste_invite_dialog.dart';
 import '../../components/send_invite_dialog.dart';
 import '../../tools/tools.dart';
 import 'account_page.dart';
@@ -129,6 +130,26 @@ class MainPagerState extends ConsumerState<MainPager>
         });
   }
 
+  Future<void> pasteContactInvitationDialog(BuildContext context) async {
+    await showDialog<void>(
+        context: context,
+        // ignore: prefer_expression_function_bodies
+        builder: (context) {
+          return const AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
+              contentPadding: EdgeInsets.only(
+                top: 10,
+              ),
+              title: Text(
+                'Paste Contact Invite',
+                style: TextStyle(fontSize: 24),
+              ),
+              content: PasteInviteDialog());
+        });
+  }
+
   Widget _newContactInvitationBottomSheetBuilder(
       // ignore: prefer_expression_function_bodies
       BuildContext context) {
@@ -153,17 +174,27 @@ class MainPagerState extends ConsumerState<MainPager>
                         await sendContactInvitationDialog(context);
                       },
                       iconSize: 64,
-                      icon: const Icon(Icons.output)),
-                  Text(translate('accounts_menu.send_invite'))
+                      icon: const Icon(Icons.contact_page)),
+                  Text(translate('accounts_menu.create_invite'))
                 ]),
                 Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   IconButton(
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.pop(context);
                       },
                       iconSize: 64,
-                      icon: const Icon(Icons.input)),
-                  Text(translate('accounts_menu.receive_invite'))
+                      icon: const Icon(Icons.qr_code_scanner)),
+                  Text(translate('accounts_menu.scan_invite'))
+                ]),
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  IconButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await pasteContactInvitationDialog(context);
+                      },
+                      iconSize: 64,
+                      icon: const Icon(Icons.paste)),
+                  Text(translate('accounts_menu.paste_invite'))
                 ])
               ]).expanded()
             ])));
@@ -191,8 +222,12 @@ class MainPagerState extends ConsumerState<MainPager>
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scale = theme.extension<ScaleScheme>()!;
+
     return Scaffold(
       extendBody: true,
+      backgroundColor: scale.grayScale.subtleBackground,
       body: NotificationListener<ScrollNotification>(
           onNotification: onScrollNotification,
           child: PageView(

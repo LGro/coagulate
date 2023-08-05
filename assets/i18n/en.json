@@ -27,7 +27,10 @@
     },
     "button": {
         "ok": "Ok",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "accept": "Accept",
+        "reject": "Reject"
     },
     "toast": {
         "error": "Error",
@@ -48,15 +51,17 @@
         "missing_account_title": "Missing Account",
         "missing_account_text": "Account is missing, removing from list",
         "invalid_account_title": "Invalid Account",
-        "invalid_account_text": "Account is invalid, removing from list"
+        "invalid_account_text": "Account is invalid, removing from list",
+        "contact_invitations": "Contact Invitations"
     },
     "empty_contact_list": {
         "invite_people": "Invite people to VeilidChat"
     },
     "accounts_menu": {
         "invite_contact": "Invite Contact",
-        "send_invite": "Send Invite",
-        "receive_invite": "Receive Invite"
+        "create_invite": "Create Invite",
+        "scan_invite": "Scan Invite",
+        "paste_invite": "Paste Invite"
     },
     "send_invite_dialog": {
         "connect_with_me": "Connect with me on VeilidChat!",
@@ -77,6 +82,11 @@
         "failed_to_generate": "Failed to generate contact invitation",
         "copy_invitation": "Copy Invitation",
         "invitation_copied": "Invitation Copied"
+    },
+    "paste_invite_dialog": {
+        "paste_invite_here": "Paste your contact invite here:",
+        "paste": "Paste",
+        "message_from_contact": "Message from contact"
     },
     "enter_pin_dialog": {
         "enter_pin": "Enter PIN",

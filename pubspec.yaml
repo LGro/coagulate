@@ -103,6 +103,11 @@ flutter:
     - assets/images/icon.svg
     - assets/images/title.svg
     - assets/images/vlogo.svg
+    # Fonts
+  fonts:
+    - family: Victor Mono
+      fonts:
+        - asset: assets/fonts/VictorMono-VariableFont_wght.ttf
     
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
