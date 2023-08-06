@@ -138,15 +138,16 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
 
   void _validateParent(TypedKey? parent, TypedKey child) {
     final childJson = child.toJson();
+    final existingParent = _state.parentByChild[childJson];
     if (parent == null) {
-      if (_state.parentByChild.containsKey(childJson)) {
+      if (existingParent != null) {
         throw StateError('Child is already parented: $child');
       }
     } else {
       if (_state.rootRecords.contains(child)) {
         throw StateError('Child already added as root: $child');
       }
-      if (_state.parentByChild[childJson] != parent) {
+      if (existingParent != null && existingParent != parent) {
         throw StateError('Child has two parents: $child <- $parent');
       }
     }
