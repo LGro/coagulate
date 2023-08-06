@@ -9,6 +9,7 @@ import '../entities/proto.dart' show Contact;
 
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';
+import 'chat.dart';
 
 part 'contact.g.dart';
 
@@ -54,6 +55,13 @@ Future<void> deleteContact(
   final pool = await DHTRecordPool.instance();
   final accountRecordKey =
       activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+  final remoteConversationKey =
+      proto.TypedKeyProto.fromProto(contact.remoteConversationKey);
+
+  // Remove any chats for this contact
+  await deleteChat(
+      activeAccountInfo: activeAccountInfo,
+      remoteConversationRecordKey: remoteConversationKey);
 
   // Remove Contact from account's list
   await (await DHTShortArray.openOwned(
@@ -77,9 +85,7 @@ Future<void> deleteContact(
                 contact.localConversation),
             parent: accountRecordKey))
         .delete();
-    await (await pool.openRead(
-            proto.TypedKeyProto.fromProto(contact.remoteConversationKey),
-            parent: accountRecordKey))
+    await (await pool.openRead(remoteConversationKey, parent: accountRecordKey))
         .delete();
   });
 }

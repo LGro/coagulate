@@ -54,9 +54,6 @@
         "invalid_account_text": "Account is invalid, removing from list",
         "contact_invitations": "Contact Invitations"
     },
-    "empty_contact_list": {
-        "invite_people": "Invite people to VeilidChat"
-    },
     "accounts_menu": {
         "invite_contact": "Invite Contact",
         "create_invite": "Create Invite",
@@ -97,8 +94,14 @@
         "reenter_pin": "Re-Enter PIN To Confirm"
     },
     "contact_list": {
+        "invite_people": "Invite people to VeilidChat",
         "search": "Search contacts",
         "invitation": "Invitation"
+    },
+    "chat_list": {
+        "start_a_conversation": "Start a conversation",
+        "conversations": "Conversations",
+        "groups": "Groups"
     },
     "themes": {
         "vapor": "Vapor"

@@ -144,13 +144,19 @@ extension IdentityMasterExtension on IdentityMaster {
             await (await DHTShortArray.create(parent: accountRec.key))
                 .scope((r) => r.record.ownedDHTRecordPointer);
 
+        // Make empty chat record list
+        final chatRecords =
+            await (await DHTShortArray.create(parent: accountRec.key))
+                .scope((r) => r.record.ownedDHTRecordPointer);
+
         // Make account object
         final account = proto.Account()
           ..profile = (proto.Profile()
             ..name = name
             ..title = title)
           ..contactList = contactList.toProto()
-          ..contactInvitationRecords = contactInvitationRecords.toProto();
+          ..contactInvitationRecords = contactInvitationRecords.toProto()
+          ..chatList = chatRecords.toProto();
 
         // Write account key
         await accountRec.eventualWriteProtobuf(account);

@@ -23,6 +23,9 @@ class MainPager extends ConsumerStatefulWidget {
 
   @override
   MainPagerState createState() => MainPagerState();
+
+  static MainPagerState? of(BuildContext context) =>
+      context.findAncestorStateOfType<MainPagerState>();
 }
 
 class MainPagerState extends ConsumerState<MainPager>
@@ -31,7 +34,7 @@ class MainPagerState extends ConsumerState<MainPager>
 
   final _unfocusNode = FocusNode();
 
-  final _pageController = PageController();
+  final pageController = PageController();
   var _currentPage = 0;
 
   final _selectedIconList = <IconData>[Icons.person, Icons.chat];
@@ -62,7 +65,7 @@ class MainPagerState extends ConsumerState<MainPager>
   @override
   void dispose() {
     _unfocusNode.dispose();
-    _pageController.dispose();
+    pageController.dispose();
     super.dispose();
   }
 
@@ -231,7 +234,7 @@ class MainPagerState extends ConsumerState<MainPager>
       body: NotificationListener<ScrollNotification>(
           onNotification: onScrollNotification,
           child: PageView(
-            controller: _pageController,
+            controller: pageController,
             //physics: const NeverScrollableScrollPhysics(),
             children: List.generate(
                 _bottomBarPages.length, (index) => _bottomBarPages[index]),
@@ -266,7 +269,7 @@ class MainPagerState extends ConsumerState<MainPager>
         fabLocation: StylishBarFabLocation.end,
         currentIndex: _currentPage,
         onTap: (index) async {
-          await _pageController.animateToPage(index,
+          await pageController.animateToPage(index,
               duration: 250.ms, curve: Curves.easeInOut);
           setState(() {
             _currentPage = index;

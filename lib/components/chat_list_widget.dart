@@ -8,18 +8,21 @@ import 'package:searchable_listview/searchable_listview.dart';
 
 import '../../entities/proto.dart' as proto;
 import '../tools/tools.dart';
+import 'chat_single_contact_item_widget.dart';
 import 'contact_item_widget.dart';
+import 'empty_chat_list_widget.dart';
 import 'empty_contact_list_widget.dart';
 
-class ContactListWidget extends ConsumerWidget {
-  const ContactListWidget({required this.contactList, super.key});
-  final IList<proto.Contact> contactList;
+class ChatListWidget extends ConsumerWidget {
+  ChatListWidget(
+      {required IList<proto.Contact> contactList,
+      required this.chatList,
+      super.key})
+      : contactMap = IMap.fromIterable(contactList,
+            keyMapper: (c) => c.remoteConversationKey, valueMapper: (c) => c);
 
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(IterableProperty<proto.Contact>('contactList', contactList));
-  }
+  final IMap<proto.TypedKey, proto.Contact> contactMap;
+  final IList<proto.Chat> chatList;
 
   @override
   // ignore: prefer_expression_function_bodies
@@ -35,7 +38,7 @@ class ContactListWidget extends ConsumerWidget {
       ),
       child: Column(children: [
         Text(
-          'Contacts',
+          'Chats',
           style: textTheme.bodyLarge,
         ).paddingAll(8),
         Container(
@@ -45,25 +48,34 @@ class ContactListWidget extends ConsumerWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               )),
-          child: (contactList.isEmpty)
-              ? const EmptyContactListWidget().toCenter()
-              : SearchableList<proto.Contact>(
-                  initialList: contactList.toList(),
-                  builder: (contact) => ContactItemWidget(contact: contact),
+          child: (chatList.isEmpty)
+              ? const EmptyChatListWidget().toCenter()
+              : SearchableList<proto.Chat>(
+                  initialList: chatList.toList(),
+                  builder: (c) {
+                    final contact = contactMap[c.remoteConversationKey];
+                    if (contact == null) {
+                      return const Text('...');
+                    }
+                    return ChatSingleContactItemWidget(contact: contact);
+                  },
                   filter: (value) {
                     final lowerValue = value.toLowerCase();
-                    return contactList
-                        .where((element) =>
-                            element.editedProfile.name
-                                .toLowerCase()
-                                .contains(lowerValue) ||
-                            element.editedProfile.title
-                                .toLowerCase()
-                                .contains(lowerValue))
-                        .toList();
+                    return chatList.where((c) {
+                      final contact = contactMap[c.remoteConversationKey];
+                      if (contact == null) {
+                        return false;
+                      }
+                      return contact.editedProfile.name
+                              .toLowerCase()
+                              .contains(lowerValue) ||
+                          contact.editedProfile.title
+                              .toLowerCase()
+                              .contains(lowerValue);
+                    }).toList();
                   },
                   inputDecoration: InputDecoration(
-                    labelText: translate('contact_list.search'),
+                    labelText: translate('chat_list.search'),
                     fillColor: Colors.white,
                     focusedBorder: OutlineInputBorder(
                       borderSide: const BorderSide(

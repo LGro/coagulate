@@ -1,11 +1,12 @@
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 
 import '../tools/tools.dart';
 
-class EmptyContactListWidget extends ConsumerWidget {
-  const EmptyContactListWidget({super.key});
+class EmptyChatListWidget extends ConsumerWidget {
+  const EmptyChatListWidget({super.key});
 
   @override
   // ignore: prefer_expression_function_bodies
@@ -18,17 +19,17 @@ class EmptyContactListWidget extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
-          Icons.person_add_sharp,
+          Icons.chat,
           color: scale.primaryScale.border,
           size: 48,
         ),
         Text(
-          translate('contact_list.invite_people'),
+          translate('chat_list.start_a_conversation'),
           style: textTheme.bodyMedium?.copyWith(
             color: scale.primaryScale.border,
           ),
         ),
       ],
-    );
+    ).expanded();
   }
 }

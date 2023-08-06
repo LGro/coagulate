@@ -7,7 +7,7 @@ part of 'contact_invite.dart';
 // **************************************************************************
 
 String _$fetchContactInvitationRecordsHash() =>
-    r'fcedc1807c6cb25ac6c2c42b372ec04abd4b911f';
+    r'2fe40d7aaf5fa856f00c6d2b4d9e28f4a08bed1b';
 
 /// Get the active account contact invitation list
 ///

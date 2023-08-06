@@ -1,11 +1,15 @@
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../entities/proto.dart' as proto;
+import '../providers/chat.dart';
+import '../providers/contact.dart';
 import '../tools/theme_service.dart';
+import 'empty_chat_widget.dart';
 
 class ChatComponent extends ConsumerStatefulWidget {
   const ChatComponent({super.key});
@@ -77,7 +81,25 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
     final chatTheme = scale.toChatTheme();
     final textTheme = Theme.of(context).textTheme;
 
-    //
+    final contactList = ref.watch(fetchContactListProvider).asData?.value ??
+        const IListConst([]);
+
+    final activeChat = ref.watch(activeChatStateProvider).asData?.value;
+
+    if (activeChat == null) {
+      return const EmptyChatWidget();
+    }
+
+    final activeChatContactIdx = contactList.indexWhere(
+      (c) =>
+          proto.TypedKeyProto.fromProto(c.remoteConversationKey) == activeChat,
+    );
+    if (activeChatContactIdx == -1) {
+      activeChatState.add(null);
+      return const EmptyChatWidget();
+    }
+    final activeChatContact = contactList[activeChatContactIdx];
+
     return DefaultTextStyle(
         style: textTheme.bodySmall!,
         child: Align(
@@ -96,7 +118,7 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                       child: Padding(
                         padding:
                             const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
-                        child: Text("current contact",
+                        child: Text(activeChatContact.editedProfile.name,
                             textAlign: TextAlign.start,
                             style: textTheme.titleMedium),
                       ),
