@@ -136,20 +136,28 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
     await Future.wait(allFutures);
   }
 
+  void _validateParent(TypedKey? parent, TypedKey child) {
+    final childJson = child.toJson();
+    if (parent == null) {
+      if (_state.parentByChild.containsKey(childJson)) {
+        throw StateError('Child is already parented: $child');
+      }
+    } else {
+      if (_state.rootRecords.contains(child)) {
+        throw StateError('Child already added as root: $child');
+      }
+      if (_state.parentByChild[childJson] != parent) {
+        throw StateError('Child has two parents: $child <- $parent');
+      }
+    }
+  }
+
   Future<void> _addDependency(TypedKey? parent, TypedKey child) async {
     if (parent == null) {
       if (_state.rootRecords.contains(child)) {
         // Dependency already added
         return;
       }
-      if (_state.parentByChild.containsKey(child.toJson())) {
-        throw StateError('Child is already parented: $child');
-      }
-      if (_state.childrenByParent.containsKey(child.toJson())) {
-        // dependencies should be opened after their parents
-        throw StateError('Child is not a leaf: $child');
-      }
-
       _state = await store(
           _state.copyWith(rootRecords: _state.rootRecords.add(child)));
     } else {
@@ -159,17 +167,6 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
         // Dependency already added (consecutive opens, etc)
         return;
       }
-      if (_state.rootRecords.contains(child)) {
-        throw StateError('Child already added as root: $child');
-      }
-      if (_state.parentByChild.containsKey(child.toJson())) {
-        throw StateError('Child has two parents: $child <- $parent');
-      }
-      if (_state.childrenByParent.containsKey(child.toJson())) {
-        // dependencies should be opened after their parents
-        throw StateError('Child is not a leaf: $child');
-      }
-
       _state = await store(_state.copyWith(
           childrenByParent: _state.childrenByParent
               .add(parent.toJson(), childrenOfParent.add(child)),
@@ -223,10 +220,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
             await DHTRecordCryptoPrivate.fromTypedKeyPair(
                 recordDescriptor.ownerTypedKeyPair()!));
 
-    if (parent != null) {
-      await _addDependency(parent, rec.key);
-    }
-
+    await _addDependency(parent, rec.key);
     await _recordOpened(rec.key);
 
     return rec;
@@ -244,8 +238,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
     try {
       // If we are opening a key that already exists
       // make sure we are using the same parent if one was specified
-      final existingParent = _state.parentByChild[recordKey.toJson()];
-      assert(existingParent == parent, 'wrong parent for opened key');
+      _validateParent(parent, recordKey);
 
       // Open from the veilid api
       final dhtctx = routingContext ?? _routingContext;
@@ -256,10 +249,8 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
           defaultSubkey: defaultSubkey,
           crypto: crypto ?? const DHTRecordCryptoPublic());
 
-      // Register the dependency if specified
-      if (parent != null) {
-        await _addDependency(parent, rec.key);
-      }
+      // Register the dependency
+      await _addDependency(parent, rec.key);
     } on Exception catch (_) {
       recordClosed(recordKey);
       rethrow;
@@ -283,8 +274,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
     try {
       // If we are opening a key that already exists
       // make sure we are using the same parent if one was specified
-      final existingParent = _state.parentByChild[recordKey.toJson()];
-      assert(existingParent == parent, 'wrong parent for opened key');
+      _validateParent(parent, recordKey);
 
       // Open from the veilid api
       final dhtctx = routingContext ?? _routingContext;
@@ -299,9 +289,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
                   TypedKeyPair.fromKeyPair(recordKey.kind, writer)));
 
       // Register the dependency if specified
-      if (parent != null) {
-        await _addDependency(parent, rec.key);
-      }
+      await _addDependency(parent, rec.key);
     } on Exception catch (_) {
       recordClosed(recordKey);
       rethrow;
