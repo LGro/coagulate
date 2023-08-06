@@ -182,7 +182,7 @@ message Conversation {
     Profile profile = 1;
     // Identity master (JSON) to publish to friend
     string identity_master_json = 2;
-    // Messages DHTLog
+    // Messages DHTLog (xxx for now DHTShortArray)
     OwnedDHTRecordPointer messages = 3;
 }
 

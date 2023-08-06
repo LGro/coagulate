@@ -81,6 +81,9 @@ extension IdentityMasterExtension on IdentityMaster {
   KeyPair masterWriter(SecretKey secret) =>
       KeyPair(key: masterPublicKey, secret: secret);
 
+  TypedKey identityPublicTypedKey() =>
+      TypedKey(kind: identityRecordKey.kind, value: identityPublicKey);
+
   Future<AccountRecordInfo> readAccountFromIdentity(
       {required SharedSecret identitySecret}) async {
     // Read the identity key to get the account keys

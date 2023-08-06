@@ -43,7 +43,7 @@ Future<void> createContact({
           parent: accountRecordKey))
       .scope((contactList) async {
     if (await contactList.tryAddItem(contact.writeToBuffer()) == false) {
-      throw StateError('Failed to add contact');
+      throw Exception('Failed to add contact');
     }
   });
 }
@@ -65,7 +65,7 @@ Future<void> deleteContact(
       final item =
           await contactList.getItemProtobuf(proto.Contact.fromBuffer, i);
       if (item == null) {
-        throw StateError('Failed to get contact');
+        throw Exception('Failed to get contact');
       }
       if (item.remoteConversationKey == contact.remoteConversationKey) {
         await contactList.tryRemoveItem(i);
@@ -105,7 +105,7 @@ Future<IList<Contact>?> fetchContactList(FetchContactListRef ref) async {
     for (var i = 0; i < cList.length; i++) {
       final cir = await cList.getItem(i);
       if (cir == null) {
-        throw StateError('Failed to get contact');
+        throw Exception('Failed to get contact');
       }
       out = out.add(Contact.fromBuffer(cir));
     }

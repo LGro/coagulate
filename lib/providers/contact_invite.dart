@@ -88,32 +88,38 @@ Future<AcceptedOrRejectedContact?> checkAcceptRejectContact(
       // Verify
       final signature = proto.SignatureProto.fromProto(
           signedContactResponse.identitySignature);
-      try {
-        await cs.verify(contactIdentityMaster.identityPublicKey,
-            contactResponseBytes, signature);
-      } on Exception catch (e) {
-        log.error('Bad identity used, failed to verify: $e');
-        return null;
-      }
+      await cs.verify(contactIdentityMaster.identityPublicKey,
+          contactResponseBytes, signature);
 
       // Pull profile from remote conversation key
       final remoteConversationKey =
           proto.TypedKeyProto.fromProto(contactResponse.remoteConversationKey);
       final remoteConversation = await readRemoteConversation(
           activeAccountInfo: activeAccountInfo,
+          remoteIdentityPublicKey:
+              contactIdentityMaster.identityPublicTypedKey(),
           remoteConversationKey: remoteConversationKey);
       if (remoteConversation == null) {
-        log.error('Remote conversation could not be read');
+        log.info('Remote conversation could not be read. Waiting...');
         return null;
       }
-      final localConversation = proto.OwnedDHTRecordPointerProto.fromProto(
+      // Complete the local conversation now that we have the remote profile
+      final localConversationOwned = proto.OwnedDHTRecordPointerProto.fromProto(
           contactInvitationRecord.localConversation);
-      return AcceptedOrRejectedContact(
-          acceptedContact: AcceptedContact(
-              profile: remoteConversation.profile,
-              remoteIdentity: contactIdentityMaster,
-              remoteConversationKey: remoteConversationKey,
-              localConversation: localConversation));
+      return createConversation(
+          activeAccountInfo: activeAccountInfo,
+          remoteIdentityPublicKey:
+              contactIdentityMaster.identityPublicTypedKey(),
+          existingConversationOwned: localConversationOwned,
+          // ignore: prefer_expression_function_bodies
+          callback: (localConversation) async {
+            return AcceptedOrRejectedContact(
+                acceptedContact: AcceptedContact(
+                    profile: remoteConversation.profile,
+                    remoteIdentity: contactIdentityMaster,
+                    remoteConversationKey: remoteConversationKey,
+                    localConversation: localConversationOwned));
+          });
     });
 
     if (acceptReject == null) {
@@ -129,6 +135,13 @@ Future<AcceptedOrRejectedContact?> checkAcceptRejectContact(
     return acceptReject;
   } on Exception catch (e) {
     log.error('Exception in checkAcceptRejectContact: $e');
+
+    // Attempt to clean up. All this needs better lifetime management
+    await deleteContactInvitation(
+        accepted: false,
+        activeAccountInfo: activeAccountInfo,
+        contactInvitationRecord: contactInvitationRecord);
+
     return null;
   }
 }
@@ -151,7 +164,7 @@ Future<void> deleteContactInvitation(
       final item = await cirList.getItemProtobuf(
           proto.ContactInvitationRecord.fromBuffer, i);
       if (item == null) {
-        throw StateError('Failed to get contact invitation record');
+        throw Exception('Failed to get contact invitation record');
       }
       if (item.contactRequestInbox.recordKey ==
           contactInvitationRecord.contactRequestInbox.recordKey) {
@@ -266,7 +279,7 @@ Future<Uint8List> createContactInvitation(
               parent: accountRecordKey))
           .scope((cirList) async {
         if (await cirList.tryAddItem(cinvrec.writeToBuffer()) == false) {
-          throw StateError('Failed to add contact invitation record');
+          throw Exception('Failed to add contact invitation record');
         }
       });
     });
@@ -363,55 +376,58 @@ Future<AcceptedContact?> acceptContactInvitation(
     ActiveAccountInfo activeAccountInfo,
     ValidContactInvitation validContactInvitation) async {
   final pool = await DHTRecordPool.instance();
-  final accountRecordKey =
-      activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+  try {
+    return (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
+            validContactInvitation.writer))
+        // ignore: prefer_expression_function_bodies
+        .deleteScope((contactRequestInbox) async {
+      // Create local conversation key for this
+      // contact and send via contact response
+      return createConversation(
+          activeAccountInfo: activeAccountInfo,
+          remoteIdentityPublicKey: validContactInvitation.contactIdentityMaster
+              .identityPublicTypedKey(),
+          callback: (localConversation) async {
+            final contactResponse = ContactResponse()
+              ..accept = true
+              ..remoteConversationKey = localConversation.key.toProto()
+              ..identityMasterRecordKey = activeAccountInfo
+                  .localAccount.identityMaster.masterRecordKey
+                  .toProto();
+            final contactResponseBytes = contactResponse.writeToBuffer();
 
-  return (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
-          validContactInvitation.writer))
-      .deleteScope((contactRequestInbox) async {
-    final cs = await pool.veilid
-        .getCryptoSystem(validContactInvitation.contactRequestInboxKey.kind);
+            final cs = await pool.veilid.getCryptoSystem(
+                validContactInvitation.contactRequestInboxKey.kind);
 
-    // Create local conversation key for this
-    // contact and send via contact response
-    return (await pool.create(parent: accountRecordKey))
-        .deleteScope((localConversation) async {
-      final contactResponse = ContactResponse()
-        ..accept = true
-        ..remoteConversationKey = localConversation.key.toProto()
-        ..identityMasterRecordKey = activeAccountInfo
-            .localAccount.identityMaster.masterRecordKey
-            .toProto();
-      final contactResponseBytes = contactResponse.writeToBuffer();
+            final identitySignature = await cs.sign(
+                activeAccountInfo.localAccount.identityMaster.identityPublicKey,
+                activeAccountInfo.userLogin.identitySecret.value,
+                contactResponseBytes);
 
-      final identitySignature = await cs.sign(
-          activeAccountInfo.localAccount.identityMaster.identityPublicKey,
-          activeAccountInfo.userLogin.identitySecret.value,
-          contactResponseBytes);
+            final signedContactResponse = SignedContactResponse()
+              ..contactResponse = contactResponseBytes
+              ..identitySignature = identitySignature.toProto();
 
-      final signedContactResponse = SignedContactResponse()
-        ..contactResponse = contactResponseBytes
-        ..identitySignature = identitySignature.toProto();
-
-      // Write the acceptance to the inbox
-      if (await contactRequestInbox.tryWriteProtobuf(
-              SignedContactResponse.fromBuffer, signedContactResponse,
-              subkey: 1) !=
-          null) {
-        log.error('failed to accept contact invitation');
-        await localConversation.delete();
-        await contactRequestInbox.delete();
-        return null;
-      }
-      return AcceptedContact(
-        profile: validContactInvitation.contactRequestPrivate.profile,
-        remoteIdentity: validContactInvitation.contactIdentityMaster,
-        remoteConversationKey: proto.TypedKeyProto.fromProto(
-            validContactInvitation.contactRequestPrivate.chatRecordKey),
-        localConversation: localConversation.ownedDHTRecordPointer,
-      );
+            // Write the acceptance to the inbox
+            if (await contactRequestInbox.tryWriteProtobuf(
+                    SignedContactResponse.fromBuffer, signedContactResponse,
+                    subkey: 1) !=
+                null) {
+              throw Exception('failed to accept contact invitation');
+            }
+            return AcceptedContact(
+              profile: validContactInvitation.contactRequestPrivate.profile,
+              remoteIdentity: validContactInvitation.contactIdentityMaster,
+              remoteConversationKey: proto.TypedKeyProto.fromProto(
+                  validContactInvitation.contactRequestPrivate.chatRecordKey),
+              localConversation: localConversation.ownedDHTRecordPointer,
+            );
+          });
     });
-  });
+  } on Exception catch (e) {
+    log.error('exception: $e');
+    return null;
+  }
 }
 
 Future<bool> rejectContactInvitation(ActiveAccountInfo activeAccountInfo,
@@ -473,7 +489,7 @@ Future<IList<ContactInvitationRecord>?> fetchContactInvitationRecords(
     for (var i = 0; i < cirList.length; i++) {
       final cir = await cirList.getItem(i);
       if (cir == null) {
-        throw StateError('Failed to get contact invitation record');
+        throw Exception('Failed to get contact invitation record');
       }
       out = out.add(ContactInvitationRecord.fromBuffer(cir));
     }
