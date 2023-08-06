@@ -16,6 +16,7 @@ class DHTRecordPoolAllocations with _$DHTRecordPoolAllocations {
         childrenByParent, // String key due to IMap<> json unsupported in key
     required IMap<String, TypedKey>
         parentByChild, // String key due to IMap<> json unsupported in key
+    required ISet<TypedKey> rootRecords,
   }) = _DHTRecordPoolAllocations;
 
   factory DHTRecordPoolAllocations.fromJson(dynamic json) =>
@@ -38,7 +39,9 @@ class OwnedDHTRecordPointer with _$OwnedDHTRecordPointer {
 class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
   DHTRecordPool._(Veilid veilid, VeilidRoutingContext routingContext)
       : _state = DHTRecordPoolAllocations(
-            childrenByParent: IMap(), parentByChild: IMap()),
+            childrenByParent: IMap(),
+            parentByChild: IMap(),
+            rootRecords: ISet()),
         _opened = <TypedKey, Mutex>{},
         _routingContext = routingContext,
         _veilid = veilid;
@@ -64,7 +67,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
   DHTRecordPoolAllocations valueFromJson(Object? obj) => obj != null
       ? DHTRecordPoolAllocations.fromJson(obj)
       : DHTRecordPoolAllocations(
-          childrenByParent: IMap(), parentByChild: IMap());
+          childrenByParent: IMap(), parentByChild: IMap(), rootRecords: ISet());
   @override
   Object? valueToJson(DHTRecordPoolAllocations val) => val.toJson();
 
@@ -133,45 +136,70 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
     await Future.wait(allFutures);
   }
 
-  Future<void> _addDependency(TypedKey parent, TypedKey child) async {
-    final childrenOfParent =
-        _state.childrenByParent[parent.toJson()] ?? ISet<TypedKey>();
-    if (childrenOfParent.contains(child)) {
-      // Dependency already added (consecutive opens, etc)
-      return;
-    }
-    if (_state.parentByChild.containsKey(child.toJson())) {
-      throw StateError('Child has two parents: $child <- $parent');
-    }
-    if (_state.childrenByParent.containsKey(child.toJson())) {
-      // dependencies should be opened after their parents
-      throw StateError('Child is not a leaf: $child');
-    }
+  Future<void> _addDependency(TypedKey? parent, TypedKey child) async {
+    if (parent == null) {
+      if (_state.rootRecords.contains(child)) {
+        // Dependency already added
+        return;
+      }
+      if (_state.parentByChild.containsKey(child.toJson())) {
+        throw StateError('Child is already parented: $child');
+      }
+      if (_state.childrenByParent.containsKey(child.toJson())) {
+        // dependencies should be opened after their parents
+        throw StateError('Child is not a leaf: $child');
+      }
 
-    _state = await store(_state.copyWith(
-        childrenByParent: _state.childrenByParent
-            .add(parent.toJson(), childrenOfParent.add(child)),
-        parentByChild: _state.parentByChild.add(child.toJson(), parent)));
+      _state = await store(
+          _state.copyWith(rootRecords: _state.rootRecords.add(child)));
+    } else {
+      final childrenOfParent =
+          _state.childrenByParent[parent.toJson()] ?? ISet<TypedKey>();
+      if (childrenOfParent.contains(child)) {
+        // Dependency already added (consecutive opens, etc)
+        return;
+      }
+      if (_state.rootRecords.contains(child)) {
+        throw StateError('Child already added as root: $child');
+      }
+      if (_state.parentByChild.containsKey(child.toJson())) {
+        throw StateError('Child has two parents: $child <- $parent');
+      }
+      if (_state.childrenByParent.containsKey(child.toJson())) {
+        // dependencies should be opened after their parents
+        throw StateError('Child is not a leaf: $child');
+      }
+
+      _state = await store(_state.copyWith(
+          childrenByParent: _state.childrenByParent
+              .add(parent.toJson(), childrenOfParent.add(child)),
+          parentByChild: _state.parentByChild.add(child.toJson(), parent)));
+    }
   }
 
   Future<void> _removeDependency(TypedKey child) async {
-    final parent = _state.parentByChild[child.toJson()];
-    if (parent == null) {
-      return;
-    }
-    final children = _state.childrenByParent[parent.toJson()]!.remove(child);
-    late final DHTRecordPoolAllocations newState;
-    if (children.isEmpty) {
-      newState = _state.copyWith(
-          childrenByParent: _state.childrenByParent.remove(parent.toJson()),
-          parentByChild: _state.parentByChild.remove(child.toJson()));
+    if (_state.rootRecords.contains(child)) {
+      _state = await store(
+          _state.copyWith(rootRecords: _state.rootRecords.remove(child)));
     } else {
-      newState = _state.copyWith(
-          childrenByParent:
-              _state.childrenByParent.add(parent.toJson(), children),
-          parentByChild: _state.parentByChild.remove(child.toJson()));
+      final parent = _state.parentByChild[child.toJson()];
+      if (parent == null) {
+        return;
+      }
+      final children = _state.childrenByParent[parent.toJson()]!.remove(child);
+      late final DHTRecordPoolAllocations newState;
+      if (children.isEmpty) {
+        newState = _state.copyWith(
+            childrenByParent: _state.childrenByParent.remove(parent.toJson()),
+            parentByChild: _state.parentByChild.remove(child.toJson()));
+      } else {
+        newState = _state.copyWith(
+            childrenByParent:
+                _state.childrenByParent.add(parent.toJson(), children),
+            parentByChild: _state.parentByChild.remove(child.toJson()));
+      }
+      _state = await store(newState);
     }
-    _state = await store(newState);
   }
 
   ///////////////////////////////////////////////////////////////////////

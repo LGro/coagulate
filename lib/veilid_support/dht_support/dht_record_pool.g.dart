@@ -19,6 +19,9 @@ _$_DHTRecordPoolAllocations _$$_DHTRecordPoolAllocationsFromJson(
           json['parent_by_child'] as Map<String, dynamic>,
           (value) => value as String,
           (value) => Typed<FixedEncodedString43>.fromJson(value)),
+      rootRecords: ISet<Typed<FixedEncodedString43>>.fromJson(
+          json['root_records'],
+          (value) => Typed<FixedEncodedString43>.fromJson(value)),
     );
 
 Map<String, dynamic> _$$_DHTRecordPoolAllocationsToJson(
@@ -32,6 +35,9 @@ Map<String, dynamic> _$$_DHTRecordPoolAllocationsToJson(
       ),
       'parent_by_child': instance.parentByChild.toJson(
         (value) => value,
+        (value) => value.toJson(),
+      ),
+      'root_records': instance.rootRecords.toJson(
         (value) => value.toJson(),
       ),
     };

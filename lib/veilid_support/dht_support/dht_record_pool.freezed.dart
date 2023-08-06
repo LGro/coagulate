@@ -24,6 +24,8 @@ mixin _$DHTRecordPoolAllocations {
   IMap<String, ISet<Typed<FixedEncodedString43>>> get childrenByParent =>
       throw _privateConstructorUsedError; // String key due to IMap<> json unsupported in key
   IMap<String, Typed<FixedEncodedString43>> get parentByChild =>
+      throw _privateConstructorUsedError; // String key due to IMap<> json unsupported in key
+  ISet<Typed<FixedEncodedString43>> get rootRecords =>
       throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -40,7 +42,8 @@ abstract class $DHTRecordPoolAllocationsCopyWith<$Res> {
   @useResult
   $Res call(
       {IMap<String, ISet<Typed<FixedEncodedString43>>> childrenByParent,
-      IMap<String, Typed<FixedEncodedString43>> parentByChild});
+      IMap<String, Typed<FixedEncodedString43>> parentByChild,
+      ISet<Typed<FixedEncodedString43>> rootRecords});
 }
 
 /// @nodoc
@@ -59,6 +62,7 @@ class _$DHTRecordPoolAllocationsCopyWithImpl<$Res,
   $Res call({
     Object? childrenByParent = null,
     Object? parentByChild = null,
+    Object? rootRecords = null,
   }) {
     return _then(_value.copyWith(
       childrenByParent: null == childrenByParent
@@ -69,6 +73,10 @@ class _$DHTRecordPoolAllocationsCopyWithImpl<$Res,
           ? _value.parentByChild
           : parentByChild // ignore: cast_nullable_to_non_nullable
               as IMap<String, Typed<FixedEncodedString43>>,
+      rootRecords: null == rootRecords
+          ? _value.rootRecords
+          : rootRecords // ignore: cast_nullable_to_non_nullable
+              as ISet<Typed<FixedEncodedString43>>,
     ) as $Val);
   }
 }
@@ -84,7 +92,8 @@ abstract class _$$_DHTRecordPoolAllocationsCopyWith<$Res>
   @useResult
   $Res call(
       {IMap<String, ISet<Typed<FixedEncodedString43>>> childrenByParent,
-      IMap<String, Typed<FixedEncodedString43>> parentByChild});
+      IMap<String, Typed<FixedEncodedString43>> parentByChild,
+      ISet<Typed<FixedEncodedString43>> rootRecords});
 }
 
 /// @nodoc
@@ -101,6 +110,7 @@ class __$$_DHTRecordPoolAllocationsCopyWithImpl<$Res>
   $Res call({
     Object? childrenByParent = null,
     Object? parentByChild = null,
+    Object? rootRecords = null,
   }) {
     return _then(_$_DHTRecordPoolAllocations(
       childrenByParent: null == childrenByParent
@@ -111,6 +121,10 @@ class __$$_DHTRecordPoolAllocationsCopyWithImpl<$Res>
           ? _value.parentByChild
           : parentByChild // ignore: cast_nullable_to_non_nullable
               as IMap<String, Typed<FixedEncodedString43>>,
+      rootRecords: null == rootRecords
+          ? _value.rootRecords
+          : rootRecords // ignore: cast_nullable_to_non_nullable
+              as ISet<Typed<FixedEncodedString43>>,
     ));
   }
 }
@@ -119,7 +133,9 @@ class __$$_DHTRecordPoolAllocationsCopyWithImpl<$Res>
 @JsonSerializable()
 class _$_DHTRecordPoolAllocations implements _DHTRecordPoolAllocations {
   const _$_DHTRecordPoolAllocations(
-      {required this.childrenByParent, required this.parentByChild});
+      {required this.childrenByParent,
+      required this.parentByChild,
+      required this.rootRecords});
 
   factory _$_DHTRecordPoolAllocations.fromJson(Map<String, dynamic> json) =>
       _$$_DHTRecordPoolAllocationsFromJson(json);
@@ -129,10 +145,13 @@ class _$_DHTRecordPoolAllocations implements _DHTRecordPoolAllocations {
 // String key due to IMap<> json unsupported in key
   @override
   final IMap<String, Typed<FixedEncodedString43>> parentByChild;
+// String key due to IMap<> json unsupported in key
+  @override
+  final ISet<Typed<FixedEncodedString43>> rootRecords;
 
   @override
   String toString() {
-    return 'DHTRecordPoolAllocations(childrenByParent: $childrenByParent, parentByChild: $parentByChild)';
+    return 'DHTRecordPoolAllocations(childrenByParent: $childrenByParent, parentByChild: $parentByChild, rootRecords: $rootRecords)';
   }
 
   @override
@@ -143,12 +162,15 @@ class _$_DHTRecordPoolAllocations implements _DHTRecordPoolAllocations {
             (identical(other.childrenByParent, childrenByParent) ||
                 other.childrenByParent == childrenByParent) &&
             (identical(other.parentByChild, parentByChild) ||
-                other.parentByChild == parentByChild));
+                other.parentByChild == parentByChild) &&
+            const DeepCollectionEquality()
+                .equals(other.rootRecords, rootRecords));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, childrenByParent, parentByChild);
+  int get hashCode => Object.hash(runtimeType, childrenByParent, parentByChild,
+      const DeepCollectionEquality().hash(rootRecords));
 
   @JsonKey(ignore: true)
   @override
@@ -169,8 +191,9 @@ abstract class _DHTRecordPoolAllocations implements DHTRecordPoolAllocations {
   const factory _DHTRecordPoolAllocations(
       {required final IMap<String, ISet<Typed<FixedEncodedString43>>>
           childrenByParent,
-      required final IMap<String, Typed<FixedEncodedString43>>
-          parentByChild}) = _$_DHTRecordPoolAllocations;
+      required final IMap<String, Typed<FixedEncodedString43>> parentByChild,
+      required final ISet<Typed<FixedEncodedString43>>
+          rootRecords}) = _$_DHTRecordPoolAllocations;
 
   factory _DHTRecordPoolAllocations.fromJson(Map<String, dynamic> json) =
       _$_DHTRecordPoolAllocations.fromJson;
@@ -179,6 +202,8 @@ abstract class _DHTRecordPoolAllocations implements DHTRecordPoolAllocations {
   IMap<String, ISet<Typed<FixedEncodedString43>>> get childrenByParent;
   @override // String key due to IMap<> json unsupported in key
   IMap<String, Typed<FixedEncodedString43>> get parentByChild;
+  @override // String key due to IMap<> json unsupported in key
+  ISet<Typed<FixedEncodedString43>> get rootRecords;
   @override
   @JsonKey(ignore: true)
   _$$_DHTRecordPoolAllocationsCopyWith<_$_DHTRecordPoolAllocations>

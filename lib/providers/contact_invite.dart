@@ -70,7 +70,6 @@ Future<AcceptedOrRejectedContact?> checkAcceptRejectContact(
       final signedContactResponse = await contactRequestInbox
           .getProtobuf(SignedContactResponse.fromBuffer, forceRefresh: true);
       if (signedContactResponse == null) {
-        log.error('failed to get signed contact response');
         return null;
       }
 
