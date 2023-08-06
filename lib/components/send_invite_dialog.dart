@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/foundation.dart';
@@ -7,11 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
-import 'package:quickalert/quickalert.dart';
 
 import '../entities/local_account.dart';
 import '../providers/account.dart';
-import '../providers/contact.dart';
+import '../providers/contact_invite.dart';
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import 'contact_invitation_display.dart';

@@ -931,8 +931,8 @@ class Conversation extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Conversation', createEmptyInstance: create)
     ..aOM<Profile>(1, _omitFieldNames ? '' : 'profile', subBuilder: Profile.create)
-    ..aOS(2, _omitFieldNames ? '' : 'identity')
-    ..aOM<DHTLog>(3, _omitFieldNames ? '' : 'messages', subBuilder: DHTLog.create)
+    ..aOS(2, _omitFieldNames ? '' : 'identityMasterJson')
+    ..aOM<OwnedDHTRecordPointer>(3, _omitFieldNames ? '' : 'messages', subBuilder: OwnedDHTRecordPointer.create)
     ..hasRequiredFields = false
   ;
 
@@ -969,24 +969,24 @@ class Conversation extends $pb.GeneratedMessage {
   Profile ensureProfile() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $core.String get identity => $_getSZ(1);
+  $core.String get identityMasterJson => $_getSZ(1);
   @$pb.TagNumber(2)
-  set identity($core.String v) { $_setString(1, v); }
+  set identityMasterJson($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasIdentity() => $_has(1);
+  $core.bool hasIdentityMasterJson() => $_has(1);
   @$pb.TagNumber(2)
-  void clearIdentity() => clearField(2);
+  void clearIdentityMasterJson() => clearField(2);
 
   @$pb.TagNumber(3)
-  DHTLog get messages => $_getN(2);
+  OwnedDHTRecordPointer get messages => $_getN(2);
   @$pb.TagNumber(3)
-  set messages(DHTLog v) { setField(3, v); }
+  set messages(OwnedDHTRecordPointer v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasMessages() => $_has(2);
   @$pb.TagNumber(3)
   void clearMessages() => clearField(3);
   @$pb.TagNumber(3)
-  DHTLog ensureMessages() => $_ensure(2);
+  OwnedDHTRecordPointer ensureMessages() => $_ensure(2);
 }
 
 class Contact extends $pb.GeneratedMessage {
@@ -998,10 +998,11 @@ class Contact extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Contact', createEmptyInstance: create)
     ..aOM<Profile>(1, _omitFieldNames ? '' : 'editedProfile', subBuilder: Profile.create)
     ..aOM<Profile>(2, _omitFieldNames ? '' : 'remoteProfile', subBuilder: Profile.create)
-    ..aOS(3, _omitFieldNames ? '' : 'remoteIdentity')
-    ..aOM<TypedKey>(4, _omitFieldNames ? '' : 'remoteConversationKey', subBuilder: TypedKey.create)
-    ..aOM<OwnedDHTRecordPointer>(5, _omitFieldNames ? '' : 'localConversation', subBuilder: OwnedDHTRecordPointer.create)
-    ..aOB(6, _omitFieldNames ? '' : 'showAvailability')
+    ..aOS(3, _omitFieldNames ? '' : 'identityMasterJson')
+    ..aOM<TypedKey>(4, _omitFieldNames ? '' : 'identityPublicKey', subBuilder: TypedKey.create)
+    ..aOM<TypedKey>(5, _omitFieldNames ? '' : 'remoteConversationKey', subBuilder: TypedKey.create)
+    ..aOM<OwnedDHTRecordPointer>(6, _omitFieldNames ? '' : 'localConversation', subBuilder: OwnedDHTRecordPointer.create)
+    ..aOB(7, _omitFieldNames ? '' : 'showAvailability')
     ..hasRequiredFields = false
   ;
 
@@ -1049,44 +1050,55 @@ class Contact extends $pb.GeneratedMessage {
   Profile ensureRemoteProfile() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $core.String get remoteIdentity => $_getSZ(2);
+  $core.String get identityMasterJson => $_getSZ(2);
   @$pb.TagNumber(3)
-  set remoteIdentity($core.String v) { $_setString(2, v); }
+  set identityMasterJson($core.String v) { $_setString(2, v); }
   @$pb.TagNumber(3)
-  $core.bool hasRemoteIdentity() => $_has(2);
+  $core.bool hasIdentityMasterJson() => $_has(2);
   @$pb.TagNumber(3)
-  void clearRemoteIdentity() => clearField(3);
+  void clearIdentityMasterJson() => clearField(3);
 
   @$pb.TagNumber(4)
-  TypedKey get remoteConversationKey => $_getN(3);
+  TypedKey get identityPublicKey => $_getN(3);
   @$pb.TagNumber(4)
-  set remoteConversationKey(TypedKey v) { setField(4, v); }
+  set identityPublicKey(TypedKey v) { setField(4, v); }
   @$pb.TagNumber(4)
-  $core.bool hasRemoteConversationKey() => $_has(3);
+  $core.bool hasIdentityPublicKey() => $_has(3);
   @$pb.TagNumber(4)
-  void clearRemoteConversationKey() => clearField(4);
+  void clearIdentityPublicKey() => clearField(4);
   @$pb.TagNumber(4)
-  TypedKey ensureRemoteConversationKey() => $_ensure(3);
+  TypedKey ensureIdentityPublicKey() => $_ensure(3);
 
   @$pb.TagNumber(5)
-  OwnedDHTRecordPointer get localConversation => $_getN(4);
+  TypedKey get remoteConversationKey => $_getN(4);
   @$pb.TagNumber(5)
-  set localConversation(OwnedDHTRecordPointer v) { setField(5, v); }
+  set remoteConversationKey(TypedKey v) { setField(5, v); }
   @$pb.TagNumber(5)
-  $core.bool hasLocalConversation() => $_has(4);
+  $core.bool hasRemoteConversationKey() => $_has(4);
   @$pb.TagNumber(5)
-  void clearLocalConversation() => clearField(5);
+  void clearRemoteConversationKey() => clearField(5);
   @$pb.TagNumber(5)
-  OwnedDHTRecordPointer ensureLocalConversation() => $_ensure(4);
+  TypedKey ensureRemoteConversationKey() => $_ensure(4);
 
   @$pb.TagNumber(6)
-  $core.bool get showAvailability => $_getBF(5);
+  OwnedDHTRecordPointer get localConversation => $_getN(5);
   @$pb.TagNumber(6)
-  set showAvailability($core.bool v) { $_setBool(5, v); }
+  set localConversation(OwnedDHTRecordPointer v) { setField(6, v); }
   @$pb.TagNumber(6)
-  $core.bool hasShowAvailability() => $_has(5);
+  $core.bool hasLocalConversation() => $_has(5);
   @$pb.TagNumber(6)
-  void clearShowAvailability() => clearField(6);
+  void clearLocalConversation() => clearField(6);
+  @$pb.TagNumber(6)
+  OwnedDHTRecordPointer ensureLocalConversation() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  $core.bool get showAvailability => $_getBF(6);
+  @$pb.TagNumber(7)
+  set showAvailability($core.bool v) { $_setBool(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasShowAvailability() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearShowAvailability() => clearField(7);
 }
 
 class Profile extends $pb.GeneratedMessage {
@@ -1229,6 +1241,60 @@ class OwnedDHTRecordPointer extends $pb.GeneratedMessage {
   KeyPair ensureOwner() => $_ensure(1);
 }
 
+class Chat extends $pb.GeneratedMessage {
+  factory Chat() => create();
+  Chat._() : super();
+  factory Chat.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory Chat.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chat', createEmptyInstance: create)
+    ..e<ChatType>(1, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE, defaultOrMaker: ChatType.CHAT_TYPE_UNSPECIFIED, valueOf: ChatType.valueOf, enumValues: ChatType.values)
+    ..aOM<TypedKey>(2, _omitFieldNames ? '' : 'remoteConversationKey', subBuilder: TypedKey.create)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  Chat clone() => Chat()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  Chat copyWith(void Function(Chat) updates) => super.copyWith((message) => updates(message as Chat)) as Chat;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chat create() => Chat._();
+  Chat createEmptyInstance() => create();
+  static $pb.PbList<Chat> createRepeated() => $pb.PbList<Chat>();
+  @$core.pragma('dart2js:noInline')
+  static Chat getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chat>(create);
+  static Chat? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ChatType get type => $_getN(0);
+  @$pb.TagNumber(1)
+  set type(ChatType v) { setField(1, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasType() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearType() => clearField(1);
+
+  @$pb.TagNumber(2)
+  TypedKey get remoteConversationKey => $_getN(1);
+  @$pb.TagNumber(2)
+  set remoteConversationKey(TypedKey v) { setField(2, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasRemoteConversationKey() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRemoteConversationKey() => clearField(2);
+  @$pb.TagNumber(2)
+  TypedKey ensureRemoteConversationKey() => $_ensure(1);
+}
+
 class Account extends $pb.GeneratedMessage {
   factory Account() => create();
   Account._() : super();
@@ -1241,6 +1307,7 @@ class Account extends $pb.GeneratedMessage {
     ..a<$core.int>(3, _omitFieldNames ? '' : 'autoAwayTimeoutSec', $pb.PbFieldType.OU3)
     ..aOM<OwnedDHTRecordPointer>(4, _omitFieldNames ? '' : 'contactList', subBuilder: OwnedDHTRecordPointer.create)
     ..aOM<OwnedDHTRecordPointer>(5, _omitFieldNames ? '' : 'contactInvitationRecords', subBuilder: OwnedDHTRecordPointer.create)
+    ..aOM<OwnedDHTRecordPointer>(6, _omitFieldNames ? '' : 'chatList', subBuilder: OwnedDHTRecordPointer.create)
     ..hasRequiredFields = false
   ;
 
@@ -1315,6 +1382,17 @@ class Account extends $pb.GeneratedMessage {
   void clearContactInvitationRecords() => clearField(5);
   @$pb.TagNumber(5)
   OwnedDHTRecordPointer ensureContactInvitationRecords() => $_ensure(4);
+
+  @$pb.TagNumber(6)
+  OwnedDHTRecordPointer get chatList => $_getN(5);
+  @$pb.TagNumber(6)
+  set chatList(OwnedDHTRecordPointer v) { setField(6, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasChatList() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearChatList() => clearField(6);
+  @$pb.TagNumber(6)
+  OwnedDHTRecordPointer ensureChatList() => $_ensure(5);
 }
 
 class ContactInvitation extends $pb.GeneratedMessage {

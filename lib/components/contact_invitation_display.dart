@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:archive/archive.dart';
-import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -74,7 +72,7 @@ class ContactInvitationDisplayDialogState
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final scale = theme.extension<ScaleScheme>()!;
+    //final scale = theme.extension<ScaleScheme>()!;
     final textTheme = theme.textTheme;
 
     final signedContactInvitationBytesV = ref.watch(_generateFutureProvider);

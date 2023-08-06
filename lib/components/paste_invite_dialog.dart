@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/foundation.dart';
@@ -9,12 +8,11 @@ import 'package:flutter_translate/flutter_translate.dart';
 import 'package:quickalert/quickalert.dart';
 
 import '../entities/local_account.dart';
-import '../entities/proto.dart' as proto;
 import '../providers/account.dart';
 import '../providers/contact.dart';
+import '../providers/contact_invite.dart';
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
-import 'contact_invitation_display.dart';
 import 'enter_pin.dart';
 import 'profile_widget.dart';
 
@@ -118,7 +116,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
           activeAccountInfo: activeAccountInfo,
           profile: acceptedContact.profile,
           remoteIdentity: acceptedContact.remoteIdentity,
-          remoteConversation: acceptedContact.remoteConversation,
+          remoteConversationKey: acceptedContact.remoteConversationKey,
           localConversation: acceptedContact.localConversation,
         );
         ref

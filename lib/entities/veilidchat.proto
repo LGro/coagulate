@@ -181,9 +181,9 @@ message Conversation {
     // Profile to publish to friend
     Profile profile = 1;
     // Identity master (JSON) to publish to friend
-    string identity = 2;
+    string identity_master_json = 2;
     // Messages DHTLog
-    DHTLog messages = 3;
+    OwnedDHTRecordPointer messages = 3;
 }
 
 // A record of a contact that has accepted a contact invitation
@@ -198,14 +198,16 @@ message Contact {
     Profile edited_profile = 1;
     // Copy of friend's profile from remote conversation
     Profile remote_profile = 2;
-    // Copy of friend's identity (JSON) from remote conversation
-    string remote_identity = 3;
+    // Copy of friend's IdentityMaster in JSON from remote conversation
+    string identity_master_json = 3;
+    // Copy of friend's most recent identity public key from their identityMaster
+    TypedKey identity_public_key = 4;
     // Remote conversation key to sync from friend
-    TypedKey remote_conversation_key = 4;
+    TypedKey remote_conversation_key = 5;
     // Our conversation key for friend to sync
-    OwnedDHTRecordPointer local_conversation = 5;
+    OwnedDHTRecordPointer local_conversation = 6;
     // Show availability
-    bool show_availability = 6;
+    bool show_availability = 7;
 }
 
 // Contact availability
@@ -243,6 +245,20 @@ message OwnedDHTRecordPointer {
     KeyPair owner = 2;
 }
 
+enum ChatType {
+    CHAT_TYPE_UNSPECIFIED = 0;
+    SINGLE_CONTACT = 1;
+    GROUP = 2;
+}
+
+// Either a 1-1 converation or a group chat (eventually)
+message Chat {
+    // What kind of chat is this
+    ChatType type = 1;
+    // 1-1 Chat key
+    TypedKey remote_conversation_key = 2;
+}
+
 // A record of an individual account
 // Pointed to by the identity account map in the identity key
 //
@@ -261,6 +277,10 @@ message Account {
     // The ContactInvitationRecord DHTShortArray for this account
     // DHT Private
     OwnedDHTRecordPointer contact_invitation_records = 5;
+    // The chats DHTList for this account
+    // DHT Private
+    OwnedDHTRecordPointer chat_list = 6;
+    
 }
 
 // EncryptionKeyType

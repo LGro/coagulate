@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_translate/flutter_translate.dart';
-import 'package:veilid/veilid.dart';
 import '../../entities/proto.dart' as proto;
 import '../providers/account.dart';
-import '../providers/contact.dart';
+import '../providers/contact_invite.dart';
 import '../tools/tools.dart';
 import 'contact_invitation_display.dart';
 
@@ -27,7 +26,7 @@ class ContactInvitationItemWidget extends ConsumerWidget {
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
+    //final textTheme = theme.textTheme;
     final scale = theme.extension<ScaleScheme>()!;
 
     return Container(

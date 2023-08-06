@@ -9,11 +9,9 @@ import 'package:signal_strength_indicator/signal_strength_indicator.dart';
 import '../components/chat_component.dart';
 import '../providers/account.dart';
 import '../providers/contact.dart';
-import '../providers/local_accounts.dart';
-import '../providers/logins.dart';
+import '../providers/contact_invite.dart';
 import '../providers/window_control.dart';
 import '../tools/tools.dart';
-import '../veilid_support/dht_support/dht_record_pool.dart';
 import 'main_pager/main_pager.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -91,8 +89,16 @@ class HomePageState extends ConsumerState<HomePage>
             activeAccountInfo: activeAccountInfo,
             contactInvitationRecord: contactInvitationRecord);
         if (acceptReject != null) {
-          if (acceptReject) {
+          final acceptedContact = acceptReject.acceptedContact;
+          if (acceptedContact != null) {
             // Accept
+            await createContact(
+              activeAccountInfo: activeAccountInfo,
+              profile: acceptedContact.profile,
+              remoteIdentity: acceptedContact.remoteIdentity,
+              remoteConversationKey: acceptedContact.remoteConversationKey,
+              localConversation: acceptedContact.localConversation,
+            );
             ref
               ..invalidate(fetchContactInvitationRecordsProvider)
               ..invalidate(fetchContactListProvider);

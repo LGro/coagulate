@@ -51,6 +51,23 @@ class Availability extends $pb.ProtobufEnum {
   const Availability._($core.int v, $core.String n) : super(v, n);
 }
 
+class ChatType extends $pb.ProtobufEnum {
+  static const ChatType CHAT_TYPE_UNSPECIFIED = ChatType._(0, _omitEnumNames ? '' : 'CHAT_TYPE_UNSPECIFIED');
+  static const ChatType SINGLE_CONTACT = ChatType._(1, _omitEnumNames ? '' : 'SINGLE_CONTACT');
+  static const ChatType GROUP = ChatType._(2, _omitEnumNames ? '' : 'GROUP');
+
+  static const $core.List<ChatType> values = <ChatType> [
+    CHAT_TYPE_UNSPECIFIED,
+    SINGLE_CONTACT,
+    GROUP,
+  ];
+
+  static final $core.Map<$core.int, ChatType> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static ChatType? valueOf($core.int value) => _byValue[value];
+
+  const ChatType._($core.int v, $core.String n) : super(v, n);
+}
+
 class EncryptionKeyType extends $pb.ProtobufEnum {
   static const EncryptionKeyType ENCRYPTION_KEY_TYPE_UNSPECIFIED = EncryptionKeyType._(0, _omitEnumNames ? '' : 'ENCRYPTION_KEY_TYPE_UNSPECIFIED');
   static const EncryptionKeyType ENCRYPTION_KEY_TYPE_NONE = EncryptionKeyType._(1, _omitEnumNames ? '' : 'ENCRYPTION_KEY_TYPE_NONE');

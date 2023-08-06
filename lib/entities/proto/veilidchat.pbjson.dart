@@ -46,6 +46,21 @@ final $typed_data.Uint8List availabilityDescriptor = $convert.base64Decode(
     'lMSVRZX09GRkxJTkUQARIVChFBVkFJTEFCSUxJVFlfRlJFRRACEhUKEUFWQUlMQUJJTElUWV9C'
     'VVNZEAMSFQoRQVZBSUxBQklMSVRZX0FXQVkQBA==');
 
+@$core.Deprecated('Use chatTypeDescriptor instead')
+const ChatType$json = {
+  '1': 'ChatType',
+  '2': [
+    {'1': 'CHAT_TYPE_UNSPECIFIED', '2': 0},
+    {'1': 'SINGLE_CONTACT', '2': 1},
+    {'1': 'GROUP', '2': 2},
+  ],
+};
+
+/// Descriptor for `ChatType`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List chatTypeDescriptor = $convert.base64Decode(
+    'CghDaGF0VHlwZRIZChVDSEFUX1RZUEVfVU5TUEVDSUZJRUQQABISCg5TSU5HTEVfQ09OVEFDVB'
+    'ABEgkKBUdST1VQEAI=');
+
 @$core.Deprecated('Use encryptionKeyTypeDescriptor instead')
 const EncryptionKeyType$json = {
   '1': 'EncryptionKeyType',
@@ -269,16 +284,16 @@ const Conversation$json = {
   '1': 'Conversation',
   '2': [
     {'1': 'profile', '3': 1, '4': 1, '5': 11, '6': '.Profile', '10': 'profile'},
-    {'1': 'identity', '3': 2, '4': 1, '5': 9, '10': 'identity'},
-    {'1': 'messages', '3': 3, '4': 1, '5': 11, '6': '.DHTLog', '10': 'messages'},
+    {'1': 'identity_master_json', '3': 2, '4': 1, '5': 9, '10': 'identityMasterJson'},
+    {'1': 'messages', '3': 3, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'messages'},
   ],
 };
 
 /// Descriptor for `Conversation`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List conversationDescriptor = $convert.base64Decode(
-    'CgxDb252ZXJzYXRpb24SIgoHcHJvZmlsZRgBIAEoCzIILlByb2ZpbGVSB3Byb2ZpbGUSGgoIaW'
-    'RlbnRpdHkYAiABKAlSCGlkZW50aXR5EiMKCG1lc3NhZ2VzGAMgASgLMgcuREhUTG9nUghtZXNz'
-    'YWdlcw==');
+    'CgxDb252ZXJzYXRpb24SIgoHcHJvZmlsZRgBIAEoCzIILlByb2ZpbGVSB3Byb2ZpbGUSMAoUaW'
+    'RlbnRpdHlfbWFzdGVyX2pzb24YAiABKAlSEmlkZW50aXR5TWFzdGVySnNvbhIyCghtZXNzYWdl'
+    'cxgDIAEoCzIWLk93bmVkREhUUmVjb3JkUG9pbnRlclIIbWVzc2FnZXM=');
 
 @$core.Deprecated('Use contactDescriptor instead')
 const Contact$json = {
@@ -286,21 +301,24 @@ const Contact$json = {
   '2': [
     {'1': 'edited_profile', '3': 1, '4': 1, '5': 11, '6': '.Profile', '10': 'editedProfile'},
     {'1': 'remote_profile', '3': 2, '4': 1, '5': 11, '6': '.Profile', '10': 'remoteProfile'},
-    {'1': 'remote_identity', '3': 3, '4': 1, '5': 9, '10': 'remoteIdentity'},
-    {'1': 'remote_conversation_key', '3': 4, '4': 1, '5': 11, '6': '.TypedKey', '10': 'remoteConversationKey'},
-    {'1': 'local_conversation', '3': 5, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'localConversation'},
-    {'1': 'show_availability', '3': 6, '4': 1, '5': 8, '10': 'showAvailability'},
+    {'1': 'identity_master_json', '3': 3, '4': 1, '5': 9, '10': 'identityMasterJson'},
+    {'1': 'identity_public_key', '3': 4, '4': 1, '5': 11, '6': '.TypedKey', '10': 'identityPublicKey'},
+    {'1': 'remote_conversation_key', '3': 5, '4': 1, '5': 11, '6': '.TypedKey', '10': 'remoteConversationKey'},
+    {'1': 'local_conversation', '3': 6, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'localConversation'},
+    {'1': 'show_availability', '3': 7, '4': 1, '5': 8, '10': 'showAvailability'},
   ],
 };
 
 /// Descriptor for `Contact`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List contactDescriptor = $convert.base64Decode(
     'CgdDb250YWN0Ei8KDmVkaXRlZF9wcm9maWxlGAEgASgLMgguUHJvZmlsZVINZWRpdGVkUHJvZm'
-    'lsZRIvCg5yZW1vdGVfcHJvZmlsZRgCIAEoCzIILlByb2ZpbGVSDXJlbW90ZVByb2ZpbGUSJwoP'
-    'cmVtb3RlX2lkZW50aXR5GAMgASgJUg5yZW1vdGVJZGVudGl0eRJBChdyZW1vdGVfY29udmVyc2'
-    'F0aW9uX2tleRgEIAEoCzIJLlR5cGVkS2V5UhVyZW1vdGVDb252ZXJzYXRpb25LZXkSRQoSbG9j'
-    'YWxfY29udmVyc2F0aW9uGAUgASgLMhYuT3duZWRESFRSZWNvcmRQb2ludGVyUhFsb2NhbENvbn'
-    'ZlcnNhdGlvbhIrChFzaG93X2F2YWlsYWJpbGl0eRgGIAEoCFIQc2hvd0F2YWlsYWJpbGl0eQ==');
+    'lsZRIvCg5yZW1vdGVfcHJvZmlsZRgCIAEoCzIILlByb2ZpbGVSDXJlbW90ZVByb2ZpbGUSMAoU'
+    'aWRlbnRpdHlfbWFzdGVyX2pzb24YAyABKAlSEmlkZW50aXR5TWFzdGVySnNvbhI5ChNpZGVudG'
+    'l0eV9wdWJsaWNfa2V5GAQgASgLMgkuVHlwZWRLZXlSEWlkZW50aXR5UHVibGljS2V5EkEKF3Jl'
+    'bW90ZV9jb252ZXJzYXRpb25fa2V5GAUgASgLMgkuVHlwZWRLZXlSFXJlbW90ZUNvbnZlcnNhdG'
+    'lvbktleRJFChJsb2NhbF9jb252ZXJzYXRpb24YBiABKAsyFi5Pd25lZERIVFJlY29yZFBvaW50'
+    'ZXJSEWxvY2FsQ29udmVyc2F0aW9uEisKEXNob3dfYXZhaWxhYmlsaXR5GAcgASgIUhBzaG93QX'
+    'ZhaWxhYmlsaXR5');
 
 @$core.Deprecated('Use profileDescriptor instead')
 const Profile$json = {
@@ -338,6 +356,20 @@ final $typed_data.Uint8List ownedDHTRecordPointerDescriptor = $convert.base64Dec
     'ChVPd25lZERIVFJlY29yZFBvaW50ZXISKAoKcmVjb3JkX2tleRgBIAEoCzIJLlR5cGVkS2V5Ug'
     'lyZWNvcmRLZXkSHgoFb3duZXIYAiABKAsyCC5LZXlQYWlyUgVvd25lcg==');
 
+@$core.Deprecated('Use chatDescriptor instead')
+const Chat$json = {
+  '1': 'Chat',
+  '2': [
+    {'1': 'type', '3': 1, '4': 1, '5': 14, '6': '.ChatType', '10': 'type'},
+    {'1': 'remote_conversation_key', '3': 2, '4': 1, '5': 11, '6': '.TypedKey', '10': 'remoteConversationKey'},
+  ],
+};
+
+/// Descriptor for `Chat`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List chatDescriptor = $convert.base64Decode(
+    'CgRDaGF0Eh0KBHR5cGUYASABKA4yCS5DaGF0VHlwZVIEdHlwZRJBChdyZW1vdGVfY29udmVyc2'
+    'F0aW9uX2tleRgCIAEoCzIJLlR5cGVkS2V5UhVyZW1vdGVDb252ZXJzYXRpb25LZXk=');
+
 @$core.Deprecated('Use accountDescriptor instead')
 const Account$json = {
   '1': 'Account',
@@ -347,6 +379,7 @@ const Account$json = {
     {'1': 'auto_away_timeout_sec', '3': 3, '4': 1, '5': 13, '10': 'autoAwayTimeoutSec'},
     {'1': 'contact_list', '3': 4, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'contactList'},
     {'1': 'contact_invitation_records', '3': 5, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'contactInvitationRecords'},
+    {'1': 'chat_list', '3': 6, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'chatList'},
   ],
 };
 
@@ -356,7 +389,8 @@ final $typed_data.Uint8List accountDescriptor = $convert.base64Decode(
     'JsZRgCIAEoCFIJaW52aXNpYmxlEjEKFWF1dG9fYXdheV90aW1lb3V0X3NlYxgDIAEoDVISYXV0'
     'b0F3YXlUaW1lb3V0U2VjEjkKDGNvbnRhY3RfbGlzdBgEIAEoCzIWLk93bmVkREhUUmVjb3JkUG'
     '9pbnRlclILY29udGFjdExpc3QSVAoaY29udGFjdF9pbnZpdGF0aW9uX3JlY29yZHMYBSABKAsy'
-    'Fi5Pd25lZERIVFJlY29yZFBvaW50ZXJSGGNvbnRhY3RJbnZpdGF0aW9uUmVjb3Jkcw==');
+    'Fi5Pd25lZERIVFJlY29yZFBvaW50ZXJSGGNvbnRhY3RJbnZpdGF0aW9uUmVjb3JkcxIzCgljaG'
+    'F0X2xpc3QYBiABKAsyFi5Pd25lZERIVFJlY29yZFBvaW50ZXJSCGNoYXRMaXN0');
 
 @$core.Deprecated('Use contactInvitationDescriptor instead')
 const ContactInvitation$json = {

@@ -12,6 +12,7 @@ import '../../entities/local_account.dart';
 import '../../entities/proto.dart' as proto;
 import '../../providers/account.dart';
 import '../../providers/contact.dart';
+import '../../providers/contact_invite.dart';
 import '../../providers/local_accounts.dart';
 import '../../providers/logins.dart';
 import '../../tools/tools.dart';
