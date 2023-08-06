@@ -34,7 +34,7 @@
 3. Set ContactRequest unicastinbox DHT record writer subkey with SignedContactResponse, encrypted with writer secret
 
 ## Receiving an accept/reject
-1. Open and get SignedContactResponse from ContactRequest unicaseinbox DHT record
+1. Open and get SignedContactResponse from ContactRequest unicastinbox DHT record
 2. Decrypt with writer secret
 3. Get DHT record for contact's AccountMaster
 4. Validate the SignedContactResponse signature
@@ -42,8 +42,10 @@
 If accept == false:
    1. Announce rejection
    2. Delete local invitation from table
+   3. Overwrite and delete ContactRequest inbox
   
 If accept == true:
    1. Add a local contact with the remote chat dht record, updating from the remote profile in it.
    2. Delete local invitation from table
-
+   3. Overwrite and delete ContactRequest inbox
+  

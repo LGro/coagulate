@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
@@ -330,46 +331,79 @@ Future<ValidContactInvitation> validateContactInvitation(Uint8List inviteData,
   return out;
 }
 
-Future<void> acceptContactInvitation(ActiveAccountInfo activeAccountInfo,
+class AcceptedContact {
+  AcceptedContact({
+    required this.profile,
+    required this.remoteIdentity,
+    required this.remoteConversation,
+    required this.localConversation,
+  });
+
+  proto.Profile profile;
+  IdentityMaster remoteIdentity;
+  TypedKey remoteConversation;
+  OwnedDHTRecordPointer localConversation;
+}
+
+Future<AcceptedContact?> acceptContactInvitation(
+    ActiveAccountInfo activeAccountInfo,
     ValidContactInvitation validContactInvitation) async {
   final pool = await DHTRecordPool.instance();
-  await (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
+  final accountRecordKey =
+      activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+
+  return (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
           validContactInvitation.writer))
       .deleteScope((contactRequestInbox) async {
     final cs = await pool.veilid
         .getCryptoSystem(validContactInvitation.contactRequestInboxKey.kind);
 
-    // xxx
-    final contactResponse = ContactResponse()
-      ..accept = false
-      ..identityMasterRecordKey = activeAccountInfo
-          .localAccount.identityMaster.masterRecordKey
-          .toProto();
-    final contactResponseBytes = contactResponse.writeToBuffer();
+    // Create local conversation key for this
+    // contact and send via contact response
+    return (await pool.create(parent: accountRecordKey))
+        .deleteScope((localConversation) async {
+      final contactResponse = ContactResponse()
+        ..accept = true
+        ..remoteConversationKey = localConversation.key.toProto()
+        ..identityMasterRecordKey = activeAccountInfo
+            .localAccount.identityMaster.masterRecordKey
+            .toProto();
+      final contactResponseBytes = contactResponse.writeToBuffer();
 
-    final identitySignature = await cs.sign(
-        activeAccountInfo.localAccount.identityMaster.identityPublicKey,
-        activeAccountInfo.userLogin.identitySecret.value,
-        contactResponseBytes);
+      final identitySignature = await cs.sign(
+          activeAccountInfo.localAccount.identityMaster.identityPublicKey,
+          activeAccountInfo.userLogin.identitySecret.value,
+          contactResponseBytes);
 
-    final signedContactResponse = SignedContactResponse()
-      ..contactResponse = contactResponseBytes
-      ..identitySignature = identitySignature.toProto();
+      final signedContactResponse = SignedContactResponse()
+        ..contactResponse = contactResponseBytes
+        ..identitySignature = identitySignature.toProto();
 
-    // Write the rejection to the invox
-    if (await contactRequestInbox.tryWriteProtobuf(
-            SignedContactResponse.fromBuffer, signedContactResponse,
-            subkey: 1) !=
-        null) {
-      log.error('failed to accept contact invitation');
-    }
+      // Write the acceptance to the inbox
+      if (await contactRequestInbox.tryWriteProtobuf(
+              SignedContactResponse.fromBuffer, signedContactResponse,
+              subkey: 1) !=
+          null) {
+        log.error('failed to accept contact invitation');
+        await localConversation.delete();
+        await contactRequestInbox.delete();
+        return null;
+      }
+      return AcceptedContact(
+        profile: validContactInvitation.contactRequestPrivate.profile,
+        remoteIdentity: validContactInvitation.contactIdentityMaster,
+        remoteConversation: proto.TypedKeyProto.fromProto(
+            validContactInvitation.contactRequestPrivate.chatRecordKey),
+        localConversation: localConversation.ownedDHTRecordPointer,
+      );
+    });
   });
 }
 
-Future<void> rejectContactInvitation(ActiveAccountInfo activeAccountInfo,
+Future<bool> rejectContactInvitation(ActiveAccountInfo activeAccountInfo,
     ValidContactInvitation validContactInvitation) async {
   final pool = await DHTRecordPool.instance();
-  await (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
+  return (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
           validContactInvitation.writer))
       .deleteScope((contactRequestInbox) async {
     final cs = await pool.veilid
@@ -397,6 +431,40 @@ Future<void> rejectContactInvitation(ActiveAccountInfo activeAccountInfo,
             subkey: 1) !=
         null) {
       log.error('failed to reject contact invitation');
+      return false;
+    }
+    return true;
+  });
+}
+
+Future<void> createContact({
+  required ActiveAccountInfo activeAccountInfo,
+  required proto.Profile profile,
+  required IdentityMaster remoteIdentity,
+  required TypedKey remoteConversation,
+  required OwnedDHTRecordPointer localConversation,
+}) async {
+  final accountRecordKey =
+      activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+
+  // Create Contact
+  final contact = Contact()
+    ..editedProfile = profile
+    ..remoteProfile = profile
+    ..remoteIdentity = jsonEncode(remoteIdentity.toJson())
+    ..remoteConversationKey = remoteConversation.toProto()
+    ..localConversation = localConversation.toProto()
+    ..showAvailability = false;
+
+  // Add Contact to account's list
+  // if this fails, don't keep retrying, user can try again later
+  await (await DHTShortArray.openOwned(
+          proto.OwnedDHTRecordPointerProto.fromProto(
+              activeAccountInfo.account.contactList),
+          parent: accountRecordKey))
+      .scope((contactList) async {
+    if (await contactList.tryAddItem(contact.writeToBuffer()) == false) {
+      throw StateError('Failed to add contact');
     }
   });
 }

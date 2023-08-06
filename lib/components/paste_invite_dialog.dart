@@ -111,7 +111,24 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
     }
     final validInvitation = _validInvitation;
     if (validInvitation != null) {
-      await acceptContactInvitation(activeAccountInfo, validInvitation);
+      final acceptedContact =
+          await acceptContactInvitation(activeAccountInfo, validInvitation);
+      if (acceptedContact != null) {
+        await createContact(
+          activeAccountInfo: activeAccountInfo,
+          profile: acceptedContact.profile,
+          remoteIdentity: acceptedContact.remoteIdentity,
+          remoteConversation: acceptedContact.remoteConversation,
+          localConversation: acceptedContact.localConversation,
+        );
+        ref
+          ..invalidate(fetchContactInvitationRecordsProvider)
+          ..invalidate(fetchContactListProvider);
+      } else {
+        if (context.mounted) {
+          showErrorToast(context, 'paste_invite_dialog.failed_to_accept');
+        }
+      }
     }
     setState(() {
       _isAccepting = false;
@@ -135,7 +152,13 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
     }
     final validInvitation = _validInvitation;
     if (validInvitation != null) {
-      await rejectContactInvitation(activeAccountInfo, validInvitation);
+      if (await rejectContactInvitation(activeAccountInfo, validInvitation)) {
+        // do nothing right now
+      } else {
+        if (context.mounted) {
+          showErrorToast(context, 'paste_invite_dialog.failed_to_reject');
+        }
+      }
     }
     setState(() {
       _isAccepting = false;

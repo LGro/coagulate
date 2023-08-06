@@ -88,7 +88,9 @@
         "paste": "Paste",
         "message_from_contact": "Message from contact",
         "validating": "Validating...",
-        "invalid_invitation": "Invalid invitation"
+        "invalid_invitation": "Invalid invitation",
+        "failed_to_accept": "Failed to accept contact invite",
+        "failed_to_reject": "Failed to reject contact invite"
     },
     "enter_pin_dialog": {
         "enter_pin": "Enter PIN",
