@@ -204,9 +204,9 @@ message Contact {
     // Copy of friend's most recent identity public key from their identityMaster
     TypedKey identity_public_key = 4;
     // Remote conversation key to sync from friend
-    TypedKey remote_conversation_key = 5;
+    TypedKey remote_conversation_record_key = 5;
     // Our conversation key for friend to sync
-    OwnedDHTRecordPointer local_conversation = 6;
+    TypedKey local_conversation_record_key = 6;
     // Show availability
     bool show_availability = 7;
 }
@@ -343,7 +343,7 @@ message ContactResponse {
     // Remote identity master DHT record key
     TypedKey identity_master_record_key = 2;
     // Remote chat DHT record key if accepted
-    TypedKey remote_conversation_key = 3;
+    TypedKey remote_conversation_record_key = 3;
 }
 
 // Signature of response with identity
@@ -364,7 +364,7 @@ message ContactInvitationRecord {
     // Writer secret sent encrypted in the invitation
     CryptoKey writer_secret = 3; 
     // Local chat DHT record key (parent is accountkey, will be moved to Contact if accepted)
-    OwnedDHTRecordPointer local_conversation = 4;
+    TypedKey local_conversation_record_key = 4;
     // Expiration timestamp
     uint64 expiration = 5;
     // A copy of the raw SignedContactInvitation invitation bytes post-encryption and signing

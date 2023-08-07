@@ -19,7 +19,8 @@ class ChatSingleContactListWidget extends ConsumerWidget {
       required this.chatList,
       super.key})
       : contactMap = IMap.fromIterable(contactList,
-            keyMapper: (c) => c.remoteConversationKey, valueMapper: (c) => c);
+            keyMapper: (c) => c.remoteConversationRecordKey,
+            valueMapper: (c) => c);
 
   final IMap<proto.TypedKey, proto.Contact> contactMap;
   final IList<proto.Chat> chatList;

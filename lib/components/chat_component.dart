@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
@@ -61,13 +60,13 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
   }
 
   Future<void> _loadMessages() async {
-    final localConversationOwned = proto.OwnedDHTRecordPointerProto.fromProto(
-        widget.activeChatContact.localConversation);
+    final localConversationRecordKey = proto.TypedKeyProto.fromProto(
+        widget.activeChatContact.localConversationRecordKey);
     final remoteIdentityPublicKey = proto.TypedKeyProto.fromProto(
         widget.activeChatContact.identityPublicKey);
     final protoMessages = await getLocalConversationMessages(
         activeAccountInfo: widget.activeAccountInfo,
-        localConversationOwned: localConversationOwned,
+        localConversationRecordKey: localConversationRecordKey,
         remoteIdentityPublicKey: remoteIdentityPublicKey);
     if (protoMessages == null) {
       return;
@@ -108,14 +107,14 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
     });
 
     // Now add the message to the conversation messages
-    final localConversationOwned = proto.OwnedDHTRecordPointerProto.fromProto(
-        widget.activeChatContact.localConversation);
+    final localConversationRecordKey = proto.TypedKeyProto.fromProto(
+        widget.activeChatContact.localConversationRecordKey);
     final remoteIdentityPublicKey = proto.TypedKeyProto.fromProto(
         widget.activeChatContact.identityPublicKey);
 
     await addLocalConversationMessage(
         activeAccountInfo: widget.activeAccountInfo,
-        localConversationOwned: localConversationOwned,
+        localConversationRecordKey: localConversationRecordKey,
         remoteIdentityPublicKey: remoteIdentityPublicKey,
         message: protoMessage);
   }

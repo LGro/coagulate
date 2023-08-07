@@ -24,6 +24,15 @@ Future<DHTRecordCrypto> getConversationCrypto({
   return DHTRecordCryptoPrivate.fromSecret(identitySecret.kind, sharedSecret);
 }
 
+KeyPair getConversationWriter({
+  required ActiveAccountInfo activeAccountInfo,
+}) {
+  final identityKey =
+      activeAccountInfo.localAccount.identityMaster.identityPublicKey;
+  final identitySecret = activeAccountInfo.userLogin.identitySecret;
+  return KeyPair(key: identityKey, secret: identitySecret.value);
+}
+
 // Create a conversation
 // If we were the initator of the conversation there may be an
 // incomplete 'existingConversationRecord' that we need to fill
@@ -32,7 +41,7 @@ Future<T> createConversation<T>(
     {required ActiveAccountInfo activeAccountInfo,
     required TypedKey remoteIdentityPublicKey,
     required FutureOr<T> Function(DHTRecord) callback,
-    OwnedDHTRecordPointer? existingConversationOwned}) async {
+    TypedKey? existingConversationRecordKey}) async {
   final pool = await DHTRecordPool.instance();
   final accountRecordKey =
       activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
@@ -40,28 +49,38 @@ Future<T> createConversation<T>(
   final crypto = await getConversationCrypto(
       activeAccountInfo: activeAccountInfo,
       remoteIdentityPublicKey: remoteIdentityPublicKey);
+  final writer = getConversationWriter(activeAccountInfo: activeAccountInfo);
 
+  // Open with SMPL scheme for identity writer
   late final DHTRecord localConversationRecord;
-  if (existingConversationOwned != null) {
-    localConversationRecord = await pool.openOwned(existingConversationOwned,
+  if (existingConversationRecordKey != null) {
+    localConversationRecord = await pool.openWrite(
+        existingConversationRecordKey, writer,
         parent: accountRecordKey, crypto: crypto);
   } else {
-    localConversationRecord =
-        await pool.create(parent: accountRecordKey, crypto: crypto);
+    final localConversationRecordCreate = await pool.create(
+        parent: accountRecordKey,
+        crypto: crypto,
+        schema: DHTSchema.smpl(
+            oCnt: 0, members: [DHTSchemaMember(mKey: writer.key, mCnt: 1)]));
+    await localConversationRecordCreate.close();
+    localConversationRecord = await pool.openWrite(
+        localConversationRecordCreate.key, writer,
+        parent: accountRecordKey, crypto: crypto);
   }
   return localConversationRecord
       // ignore: prefer_expression_function_bodies
       .deleteScope((localConversation) async {
     // Make messages log
     return (await DHTShortArray.create(
-            parent: localConversation.key, crypto: crypto))
+            parent: localConversation.key, crypto: crypto, smplWriter: writer))
         .deleteScope((messages) async {
       // Write local conversation key
       final conversation = Conversation()
         ..profile = activeAccountInfo.account.profile
         ..identityMasterJson =
             jsonEncode(activeAccountInfo.localAccount.identityMaster.toJson())
-        ..messages = messages.record.ownedDHTRecordPointer.toProto();
+        ..messages = messages.record.key.toProto();
 
       //
       final update = await localConversation.tryWriteProtobuf(
@@ -76,8 +95,8 @@ Future<T> createConversation<T>(
 
 Future<Conversation?> readRemoteConversation({
   required ActiveAccountInfo activeAccountInfo,
+  required TypedKey remoteConversationRecordKey,
   required TypedKey remoteIdentityPublicKey,
-  required TypedKey remoteConversationKey,
 }) async {
   final accountRecordKey =
       activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
@@ -86,7 +105,7 @@ Future<Conversation?> readRemoteConversation({
   final crypto = await getConversationCrypto(
       activeAccountInfo: activeAccountInfo,
       remoteIdentityPublicKey: remoteIdentityPublicKey);
-  return (await pool.openRead(remoteConversationKey,
+  return (await pool.openRead(remoteConversationRecordKey,
           parent: accountRecordKey, crypto: crypto))
       .scope((remoteConversation) async {
     //
@@ -98,7 +117,7 @@ Future<Conversation?> readRemoteConversation({
 
 Future<Conversation?> writeLocalConversation({
   required ActiveAccountInfo activeAccountInfo,
-  required OwnedDHTRecordPointer localConversationOwned,
+  required TypedKey localConversationRecordKey,
   required TypedKey remoteIdentityPublicKey,
   required Conversation conversation,
 }) async {
@@ -109,8 +128,9 @@ Future<Conversation?> writeLocalConversation({
   final crypto = await getConversationCrypto(
       activeAccountInfo: activeAccountInfo,
       remoteIdentityPublicKey: remoteIdentityPublicKey);
+  final writer = getConversationWriter(activeAccountInfo: activeAccountInfo);
 
-  return (await pool.openOwned(localConversationOwned,
+  return (await pool.openWrite(localConversationRecordKey, writer,
           parent: accountRecordKey, crypto: crypto))
       .scope((localConversation) async {
     //
@@ -125,7 +145,7 @@ Future<Conversation?> writeLocalConversation({
 
 Future<Conversation?> readLocalConversation({
   required ActiveAccountInfo activeAccountInfo,
-  required OwnedDHTRecordPointer localConversationOwned,
+  required TypedKey localConversationRecordKey,
   required TypedKey remoteIdentityPublicKey,
 }) async {
   final accountRecordKey =
@@ -136,7 +156,7 @@ Future<Conversation?> readLocalConversation({
       activeAccountInfo: activeAccountInfo,
       remoteIdentityPublicKey: remoteIdentityPublicKey);
 
-  return (await pool.openOwned(localConversationOwned,
+  return (await pool.openRead(localConversationRecordKey,
           parent: accountRecordKey, crypto: crypto))
       .scope((localConversation) async {
     //
@@ -150,24 +170,25 @@ Future<Conversation?> readLocalConversation({
 
 Future<void> addLocalConversationMessage(
     {required ActiveAccountInfo activeAccountInfo,
-    required OwnedDHTRecordPointer localConversationOwned,
+    required TypedKey localConversationRecordKey,
     required TypedKey remoteIdentityPublicKey,
     required proto.Message message}) async {
   final conversation = await readLocalConversation(
       activeAccountInfo: activeAccountInfo,
-      localConversationOwned: localConversationOwned,
+      localConversationRecordKey: localConversationRecordKey,
       remoteIdentityPublicKey: remoteIdentityPublicKey);
   if (conversation == null) {
     return;
   }
-  final messagesOwned =
-      proto.OwnedDHTRecordPointerProto.fromProto(conversation.messages);
+  final messagesRecordKey =
+      proto.TypedKeyProto.fromProto(conversation.messages);
   final crypto = await getConversationCrypto(
       activeAccountInfo: activeAccountInfo,
       remoteIdentityPublicKey: remoteIdentityPublicKey);
+  final writer = getConversationWriter(activeAccountInfo: activeAccountInfo);
 
-  await (await DHTShortArray.openOwned(messagesOwned,
-          parent: localConversationOwned.recordKey, crypto: crypto))
+  await (await DHTShortArray.openWrite(messagesRecordKey, writer,
+          parent: localConversationRecordKey, crypto: crypto))
       .scope((messages) async {
     await messages.tryAddItem(message.writeToBuffer());
   });
@@ -175,24 +196,24 @@ Future<void> addLocalConversationMessage(
 
 Future<IList<proto.Message>?> getLocalConversationMessages({
   required ActiveAccountInfo activeAccountInfo,
-  required OwnedDHTRecordPointer localConversationOwned,
+  required TypedKey localConversationRecordKey,
   required TypedKey remoteIdentityPublicKey,
 }) async {
   final conversation = await readLocalConversation(
       activeAccountInfo: activeAccountInfo,
-      localConversationOwned: localConversationOwned,
+      localConversationRecordKey: localConversationRecordKey,
       remoteIdentityPublicKey: remoteIdentityPublicKey);
   if (conversation == null) {
     return null;
   }
-  final messagesOwned =
-      proto.OwnedDHTRecordPointerProto.fromProto(conversation.messages);
+  final messagesRecordKey =
+      proto.TypedKeyProto.fromProto(conversation.messages);
   final crypto = await getConversationCrypto(
       activeAccountInfo: activeAccountInfo,
       remoteIdentityPublicKey: remoteIdentityPublicKey);
 
-  return (await DHTShortArray.openOwned(messagesOwned,
-          parent: localConversationOwned.recordKey, crypto: crypto))
+  return (await DHTShortArray.openRead(messagesRecordKey,
+          parent: localConversationRecordKey, crypto: crypto))
       .scope((messages) async {
     var out = IList<proto.Message>();
     for (var i = 0; i < messages.length; i++) {
@@ -208,24 +229,24 @@ Future<IList<proto.Message>?> getLocalConversationMessages({
 
 Future<IList<proto.Message>?> getRemoteConversationMessages({
   required ActiveAccountInfo activeAccountInfo,
-  required TypedKey remoteConversationKey,
+  required TypedKey remoteConversationRecordKey,
   required TypedKey remoteIdentityPublicKey,
 }) async {
   final conversation = await readRemoteConversation(
       activeAccountInfo: activeAccountInfo,
-      remoteConversationKey: remoteConversationKey,
+      remoteConversationRecordKey: remoteConversationRecordKey,
       remoteIdentityPublicKey: remoteIdentityPublicKey);
   if (conversation == null) {
     return null;
   }
-  final messagesOwned =
-      proto.OwnedDHTRecordPointerProto.fromProto(conversation.messages);
+  final messagesRecordKey =
+      proto.TypedKeyProto.fromProto(conversation.messages);
   final crypto = await getConversationCrypto(
       activeAccountInfo: activeAccountInfo,
       remoteIdentityPublicKey: remoteIdentityPublicKey);
 
-  return (await DHTShortArray.openOwned(messagesOwned,
-          parent: localConversationOwned.recordKey, crypto: crypto))
+  return (await DHTShortArray.openRead(messagesRecordKey,
+          parent: remoteConversationRecordKey, crypto: crypto))
       .scope((messages) async {
     var out = IList<proto.Message>();
     for (var i = 0; i < messages.length; i++) {

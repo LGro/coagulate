@@ -24,7 +24,7 @@ class ContactItemWidget extends ConsumerWidget {
     final scale = theme.extension<ScaleScheme>()!;
 
     final remoteConversationKey =
-        proto.TypedKeyProto.fromProto(contact.remoteConversationKey);
+        proto.TypedKeyProto.fromProto(contact.remoteConversationRecordKey);
 
     return Container(
         margin: const EdgeInsets.fromLTRB(4, 4, 4, 0),
@@ -80,8 +80,12 @@ class ContactItemWidget extends ConsumerWidget {
                         remoteConversationRecordKey: remoteConversationKey);
 
                     // Click over to chats
-                    await MainPager.of(context)?.pageController.animateToPage(1,
-                        duration: 250.ms, curve: Curves.easeInOut);
+                    if (context.mounted) {
+                      await MainPager.of(context)?.pageController.animateToPage(
+                          1,
+                          duration: 250.ms,
+                          curve: Curves.easeInOut);
+                    }
                   }
 
                   //   // ignore: use_build_context_synchronously

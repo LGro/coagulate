@@ -23,8 +23,9 @@ class ChatSingleContactItemWidget extends ConsumerWidget {
     final scale = theme.extension<ScaleScheme>()!;
 
     final activeChat = ref.watch(activeChatStateProvider).asData?.value;
-    final selected = activeChat ==
-        proto.TypedKeyProto.fromProto(contact.remoteConversationKey);
+    final remoteConversationRecordKey =
+        proto.TypedKeyProto.fromProto(contact.remoteConversationRecordKey);
+    final selected = activeChat == remoteConversationRecordKey;
 
     return Container(
         margin: const EdgeInsets.fromLTRB(4, 4, 4, 0),
@@ -47,8 +48,7 @@ class ChatSingleContactItemWidget extends ConsumerWidget {
                         await deleteChat(
                             activeAccountInfo: activeAccountInfo,
                             remoteConversationRecordKey:
-                                proto.TypedKeyProto.fromProto(
-                                    contact.remoteConversationKey));
+                                remoteConversationRecordKey);
                         ref.invalidate(fetchChatListProvider);
                       }
                     },
@@ -71,8 +71,7 @@ class ChatSingleContactItemWidget extends ConsumerWidget {
             // component is not dragged.
             child: ListTile(
                 onTap: () async {
-                  activeChatState.add(proto.TypedKeyProto.fromProto(
-                      contact.remoteConversationKey));
+                  activeChatState.add(remoteConversationRecordKey);
                   ref.invalidate(fetchChatListProvider);
                 },
                 title: Text(contact.editedProfile.name),

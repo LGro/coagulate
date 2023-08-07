@@ -303,8 +303,8 @@ const Contact$json = {
     {'1': 'remote_profile', '3': 2, '4': 1, '5': 11, '6': '.Profile', '10': 'remoteProfile'},
     {'1': 'identity_master_json', '3': 3, '4': 1, '5': 9, '10': 'identityMasterJson'},
     {'1': 'identity_public_key', '3': 4, '4': 1, '5': 11, '6': '.TypedKey', '10': 'identityPublicKey'},
-    {'1': 'remote_conversation_key', '3': 5, '4': 1, '5': 11, '6': '.TypedKey', '10': 'remoteConversationKey'},
-    {'1': 'local_conversation', '3': 6, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'localConversation'},
+    {'1': 'remote_conversation_record_key', '3': 5, '4': 1, '5': 11, '6': '.TypedKey', '10': 'remoteConversationRecordKey'},
+    {'1': 'local_conversation_record_key', '3': 6, '4': 1, '5': 11, '6': '.TypedKey', '10': 'localConversationRecordKey'},
     {'1': 'show_availability', '3': 7, '4': 1, '5': 8, '10': 'showAvailability'},
   ],
 };
@@ -314,11 +314,11 @@ final $typed_data.Uint8List contactDescriptor = $convert.base64Decode(
     'CgdDb250YWN0Ei8KDmVkaXRlZF9wcm9maWxlGAEgASgLMgguUHJvZmlsZVINZWRpdGVkUHJvZm'
     'lsZRIvCg5yZW1vdGVfcHJvZmlsZRgCIAEoCzIILlByb2ZpbGVSDXJlbW90ZVByb2ZpbGUSMAoU'
     'aWRlbnRpdHlfbWFzdGVyX2pzb24YAyABKAlSEmlkZW50aXR5TWFzdGVySnNvbhI5ChNpZGVudG'
-    'l0eV9wdWJsaWNfa2V5GAQgASgLMgkuVHlwZWRLZXlSEWlkZW50aXR5UHVibGljS2V5EkEKF3Jl'
-    'bW90ZV9jb252ZXJzYXRpb25fa2V5GAUgASgLMgkuVHlwZWRLZXlSFXJlbW90ZUNvbnZlcnNhdG'
-    'lvbktleRJFChJsb2NhbF9jb252ZXJzYXRpb24YBiABKAsyFi5Pd25lZERIVFJlY29yZFBvaW50'
-    'ZXJSEWxvY2FsQ29udmVyc2F0aW9uEisKEXNob3dfYXZhaWxhYmlsaXR5GAcgASgIUhBzaG93QX'
-    'ZhaWxhYmlsaXR5');
+    'l0eV9wdWJsaWNfa2V5GAQgASgLMgkuVHlwZWRLZXlSEWlkZW50aXR5UHVibGljS2V5Ek4KHnJl'
+    'bW90ZV9jb252ZXJzYXRpb25fcmVjb3JkX2tleRgFIAEoCzIJLlR5cGVkS2V5UhtyZW1vdGVDb2'
+    '52ZXJzYXRpb25SZWNvcmRLZXkSTAodbG9jYWxfY29udmVyc2F0aW9uX3JlY29yZF9rZXkYBiAB'
+    'KAsyCS5UeXBlZEtleVIabG9jYWxDb252ZXJzYXRpb25SZWNvcmRLZXkSKwoRc2hvd19hdmFpbG'
+    'FiaWxpdHkYByABKAhSEHNob3dBdmFpbGFiaWxpdHk=');
 
 @$core.Deprecated('Use profileDescriptor instead')
 const Profile$json = {
@@ -462,7 +462,7 @@ const ContactResponse$json = {
   '2': [
     {'1': 'accept', '3': 1, '4': 1, '5': 8, '10': 'accept'},
     {'1': 'identity_master_record_key', '3': 2, '4': 1, '5': 11, '6': '.TypedKey', '10': 'identityMasterRecordKey'},
-    {'1': 'remote_conversation_key', '3': 3, '4': 1, '5': 11, '6': '.TypedKey', '10': 'remoteConversationKey'},
+    {'1': 'remote_conversation_record_key', '3': 3, '4': 1, '5': 11, '6': '.TypedKey', '10': 'remoteConversationRecordKey'},
   ],
 };
 
@@ -470,8 +470,8 @@ const ContactResponse$json = {
 final $typed_data.Uint8List contactResponseDescriptor = $convert.base64Decode(
     'Cg9Db250YWN0UmVzcG9uc2USFgoGYWNjZXB0GAEgASgIUgZhY2NlcHQSRgoaaWRlbnRpdHlfbW'
     'FzdGVyX3JlY29yZF9rZXkYAiABKAsyCS5UeXBlZEtleVIXaWRlbnRpdHlNYXN0ZXJSZWNvcmRL'
-    'ZXkSQQoXcmVtb3RlX2NvbnZlcnNhdGlvbl9rZXkYAyABKAsyCS5UeXBlZEtleVIVcmVtb3RlQ2'
-    '9udmVyc2F0aW9uS2V5');
+    'ZXkSTgoecmVtb3RlX2NvbnZlcnNhdGlvbl9yZWNvcmRfa2V5GAMgASgLMgkuVHlwZWRLZXlSG3'
+    'JlbW90ZUNvbnZlcnNhdGlvblJlY29yZEtleQ==');
 
 @$core.Deprecated('Use signedContactResponseDescriptor instead')
 const SignedContactResponse$json = {
@@ -495,7 +495,7 @@ const ContactInvitationRecord$json = {
     {'1': 'contact_request_inbox', '3': 1, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'contactRequestInbox'},
     {'1': 'writer_key', '3': 2, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'writerKey'},
     {'1': 'writer_secret', '3': 3, '4': 1, '5': 11, '6': '.CryptoKey', '10': 'writerSecret'},
-    {'1': 'local_conversation', '3': 4, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'localConversation'},
+    {'1': 'local_conversation_record_key', '3': 4, '4': 1, '5': 11, '6': '.TypedKey', '10': 'localConversationRecordKey'},
     {'1': 'expiration', '3': 5, '4': 1, '5': 4, '10': 'expiration'},
     {'1': 'invitation', '3': 6, '4': 1, '5': 12, '10': 'invitation'},
     {'1': 'message', '3': 7, '4': 1, '5': 9, '10': 'message'},
@@ -507,8 +507,8 @@ final $typed_data.Uint8List contactInvitationRecordDescriptor = $convert.base64D
     'ChdDb250YWN0SW52aXRhdGlvblJlY29yZBJKChVjb250YWN0X3JlcXVlc3RfaW5ib3gYASABKA'
     'syFi5Pd25lZERIVFJlY29yZFBvaW50ZXJSE2NvbnRhY3RSZXF1ZXN0SW5ib3gSKQoKd3JpdGVy'
     'X2tleRgCIAEoCzIKLkNyeXB0b0tleVIJd3JpdGVyS2V5Ei8KDXdyaXRlcl9zZWNyZXQYAyABKA'
-    'syCi5DcnlwdG9LZXlSDHdyaXRlclNlY3JldBJFChJsb2NhbF9jb252ZXJzYXRpb24YBCABKAsy'
-    'Fi5Pd25lZERIVFJlY29yZFBvaW50ZXJSEWxvY2FsQ29udmVyc2F0aW9uEh4KCmV4cGlyYXRpb2'
-    '4YBSABKARSCmV4cGlyYXRpb24SHgoKaW52aXRhdGlvbhgGIAEoDFIKaW52aXRhdGlvbhIYCgdt'
-    'ZXNzYWdlGAcgASgJUgdtZXNzYWdl');
+    'syCi5DcnlwdG9LZXlSDHdyaXRlclNlY3JldBJMCh1sb2NhbF9jb252ZXJzYXRpb25fcmVjb3Jk'
+    'X2tleRgEIAEoCzIJLlR5cGVkS2V5Uhpsb2NhbENvbnZlcnNhdGlvblJlY29yZEtleRIeCgpleH'
+    'BpcmF0aW9uGAUgASgEUgpleHBpcmF0aW9uEh4KCmludml0YXRpb24YBiABKAxSCmludml0YXRp'
+    'b24SGAoHbWVzc2FnZRgHIAEoCVIHbWVzc2FnZQ==');
 

@@ -1000,8 +1000,8 @@ class Contact extends $pb.GeneratedMessage {
     ..aOM<Profile>(2, _omitFieldNames ? '' : 'remoteProfile', subBuilder: Profile.create)
     ..aOS(3, _omitFieldNames ? '' : 'identityMasterJson')
     ..aOM<TypedKey>(4, _omitFieldNames ? '' : 'identityPublicKey', subBuilder: TypedKey.create)
-    ..aOM<TypedKey>(5, _omitFieldNames ? '' : 'remoteConversationKey', subBuilder: TypedKey.create)
-    ..aOM<OwnedDHTRecordPointer>(6, _omitFieldNames ? '' : 'localConversation', subBuilder: OwnedDHTRecordPointer.create)
+    ..aOM<TypedKey>(5, _omitFieldNames ? '' : 'remoteConversationRecordKey', subBuilder: TypedKey.create)
+    ..aOM<TypedKey>(6, _omitFieldNames ? '' : 'localConversationRecordKey', subBuilder: TypedKey.create)
     ..aOB(7, _omitFieldNames ? '' : 'showAvailability')
     ..hasRequiredFields = false
   ;
@@ -1070,26 +1070,26 @@ class Contact extends $pb.GeneratedMessage {
   TypedKey ensureIdentityPublicKey() => $_ensure(3);
 
   @$pb.TagNumber(5)
-  TypedKey get remoteConversationKey => $_getN(4);
+  TypedKey get remoteConversationRecordKey => $_getN(4);
   @$pb.TagNumber(5)
-  set remoteConversationKey(TypedKey v) { setField(5, v); }
+  set remoteConversationRecordKey(TypedKey v) { setField(5, v); }
   @$pb.TagNumber(5)
-  $core.bool hasRemoteConversationKey() => $_has(4);
+  $core.bool hasRemoteConversationRecordKey() => $_has(4);
   @$pb.TagNumber(5)
-  void clearRemoteConversationKey() => clearField(5);
+  void clearRemoteConversationRecordKey() => clearField(5);
   @$pb.TagNumber(5)
-  TypedKey ensureRemoteConversationKey() => $_ensure(4);
+  TypedKey ensureRemoteConversationRecordKey() => $_ensure(4);
 
   @$pb.TagNumber(6)
-  OwnedDHTRecordPointer get localConversation => $_getN(5);
+  TypedKey get localConversationRecordKey => $_getN(5);
   @$pb.TagNumber(6)
-  set localConversation(OwnedDHTRecordPointer v) { setField(6, v); }
+  set localConversationRecordKey(TypedKey v) { setField(6, v); }
   @$pb.TagNumber(6)
-  $core.bool hasLocalConversation() => $_has(5);
+  $core.bool hasLocalConversationRecordKey() => $_has(5);
   @$pb.TagNumber(6)
-  void clearLocalConversation() => clearField(6);
+  void clearLocalConversationRecordKey() => clearField(6);
   @$pb.TagNumber(6)
-  OwnedDHTRecordPointer ensureLocalConversation() => $_ensure(5);
+  TypedKey ensureLocalConversationRecordKey() => $_ensure(5);
 
   @$pb.TagNumber(7)
   $core.bool get showAvailability => $_getBF(6);
@@ -1654,7 +1654,7 @@ class ContactResponse extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ContactResponse', createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'accept')
     ..aOM<TypedKey>(2, _omitFieldNames ? '' : 'identityMasterRecordKey', subBuilder: TypedKey.create)
-    ..aOM<TypedKey>(3, _omitFieldNames ? '' : 'remoteConversationKey', subBuilder: TypedKey.create)
+    ..aOM<TypedKey>(3, _omitFieldNames ? '' : 'remoteConversationRecordKey', subBuilder: TypedKey.create)
     ..hasRequiredFields = false
   ;
 
@@ -1700,15 +1700,15 @@ class ContactResponse extends $pb.GeneratedMessage {
   TypedKey ensureIdentityMasterRecordKey() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  TypedKey get remoteConversationKey => $_getN(2);
+  TypedKey get remoteConversationRecordKey => $_getN(2);
   @$pb.TagNumber(3)
-  set remoteConversationKey(TypedKey v) { setField(3, v); }
+  set remoteConversationRecordKey(TypedKey v) { setField(3, v); }
   @$pb.TagNumber(3)
-  $core.bool hasRemoteConversationKey() => $_has(2);
+  $core.bool hasRemoteConversationRecordKey() => $_has(2);
   @$pb.TagNumber(3)
-  void clearRemoteConversationKey() => clearField(3);
+  void clearRemoteConversationRecordKey() => clearField(3);
   @$pb.TagNumber(3)
-  TypedKey ensureRemoteConversationKey() => $_ensure(2);
+  TypedKey ensureRemoteConversationRecordKey() => $_ensure(2);
 }
 
 class SignedContactResponse extends $pb.GeneratedMessage {
@@ -1775,7 +1775,7 @@ class ContactInvitationRecord extends $pb.GeneratedMessage {
     ..aOM<OwnedDHTRecordPointer>(1, _omitFieldNames ? '' : 'contactRequestInbox', subBuilder: OwnedDHTRecordPointer.create)
     ..aOM<CryptoKey>(2, _omitFieldNames ? '' : 'writerKey', subBuilder: CryptoKey.create)
     ..aOM<CryptoKey>(3, _omitFieldNames ? '' : 'writerSecret', subBuilder: CryptoKey.create)
-    ..aOM<OwnedDHTRecordPointer>(4, _omitFieldNames ? '' : 'localConversation', subBuilder: OwnedDHTRecordPointer.create)
+    ..aOM<TypedKey>(4, _omitFieldNames ? '' : 'localConversationRecordKey', subBuilder: TypedKey.create)
     ..a<$fixnum.Int64>(5, _omitFieldNames ? '' : 'expiration', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'invitation', $pb.PbFieldType.OY)
     ..aOS(7, _omitFieldNames ? '' : 'message')
@@ -1837,15 +1837,15 @@ class ContactInvitationRecord extends $pb.GeneratedMessage {
   CryptoKey ensureWriterSecret() => $_ensure(2);
 
   @$pb.TagNumber(4)
-  OwnedDHTRecordPointer get localConversation => $_getN(3);
+  TypedKey get localConversationRecordKey => $_getN(3);
   @$pb.TagNumber(4)
-  set localConversation(OwnedDHTRecordPointer v) { setField(4, v); }
+  set localConversationRecordKey(TypedKey v) { setField(4, v); }
   @$pb.TagNumber(4)
-  $core.bool hasLocalConversation() => $_has(3);
+  $core.bool hasLocalConversationRecordKey() => $_has(3);
   @$pb.TagNumber(4)
-  void clearLocalConversation() => clearField(4);
+  void clearLocalConversationRecordKey() => clearField(4);
   @$pb.TagNumber(4)
-  OwnedDHTRecordPointer ensureLocalConversation() => $_ensure(3);
+  TypedKey ensureLocalConversationRecordKey() => $_ensure(3);
 
   @$pb.TagNumber(5)
   $fixnum.Int64 get expiration => $_getI64(4);

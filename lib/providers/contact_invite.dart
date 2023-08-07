@@ -28,14 +28,14 @@ class AcceptedContact {
   AcceptedContact({
     required this.profile,
     required this.remoteIdentity,
-    required this.remoteConversationKey,
-    required this.localConversation,
+    required this.remoteConversationRecordKey,
+    required this.localConversationRecordKey,
   });
 
   proto.Profile profile;
   IdentityMaster remoteIdentity;
-  TypedKey remoteConversationKey;
-  OwnedDHTRecordPointer localConversation;
+  TypedKey remoteConversationRecordKey;
+  TypedKey localConversationRecordKey;
 }
 
 class AcceptedOrRejectedContact {
@@ -92,33 +92,33 @@ Future<AcceptedOrRejectedContact?> checkAcceptRejectContact(
           contactResponseBytes, signature);
 
       // Pull profile from remote conversation key
-      final remoteConversationKey =
-          proto.TypedKeyProto.fromProto(contactResponse.remoteConversationKey);
+      final remoteConversationRecordKey = proto.TypedKeyProto.fromProto(
+          contactResponse.remoteConversationRecordKey);
       final remoteConversation = await readRemoteConversation(
           activeAccountInfo: activeAccountInfo,
           remoteIdentityPublicKey:
               contactIdentityMaster.identityPublicTypedKey(),
-          remoteConversationKey: remoteConversationKey);
+          remoteConversationRecordKey: remoteConversationRecordKey);
       if (remoteConversation == null) {
         log.info('Remote conversation could not be read. Waiting...');
         return null;
       }
       // Complete the local conversation now that we have the remote profile
-      final localConversationOwned = proto.OwnedDHTRecordPointerProto.fromProto(
-          contactInvitationRecord.localConversation);
+      final localConversationRecordKey = proto.TypedKeyProto.fromProto(
+          contactInvitationRecord.localConversationRecordKey);
       return createConversation(
           activeAccountInfo: activeAccountInfo,
           remoteIdentityPublicKey:
               contactIdentityMaster.identityPublicTypedKey(),
-          existingConversationOwned: localConversationOwned,
+          existingConversationRecordKey: localConversationRecordKey,
           // ignore: prefer_expression_function_bodies
           callback: (localConversation) async {
             return AcceptedOrRejectedContact(
                 acceptedContact: AcceptedContact(
                     profile: remoteConversation.profile,
                     remoteIdentity: contactIdentityMaster,
-                    remoteConversationKey: remoteConversationKey,
-                    localConversation: localConversationOwned));
+                    remoteConversationRecordKey: remoteConversationRecordKey,
+                    localConversationRecordKey: localConversationRecordKey));
           });
     });
 
@@ -182,9 +182,9 @@ Future<void> deleteContactInvitation(
       await contactRequestInbox.delete();
     });
     if (!accepted) {
-      await (await pool.openOwned(
-              proto.OwnedDHTRecordPointerProto.fromProto(
-                  contactInvitationRecord.localConversation),
+      await (await pool.openRead(
+              proto.TypedKeyProto.fromProto(
+                  contactInvitationRecord.localConversationRecordKey),
               parent: accountRecordKey))
           .delete();
     }
@@ -206,11 +206,13 @@ Future<Uint8List> createContactInvitation(
 
   // Generate writer keypair to share with new contact
   final cs = await pool.veilid.bestCryptoSystem();
-  final writer = await cs.generateKeyPair();
+  final contactRequestWriter = await cs.generateKeyPair();
+  final conversationWriter =
+      getConversationWriter(activeAccountInfo: activeAccountInfo);
 
   // Encrypt the writer secret with the encryption key
   final encryptedSecret = await encryptSecretToBytes(
-      secret: writer.secret,
+      secret: contactRequestWriter.secret,
       cryptoKind: cs.kind(),
       encryptionKey: encryptionKey,
       encryptionKeyType: encryptionKeyType);
@@ -220,19 +222,24 @@ Future<Uint8List> createContactInvitation(
   // to and it will be eventually encrypted with the DH of the contact's
   // identity key
   late final Uint8List signedContactInvitationBytes;
-  await (await pool.create(parent: accountRecordKey))
+  await (await pool.create(
+          parent: accountRecordKey,
+          schema: DHTSchema.smpl(oCnt: 0, members: [
+            DHTSchemaMember(mKey: conversationWriter.key, mCnt: 1)
+          ])))
       .deleteScope((localConversation) async {
+    // dont bother reopening localConversation with writer
     // Make ContactRequestPrivate and encrypt with the writer secret
     final crpriv = ContactRequestPrivate()
-      ..writerKey = writer.key.toProto()
+      ..writerKey = contactRequestWriter.key.toProto()
       ..profile = activeAccountInfo.account.profile
       ..identityMasterRecordKey =
           activeAccountInfo.userLogin.accountMasterRecordKey.toProto()
       ..chatRecordKey = localConversation.key.toProto()
       ..expiration = expiration?.toInt64() ?? Int64.ZERO;
     final crprivbytes = crpriv.writeToBuffer();
-    final encryptedContactRequestPrivate =
-        await cs.encryptNoAuthWithNonce(crprivbytes, writer.secret);
+    final encryptedContactRequestPrivate = await cs.encryptNoAuthWithNonce(
+        crprivbytes, contactRequestWriter.secret);
 
     // Create ContactRequest and embed contactrequestprivate
     final creq = ContactRequest()
@@ -242,8 +249,9 @@ Future<Uint8List> createContactInvitation(
     // Create DHT unicast inbox for ContactRequest
     await (await pool.create(
             parent: accountRecordKey,
-            schema: DHTSchema.smpl(
-                oCnt: 1, members: [DHTSchemaMember(mCnt: 1, mKey: writer.key)]),
+            schema: DHTSchema.smpl(oCnt: 1, members: [
+              DHTSchemaMember(mCnt: 1, mKey: contactRequestWriter.key)
+            ]),
             crypto: const DHTRecordCryptoPublic()))
         .deleteScope((contactRequestInbox) async {
       // Store ContactRequest in owner subkey
@@ -264,9 +272,9 @@ Future<Uint8List> createContactInvitation(
       final cinvrec = ContactInvitationRecord()
         ..contactRequestInbox =
             contactRequestInbox.ownedDHTRecordPointer.toProto()
-        ..writerKey = writer.key.toProto()
-        ..writerSecret = writer.secret.toProto()
-        ..localConversation = localConversation.ownedDHTRecordPointer.toProto()
+        ..writerKey = contactRequestWriter.key.toProto()
+        ..writerSecret = contactRequestWriter.secret.toProto()
+        ..localConversationRecordKey = localConversation.key.toProto()
         ..expiration = expiration?.toInt64() ?? Int64.ZERO
         ..invitation = signedContactInvitationBytes
         ..message = message;
@@ -390,7 +398,7 @@ Future<AcceptedContact?> acceptContactInvitation(
           callback: (localConversation) async {
             final contactResponse = ContactResponse()
               ..accept = true
-              ..remoteConversationKey = localConversation.key.toProto()
+              ..remoteConversationRecordKey = localConversation.key.toProto()
               ..identityMasterRecordKey = activeAccountInfo
                   .localAccount.identityMaster.masterRecordKey
                   .toProto();
@@ -418,9 +426,9 @@ Future<AcceptedContact?> acceptContactInvitation(
             return AcceptedContact(
               profile: validContactInvitation.contactRequestPrivate.profile,
               remoteIdentity: validContactInvitation.contactIdentityMaster,
-              remoteConversationKey: proto.TypedKeyProto.fromProto(
+              remoteConversationRecordKey: proto.TypedKeyProto.fromProto(
                   validContactInvitation.contactRequestPrivate.chatRecordKey),
-              localConversation: localConversation.ownedDHTRecordPointer,
+              localConversationRecordKey: localConversation.key,
             );
           });
     });

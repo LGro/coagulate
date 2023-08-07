@@ -116,8 +116,10 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
           activeAccountInfo: activeAccountInfo,
           profile: acceptedContact.profile,
           remoteIdentity: acceptedContact.remoteIdentity,
-          remoteConversationKey: acceptedContact.remoteConversationKey,
-          localConversation: acceptedContact.localConversation,
+          remoteConversationRecordKey:
+              acceptedContact.remoteConversationRecordKey,
+          localConversationRecordKey:
+              acceptedContact.localConversationRecordKey,
         );
         ref
           ..invalidate(fetchContactInvitationRecordsProvider)

@@ -60,6 +60,9 @@ class DHTShortArray {
   // Cached representation refreshed from head record
   _DHTShortArrayCache _head;
 
+  // Create a DHTShortArray
+  // if smplWriter is specified, uses a SMPL schema with a single writer
+  // rather than the key owner
   static Future<DHTShortArray> create(
       {int stride = maxElements,
       VeilidRoutingContext? routingContext,

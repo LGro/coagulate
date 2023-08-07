@@ -17,8 +17,8 @@ Future<void> createContact({
   required ActiveAccountInfo activeAccountInfo,
   required proto.Profile profile,
   required IdentityMaster remoteIdentity,
-  required TypedKey remoteConversationKey,
-  required OwnedDHTRecordPointer localConversation,
+  required TypedKey remoteConversationRecordKey,
+  required TypedKey localConversationRecordKey,
 }) async {
   final accountRecordKey =
       activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
@@ -32,8 +32,8 @@ Future<void> createContact({
             kind: remoteIdentity.identityRecordKey.kind,
             value: remoteIdentity.identityPublicKey)
         .toProto()
-    ..remoteConversationKey = remoteConversationKey.toProto()
-    ..localConversation = localConversation.toProto()
+    ..remoteConversationRecordKey = remoteConversationRecordKey.toProto()
+    ..localConversationRecordKey = localConversationRecordKey.toProto()
     ..showAvailability = false;
 
   // Add Contact to account's list
@@ -56,7 +56,7 @@ Future<void> deleteContact(
   final accountRecordKey =
       activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
   final remoteConversationKey =
-      proto.TypedKeyProto.fromProto(contact.remoteConversationKey);
+      proto.TypedKeyProto.fromProto(contact.remoteConversationRecordKey);
 
   // Remove any chats for this contact
   await deleteChat(
@@ -75,14 +75,14 @@ Future<void> deleteContact(
       if (item == null) {
         throw Exception('Failed to get contact');
       }
-      if (item.remoteConversationKey == contact.remoteConversationKey) {
+      if (item.remoteConversationRecordKey ==
+          contact.remoteConversationRecordKey) {
         await contactList.tryRemoveItem(i);
         break;
       }
     }
-    await (await pool.openOwned(
-            proto.OwnedDHTRecordPointerProto.fromProto(
-                contact.localConversation),
+    await (await pool.openRead(
+            proto.TypedKeyProto.fromProto(contact.localConversationRecordKey),
             parent: accountRecordKey))
         .delete();
     await (await pool.openRead(remoteConversationKey, parent: accountRecordKey))

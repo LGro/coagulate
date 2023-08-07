@@ -14,6 +14,7 @@ import '../providers/account.dart';
 import '../providers/chat.dart';
 import '../providers/contact.dart';
 import '../providers/contact_invite.dart';
+import '../providers/conversation.dart';
 import '../providers/window_control.dart';
 import '../tools/tools.dart';
 import 'main_pager/main_pager.dart';
@@ -113,8 +114,10 @@ class HomePageState extends ConsumerState<HomePage>
               activeAccountInfo: activeAccountInfo,
               profile: acceptedContact.profile,
               remoteIdentity: acceptedContact.remoteIdentity,
-              remoteConversationKey: acceptedContact.remoteConversationKey,
-              localConversation: acceptedContact.localConversation,
+              remoteConversationRecordKey:
+                  acceptedContact.remoteConversationRecordKey,
+              localConversationRecordKey:
+                  acceptedContact.localConversationRecordKey,
             );
             ref
               ..invalidate(fetchContactInvitationRecordsProvider)
@@ -134,19 +137,34 @@ class HomePageState extends ConsumerState<HomePage>
     if (activeChat == null) {
       return;
     }
+    final activeAccountInfo = await ref.read(fetchActiveAccountProvider.future);
+    if (activeAccountInfo == null) {
+      return;
+    }
+
     final contactList = ref.read(fetchContactListProvider).asData?.value ??
         const IListConst([]);
 
     final activeChatContactIdx = contactList.indexWhere(
       (c) =>
-          proto.TypedKeyProto.fromProto(c.remoteConversationKey) == activeChat,
+          proto.TypedKeyProto.fromProto(c.remoteConversationRecordKey) ==
+          activeChat,
     );
     if (activeChatContactIdx == -1) {
       return;
     }
     final activeChatContact = contactList[activeChatContactIdx];
+    final remoteIdentityPublicKey =
+        proto.TypedKeyProto.fromProto(activeChatContact.identityPublicKey);
+    final remoteConversationRecordKey = proto.TypedKeyProto.fromProto(
+        activeChatContact.remoteConversationRecordKey);
 
-    //activeChatContact.rem
+    await getRemoteConversationMessages(
+        activeAccountInfo: activeAccountInfo,
+        remoteIdentityPublicKey: remoteIdentityPublicKey,
+        remoteConversationRecordKey: remoteConversationRecordKey);
+
+    // xxx add messages
   }
 
   // ignore: prefer_expression_function_bodies
@@ -186,7 +204,8 @@ class HomePageState extends ConsumerState<HomePage>
 
     final activeChatContactIdx = contactList.indexWhere(
       (c) =>
-          proto.TypedKeyProto.fromProto(c.remoteConversationKey) == activeChat,
+          proto.TypedKeyProto.fromProto(c.remoteConversationRecordKey) ==
+          activeChat,
     );
     if (activeChatContactIdx == -1) {
       activeChatState.add(null);
