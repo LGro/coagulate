@@ -156,6 +156,7 @@ message Attachment {
 
 // A single message as part of a series of messages
 // Messages are stored in a DHTLog
+// DHT Schema: SMPL(0,1,[identityPublicKey])
 message Message {
     // Author of the message
     TypedKey author = 1;
@@ -183,7 +184,7 @@ message Conversation {
     // Identity master (JSON) to publish to friend
     string identity_master_json = 2;
     // Messages DHTLog (xxx for now DHTShortArray)
-    OwnedDHTRecordPointer messages = 3;
+    TypedKey messages = 3;
 }
 
 // A record of a contact that has accepted a contact invitation

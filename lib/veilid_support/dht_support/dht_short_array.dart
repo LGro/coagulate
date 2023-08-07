@@ -37,12 +37,15 @@ class DHTShortArray {
     late final int stride;
     switch (headRecord.schema) {
       case DHTSchemaDFLT(oCnt: final oCnt):
-        stride = oCnt - 1;
-        if (stride <= 0) {
-          throw StateError('Invalid stride in DHTShortArray');
+        if (oCnt <= 1) {
+          throw StateError('Invalid DFLT schema in DHTShortArray');
         }
-      case DHTSchemaSMPL():
-        throw StateError('Wrote kind of DHT record for DHTShortArray');
+        stride = oCnt - 1;
+      case DHTSchemaSMPL(oCnt: final oCnt, members: final members):
+        if (oCnt != 0 || members.length != 1 || members[1].mCnt <= 1) {
+          throw StateError('Invalid SMPL schema in DHTShortArray');
+        }
+        stride = members[1].mCnt - 1;
     }
     assert(stride <= maxElements, 'stride too long');
     _stride = stride;
@@ -61,15 +64,34 @@ class DHTShortArray {
       {int stride = maxElements,
       VeilidRoutingContext? routingContext,
       TypedKey? parent,
-      DHTRecordCrypto? crypto}) async {
+      DHTRecordCrypto? crypto,
+      KeyPair? smplWriter}) async {
     assert(stride <= maxElements, 'stride too long');
     final pool = await DHTRecordPool.instance();
 
-    final dhtRecord = await pool.create(
-        parent: parent,
-        routingContext: routingContext,
-        schema: DHTSchema.dflt(oCnt: stride + 1),
-        crypto: crypto);
+    late final DHTRecord dhtRecord;
+    if (smplWriter != null) {
+      final schema = DHTSchema.smpl(
+          oCnt: 0,
+          members: [DHTSchemaMember(mKey: smplWriter.key, mCnt: stride + 1)]);
+      final dhtCreateRecord = await pool.create(
+          parent: parent,
+          routingContext: routingContext,
+          schema: schema,
+          crypto: crypto);
+      // Reopen with SMPL writer
+      await dhtCreateRecord.close();
+      dhtRecord = await pool.openWrite(dhtCreateRecord.key, smplWriter,
+          parent: parent, routingContext: routingContext, crypto: crypto);
+    } else {
+      final schema = DHTSchema.dflt(oCnt: stride + 1);
+      dhtRecord = await pool.create(
+          parent: parent,
+          routingContext: routingContext,
+          schema: schema,
+          crypto: crypto);
+    }
+
     try {
       final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
       if (!await dhtShortArray._tryWriteHead()) {

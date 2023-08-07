@@ -285,15 +285,15 @@ const Conversation$json = {
   '2': [
     {'1': 'profile', '3': 1, '4': 1, '5': 11, '6': '.Profile', '10': 'profile'},
     {'1': 'identity_master_json', '3': 2, '4': 1, '5': 9, '10': 'identityMasterJson'},
-    {'1': 'messages', '3': 3, '4': 1, '5': 11, '6': '.OwnedDHTRecordPointer', '10': 'messages'},
+    {'1': 'messages', '3': 3, '4': 1, '5': 11, '6': '.TypedKey', '10': 'messages'},
   ],
 };
 
 /// Descriptor for `Conversation`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List conversationDescriptor = $convert.base64Decode(
     'CgxDb252ZXJzYXRpb24SIgoHcHJvZmlsZRgBIAEoCzIILlByb2ZpbGVSB3Byb2ZpbGUSMAoUaW'
-    'RlbnRpdHlfbWFzdGVyX2pzb24YAiABKAlSEmlkZW50aXR5TWFzdGVySnNvbhIyCghtZXNzYWdl'
-    'cxgDIAEoCzIWLk93bmVkREhUUmVjb3JkUG9pbnRlclIIbWVzc2FnZXM=');
+    'RlbnRpdHlfbWFzdGVyX2pzb24YAiABKAlSEmlkZW50aXR5TWFzdGVySnNvbhIlCghtZXNzYWdl'
+    'cxgDIAEoCzIJLlR5cGVkS2V5UghtZXNzYWdlcw==');
 
 @$core.Deprecated('Use contactDescriptor instead')
 const Contact$json = {

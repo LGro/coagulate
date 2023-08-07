@@ -205,3 +205,36 @@ Future<IList<proto.Message>?> getLocalConversationMessages({
     return out;
   });
 }
+
+Future<IList<proto.Message>?> getRemoteConversationMessages({
+  required ActiveAccountInfo activeAccountInfo,
+  required TypedKey remoteConversationKey,
+  required TypedKey remoteIdentityPublicKey,
+}) async {
+  final conversation = await readRemoteConversation(
+      activeAccountInfo: activeAccountInfo,
+      remoteConversationKey: remoteConversationKey,
+      remoteIdentityPublicKey: remoteIdentityPublicKey);
+  if (conversation == null) {
+    return null;
+  }
+  final messagesOwned =
+      proto.OwnedDHTRecordPointerProto.fromProto(conversation.messages);
+  final crypto = await getConversationCrypto(
+      activeAccountInfo: activeAccountInfo,
+      remoteIdentityPublicKey: remoteIdentityPublicKey);
+
+  return (await DHTShortArray.openOwned(messagesOwned,
+          parent: localConversationOwned.recordKey, crypto: crypto))
+      .scope((messages) async {
+    var out = IList<proto.Message>();
+    for (var i = 0; i < messages.length; i++) {
+      final msg = await messages.getItemProtobuf(proto.Message.fromBuffer, i);
+      if (msg == null) {
+        throw Exception('Failed to get message');
+      }
+      out = out.add(msg);
+    }
+    return out;
+  });
+}

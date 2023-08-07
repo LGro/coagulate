@@ -932,7 +932,7 @@ class Conversation extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Conversation', createEmptyInstance: create)
     ..aOM<Profile>(1, _omitFieldNames ? '' : 'profile', subBuilder: Profile.create)
     ..aOS(2, _omitFieldNames ? '' : 'identityMasterJson')
-    ..aOM<OwnedDHTRecordPointer>(3, _omitFieldNames ? '' : 'messages', subBuilder: OwnedDHTRecordPointer.create)
+    ..aOM<TypedKey>(3, _omitFieldNames ? '' : 'messages', subBuilder: TypedKey.create)
     ..hasRequiredFields = false
   ;
 
@@ -978,15 +978,15 @@ class Conversation extends $pb.GeneratedMessage {
   void clearIdentityMasterJson() => clearField(2);
 
   @$pb.TagNumber(3)
-  OwnedDHTRecordPointer get messages => $_getN(2);
+  TypedKey get messages => $_getN(2);
   @$pb.TagNumber(3)
-  set messages(OwnedDHTRecordPointer v) { setField(3, v); }
+  set messages(TypedKey v) { setField(3, v); }
   @$pb.TagNumber(3)
   $core.bool hasMessages() => $_has(2);
   @$pb.TagNumber(3)
   void clearMessages() => clearField(3);
   @$pb.TagNumber(3)
-  OwnedDHTRecordPointer ensureMessages() => $_ensure(2);
+  TypedKey ensureMessages() => $_ensure(2);
 }
 
 class Contact extends $pb.GeneratedMessage {
