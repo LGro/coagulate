@@ -30,6 +30,6 @@ class EmptyChatListWidget extends ConsumerWidget {
           ),
         ),
       ],
-    ).expanded();
+    );
   }
 }

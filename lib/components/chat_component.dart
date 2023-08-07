@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -6,13 +8,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../entities/proto.dart' as proto;
-import '../providers/chat.dart';
-import '../providers/contact.dart';
+import '../entities/identity.dart';
+import '../providers/account.dart';
+import '../providers/conversation.dart';
 import '../tools/theme_service.dart';
-import 'empty_chat_widget.dart';
+import '../veilid_support/veilid_support.dart';
 
 class ChatComponent extends ConsumerStatefulWidget {
-  const ChatComponent({super.key});
+  const ChatComponent(
+      {required this.activeAccountInfo,
+      required this.activeChat,
+      required this.activeChatContact,
+      super.key});
+
+  final ActiveAccountInfo activeAccountInfo;
+  final TypedKey activeChat;
+  final proto.Contact activeChatContact;
 
   @override
   ChatComponentState createState() => ChatComponentState();
@@ -21,11 +32,26 @@ class ChatComponent extends ConsumerStatefulWidget {
 class ChatComponentState extends ConsumerState<ChatComponent> {
   List<types.Message> _messages = [];
   final _unfocusNode = FocusNode();
+  late final types.User _localUser;
+  late final types.User _remoteUser;
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
+
+    _localUser = types.User(
+      id: widget.activeAccountInfo.localAccount.identityMaster
+          .identityPublicTypedKey()
+          .toString(),
+      firstName: widget.activeAccountInfo.account.profile.name,
+    );
+    _remoteUser = types.User(
+        id: proto.TypedKeyProto.fromProto(
+                widget.activeChatContact.identityPublicKey)
+            .toString(),
+        firstName: widget.activeChatContact.remoteProfile.name);
+
+    unawaited(_loadMessages());
   }
 
   @override
@@ -34,39 +60,76 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
     super.dispose();
   }
 
-  void _loadMessages() {
-    final messages = <types.Message>[
-      types.TextMessage(
-          id: "abcd",
-          text: "Hello!",
-          author: types.User(
-              id: "1234",
-              firstName: "Foo",
-              lastName: "Bar",
-              role: types.Role.user))
-    ];
-    _messages = messages;
-  }
-
-  final _user = const types.User(
-    id: '82091008-a484-4a89-ae75-a22bf8d6f3ac',
-  );
-
-  void _addMessage(types.Message message) {
+  Future<void> _loadMessages() async {
+    final localConversationOwned = proto.OwnedDHTRecordPointerProto.fromProto(
+        widget.activeChatContact.localConversation);
+    final remoteIdentityPublicKey = proto.TypedKeyProto.fromProto(
+        widget.activeChatContact.identityPublicKey);
+    final protoMessages = await getLocalConversationMessages(
+        activeAccountInfo: widget.activeAccountInfo,
+        localConversationOwned: localConversationOwned,
+        remoteIdentityPublicKey: remoteIdentityPublicKey);
+    if (protoMessages == null) {
+      return;
+    }
     setState(() {
-      _messages.insert(0, message);
+      _messages = [];
+      for (final protoMessage in protoMessages) {
+        final message = protoMessageToMessage(protoMessage);
+        _messages.insert(0, message);
+      }
     });
   }
 
-  void _handleSendPressed(types.PartialText message) {
+  types.Message protoMessageToMessage(proto.Message message) {
+    final isLocal = message.author ==
+        widget.activeAccountInfo.localAccount.identityMaster
+            .identityPublicTypedKey()
+            .toProto();
+
     final textMessage = types.TextMessage(
-      author: _user,
+      author: isLocal ? _localUser : _remoteUser,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: const Uuid().v4(),
       text: message.text,
     );
+    return textMessage;
+  }
 
-    _addMessage(textMessage);
+  Future<void> _addMessage(proto.Message protoMessage) async {
+    if (protoMessage.text.isEmpty) {
+      return;
+    }
+
+    final message = protoMessageToMessage(protoMessage);
+
+    setState(() {
+      _messages.insert(0, message);
+    });
+
+    // Now add the message to the conversation messages
+    final localConversationOwned = proto.OwnedDHTRecordPointerProto.fromProto(
+        widget.activeChatContact.localConversation);
+    final remoteIdentityPublicKey = proto.TypedKeyProto.fromProto(
+        widget.activeChatContact.identityPublicKey);
+
+    await addLocalConversationMessage(
+        activeAccountInfo: widget.activeAccountInfo,
+        localConversationOwned: localConversationOwned,
+        remoteIdentityPublicKey: remoteIdentityPublicKey,
+        message: protoMessage);
+  }
+
+  Future<void> _handleSendPressed(types.PartialText message) async {
+    final protoMessage = proto.Message()
+      ..author = widget.activeAccountInfo.localAccount.identityMaster
+          .identityPublicTypedKey()
+          .toProto()
+      ..timestamp = (await eventualVeilid.future).now().toInt64()
+      ..text = message.text;
+    //..signature = signature;
+
+    await _addMessage(protoMessage);
   }
 
   void _handleAttachmentPressed() {
@@ -80,25 +143,7 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
     final scale = theme.extension<ScaleScheme>()!;
     final chatTheme = scale.toChatTheme();
     final textTheme = Theme.of(context).textTheme;
-
-    final contactList = ref.watch(fetchContactListProvider).asData?.value ??
-        const IListConst([]);
-
-    final activeChat = ref.watch(activeChatStateProvider).asData?.value;
-
-    if (activeChat == null) {
-      return const EmptyChatWidget();
-    }
-
-    final activeChatContactIdx = contactList.indexWhere(
-      (c) =>
-          proto.TypedKeyProto.fromProto(c.remoteConversationKey) == activeChat,
-    );
-    if (activeChatContactIdx == -1) {
-      activeChatState.add(null);
-      return const EmptyChatWidget();
-    }
-    final activeChatContact = contactList[activeChatContactIdx];
+    final contactName = widget.activeChatContact.editedProfile.name;
 
     return DefaultTextStyle(
         style: textTheme.bodySmall!,
@@ -118,7 +163,7 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                       child: Padding(
                         padding:
                             const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
-                        child: Text(activeChatContact.editedProfile.name,
+                        child: Text(contactName,
                             textAlign: TextAlign.start,
                             style: textTheme.titleMedium),
                       ),
@@ -134,10 +179,12 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                         //onMessageTap: _handleMessageTap,
                         //onPreviewDataFetched: _handlePreviewDataFetched,
 
-                        onSendPressed: _handleSendPressed,
+                        onSendPressed: (message) {
+                          unawaited(_handleSendPressed(message));
+                        },
                         showUserAvatars: true,
                         showUserNames: true,
-                        user: _user,
+                        user: _localUser,
                       ),
                     ),
                   ),

@@ -99,6 +99,7 @@
         "invitation": "Invitation"
     },
     "chat_list": {
+        "search": "Search",
         "start_a_conversation": "Start a conversation",
         "conversations": "Conversations",
         "groups": "Groups"

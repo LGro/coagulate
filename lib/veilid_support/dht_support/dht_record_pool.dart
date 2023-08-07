@@ -72,23 +72,27 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
   Object? valueToJson(DHTRecordPoolAllocations val) => val.toJson();
 
   //////////////////////////////////////////////////////////////
+  static Mutex instanceSetupMutex = Mutex();
 
+  // ignore: prefer_expression_function_bodies
   static Future<DHTRecordPool> instance() async {
-    if (_singleton == null) {
-      final veilid = await eventualVeilid.future;
-      final routingContext = (await veilid.routingContext())
-          .withPrivacy()
-          .withSequencing(Sequencing.preferOrdered);
+    return instanceSetupMutex.protect(() async {
+      if (_singleton == null) {
+        final veilid = await eventualVeilid.future;
+        final routingContext = (await veilid.routingContext())
+            .withPrivacy()
+            .withSequencing(Sequencing.preferOrdered);
 
-      final globalPool = DHTRecordPool._(veilid, routingContext);
-      try {
-        globalPool._state = await globalPool.load();
-      } on Exception catch (e) {
-        log.error('Failed to load DHTRecordPool: $e');
+        final globalPool = DHTRecordPool._(veilid, routingContext);
+        try {
+          globalPool._state = await globalPool.load();
+        } on Exception catch (e) {
+          log.error('Failed to load DHTRecordPool: $e');
+        }
+        _singleton = globalPool;
       }
-      _singleton = globalPool;
-    }
-    return _singleton!;
+      return _singleton!;
+    });
   }
 
   Veilid get veilid => _veilid;

@@ -1,13 +1,17 @@
 import 'dart:async';
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:split_view/split_view.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
 
+import '../../entities/proto.dart' as proto;
 import '../components/chat_component.dart';
+import '../components/empty_chat_widget.dart';
 import '../providers/account.dart';
+import '../providers/chat.dart';
 import '../providers/contact.dart';
 import '../providers/contact_invite.dart';
 import '../providers/window_control.dart';
@@ -24,6 +28,7 @@ class HomePage extends ConsumerStatefulWidget {
 
 // XXX Eliminate this when we have ValueChanged
 const int ticksPerContactInvitationCheck = 5;
+const int ticksPerNewMessageCheck = 5;
 
 class HomePageState extends ConsumerState<HomePage>
     with TickerProviderStateMixin {
@@ -32,6 +37,7 @@ class HomePageState extends ConsumerState<HomePage>
   Timer? _homeTickTimer;
   bool _inHomeTick = false;
   int _contactInvitationCheckTick = 0;
+  int _newMessageCheckTick = 0;
 
   @override
   void initState() {
@@ -63,11 +69,22 @@ class HomePageState extends ConsumerState<HomePage>
   Future<void> _onHomeTick() async {
     _inHomeTick = true;
     try {
-      // Check extant contact invitations once every 5 seconds
+      final unord = <Future<void>>[];
+      // Check extant contact invitations once every N seconds
       _contactInvitationCheckTick += 1;
       if (_contactInvitationCheckTick >= ticksPerContactInvitationCheck) {
         _contactInvitationCheckTick = 0;
-        await _doContactInvitationCheck();
+        unord.add(_doContactInvitationCheck());
+      }
+
+      // Check new messages once every N seconds
+      _newMessageCheckTick += 1;
+      if (_newMessageCheckTick >= ticksPerNewMessageCheck) {
+        _newMessageCheckTick = 0;
+        unord.add(_doNewMessageCheck());
+      }
+      if (unord.isNotEmpty) {
+        await Future.wait(unord);
       }
     } finally {
       _inHomeTick = false;
@@ -112,6 +129,26 @@ class HomePageState extends ConsumerState<HomePage>
     await Future.wait(allChecks);
   }
 
+  Future<void> _doNewMessageCheck() async {
+    final activeChat = activeChatState.currentState;
+    if (activeChat == null) {
+      return;
+    }
+    final contactList = ref.read(fetchContactListProvider).asData?.value ??
+        const IListConst([]);
+
+    final activeChatContactIdx = contactList.indexWhere(
+      (c) =>
+          proto.TypedKeyProto.fromProto(c.remoteConversationKey) == activeChat,
+    );
+    if (activeChatContactIdx == -1) {
+      return;
+    }
+    final activeChatContact = contactList[activeChatContactIdx];
+
+    //activeChatContact.rem
+  }
+
   // ignore: prefer_expression_function_bodies
   Widget buildPhone(BuildContext context) {
     //
@@ -129,7 +166,38 @@ class HomePageState extends ConsumerState<HomePage>
   // ignore: prefer_expression_function_bodies
   Widget buildTabletRightPane(BuildContext context) {
     //
-    return ChatComponent();
+    return buildChatComponent(context);
+  }
+
+  Widget buildChatComponent(BuildContext context) {
+    final contactList = ref.watch(fetchContactListProvider).asData?.value ??
+        const IListConst([]);
+
+    final activeChat = ref.watch(activeChatStateProvider).asData?.value;
+    if (activeChat == null) {
+      return const EmptyChatWidget();
+    }
+
+    final activeAccountInfo =
+        ref.watch(fetchActiveAccountProvider).asData?.value;
+    if (activeAccountInfo == null) {
+      return const EmptyChatWidget();
+    }
+
+    final activeChatContactIdx = contactList.indexWhere(
+      (c) =>
+          proto.TypedKeyProto.fromProto(c.remoteConversationKey) == activeChat,
+    );
+    if (activeChatContactIdx == -1) {
+      activeChatState.add(null);
+      return const EmptyChatWidget();
+    }
+    final activeChatContact = contactList[activeChatContactIdx];
+
+    return ChatComponent(
+        activeAccountInfo: activeAccountInfo,
+        activeChat: activeChat,
+        activeChatContact: activeChatContact);
   }
 
   // ignore: prefer_expression_function_bodies

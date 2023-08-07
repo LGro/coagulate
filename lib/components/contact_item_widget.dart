@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import '../../entities/proto.dart' as proto;
+import '../pages/main_pager/main_pager.dart';
 import '../providers/account.dart';
 import '../providers/chat.dart';
 import '../providers/contact.dart';
@@ -20,6 +22,9 @@ class ContactItemWidget extends ConsumerWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final scale = theme.extension<ScaleScheme>()!;
+
+    final remoteConversationKey =
+        proto.TypedKeyProto.fromProto(contact.remoteConversationKey);
 
     return Container(
         margin: const EdgeInsets.fromLTRB(4, 4, 4, 0),
@@ -66,9 +71,19 @@ class ContactItemWidget extends ConsumerWidget {
             // component is not dragged.
             child: ListTile(
                 onTap: () async {
-                  // final activeAccountInfo =
-                  //     await ref.read(fetchActiveAccountProvider.future);
-                  // if (activeAccountInfo != null) {
+                  final activeAccountInfo =
+                      await ref.read(fetchActiveAccountProvider.future);
+                  if (activeAccountInfo != null) {
+                    // Start a chat
+                    await getOrCreateChatSingleContact(
+                        activeAccountInfo: activeAccountInfo,
+                        remoteConversationRecordKey: remoteConversationKey);
+
+                    // Click over to chats
+                    await MainPager.of(context)?.pageController.animateToPage(1,
+                        duration: 250.ms, curve: Curves.easeInOut);
+                  }
+
                   //   // ignore: use_build_context_synchronously
                   //   if (!context.mounted) {
                   //     return;

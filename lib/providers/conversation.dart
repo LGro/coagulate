@@ -123,33 +123,85 @@ Future<Conversation?> writeLocalConversation({
   });
 }
 
+Future<Conversation?> readLocalConversation({
+  required ActiveAccountInfo activeAccountInfo,
+  required OwnedDHTRecordPointer localConversationOwned,
+  required TypedKey remoteIdentityPublicKey,
+}) async {
+  final accountRecordKey =
+      activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+  final pool = await DHTRecordPool.instance();
 
-/// Get most recent messages for this conversation
-// @riverpod
-// Future<IList<Message>?> fetchConversationMessages(FetchContactListRef ref) async {
-//   // See if we've logged into this account or if it is locked
-//   final activeAccountInfo = await ref.watch(fetchActiveAccountProvider.future);
-//   if (activeAccountInfo == null) {
-//     return null;
-//   }
-//   final accountRecordKey =
-//       activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+  final crypto = await getConversationCrypto(
+      activeAccountInfo: activeAccountInfo,
+      remoteIdentityPublicKey: remoteIdentityPublicKey);
 
-//   // Decode the contact list from the DHT
-//   IList<Contact> out = const IListConst([]);
-//   await (await DHTShortArray.openOwned(
-//           proto.OwnedDHTRecordPointerProto.fromProto(
-//               activeAccountInfo.account.contactList),
-//           parent: accountRecordKey))
-//       .scope((cList) async {
-//     for (var i = 0; i < cList.length; i++) {
-//       final cir = await cList.getItem(i);
-//       if (cir == null) {
-//         throw Exception('Failed to get contact');
-//       }
-//       out = out.add(Contact.fromBuffer(cir));
-//     }
-//   });
+  return (await pool.openOwned(localConversationOwned,
+          parent: accountRecordKey, crypto: crypto))
+      .scope((localConversation) async {
+    //
+    final update = await localConversation.getProtobuf(Conversation.fromBuffer);
+    if (update != null) {
+      return update;
+    }
+    return null;
+  });
+}
 
-//   return out;
-// }
+Future<void> addLocalConversationMessage(
+    {required ActiveAccountInfo activeAccountInfo,
+    required OwnedDHTRecordPointer localConversationOwned,
+    required TypedKey remoteIdentityPublicKey,
+    required proto.Message message}) async {
+  final conversation = await readLocalConversation(
+      activeAccountInfo: activeAccountInfo,
+      localConversationOwned: localConversationOwned,
+      remoteIdentityPublicKey: remoteIdentityPublicKey);
+  if (conversation == null) {
+    return;
+  }
+  final messagesOwned =
+      proto.OwnedDHTRecordPointerProto.fromProto(conversation.messages);
+  final crypto = await getConversationCrypto(
+      activeAccountInfo: activeAccountInfo,
+      remoteIdentityPublicKey: remoteIdentityPublicKey);
+
+  await (await DHTShortArray.openOwned(messagesOwned,
+          parent: localConversationOwned.recordKey, crypto: crypto))
+      .scope((messages) async {
+    await messages.tryAddItem(message.writeToBuffer());
+  });
+}
+
+Future<IList<proto.Message>?> getLocalConversationMessages({
+  required ActiveAccountInfo activeAccountInfo,
+  required OwnedDHTRecordPointer localConversationOwned,
+  required TypedKey remoteIdentityPublicKey,
+}) async {
+  final conversation = await readLocalConversation(
+      activeAccountInfo: activeAccountInfo,
+      localConversationOwned: localConversationOwned,
+      remoteIdentityPublicKey: remoteIdentityPublicKey);
+  if (conversation == null) {
+    return null;
+  }
+  final messagesOwned =
+      proto.OwnedDHTRecordPointerProto.fromProto(conversation.messages);
+  final crypto = await getConversationCrypto(
+      activeAccountInfo: activeAccountInfo,
+      remoteIdentityPublicKey: remoteIdentityPublicKey);
+
+  return (await DHTShortArray.openOwned(messagesOwned,
+          parent: localConversationOwned.recordKey, crypto: crypto))
+      .scope((messages) async {
+    var out = IList<proto.Message>();
+    for (var i = 0; i < messages.length; i++) {
+      final msg = await messages.getItemProtobuf(proto.Message.fromBuffer, i);
+      if (msg == null) {
+        throw Exception('Failed to get message');
+      }
+      out = out.add(msg);
+    }
+    return out;
+  });
+}

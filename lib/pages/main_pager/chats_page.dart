@@ -1,9 +1,10 @@
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 
-import '../../components/chat_list_widget.dart';
+import '../../components/chat_single_contact_list_widget.dart';
 import '../../components/empty_chat_list_widget.dart';
 import '../../entities/local_account.dart';
 import '../../entities/proto.dart' as proto;
@@ -52,14 +53,10 @@ class ChatsPageState extends ConsumerState<ChatsPage> {
 
     return Column(children: <Widget>[
       if (chatList.isNotEmpty)
-        ExpansionTile(
-          title: Text(translate('chat_page.conversations')),
-          initiallyExpanded: true,
-          children: [
-            ChatListWidget(contactList: contactList, chatList: chatList)
-          ],
-        ),
-      if (chatList.isEmpty) const EmptyChatListWidget(),
+        ChatSingleContactListWidget(
+                contactList: contactList, chatList: chatList)
+            .expanded(),
+      if (chatList.isEmpty) const EmptyChatListWidget().expanded(),
     ]);
   }
 

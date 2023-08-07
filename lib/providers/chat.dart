@@ -73,6 +73,11 @@ Future<void> deleteChat(
       final c = Chat.fromBuffer(cbuf);
       if (c.remoteConversationKey == remoteConversationKey) {
         await chatList.tryRemoveItem(i);
+
+        if (activeChatState.currentState == remoteConversationRecordKey) {
+          activeChatState.add(null);
+        }
+
         return;
       }
     }

@@ -74,9 +74,6 @@ class ChatSingleContactItemWidget extends ConsumerWidget {
                   activeChatState.add(proto.TypedKeyProto.fromProto(
                       contact.remoteConversationKey));
                   ref.invalidate(fetchChatListProvider);
-                  // Click over to chats
-                  await MainPager.of(context)?.pageController.animateToPage(1,
-                      duration: 250.ms, curve: Curves.easeInOut);
                 },
                 title: Text(contact.editedProfile.name),
 
