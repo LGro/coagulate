@@ -42,10 +42,10 @@ class DHTShortArray {
         }
         stride = oCnt - 1;
       case DHTSchemaSMPL(oCnt: final oCnt, members: final members):
-        if (oCnt != 0 || members.length != 1 || members[1].mCnt <= 1) {
+        if (oCnt != 0 || members.length != 1 || members[0].mCnt <= 1) {
           throw StateError('Invalid SMPL schema in DHTShortArray');
         }
-        stride = members[1].mCnt - 1;
+        stride = members[0].mCnt - 1;
     }
     assert(stride <= maxElements, 'stride too long');
     _stride = stride;
@@ -117,7 +117,7 @@ class DHTShortArray {
         parent: parent, routingContext: routingContext, crypto: crypto);
     try {
       final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
-      await dhtShortArray._refreshHead();
+      await dhtShortArray._refreshHead(forceRefresh: true);
       return dhtShortArray;
     } on Exception catch (_) {
       await dhtRecord.close();
@@ -137,7 +137,7 @@ class DHTShortArray {
         parent: parent, routingContext: routingContext, crypto: crypto);
     try {
       final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
-      await dhtShortArray._refreshHead();
+      await dhtShortArray._refreshHead(forceRefresh: true);
       return dhtShortArray;
     } on Exception catch (_) {
       await dhtRecord.close();
@@ -315,7 +315,7 @@ class DHTShortArray {
     await Future.wait(futures);
   }
 
-  Future<T> scope<T>(FutureOr<T> Function(DHTShortArray) scopeFunction) async {
+  Future<T> scope<T>(Future<T> Function(DHTShortArray) scopeFunction) async {
     try {
       return await scopeFunction(this);
     } finally {
@@ -324,7 +324,7 @@ class DHTShortArray {
   }
 
   Future<T> deleteScope<T>(
-      FutureOr<T> Function(DHTShortArray) scopeFunction) async {
+      Future<T> Function(DHTShortArray) scopeFunction) async {
     try {
       final out = await scopeFunction(this);
       await close();

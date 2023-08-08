@@ -48,6 +48,7 @@ class ContactListWidget extends ConsumerWidget {
           child: (contactList.isEmpty)
               ? const EmptyContactListWidget().toCenter()
               : SearchableList<proto.Contact>(
+                  autoFocusOnSearch: false,
                   initialList: contactList.toList(),
                   builder: (contact) => ContactItemWidget(contact: contact),
                   filter: (value) {

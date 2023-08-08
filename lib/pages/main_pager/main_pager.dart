@@ -34,8 +34,8 @@ class MainPagerState extends ConsumerState<MainPager>
 
   final _unfocusNode = FocusNode();
 
-  final pageController = PageController();
   var _currentPage = 0;
+  final pageController = PageController();
 
   final _selectedIconList = <IconData>[Icons.person, Icons.chat];
   // final _unselectedIconList = <IconData>[
@@ -235,6 +235,11 @@ class MainPagerState extends ConsumerState<MainPager>
           onNotification: onScrollNotification,
           child: PageView(
             controller: pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
             //physics: const NeverScrollableScrollPhysics(),
             children: List.generate(
                 _bottomBarPages.length, (index) => _bottomBarPages[index]),
@@ -271,9 +276,6 @@ class MainPagerState extends ConsumerState<MainPager>
         onTap: (index) async {
           await pageController.animateToPage(index,
               duration: 250.ms, curve: Curves.easeInOut);
-          setState(() {
-            _currentPage = index;
-          });
         },
       ),
 

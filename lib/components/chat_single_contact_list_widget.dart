@@ -42,6 +42,7 @@ class ChatSingleContactListWidget extends ConsumerWidget {
       child: (chatList.isEmpty)
           ? const EmptyChatListWidget()
           : SearchableList<proto.Chat>(
+              autoFocusOnSearch: false,
               initialList: chatList.toList(),
               builder: (c) {
                 final contact = contactMap[c.remoteConversationKey];

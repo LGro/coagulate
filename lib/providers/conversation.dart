@@ -7,6 +7,7 @@ import '../entities/identity.dart';
 import '../entities/proto.dart' as proto;
 import '../entities/proto.dart' show Conversation;
 
+import '../log/loggy.dart';
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';
 
@@ -192,6 +193,71 @@ Future<void> addLocalConversationMessage(
       .scope((messages) async {
     await messages.tryAddItem(message.writeToBuffer());
   });
+}
+
+Future<bool> mergeLocalConversationMessages(
+    {required ActiveAccountInfo activeAccountInfo,
+    required TypedKey localConversationRecordKey,
+    required TypedKey remoteIdentityPublicKey,
+    required IList<proto.Message> newMessages}) async {
+  final conversation = await readLocalConversation(
+      activeAccountInfo: activeAccountInfo,
+      localConversationRecordKey: localConversationRecordKey,
+      remoteIdentityPublicKey: remoteIdentityPublicKey);
+  if (conversation == null) {
+    return false;
+  }
+  bool changed = false;
+  final messagesRecordKey =
+      proto.TypedKeyProto.fromProto(conversation.messages);
+  final crypto = await getConversationCrypto(
+      activeAccountInfo: activeAccountInfo,
+      remoteIdentityPublicKey: remoteIdentityPublicKey);
+  final writer = getConversationWriter(activeAccountInfo: activeAccountInfo);
+
+  newMessages = newMessages.sort((a, b) => Timestamp.fromInt64(a.timestamp)
+      .compareTo(Timestamp.fromInt64(b.timestamp)));
+
+  await (await DHTShortArray.openWrite(messagesRecordKey, writer,
+          parent: localConversationRecordKey, crypto: crypto))
+      .scope((messages) async {
+    // Ensure newMessages is sorted by timestamp
+    newMessages =
+        newMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    // Existing messages will always be sorted by timestamp so merging is easy
+    var pos = 0;
+    outer:
+    for (final newMessage in newMessages) {
+      var skip = false;
+      while (pos < messages.length) {
+        final m = await messages.getItemProtobuf(proto.Message.fromBuffer, pos);
+        if (m == null) {
+          log.error('unable to get message #$pos');
+          break outer;
+        }
+
+        // If timestamp to insert is less than
+        // the current position, insert it here
+        final newTs = Timestamp.fromInt64(newMessage.timestamp);
+        final curTs = Timestamp.fromInt64(m.timestamp);
+        final cmp = newTs.compareTo(curTs);
+        if (cmp < 0) {
+          break;
+        } else if (cmp == 0) {
+          skip = true;
+          break;
+        }
+        pos++;
+      }
+      // Insert at this position
+      if (!skip) {
+        await messages.tryInsertItem(pos, newMessage.writeToBuffer());
+        changed = true;
+      }
+    }
+  });
+  return changed;
 }
 
 Future<IList<proto.Message>?> getLocalConversationMessages({

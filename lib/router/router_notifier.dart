@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../pages/chat_only_page.dart';
 import '../pages/home.dart';
 import '../pages/index.dart';
 import '../pages/new_account.dart';
+import '../providers/chat.dart';
 import '../providers/local_accounts.dart';
+import '../tools/responsive.dart';
 
 part 'router_notifier.g.dart';
 
@@ -16,6 +19,7 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
 
   /// Do we need to make or import an account immediately?
   bool hasAnyAccount = false;
+  bool hasActiveChat = false;
 
   /// AsyncNotifier build
   @override
@@ -23,6 +27,7 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
     hasAnyAccount = await ref.watch(
       localAccountsProvider.selectAsync((data) => data.isNotEmpty),
     );
+    hasActiveChat = ref.watch(activeChatStateProvider).asData?.value != null;
 
     // When this notifier's state changes, inform GoRouter
     ref.listenSelf((_, __) {
@@ -46,6 +51,36 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
         return hasAnyAccount ? HomePage.path : NewAccountPage.path;
       case NewAccountPage.path:
         return hasAnyAccount ? HomePage.path : null;
+      case HomePage.path:
+        if (!hasAnyAccount) {
+          return NewAccountPage.path;
+        }
+        if (responsiveVisibility(
+            context: context,
+            tablet: false,
+            tabletLandscape: false,
+            desktop: false)) {
+          if (hasActiveChat) {
+            return ChatOnlyPage.path;
+          }
+        }
+        return null;
+      case ChatOnlyPage.path:
+        if (!hasAnyAccount) {
+          return NewAccountPage.path;
+        }
+        if (responsiveVisibility(
+            context: context,
+            tablet: false,
+            tabletLandscape: false,
+            desktop: false)) {
+          if (!hasActiveChat) {
+            return HomePage.path;
+          }
+        } else {
+          return HomePage.path;
+        }
+        return null;
       default:
         return hasAnyAccount ? null : NewAccountPage.path;
     }
@@ -64,6 +99,10 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
         GoRoute(
           path: NewAccountPage.path,
           builder: (context, state) => const NewAccountPage(),
+        ),
+        GoRoute(
+          path: ChatOnlyPage.path,
+          builder: (context, state) => const ChatOnlyPage(),
         ),
       ];
 

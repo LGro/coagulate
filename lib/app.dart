@@ -7,6 +7,7 @@ import 'package:flutter_translate/flutter_translate.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
 import 'router/router.dart';
+import 'tick.dart';
 
 class VeilidChatApp extends ConsumerWidget {
   const VeilidChatApp({
@@ -23,24 +24,25 @@ class VeilidChatApp extends ConsumerWidget {
     final localizationDelegate = LocalizedApp.of(context).delegate;
 
     return ThemeProvider(
-      initTheme: theme,
-      builder: (_, theme) => LocalizationProvider(
-          state: LocalizationProvider.of(context).state,
-          child: MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            routerConfig: router,
-            title: translate('app.title'),
-            theme: theme,
-            localizationsDelegates: [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              FormBuilderLocalizations.delegate,
-              localizationDelegate
-            ],
-            supportedLocales: localizationDelegate.supportedLocales,
-            locale: localizationDelegate.currentLocale,
-          )),
-    );
+        initTheme: theme,
+        builder: (_, theme) => LocalizationProvider(
+              state: LocalizationProvider.of(context).state,
+              child: BackgroundTicker(
+                  builder: (context) => MaterialApp.router(
+                        debugShowCheckedModeBanner: false,
+                        routerConfig: router,
+                        title: translate('app.title'),
+                        theme: theme,
+                        localizationsDelegates: [
+                          GlobalMaterialLocalizations.delegate,
+                          GlobalWidgetsLocalizations.delegate,
+                          FormBuilderLocalizations.delegate,
+                          localizationDelegate
+                        ],
+                        supportedLocales: localizationDelegate.supportedLocales,
+                        locale: localizationDelegate.currentLocale,
+                      )),
+            ));
   }
 
   @override

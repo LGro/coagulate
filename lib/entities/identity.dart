@@ -137,17 +137,17 @@ extension IdentityMasterExtension on IdentityMaster {
         // Make empty contact list
         final contactList =
             await (await DHTShortArray.create(parent: accountRec.key))
-                .scope((r) => r.record.ownedDHTRecordPointer);
+                .scope((r) async => r.record.ownedDHTRecordPointer);
 
         // Make empty contact invitation record list
         final contactInvitationRecords =
             await (await DHTShortArray.create(parent: accountRec.key))
-                .scope((r) => r.record.ownedDHTRecordPointer);
+                .scope((r) async => r.record.ownedDHTRecordPointer);
 
         // Make empty chat record list
         final chatRecords =
             await (await DHTShortArray.create(parent: accountRec.key))
-                .scope((r) => r.record.ownedDHTRecordPointer);
+                .scope((r) async => r.record.ownedDHTRecordPointer);
 
         // Make account object
         final account = proto.Account()

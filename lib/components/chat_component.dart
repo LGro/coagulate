@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:awesome_extensions/awesome_extensions.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
@@ -9,6 +11,7 @@ import 'package:uuid/uuid.dart';
 import '../../entities/proto.dart' as proto;
 import '../entities/identity.dart';
 import '../providers/account.dart';
+import '../providers/chat.dart';
 import '../providers/conversation.dart';
 import '../tools/theme_service.dart';
 import '../veilid_support/veilid_support.dart';
@@ -59,6 +62,8 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
     super.dispose();
   }
 
+  externalize messages so they auto refresh and fix speed.
+
   Future<void> _loadMessages() async {
     final localConversationRecordKey = proto.TypedKeyProto.fromProto(
         widget.activeChatContact.localConversationRecordKey);
@@ -88,8 +93,8 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
 
     final textMessage = types.TextMessage(
       author: isLocal ? _localUser : _remoteUser,
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      id: const Uuid().v4(),
+      createdAt: (message.timestamp ~/ 1000).toInt(),
+      id: message.timestamp.toString(),
       text: message.text,
     );
     return textMessage;
@@ -157,16 +162,23 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                     decoration: BoxDecoration(
                       color: scale.primaryScale.subtleBackground,
                     ),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
-                        child: Text(contactName,
-                            textAlign: TextAlign.start,
-                            style: textTheme.titleMedium),
-                      ),
-                    ),
+                    child: Row(children: [
+                      Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                16, 0, 16, 0),
+                            child: Text(contactName,
+                                textAlign: TextAlign.start,
+                                style: textTheme.titleMedium),
+                          )),
+                      Spacer(),
+                      IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () async {
+                            activeChatState.add(null);
+                          }).paddingLTRB(16, 0, 16, 0)
+                    ]),
                   ),
                   Expanded(
                     child: Container(

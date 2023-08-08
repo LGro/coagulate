@@ -66,7 +66,7 @@ class DHTRecord {
     _valid = false;
   }
 
-  Future<T> scope<T>(FutureOr<T> Function(DHTRecord) scopeFunction) async {
+  Future<T> scope<T>(Future<T> Function(DHTRecord) scopeFunction) async {
     try {
       return await scopeFunction(this);
     } finally {
@@ -76,8 +76,7 @@ class DHTRecord {
     }
   }
 
-  Future<T> deleteScope<T>(
-      FutureOr<T> Function(DHTRecord) scopeFunction) async {
+  Future<T> deleteScope<T>(Future<T> Function(DHTRecord) scopeFunction) async {
     try {
       final out = await scopeFunction(this);
       if (_valid && _open) {
