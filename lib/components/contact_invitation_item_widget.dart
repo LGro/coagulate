@@ -114,9 +114,12 @@ class ContactInvitationItemWidget extends ConsumerWidget {
                             ));
                   }
                 },
-                subtitle: Text(contactInvitationRecord.message.isEmpty
-                    ? translate('contact_list.invitation')
-                    : contactInvitationRecord.message),
+                title: Text(
+                  contactInvitationRecord.message.isEmpty
+                      ? translate('contact_list.invitation')
+                      : contactInvitationRecord.message,
+                  softWrap: true,
+                ),
                 iconColor: scale.tertiaryScale.background,
                 textColor: scale.tertiaryScale.text,
                 //Text(Timestamp.fromInt64(contactInvitationRecord.expiration) / ),

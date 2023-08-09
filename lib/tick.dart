@@ -155,11 +155,14 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
         remoteIdentityPublicKey: remoteIdentityPublicKey,
         remoteConversationRecordKey: remoteConversationRecordKey);
     if (newMessages != null) {
-      await mergeLocalConversationMessages(
+      final changed = await mergeLocalConversationMessages(
           activeAccountInfo: activeAccountInfo,
           localConversationRecordKey: localConversationRecordKey,
           remoteIdentityPublicKey: remoteIdentityPublicKey,
           newMessages: newMessages);
+      if (changed) {
+        ref.invalidate(activeConversationMessagesProvider);
+      }
     }
   }
 }

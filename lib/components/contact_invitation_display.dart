@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -76,13 +77,12 @@ class ContactInvitationDisplayDialogState
     final textTheme = theme.textTheme;
 
     final signedContactInvitationBytesV = ref.watch(_generateFutureProvider);
-    final cardsize = MediaQuery.of(context).size.shortestSide - 24;
+    final cardsize = MediaQuery.of(context).size.shortestSide - 48;
 
     return Dialog(
         backgroundColor: Colors.white,
-        child: SizedBox(
-            width: cardsize,
-            height: cardsize,
+        child: FittedBox(
+            fit: BoxFit.scaleDown,
             child: signedContactInvitationBytesV.when(
                 loading: () => waitingPage(context),
                 data: (data) {
@@ -97,15 +97,15 @@ class ContactInvitationDisplayDialogState
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                        translate(
+                                            'send_invite_dialog.contact_invitation'),
+                                        style: textTheme.headlineMedium!
+                                            .copyWith(color: Colors.black)))
+                                .paddingAll(8),
+                            FittedBox(
                                 fit: BoxFit.scaleDown,
-                                child: Text(
-                                    translate(
-                                        'send_invite_dialog.contact_invitation'),
-                                    style: textTheme.headlineMedium!
-                                        .copyWith(color: Colors.black))),
-                            ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                    minWidth: 300, minHeight: 300),
                                 child: QrImageView.withQr(
                                     size: 300,
                                     qr: QrCode.fromUint8List(
@@ -113,11 +113,12 @@ class ContactInvitationDisplayDialogState
                                         errorCorrectLevel:
                                             QrErrorCorrectLevel.L))),
                             FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(widget.message,
-                                    softWrap: true,
-                                    style: textTheme.headlineSmall!
-                                        .copyWith(color: Colors.black))),
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(widget.message,
+                                        softWrap: true,
+                                        style: textTheme.headlineSmall!
+                                            .copyWith(color: Colors.black)))
+                                .paddingAll(8),
                             ElevatedButton.icon(
                               icon: const Icon(Icons.copy),
                               label: Text(translate(
@@ -131,7 +132,7 @@ class ContactInvitationDisplayDialogState
                                     text:
                                         makeTextInvite(widget.message, data)));
                               },
-                            ),
+                            ).paddingAll(8),
                           ]));
                 },
                 error: (e, s) {

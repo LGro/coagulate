@@ -143,7 +143,7 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
             TextField(
               controller: _messageTextController,
               inputFormatters: [
-                LengthLimitingTextInputFormatter(256),
+                LengthLimitingTextInputFormatter(128),
               ],
               decoration: InputDecoration(
                   border: const OutlineInputBorder(),

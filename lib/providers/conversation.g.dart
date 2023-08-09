@@ -1,25 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'router_notifier.dart';
+part of 'conversation.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$routerNotifierHash() => r'6493fee7e11afead973a5bece304b3c94f7fa1c6';
+String _$activeConversationMessagesHash() =>
+    r'd65cd8bf71122806320325e7f0e5f8e751d13b55';
 
-/// See also [RouterNotifier].
-@ProviderFor(RouterNotifier)
-final routerNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<RouterNotifier, void>.internal(
-  RouterNotifier.new,
-  name: r'routerNotifierProvider',
+/// See also [ActiveConversationMessages].
+@ProviderFor(ActiveConversationMessages)
+final activeConversationMessagesProvider = AutoDisposeAsyncNotifierProvider<
+    ActiveConversationMessages, IList<Message>?>.internal(
+  ActiveConversationMessages.new,
+  name: r'activeConversationMessagesProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$routerNotifierHash,
+      : _$activeConversationMessagesHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$RouterNotifier = AutoDisposeAsyncNotifier<void>;
+typedef _$ActiveConversationMessages
+    = AutoDisposeAsyncNotifier<IList<Message>?>;
 // ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions

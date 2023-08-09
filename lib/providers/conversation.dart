@@ -1,17 +1,22 @@
 import 'dart:convert';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/material.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../entities/identity.dart';
 import '../entities/proto.dart' as proto;
-import '../entities/proto.dart' show Conversation;
+import '../entities/proto.dart' show Conversation, Message;
 
 import '../log/loggy.dart';
+import '../tools/external_stream_state.dart';
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';
+import 'chat.dart';
+import 'contact.dart';
 
-//part 'conversation.g.dart';
+part 'conversation.g.dart';
 
 Future<DHTRecordCrypto> getConversationCrypto({
   required ActiveAccountInfo activeAccountInfo,
@@ -173,7 +178,7 @@ Future<void> addLocalConversationMessage(
     {required ActiveAccountInfo activeAccountInfo,
     required TypedKey localConversationRecordKey,
     required TypedKey remoteIdentityPublicKey,
-    required proto.Message message}) async {
+    required Message message}) async {
   final conversation = await readLocalConversation(
       activeAccountInfo: activeAccountInfo,
       localConversationRecordKey: localConversationRecordKey,
@@ -199,7 +204,7 @@ Future<bool> mergeLocalConversationMessages(
     {required ActiveAccountInfo activeAccountInfo,
     required TypedKey localConversationRecordKey,
     required TypedKey remoteIdentityPublicKey,
-    required IList<proto.Message> newMessages}) async {
+    required IList<Message> newMessages}) async {
   final conversation = await readLocalConversation(
       activeAccountInfo: activeAccountInfo,
       localConversationRecordKey: localConversationRecordKey,
@@ -207,7 +212,7 @@ Future<bool> mergeLocalConversationMessages(
   if (conversation == null) {
     return false;
   }
-  bool changed = false;
+  var changed = false;
   final messagesRecordKey =
       proto.TypedKeyProto.fromProto(conversation.messages);
   final crypto = await getConversationCrypto(
@@ -260,7 +265,7 @@ Future<bool> mergeLocalConversationMessages(
   return changed;
 }
 
-Future<IList<proto.Message>?> getLocalConversationMessages({
+Future<IList<Message>?> getLocalConversationMessages({
   required ActiveAccountInfo activeAccountInfo,
   required TypedKey localConversationRecordKey,
   required TypedKey remoteIdentityPublicKey,
@@ -281,9 +286,9 @@ Future<IList<proto.Message>?> getLocalConversationMessages({
   return (await DHTShortArray.openRead(messagesRecordKey,
           parent: localConversationRecordKey, crypto: crypto))
       .scope((messages) async {
-    var out = IList<proto.Message>();
+    var out = IList<Message>();
     for (var i = 0; i < messages.length; i++) {
-      final msg = await messages.getItemProtobuf(proto.Message.fromBuffer, i);
+      final msg = await messages.getItemProtobuf(Message.fromBuffer, i);
       if (msg == null) {
         throw Exception('Failed to get message');
       }
@@ -293,7 +298,7 @@ Future<IList<proto.Message>?> getLocalConversationMessages({
   });
 }
 
-Future<IList<proto.Message>?> getRemoteConversationMessages({
+Future<IList<Message>?> getRemoteConversationMessages({
   required ActiveAccountInfo activeAccountInfo,
   required TypedKey remoteConversationRecordKey,
   required TypedKey remoteIdentityPublicKey,
@@ -314,9 +319,9 @@ Future<IList<proto.Message>?> getRemoteConversationMessages({
   return (await DHTShortArray.openRead(messagesRecordKey,
           parent: remoteConversationRecordKey, crypto: crypto))
       .scope((messages) async {
-    var out = IList<proto.Message>();
+    var out = IList<Message>();
     for (var i = 0; i < messages.length; i++) {
-      final msg = await messages.getItemProtobuf(proto.Message.fromBuffer, i);
+      final msg = await messages.getItemProtobuf(Message.fromBuffer, i);
       if (msg == null) {
         throw Exception('Failed to get message');
       }
@@ -324,4 +329,47 @@ Future<IList<proto.Message>?> getRemoteConversationMessages({
     }
     return out;
   });
+}
+
+@riverpod
+class ActiveConversationMessages extends _$ActiveConversationMessages {
+  /// Get message for active converation
+  @override
+  FutureOr<IList<Message>?> build() async {
+    final activeChat = activeChatState.currentState;
+    if (activeChat == null) {
+      return null;
+    }
+
+    final activeAccountInfo =
+        await ref.watch(fetchActiveAccountProvider.future);
+    if (activeAccountInfo == null) {
+      return null;
+    }
+
+    final contactList = ref.watch(fetchContactListProvider).asData?.value ??
+        const IListConst([]);
+
+    final activeChatContactIdx = contactList.indexWhere(
+      (c) =>
+          proto.TypedKeyProto.fromProto(c.remoteConversationRecordKey) ==
+          activeChat,
+    );
+    if (activeChatContactIdx == -1) {
+      return null;
+    }
+    final activeChatContact = contactList[activeChatContactIdx];
+    final remoteIdentityPublicKey =
+        proto.TypedKeyProto.fromProto(activeChatContact.identityPublicKey);
+    // final remoteConversationRecordKey = proto.TypedKeyProto.fromProto(
+    //     activeChatContact.remoteConversationRecordKey);
+    final localConversationRecordKey = proto.TypedKeyProto.fromProto(
+        activeChatContact.localConversationRecordKey);
+
+    return await getLocalConversationMessages(
+      activeAccountInfo: activeAccountInfo,
+      localConversationRecordKey: localConversationRecordKey,
+      remoteIdentityPublicKey: remoteIdentityPublicKey,
+    );
+  }
 }

@@ -14,6 +14,7 @@ import '../providers/account.dart';
 import '../providers/chat.dart';
 import '../providers/conversation.dart';
 import '../tools/theme_service.dart';
+import '../tools/widget_helpers.dart';
 import '../veilid_support/veilid_support.dart';
 
 class ChatComponent extends ConsumerStatefulWidget {
@@ -32,7 +33,6 @@ class ChatComponent extends ConsumerStatefulWidget {
 }
 
 class ChatComponentState extends ConsumerState<ChatComponent> {
-  List<types.Message> _messages = [];
   final _unfocusNode = FocusNode();
   late final types.User _localUser;
   late final types.User _remoteUser;
@@ -52,37 +52,12 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                 widget.activeChatContact.identityPublicKey)
             .toString(),
         firstName: widget.activeChatContact.remoteProfile.name);
-
-    unawaited(_loadMessages());
   }
 
   @override
   void dispose() {
     _unfocusNode.dispose();
     super.dispose();
-  }
-
-  externalize messages so they auto refresh and fix speed.
-
-  Future<void> _loadMessages() async {
-    final localConversationRecordKey = proto.TypedKeyProto.fromProto(
-        widget.activeChatContact.localConversationRecordKey);
-    final remoteIdentityPublicKey = proto.TypedKeyProto.fromProto(
-        widget.activeChatContact.identityPublicKey);
-    final protoMessages = await getLocalConversationMessages(
-        activeAccountInfo: widget.activeAccountInfo,
-        localConversationRecordKey: localConversationRecordKey,
-        remoteIdentityPublicKey: remoteIdentityPublicKey);
-    if (protoMessages == null) {
-      return;
-    }
-    setState(() {
-      _messages = [];
-      for (final protoMessage in protoMessages) {
-        final message = protoMessageToMessage(protoMessage);
-        _messages.insert(0, message);
-      }
-    });
   }
 
   types.Message protoMessageToMessage(proto.Message message) {
@@ -107,9 +82,9 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
 
     final message = protoMessageToMessage(protoMessage);
 
-    setState(() {
-      _messages.insert(0, message);
-    });
+    // setState(() {
+    //   _messages.insert(0, message);
+    // });
 
     // Now add the message to the conversation messages
     final localConversationRecordKey = proto.TypedKeyProto.fromProto(
@@ -122,6 +97,8 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
         localConversationRecordKey: localConversationRecordKey,
         remoteIdentityPublicKey: remoteIdentityPublicKey,
         message: protoMessage);
+
+    ref.invalidate(activeConversationMessagesProvider);
   }
 
   Future<void> _handleSendPressed(types.PartialText message) async {
@@ -148,6 +125,17 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
     final chatTheme = scale.toChatTheme();
     final textTheme = Theme.of(context).textTheme;
     final contactName = widget.activeChatContact.editedProfile.name;
+
+    final protoMessages =
+        ref.watch(activeConversationMessagesProvider).asData?.value;
+    if (protoMessages == null) {
+      return waitingPage(context);
+    }
+    final messages = <types.Message>[];
+    for (final protoMessage in protoMessages) {
+      final message = protoMessageToMessage(protoMessage);
+      messages.insert(0, message);
+    }
 
     return DefaultTextStyle(
         style: textTheme.bodySmall!,
@@ -185,7 +173,7 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                       decoration: const BoxDecoration(),
                       child: Chat(
                         theme: chatTheme,
-                        messages: _messages,
+                        messages: messages,
                         //onAttachmentPressed: _handleAttachmentPressed,
                         //onMessageTap: _handleMessageTap,
                         //onPreviewDataFetched: _handlePreviewDataFetched,
