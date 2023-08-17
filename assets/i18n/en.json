@@ -105,6 +105,21 @@
         "groups": "Groups"
     },
     "themes": {
-        "vapor": "Vapor"
+        "vapor": "Vapor",
+        "scarlet": "Scarlet",
+        "babydoll": "Babydoll",
+        "gold": "Gold",
+        "garden": "Garden",
+        "forest": "Forest",
+        "arctic": "Arctic",
+        "lapis": "Lapis",
+        "eggplant": "Eggplant",
+        "lime": "Lime",
+        "grim": "Grim",
+        "contrast": "Contrast"
+    },
+    "settings_page": {
+        "titlebar": "Settings",
+        "color_theme": "Color Theme"
     }
 }

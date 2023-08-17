@@ -4,10 +4,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../entities/preferences.dart';
 import 'radix_generator.dart';
+
+part 'theme_service.g.dart';
 
 class ScaleColor {
   ScaleColor({
@@ -191,15 +194,27 @@ class ThemeService {
       Brightness.dark;
 
   ThemeData get initial {
-    final themePreferencesJson = prefs.getString('themePreferences');
-    final themePreferences = themePreferencesJson != null
-        ? ThemePreferences.fromJson(themePreferencesJson)
-        : const ThemePreferences(
-            colorPreference: ColorPreference.vapor,
-            brightnessPreference: BrightnessPreference.system,
-            displayScale: 1,
-          );
+    final themePreferences = load();
     return get(themePreferences);
+  }
+
+  ThemePreferences load() {
+    final themePreferencesJson = prefs.getString('themePreferences');
+    ThemePreferences? themePreferences;
+    if (themePreferencesJson != null) {
+      try {
+        themePreferences = ThemePreferences.fromJson(themePreferencesJson);
+        // ignore: avoid_catches_without_on_clauses
+      } catch (_) {
+        // ignore
+      }
+    }
+    return themePreferences ??
+        const ThemePreferences(
+          colorPreference: ColorPreference.vapor,
+          brightnessPreference: BrightnessPreference.system,
+          displayScale: 1,
+        );
   }
 
   Future<void> save(ThemePreferences themePreferences) async {
@@ -256,3 +271,6 @@ class ThemeService {
     return themeData;
   }
 }
+
+@riverpod
+Future<ThemeService> themeService() => ThemeService.instance;

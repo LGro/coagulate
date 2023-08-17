@@ -2,6 +2,8 @@ import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_translate/flutter_translate.dart';
+import 'package:go_router/go_router.dart';
 
 import '../tools/tools.dart';
 
@@ -29,10 +31,18 @@ class ProfileWidget extends ConsumerWidget {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(color: scale.primaryScale.border))),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(name, style: textTheme.headlineSmall).paddingAll(8),
-          if (title != null && title!.isNotEmpty)
-            Text(title!, style: textTheme.bodyMedium).paddingLTRB(8, 0, 8, 8),
+        child: Row(children: [
+          Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(name, style: textTheme.headlineSmall).paddingAll(8),
+            if (title != null && title!.isNotEmpty)
+              Text(title!, style: textTheme.bodyMedium).paddingLTRB(8, 0, 8, 8),
+          ]).expanded(),
+          IconButton(
+              icon: const Icon(Icons.settings),
+              tooltip: translate('app_bar.settings_tooltip'),
+              onPressed: () async {
+                context.go('/home/settings');
+              })
         ])).paddingAll(8);
   }
 

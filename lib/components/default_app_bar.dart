@@ -2,10 +2,11 @@ import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_translate/flutter_translate.dart';
+import 'package:go_router/go_router.dart';
 
 class DefaultAppBar extends AppBar {
-  DefaultAppBar(BuildContext context,
-      {required super.title, super.key, Widget? leading, List<Widget>? actions})
+  DefaultAppBar(
+      {required super.title, super.key, Widget? leading, super.actions})
       : super(
             leading: leading ??
                 Container(
@@ -15,17 +16,5 @@ class DefaultAppBar extends AppBar {
                         shape: BoxShape.circle),
                     child:
                         SvgPicture.asset('assets/images/vlogo.svg', height: 32)
-                            .paddingAll(4)),
-            actions: (actions ?? <Widget>[])
-              ..add(
-                IconButton(
-                  icon: const Icon(Icons.settings),
-                  tooltip: translate('app_bar.settings_tooltip'),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text(
-                            'Accessibility and language options coming soon')));
-                  },
-                ),
-              ));
+                            .paddingAll(4)));
 }

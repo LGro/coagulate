@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../tools/tools.dart';
 
-enum ConnectionState {
+enum GlobalConnectionState {
   detached,
   detaching,
   attaching,
@@ -13,7 +13,7 @@ enum ConnectionState {
   overAttached,
 }
 
-ExternalStreamState<ConnectionState> globalConnectionState =
-    ExternalStreamState<ConnectionState>(ConnectionState.detached);
-AutoDisposeStreamProvider<ConnectionState> globalConnectionStateProvider =
+ExternalStreamState<GlobalConnectionState> globalConnectionState =
+    ExternalStreamState<GlobalConnectionState>(GlobalConnectionState.detached);
+AutoDisposeStreamProvider<GlobalConnectionState> globalConnectionStateProvider =
     globalConnectionState.provider();

@@ -5,8 +5,10 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:go_router/go_router.dart';
 
 import '../components/default_app_bar.dart';
+import '../components/signal_strength_meter.dart';
 import '../providers/local_accounts.dart';
 import '../providers/logins.dart';
 import '../providers/window_control.dart';
@@ -15,7 +17,6 @@ import '../veilid_support/veilid_support.dart';
 
 class NewAccountPage extends ConsumerStatefulWidget {
   const NewAccountPage({super.key});
-  static const path = '/new_account';
 
   @override
   NewAccountPageState createState() => NewAccountPageState();
@@ -136,8 +137,17 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
 
     return Scaffold(
       // resizeToAvoidBottomInset: false,
-      appBar: DefaultAppBar(context,
-          title: Text(translate('new_account_page.titlebar'))),
+      appBar: DefaultAppBar(
+          title: Text(translate('new_account_page.titlebar')),
+          actions: [
+            const SignalStrengthMeterWidget(),
+            IconButton(
+                icon: const Icon(Icons.settings),
+                tooltip: translate('app_bar.settings_tooltip'),
+                onPressed: () async {
+                  context.go('/new_account/settings');
+                })
+          ]),
       body: _newAccountForm(
         context,
         onSubmit: (formKey) async {

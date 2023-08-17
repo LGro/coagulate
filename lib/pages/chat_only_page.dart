@@ -7,7 +7,6 @@ import 'home.dart';
 
 class ChatOnlyPage extends ConsumerStatefulWidget {
   const ChatOnlyPage({super.key});
-  static const path = '/chat';
 
   @override
   ChatOnlyPageState createState() => ChatOnlyPageState();

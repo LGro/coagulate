@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:split_view/split_view.dart';
-import 'package:signal_strength_indicator/signal_strength_indicator.dart';
 
 import '../../entities/proto.dart' as proto;
 import '../components/chat_component.dart';
@@ -21,7 +20,6 @@ import 'main_pager/main_pager.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
-  static const path = '/home';
 
   @override
   HomePageState createState() => HomePageState();

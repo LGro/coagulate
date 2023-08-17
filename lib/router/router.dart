@@ -17,7 +17,7 @@ GoRouter router(RouterRef ref) {
     navigatorKey: _key,
     refreshListenable: notifier,
     debugLogDiagnostics: true,
-    initialLocation: IndexPage.path,
+    initialLocation: '/',
     routes: notifier.routes,
     redirect: notifier.redirect,
   );

@@ -7,7 +7,6 @@ import '../providers/window_control.dart';
 
 class IndexPage extends ConsumerWidget {
   const IndexPage({super.key});
-  static const path = '/';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

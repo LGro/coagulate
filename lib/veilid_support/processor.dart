@@ -61,42 +61,42 @@ class Processor {
     //loggy.info("Attachment: ${updateAttachment.json}");
 
     // Set connection meter and ui state for connection state
-    var cs = ConnectionState.detached;
+    var cs = GlobalConnectionState.detached;
     var checkPublicInternet = false;
     switch (updateAttachment.state) {
       case AttachmentState.detached:
-        cs = ConnectionState.detached;
+        cs = GlobalConnectionState.detached;
         break;
       case AttachmentState.detaching:
-        cs = ConnectionState.detaching;
+        cs = GlobalConnectionState.detaching;
         break;
       case AttachmentState.attaching:
-        cs = ConnectionState.attaching;
+        cs = GlobalConnectionState.attaching;
         break;
       case AttachmentState.attachedWeak:
         checkPublicInternet = true;
-        cs = ConnectionState.attachedWeak;
+        cs = GlobalConnectionState.attachedWeak;
         break;
       case AttachmentState.attachedGood:
         checkPublicInternet = true;
-        cs = ConnectionState.attachedGood;
+        cs = GlobalConnectionState.attachedGood;
         break;
       case AttachmentState.attachedStrong:
         checkPublicInternet = true;
-        cs = ConnectionState.attachedStrong;
+        cs = GlobalConnectionState.attachedStrong;
         break;
       case AttachmentState.fullyAttached:
         checkPublicInternet = true;
-        cs = ConnectionState.fullyAttached;
+        cs = GlobalConnectionState.fullyAttached;
         break;
       case AttachmentState.overAttached:
         checkPublicInternet = true;
-        cs = ConnectionState.overAttached;
+        cs = GlobalConnectionState.overAttached;
         break;
     }
     if (checkPublicInternet) {
       if (!updateAttachment.publicInternetReady) {
-        cs = ConnectionState.attaching;
+        cs = GlobalConnectionState.attaching;
       }
     }
 

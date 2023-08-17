@@ -6,6 +6,7 @@ import '../pages/chat_only_page.dart';
 import '../pages/home.dart';
 import '../pages/index.dart';
 import '../pages/new_account.dart';
+import '../pages/settings.dart';
 import '../providers/chat.dart';
 import '../providers/local_accounts.dart';
 import '../tools/responsive.dart';
@@ -47,13 +48,13 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
     // No matter where we are, if there's not
 
     switch (state.location) {
-      case IndexPage.path:
-        return hasAnyAccount ? HomePage.path : NewAccountPage.path;
-      case NewAccountPage.path:
-        return hasAnyAccount ? HomePage.path : null;
-      case HomePage.path:
+      case '/':
+        return hasAnyAccount ? '/home' : '/new_account';
+      case '/new_account':
+        return hasAnyAccount ? '/home' : null;
+      case '/home':
         if (!hasAnyAccount) {
-          return NewAccountPage.path;
+          return '/new_account';
         }
         if (responsiveVisibility(
             context: context,
@@ -61,13 +62,13 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
             tabletLandscape: false,
             desktop: false)) {
           if (hasActiveChat) {
-            return ChatOnlyPage.path;
+            return '/home/chat';
           }
         }
         return null;
-      case ChatOnlyPage.path:
+      case '/home/chat':
         if (!hasAnyAccount) {
-          return NewAccountPage.path;
+          return '/new_account';
         }
         if (responsiveVisibility(
             context: context,
@@ -75,34 +76,49 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
             tabletLandscape: false,
             desktop: false)) {
           if (!hasActiveChat) {
-            return HomePage.path;
+            return '/home';
           }
         } else {
-          return HomePage.path;
+          return '/home';
         }
         return null;
+      case '/home/settings':
+      case '/new_account/settings':
+        return null;
       default:
-        return hasAnyAccount ? null : NewAccountPage.path;
+        return hasAnyAccount ? null : '/new_account';
     }
   }
 
   /// Our application routes
   List<GoRoute> get routes => [
         GoRoute(
-          path: IndexPage.path,
+          path: '/',
           builder: (context, state) => const IndexPage(),
         ),
         GoRoute(
-          path: HomePage.path,
+          path: '/home',
           builder: (context, state) => const HomePage(),
+          routes: [
+            GoRoute(
+              path: 'settings',
+              builder: (context, state) => const SettingsPage(),
+            ),
+            GoRoute(
+              path: 'chat',
+              builder: (context, state) => const ChatOnlyPage(),
+            ),
+          ],
         ),
         GoRoute(
-          path: NewAccountPage.path,
+          path: '/new_account',
           builder: (context, state) => const NewAccountPage(),
-        ),
-        GoRoute(
-          path: ChatOnlyPage.path,
-          builder: (context, state) => const ChatOnlyPage(),
+          routes: [
+            GoRoute(
+              path: 'settings',
+              builder: (context, state) => const SettingsPage(),
+            ),
+          ],
         ),
       ];
 
