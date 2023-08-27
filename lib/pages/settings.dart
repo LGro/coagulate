@@ -27,24 +27,23 @@ class SettingsPage extends ConsumerStatefulWidget {
 class SettingsPageState extends ConsumerState<SettingsPage> {
   final _formKey = GlobalKey<FormBuilderState>();
   late bool isInAsyncCall = false;
-  ThemeService? themeService;
-  ThemePreferences? themePreferences;
+//  ThemePreferences? themePreferences;
   static const String formFieldTheme = 'theme';
+  static const String formFieldBrightness = 'brightness';
   // static const String formFieldTitle = 'title';
 
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ref.read(windowControlProvider.notifier).changeWindowSetup(
-          TitleBarStyle.normal, OrientationCapability.normal);
-      final tsinst = await ThemeService.instance;
-      setState(() {
-        themeService = tsinst;
-        themePreferences = tsinst.load();
-      });
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) async {
+    //   await ref.read(windowControlProvider.notifier).changeWindowSetup(
+    //       TitleBarStyle.normal, OrientationCapability.normal);
+    //   final tsinst = await ThemeService.instance;
+    //   setState(() {
+    //     themePreferences = tsinst.load();
+    //   });
+    // });
   }
 
   List<DropdownMenuItem<dynamic>> _getThemeDropdownItems() {
@@ -69,10 +68,28 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
         .toList();
   }
 
+  List<DropdownMenuItem<dynamic>> _getBrightnessDropdownItems() {
+    const brightnessPrefs = BrightnessPreference.values;
+    final brightnessNames = {
+      BrightnessPreference.system: translate('brightness.system'),
+      BrightnessPreference.light: translate('brightness.light'),
+      BrightnessPreference.dark: translate('brightness.dark')
+    };
+
+    return brightnessPrefs
+        .map(
+            (e) => DropdownMenuItem(value: e, child: Text(brightnessNames[e]!)))
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(windowControlProvider);
-    final themeService = ref.watch(themeServiceProvider).asData();
+    final themeService = ref.watch(themeServiceProvider).valueOrNull;
+    if (themeService == null) {
+      return waitingPage(context);
+    }
+    final themePreferences = themeService.load();
 
     return ThemeSwitchingArea(
         child: Scaffold(
@@ -83,8 +100,8 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () => context.pop<void>(),
           ),
-          actions: const <Widget>[
-            SignalStrengthMeterWidget(),
+          actions: <Widget>[
+            const SignalStrengthMeterWidget().paddingLTRB(16, 0, 16, 0),
           ]),
 
       body: FormBuilder(
@@ -97,69 +114,31 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
                     decoration: InputDecoration(
                         label: Text(translate('settings_page.color_theme'))),
                     items: _getThemeDropdownItems(),
-                    initialValue: themePreferences?.colorPreference,
+                    initialValue: themePreferences.colorPreference,
                     onChanged: (value) async {
-                      final tprefs = themePreferences;
-                      if (tprefs != null) {
-                        final newPrefs = tprefs.copyWith(
-                            colorPreference: value as ColorPreference);
-                        final tservice = themeService;
-                        if (tservice != null) {
-                          await tservice.save(newPrefs);
-                          switcher.changeTheme(theme: tservice.get(newPrefs));
-                        }
-                        setState(() {
-                          themePreferences = newPrefs;
-                        });
-                      }
-                    }))
-
-            // Text(translate('settings_page.header'))
-            //     .textStyle(context.headlineSmall)
-            //     .paddingSymmetric(vertical: 16),
-            // FormBuilderTextField(
-            //   autofocus: true,
-            //   name: formFieldName,
-            //   decoration:
-            //       InputDecoration(hintText: translate('account.form_name')),
-            //   maxLength: 64,
-            //   // The validator receives the text that the user has entered.
-            //   validator: FormBuilderValidators.compose([
-            //     FormBuilderValidators.required(),
-            //   ]),
-            // ),
-            // FormBuilderTextField(
-            //   name: formFieldTitle,
-            //   maxLength: 64,
-            //   decoration:
-            //       InputDecoration(hintText: translate('account.form_title')),
-            // ),
-            // Row(children: [
-            //   const Spacer(),
-            //   Text(translate('new_account_page.instructions'))
-            //       .toCenter()
-            //       .flexible(flex: 6),
-            //   const Spacer(),
-            // ]).paddingSymmetric(vertical: 4),
-            // ElevatedButton(
-            //   onPressed: () async {
-            //     if (_formKey.currentState?.saveAndValidate() ?? false) {
-            //       setState(() {
-            //         isInAsyncCall = true;
-            //       });
-            //       try {
-            //         await onSubmit(_formKey);
-            //       } finally {
-            //         if (mounted) {
-            //           setState(() {
-            //             isInAsyncCall = false;
-            //           });
-            //         }
-            //       }
-            //     }
-            //   },
-            //   child: Text(translate('new_account_page.create')),
-            // ).paddingSymmetric(vertical: 4).alignAtCenterRight(),
+                      final newPrefs = themePreferences.copyWith(
+                          colorPreference: value as ColorPreference);
+                      await themeService.save(newPrefs);
+                      switcher.changeTheme(theme: themeService.get(newPrefs));
+                      ref.invalidate(themeServiceProvider);
+                      setState(() {});
+                    })),
+            ThemeSwitcher.withTheme(
+                builder: (_, switcher, theme) => FormBuilderDropdown(
+                    name: formFieldBrightness,
+                    decoration: InputDecoration(
+                        label:
+                            Text(translate('settings_page.brightness_mode'))),
+                    items: _getBrightnessDropdownItems(),
+                    initialValue: themePreferences.brightnessPreference,
+                    onChanged: (value) async {
+                      final newPrefs = themePreferences.copyWith(
+                          brightnessPreference: value as BrightnessPreference);
+                      await themeService.save(newPrefs);
+                      switcher.changeTheme(theme: themeService.get(newPrefs));
+                      ref.invalidate(themeServiceProvider);
+                      setState(() {});
+                    })),
           ],
         ),
       ).paddingSymmetric(horizontal: 24, vertical: 8),

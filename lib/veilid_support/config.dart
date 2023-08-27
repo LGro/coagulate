@@ -23,9 +23,11 @@ Future<VeilidConfig> getVeilidChatConfig() async {
   config = config.copyWith(
       network: config.network.copyWith(
           dht: config.network.dht.copyWith(
-              getValueCount: 2,
+              //getValueCount: 2,
+              getValueFanout: 8,
               getValueTimeoutMs: 5000,
-              setValueCount: 2,
+              //setValueCount: 2,
+              setValueFanout: 10,
               setValueTimeoutMs: 5000)));
 
   return config;

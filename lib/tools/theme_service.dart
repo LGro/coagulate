@@ -203,7 +203,8 @@ class ThemeService {
     ThemePreferences? themePreferences;
     if (themePreferencesJson != null) {
       try {
-        themePreferences = ThemePreferences.fromJson(themePreferencesJson);
+        themePreferences =
+            ThemePreferences.fromJson(jsonDecode(themePreferencesJson));
         // ignore: avoid_catches_without_on_clauses
       } catch (_) {
         // ignore
@@ -273,4 +274,5 @@ class ThemeService {
 }
 
 @riverpod
-Future<ThemeService> themeService() => ThemeService.instance;
+FutureOr<ThemeService> themeService(ThemeServiceRef ref) async =>
+    await ThemeService.instance;
