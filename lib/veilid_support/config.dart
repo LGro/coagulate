@@ -1,4 +1,3 @@
-import 'package:charcode/charcode.dart';
 import 'package:veilid/veilid.dart';
 
 Future<VeilidConfig> getVeilidChatConfig() async {
@@ -19,16 +18,16 @@ Future<VeilidConfig> getVeilidChatConfig() async {
         config.copyWith(blockStore: config.blockStore.copyWith(delete: true));
   }
 
-  // xxx hack
-  config = config.copyWith(
-      network: config.network.copyWith(
-          dht: config.network.dht.copyWith(
-              //getValueCount: 2,
-              getValueFanout: 8,
-              getValueTimeoutMs: 5000,
-              //setValueCount: 2,
-              setValueFanout: 10,
-              setValueTimeoutMs: 5000)));
+  // // xxx hack
+  // config = config.copyWith(
+  //     network: config.network.copyWith(
+  //         dht: config.network.dht.copyWith(
+  //             getValueCount: 3,
+  //             getValueFanout: 8,
+  //             getValueTimeoutMs: 5000,
+  //             setValueCount: 4,
+  //             setValueFanout: 10,
+  //             setValueTimeoutMs: 5000)));
 
   return config;
 }

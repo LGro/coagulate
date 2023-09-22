@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:awesome_extensions/awesome_extensions.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
@@ -162,7 +161,7 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                           )),
                       Spacer(),
                       IconButton(
-                          icon: Icon(Icons.close),
+                          icon: const Icon(Icons.close),
                           onPressed: () async {
                             activeChatState.add(null);
                           }).paddingLTRB(16, 0, 16, 0)

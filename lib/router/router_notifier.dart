@@ -47,7 +47,7 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
 
     // No matter where we are, if there's not
 
-    switch (state.location) {
+    switch (state.matchedLocation) {
       case '/':
         return hasAnyAccount ? '/home' : '/new_account';
       case '/new_account':

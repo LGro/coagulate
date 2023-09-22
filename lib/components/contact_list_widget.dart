@@ -50,7 +50,7 @@ class ContactListWidget extends ConsumerWidget {
               : SearchableList<proto.Contact>(
                   autoFocusOnSearch: false,
                   initialList: contactList.toList(),
-                  builder: (contact) => ContactItemWidget(contact: contact),
+                  builder: (l, i, c) => ContactItemWidget(contact: c),
                   filter: (value) {
                     final lowerValue = value.toLowerCase();
                     return contactList

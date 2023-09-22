@@ -2,20 +2,15 @@ import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
-import 'package:form_builder_validators/form_builder_validators.dart';
 
 import '../components/default_app_bar.dart';
 import '../components/signal_strength_meter.dart';
 import '../entities/preferences.dart';
-import '../providers/local_accounts.dart';
-import '../providers/logins.dart';
 import '../providers/window_control.dart';
 import '../tools/tools.dart';
-import '../veilid_support/veilid_support.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -35,15 +30,6 @@ class SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   void initState() {
     super.initState();
-
-    // WidgetsBinding.instance.addPostFrameCallback((_) async {
-    //   await ref.read(windowControlProvider.notifier).changeWindowSetup(
-    //       TitleBarStyle.normal, OrientationCapability.normal);
-    //   final tsinst = await ThemeService.instance;
-    //   setState(() {
-    //     themePreferences = tsinst.load();
-    //   });
-    // });
   }
 
   List<DropdownMenuItem<dynamic>> _getThemeDropdownItems() {

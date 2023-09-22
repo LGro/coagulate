@@ -2,7 +2,6 @@ import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_translate/flutter_translate.dart';
 
 import '../../components/chat_single_contact_list_widget.dart';
 import '../../components/empty_chat_list_widget.dart';
@@ -11,7 +10,6 @@ import '../../entities/proto.dart' as proto;
 import '../../providers/account.dart';
 import '../../providers/chat.dart';
 import '../../providers/contact.dart';
-import '../../providers/contact_invite.dart';
 import '../../providers/local_accounts.dart';
 import '../../providers/logins.dart';
 import '../../tools/tools.dart';

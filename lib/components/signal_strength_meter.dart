@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_translate/flutter_translate.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
 
 import '../providers/connection_state.dart';

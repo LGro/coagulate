@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/window_control.dart';
-import '../tools/tools.dart';
 import 'home.dart';
 
 class ChatOnlyPage extends ConsumerStatefulWidget {

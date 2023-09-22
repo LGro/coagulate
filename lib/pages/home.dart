@@ -1,10 +1,6 @@
-import 'dart:async';
-
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:split_view/split_view.dart';
 
 import '../../entities/proto.dart' as proto;
 import '../components/chat_component.dart';
@@ -12,8 +8,6 @@ import '../components/empty_chat_widget.dart';
 import '../providers/account.dart';
 import '../providers/chat.dart';
 import '../providers/contact.dart';
-import '../providers/contact_invite.dart';
-import '../providers/conversation.dart';
 import '../providers/window_control.dart';
 import '../tools/tools.dart';
 import 'main_pager/main_pager.dart';
@@ -80,14 +74,14 @@ class HomePageState extends ConsumerState<HomePage>
 
   // ignore: prefer_expression_function_bodies
   Widget buildPhone(BuildContext context) {
-    return Material(
+    return const Material(
         color: Colors.transparent, elevation: 4, child: MainPager());
   }
 
   // ignore: prefer_expression_function_bodies
   Widget buildTabletLeftPane(BuildContext context) {
     //
-    return Material(
+    return const Material(
         color: Colors.transparent, elevation: 4, child: MainPager());
   }
 
@@ -99,11 +93,10 @@ class HomePageState extends ConsumerState<HomePage>
 
   // ignore: prefer_expression_function_bodies
   Widget buildTablet(BuildContext context) {
-    final theme = Theme.of(context);
     final w = MediaQuery.of(context).size.width;
     final children = [
       ConstrainedBox(
-          constraints: BoxConstraints(minWidth: 300, maxWidth: 300),
+          constraints: const BoxConstraints(minWidth: 300, maxWidth: 300),
           child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: w / 2),
               child: buildTabletLeftPane(context))),

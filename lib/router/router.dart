@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../pages/index.dart';
 import 'router_notifier.dart';
 
 part 'router.g.dart';

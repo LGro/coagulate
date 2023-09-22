@@ -11,7 +11,6 @@ import 'package:stylish_bottom_bar/model/bar_items.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
 import '../../components/bottom_sheet_action_button.dart';
-import '../../components/contact_invitation_display.dart';
 import '../../components/paste_invite_dialog.dart';
 import '../../components/send_invite_dialog.dart';
 import '../../tools/tools.dart';
@@ -225,7 +224,6 @@ class MainPagerState extends ConsumerState<MainPager>
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
     final scale = theme.extension<ScaleScheme>()!;
 
     return Scaffold(

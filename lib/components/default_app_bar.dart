@@ -1,8 +1,6 @@
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_translate/flutter_translate.dart';
-import 'package:go_router/go_router.dart';
 
 class DefaultAppBar extends AppBar {
   DefaultAppBar(
