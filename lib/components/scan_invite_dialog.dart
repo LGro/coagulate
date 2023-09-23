@@ -16,49 +16,14 @@ import '../veilid_support/veilid_support.dart';
 import 'enter_pin.dart';
 import 'profile_widget.dart';
 
-class PasteInviteDialog extends ConsumerStatefulWidget {
-  const PasteInviteDialog({super.key});
+class ScanInviteDialog extends ConsumerStatefulWidget {
+  const ScanInviteDialog({super.key});
 
   @override
-  PasteInviteDialogState createState() => PasteInviteDialogState();
-
-  static Future<void> show(BuildContext context) async {
-    final theme = Theme.of(context);
-    final scale = theme.extension<ScaleScheme>()!;
-    final textTheme = theme.textTheme;
-
-    await showDialog<void>(
-        context: context,
-        // ignore: prefer_expression_function_bodies
-        builder: (context) {
-          return AlertDialog(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: const BorderRadius.all(Radius.circular(16)),
-                side: BorderSide(width: 4, color: scale.primaryScale.border),
-              ),
-              contentPadding: EdgeInsets.zero,
-              backgroundColor: scale.primaryScale.border,
-              title: Text(
-                translate('paste_invite_dialog.title'),
-                style: textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
-              titlePadding: EdgeInsets.fromLTRB(4, 4, 4, 0),
-              content: DecoratedBox(
-                  decoration: ShapeDecoration(
-                      color: scale.primaryScale.subtleBackground,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                            width: 4, color: scale.primaryScale.border),
-                      )),
-                  child: const PasteInviteDialog().paddingAll(4)));
-        });
-  }
+  ScanInviteDialogState createState() => ScanInviteDialogState();
 }
 
-class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
+class ScanInviteDialogState extends ConsumerState<ScanInviteDialog> {
   final _pasteTextController = TextEditingController();
 
   EncryptionKeyType _encryptionKeyType = EncryptionKeyType.none;
@@ -275,16 +240,16 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
       return SizedBox(height: 400, child: waitingPage(context));
     }
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 400, maxWidth: 400),
+      constraints: const BoxConstraints(maxHeight: 400),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(
               translate('paste_invite_dialog.paste_invite_here'),
-            ).paddingLTRB(0, 0, 0, 8),
+            ).paddingAll(8),
             Container(
                 constraints: const BoxConstraints(maxHeight: 200),
                 child: TextField(
@@ -302,13 +267,12 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
                         '---- END VEILIDCHAT CONTACT INVITE -----\n',
                     //labelText: translate('paste_invite_dialog.paste')
                   ),
-                )).paddingLTRB(0, 0, 0, 8),
+                ).paddingAll(8)),
             if (_validatingPaste)
               Column(children: [
-                Text(translate('paste_invite_dialog.validating'))
-                    .paddingLTRB(0, 0, 0, 8),
+                Text(translate('paste_invite_dialog.validating')),
                 buildProgressIndicator(context),
-              ]).paddingAll(16).toCenter(),
+              ]),
             if (_validInvitation == null &&
                 !_validatingPaste &&
                 _pasteTextController.text.isNotEmpty)
@@ -318,15 +282,10 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
               ]).paddingAll(16).toCenter(),
             if (_validInvitation != null && !_validatingPaste)
               Column(children: [
-                Container(
-                        constraints: const BoxConstraints(maxHeight: 64),
-                        width: double.infinity,
-                        child: ProfileWidget(
-                            name: _validInvitation!
-                                .contactRequestPrivate.profile.name,
-                            title: _validInvitation!
-                                .contactRequestPrivate.profile.title))
-                    .paddingLTRB(0, 0, 0, 8),
+                ProfileWidget(
+                    name: _validInvitation!.contactRequestPrivate.profile.name,
+                    title:
+                        _validInvitation!.contactRequestPrivate.profile.title),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [

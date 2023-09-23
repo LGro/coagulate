@@ -1,15 +1,24 @@
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_translate/flutter_translate.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../entities/proto.dart' as proto;
 import '../components/chat_component.dart';
 import '../components/empty_chat_widget.dart';
+import '../components/profile_widget.dart';
+import '../entities/local_account.dart';
 import '../providers/account.dart';
 import '../providers/chat.dart';
 import '../providers/contact.dart';
+import '../providers/local_accounts.dart';
+import '../providers/logins.dart';
 import '../providers/window_control.dart';
 import '../tools/tools.dart';
+import '../veilid_support/veilid_support.dart';
 import 'main_pager/main_pager.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -73,16 +82,125 @@ class HomePageState extends ConsumerState<HomePage>
   }
 
   // ignore: prefer_expression_function_bodies
+  Widget buildAccountList() {
+    return Column(children: [
+      Center(child: Text("Small Profile")),
+      Center(child: Text("Contact invitations")),
+      Center(child: Text("Contacts"))
+    ]);
+  }
+
+  Widget buildUnlockAccount(
+    BuildContext context,
+    IList<LocalAccount> localAccounts,
+    // ignore: prefer_expression_function_bodies
+  ) {
+    return Center(child: Text("unlock account"));
+  }
+
+  /// We have an active, unlocked, user login
+  Widget buildReadyAccount(
+      BuildContext context,
+      IList<LocalAccount> localAccounts,
+      TypedKey activeUserLogin,
+      proto.Account account) {
+    final theme = Theme.of(context);
+    final scale = theme.extension<ScaleScheme>()!;
+
+    return Column(children: <Widget>[
+      Row(children: [
+        IconButton(
+            icon: const Icon(Icons.settings),
+            color: scale.secondaryScale.text,
+            constraints: const BoxConstraints.expand(height: 64, width: 64),
+            style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(
+                    scale.secondaryScale.subtleBorder),
+                shape: MaterialStateProperty.all(const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(16))))),
+            tooltip: translate('app_bar.settings_tooltip'),
+            onPressed: () async {
+              context.go('/home/settings');
+            }).paddingLTRB(0, 0, 8, 0),
+        ProfileWidget(name: account.profile.name, title: account.profile.title)
+            .expanded(),
+      ]).paddingAll(8),
+      MainPager(
+              localAccounts: localAccounts,
+              activeUserLogin: activeUserLogin,
+              account: account)
+          .expanded()
+    ]);
+  }
+
+  Widget buildUserPanel() {
+    final localAccountsV = ref.watch(localAccountsProvider);
+    final loginsV = ref.watch(loginsProvider);
+
+    if (!localAccountsV.hasValue || !loginsV.hasValue) {
+      return waitingPage(context);
+    }
+    final localAccounts = localAccountsV.requireValue;
+    final logins = loginsV.requireValue;
+
+    final activeUserLogin = logins.activeUserLogin;
+    if (activeUserLogin == null) {
+      // If no logged in user is active, show the list of account
+      return buildAccountList();
+    }
+    final accountV = ref
+        .watch(fetchAccountProvider(accountMasterRecordKey: activeUserLogin));
+    if (!accountV.hasValue) {
+      return waitingPage(context);
+    }
+    final account = accountV.requireValue;
+    switch (account.status) {
+      case AccountInfoStatus.noAccount:
+        Future.delayed(0.ms, () async {
+          await showErrorModal(context, translate('home.missing_account_title'),
+              translate('home.missing_account_text'));
+          // Delete account
+          await ref
+              .read(localAccountsProvider.notifier)
+              .deleteLocalAccount(activeUserLogin);
+          // Switch to no active user login
+          await ref.read(loginsProvider.notifier).switchToAccount(null);
+        });
+        return waitingPage(context);
+      case AccountInfoStatus.accountInvalid:
+        Future.delayed(0.ms, () async {
+          await showErrorModal(context, translate('home.invalid_account_title'),
+              translate('home.invalid_account_text'));
+          // Delete account
+          await ref
+              .read(localAccountsProvider.notifier)
+              .deleteLocalAccount(activeUserLogin);
+          // Switch to no active user login
+          await ref.read(loginsProvider.notifier).switchToAccount(null);
+        });
+        return waitingPage(context);
+      case AccountInfoStatus.accountLocked:
+        // Show unlock widget
+        return buildUnlockAccount(context, localAccounts);
+      case AccountInfoStatus.accountReady:
+        return buildReadyAccount(
+          context,
+          localAccounts,
+          activeUserLogin,
+          account.account!,
+        );
+    }
+  }
+
+  // ignore: prefer_expression_function_bodies
   Widget buildPhone(BuildContext context) {
-    return const Material(
-        color: Colors.transparent, elevation: 4, child: MainPager());
+    return Material(color: Colors.transparent, child: buildUserPanel());
   }
 
   // ignore: prefer_expression_function_bodies
   Widget buildTabletLeftPane(BuildContext context) {
     //
-    return const Material(
-        color: Colors.transparent, elevation: 4, child: MainPager());
+    return Material(color: Colors.transparent, child: buildUserPanel());
   }
 
   // ignore: prefer_expression_function_bodies
@@ -122,15 +240,21 @@ class HomePageState extends ConsumerState<HomePage>
   Widget build(BuildContext context) {
     ref.watch(windowControlProvider);
 
+    final theme = Theme.of(context);
+    final scale = theme.extension<ScaleScheme>()!;
+
     return SafeArea(
         child: GestureDetector(
-      onTap: () => FocusScope.of(context).requestFocus(_unfocusNode),
-      child: responsiveVisibility(
-        context: context,
-        phone: false,
-      )
-          ? buildTablet(context)
-          : buildPhone(context),
-    ));
+            onTap: () => FocusScope.of(context).requestFocus(_unfocusNode),
+            child: DecoratedBox(
+              decoration:
+                  BoxDecoration(color: scale.primaryScale.elementBackground),
+              child: responsiveVisibility(
+                context: context,
+                phone: false,
+              )
+                  ? buildTablet(context)
+                  : buildPhone(context),
+            )));
   }
 }

@@ -47,11 +47,13 @@
             "title": "Language Selection"
         }
     },
-    "account_page": {
+    "home": {
         "missing_account_title": "Missing Account",
         "missing_account_text": "Account is missing, removing from list",
         "invalid_account_title": "Invalid Account",
-        "invalid_account_text": "Account is invalid, removing from list",
+        "invalid_account_text": "Account is invalid, removing from list"
+    },
+    "account_page": {
         "contact_invitations": "Contact Invitations"
     },
     "accounts_menu": {
@@ -61,13 +63,14 @@
         "paste_invite": "Paste Invite"
     },
     "send_invite_dialog": {
+        "title": "Send Contact Invite",
         "connect_with_me": "Connect with me on VeilidChat!",
         "enter_message_hint": "enter message for contact (optional)",
         "message_to_contact": "Message to send with invitation (not encrypted)",
         "generate": "Generate Invite",
         "message": "Message",
         "unlocked": "Unlocked",
-        "numeric_pin": "Numeric PIN",
+        "pin": "PIN",
         "password": "Password",
         "protect_this_invitation": "Protect this invitation:",
         "note": "Note:",
@@ -81,6 +84,7 @@
         "invitation_copied": "Invitation Copied"
     },
     "paste_invite_dialog": {
+        "title": "Paste Contact Invite",
         "paste_invite_here": "Paste your contact invite here:",
         "paste": "Paste",
         "message_from_contact": "Message from contact",
@@ -94,6 +98,7 @@
         "reenter_pin": "Re-Enter PIN To Confirm"
     },
     "contact_list": {
+        "title": "Contact List",
         "invite_people": "Invite people to VeilidChat",
         "search": "Search contacts",
         "invitation": "Invitation"

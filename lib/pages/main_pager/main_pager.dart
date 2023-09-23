@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:awesome_extensions/awesome_extensions.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -12,13 +13,25 @@ import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
 import '../../components/bottom_sheet_action_button.dart';
 import '../../components/paste_invite_dialog.dart';
+import '../../components/scan_invite_dialog.dart';
 import '../../components/send_invite_dialog.dart';
+import '../../entities/local_account.dart';
+import '../../entities/proto.dart' as proto;
 import '../../tools/tools.dart';
+import '../../veilid_support/veilid_support.dart';
 import 'account_page.dart';
 import 'chats_page.dart';
 
 class MainPager extends ConsumerStatefulWidget {
-  const MainPager({super.key});
+  const MainPager(
+      {required this.localAccounts,
+      required this.activeUserLogin,
+      required this.account,
+      super.key});
+
+  final IList<LocalAccount> localAccounts;
+  final TypedKey activeUserLogin;
+  final proto.Account account;
 
   @override
   MainPagerState createState() => MainPagerState();
@@ -45,13 +58,9 @@ class MainPagerState extends ConsumerState<MainPager>
     Icons.person_add_sharp,
     Icons.add_comment_sharp,
   ];
-  final _labelList = <String>[
+  final _bottomLabelList = <String>[
     translate('pager.account'),
     translate('pager.chats'),
-  ];
-  final List<Widget> _bottomBarPages = [
-    const AccountPage(),
-    const ChatsPage(),
   ];
 
   //////////////////////////////////////////////////////////////////
@@ -89,13 +98,13 @@ class MainPagerState extends ConsumerState<MainPager>
 
   BottomBarItem buildBottomBarItem(int index) {
     final theme = Theme.of(context);
+    final scale = theme.extension<ScaleScheme>()!;
     return BottomBarItem(
-      title: Text(_labelList[index]),
-      icon: Icon(_selectedIconList[index],
-          color: theme.colorScheme.onPrimaryContainer),
-      selectedIcon: Icon(_selectedIconList[index],
-          color: theme.colorScheme.onPrimaryContainer),
-      backgroundColor: theme.colorScheme.onPrimaryContainer,
+      title: Text(_bottomLabelList[index]),
+      icon: Icon(_selectedIconList[index], color: scale.primaryScale.text),
+      selectedIcon:
+          Icon(_selectedIconList[index], color: scale.primaryScale.text),
+      backgroundColor: scale.primaryScale.text,
       //unSelectedColor: theme.colorScheme.primaryContainer,
       //selectedColor: theme.colorScheme.primary,
       //badge: const Text('9+'),
@@ -105,14 +114,14 @@ class MainPagerState extends ConsumerState<MainPager>
 
   List<BottomBarItem> _buildBottomBarItems() {
     final bottomBarItems = List<BottomBarItem>.empty(growable: true);
-    for (var index = 0; index < _bottomBarPages.length; index++) {
+    for (var index = 0; index < _bottomLabelList.length; index++) {
       final item = buildBottomBarItem(index);
       bottomBarItems.add(item);
     }
     return bottomBarItems;
   }
 
-  Future<void> sendContactInvitationDialog(BuildContext context) async {
+  Future<void> scanContactInvitationDialog(BuildContext context) async {
     await showDialog<void>(
         context: context,
         // ignore: prefer_expression_function_bodies
@@ -125,30 +134,10 @@ class MainPagerState extends ConsumerState<MainPager>
                 top: 10,
               ),
               title: Text(
-                'Send Contact Invite',
+                'Scan Contact Invite',
                 style: TextStyle(fontSize: 24),
               ),
-              content: SendInviteDialog());
-        });
-  }
-
-  Future<void> pasteContactInvitationDialog(BuildContext context) async {
-    await showDialog<void>(
-        context: context,
-        // ignore: prefer_expression_function_bodies
-        builder: (context) {
-          return const AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-              ),
-              contentPadding: EdgeInsets.only(
-                top: 10,
-              ),
-              title: Text(
-                'Paste Contact Invite',
-                style: TextStyle(fontSize: 24),
-              ),
-              content: PasteInviteDialog());
+              content: ScanInviteDialog());
         });
   }
 
@@ -173,7 +162,7 @@ class MainPagerState extends ConsumerState<MainPager>
                   IconButton(
                       onPressed: () async {
                         Navigator.pop(context);
-                        await sendContactInvitationDialog(context);
+                        await SendInviteDialog.show(context);
                       },
                       iconSize: 64,
                       icon: const Icon(Icons.contact_page)),
@@ -183,6 +172,7 @@ class MainPagerState extends ConsumerState<MainPager>
                   IconButton(
                       onPressed: () async {
                         Navigator.pop(context);
+                        //await scanContactInvitationDialog(context);
                       },
                       iconSize: 64,
                       icon: const Icon(Icons.qr_code_scanner)),
@@ -192,7 +182,7 @@ class MainPagerState extends ConsumerState<MainPager>
                   IconButton(
                       onPressed: () async {
                         Navigator.pop(context);
-                        await pasteContactInvitationDialog(context);
+                        await PasteInviteDialog.show(context);
                       },
                       iconSize: 64,
                       icon: const Icon(Icons.paste)),
@@ -227,21 +217,25 @@ class MainPagerState extends ConsumerState<MainPager>
     final scale = theme.extension<ScaleScheme>()!;
 
     return Scaffold(
-      extendBody: true,
-      backgroundColor: scale.grayScale.subtleBackground,
+      //extendBody: true,
+      backgroundColor: Colors.transparent,
       body: NotificationListener<ScrollNotification>(
           onNotification: onScrollNotification,
           child: PageView(
-            controller: pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            //physics: const NeverScrollableScrollPhysics(),
-            children: List.generate(
-                _bottomBarPages.length, (index) => _bottomBarPages[index]),
-          )),
+              controller: pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              //physics: const NeverScrollableScrollPhysics(),
+              children: [
+                AccountPage(
+                    localAccounts: widget.localAccounts,
+                    activeUserLogin: widget.activeUserLogin,
+                    account: widget.account),
+                ChatsPage(),
+              ])),
       // appBar: AppBar(
       //   toolbarHeight: 24,
       //   title: Text(
@@ -250,7 +244,7 @@ class MainPagerState extends ConsumerState<MainPager>
       //   ),
       // ),
       bottomNavigationBar: StylishBottomBar(
-        backgroundColor: theme.colorScheme.primaryContainer,
+        backgroundColor: scale.primaryScale.background,
         // gradient: LinearGradient(
         //     begin: Alignment.topCenter,
         //     end: Alignment.bottomCenter,
@@ -264,7 +258,7 @@ class MainPagerState extends ConsumerState<MainPager>
           //barAnimation: BarAnimation.fade,
           iconStyle: IconStyle.animated,
           inkEffect: true,
-          inkColor: theme.colorScheme.primary,
+          inkColor: scale.primaryScale.hoverBackground,
           //opacity: 0.3,
         ),
         items: _buildBottomBarItems(),
@@ -280,11 +274,11 @@ class MainPagerState extends ConsumerState<MainPager>
       floatingActionButton: BottomSheetActionButton(
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(14))),
-          //foregroundColor: theme.colorScheme.secondary,
-          backgroundColor: theme.colorScheme.secondaryContainer,
+          //foregroundColor: scale.secondaryScale.text,
+          backgroundColor: scale.secondaryScale.background,
           builder: (context) => Icon(
                 _fabIconList[_currentPage],
-                color: theme.colorScheme.onSecondaryContainer,
+                color: scale.secondaryScale.text,
               ),
           bottomSheetBuilder: _bottomSheetBuilder),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,

@@ -30,21 +30,28 @@ class ContactListWidget extends ConsumerWidget {
 
     return Container(
       width: double.infinity,
+      decoration: ShapeDecoration(
+          color: scale.primaryScale.subtleBorder,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          )),
       constraints: const BoxConstraints(
         minHeight: 64,
       ),
       child: Column(children: [
         Text(
-          'Contacts',
-          style: textTheme.bodyLarge,
-        ).paddingAll(8),
+          translate('contact_list.title'),
+          style: textTheme.titleMedium!
+              .copyWith(color: scale.primaryScale.subtleText),
+        ).paddingLTRB(4, 4, 4, 0),
         Container(
           width: double.infinity,
           decoration: ShapeDecoration(
-              color: scale.grayScale.appBackground,
+              color: scale.primaryScale.subtleBackground,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              )),
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                      color: scale.primaryScale.subtleBorder, width: 4))),
           child: (contactList.isEmpty)
               ? const EmptyContactListWidget().toCenter()
               : SearchableList<proto.Contact>(
@@ -76,6 +83,6 @@ class ContactListWidget extends ConsumerWidget {
                 ),
         ).expanded()
       ]),
-    ).paddingLTRB(8, 0, 8, 65);
+    ).paddingLTRB(8, 0, 8, 8);
   }
 }

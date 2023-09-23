@@ -19,13 +19,13 @@ class EmptyContactListWidget extends ConsumerWidget {
       children: [
         Icon(
           Icons.person_add_sharp,
-          color: scale.primaryScale.border,
+          color: scale.primaryScale.subtleBorder,
           size: 48,
         ),
         Text(
           translate('contact_list.invite_people'),
           style: textTheme.bodyMedium?.copyWith(
-            color: scale.primaryScale.border,
+            color: scale.primaryScale.subtleBorder,
           ),
         ),
       ],

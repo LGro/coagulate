@@ -24,26 +24,23 @@ class ProfileWidget extends ConsumerWidget {
     final scale = theme.extension<ScaleScheme>()!;
     final textTheme = theme.textTheme;
 
-    return Container(
-        width: double.infinity,
-        decoration: ShapeDecoration(
-            color: scale.primaryScale.subtleBackground,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: scale.primaryScale.border))),
-        child: Row(children: [
-          Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(name, style: textTheme.headlineSmall).paddingAll(8),
-            if (title != null && title!.isNotEmpty)
-              Text(title!, style: textTheme.bodyMedium).paddingLTRB(8, 0, 8, 8),
-          ]).expanded(),
-          IconButton(
-              icon: const Icon(Icons.settings),
-              tooltip: translate('app_bar.settings_tooltip'),
-              onPressed: () async {
-                context.go('/home/settings');
-              })
-        ])).paddingAll(8);
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+          color: scale.primaryScale.subtleBorder,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(
+                  width: 0, color: scale.primaryScale.subtleBorder))),
+      child: Column(children: [
+        Text(
+          name,
+          style: textTheme.headlineSmall,
+          textAlign: TextAlign.left,
+        ).paddingAll(4),
+        if (title != null && title!.isNotEmpty)
+          Text(title!, style: textTheme.bodyMedium).paddingLTRB(4, 0, 4, 4),
+      ]),
+    );
   }
 
   @override

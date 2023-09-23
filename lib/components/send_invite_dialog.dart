@@ -20,6 +20,26 @@ class SendInviteDialog extends ConsumerStatefulWidget {
 
   @override
   SendInviteDialogState createState() => SendInviteDialogState();
+
+  static Future<void> show(BuildContext context) async {
+    await showDialog<void>(
+        context: context,
+        // ignore: prefer_expression_function_bodies
+        builder: (context) {
+          return AlertDialog(
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
+              contentPadding: const EdgeInsets.only(
+                top: 10,
+              ),
+              title: Text(
+                translate('send_invite_dialog.title'),
+                style: const TextStyle(fontSize: 24),
+              ),
+              content: const SendInviteDialog());
+        });
+  }
 }
 
 class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
@@ -161,7 +181,7 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
                 onSelected: _onNoneEncryptionSelected,
               ),
               ChoiceChip(
-                label: Text(translate('send_invite_dialog.numeric_pin')),
+                label: Text(translate('send_invite_dialog.pin')),
                 selected: _encryptionKeyType == EncryptionKeyType.pin,
                 onSelected: _onPinEncryptionSelected,
               ),
