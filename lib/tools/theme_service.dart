@@ -18,7 +18,7 @@ class ScaleColor {
     required this.subtleBackground,
     required this.elementBackground,
     required this.hoverElementBackground,
-    required this.activedElementBackground,
+    required this.activeElementBackground,
     required this.subtleBorder,
     required this.border,
     required this.hoverBorder,
@@ -32,7 +32,7 @@ class ScaleColor {
   Color subtleBackground;
   Color elementBackground;
   Color hoverElementBackground;
-  Color activedElementBackground;
+  Color activeElementBackground;
   Color subtleBorder;
   Color border;
   Color hoverBorder;
@@ -46,7 +46,7 @@ class ScaleColor {
           Color? subtleBackground,
           Color? elementBackground,
           Color? hoverElementBackground,
-          Color? activedElementBackground,
+          Color? activeElementBackground,
           Color? subtleBorder,
           Color? border,
           Color? hoverBorder,
@@ -60,8 +60,8 @@ class ScaleColor {
         elementBackground: elementBackground ?? this.elementBackground,
         hoverElementBackground:
             hoverElementBackground ?? this.hoverElementBackground,
-        activedElementBackground:
-            activedElementBackground ?? this.activedElementBackground,
+        activeElementBackground:
+            activeElementBackground ?? this.activeElementBackground,
         subtleBorder: subtleBorder ?? this.subtleBorder,
         border: border ?? this.border,
         hoverBorder: hoverBorder ?? this.hoverBorder,
@@ -84,8 +84,8 @@ class ScaleColor {
         hoverElementBackground:
             Color.lerp(a.hoverElementBackground, b.hoverElementBackground, t) ??
                 const Color(0x00000000),
-        activedElementBackground: Color.lerp(
-                a.activedElementBackground, b.activedElementBackground, t) ??
+        activeElementBackground: Color.lerp(
+                a.activeElementBackground, b.activeElementBackground, t) ??
             const Color(0x00000000),
         subtleBorder: Color.lerp(a.subtleBorder, b.subtleBorder, t) ??
             const Color(0x00000000),
@@ -150,28 +150,6 @@ class ScaleScheme extends ThemeExtension<ScaleScheme> {
       errorScale: ScaleColor.lerp(errorScale, other.errorScale, t),
     );
   }
-
-  ChatTheme toChatTheme() => DefaultChatTheme(
-        primaryColor: primaryScale.background,
-        secondaryColor: secondaryScale.background,
-        backgroundColor: grayScale.appBackground,
-        inputBackgroundColor: grayScale.subtleBackground,
-        inputBorderRadius: BorderRadius.zero,
-        inputTextDecoration: InputDecoration(
-          border: OutlineInputBorder(
-              borderSide: BorderSide(color: primaryScale.subtleBorder),
-              borderRadius: const BorderRadius.all(Radius.circular(16))),
-        ),
-        inputContainerDecoration:
-            BoxDecoration(color: primaryScale.appBackground),
-        inputPadding: EdgeInsets.all(5),
-        inputTextStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          height: 1,
-        ),
-        attachmentButtonIcon: Icon(Icons.attach_file),
-      );
 }
 
 ////////////////////////////////////////////////////////////////////////

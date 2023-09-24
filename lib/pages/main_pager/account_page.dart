@@ -62,8 +62,8 @@ class AccountPageState extends ConsumerState<AccountPage> {
       if (contactInvitationRecordList.isNotEmpty)
         ExpansionTile(
           tilePadding: EdgeInsets.fromLTRB(8, 0, 8, 0),
-          backgroundColor: scale.primaryScale.subtleBorder,
-          collapsedBackgroundColor: scale.primaryScale.subtleBorder,
+          backgroundColor: scale.primaryScale.border,
+          collapsedBackgroundColor: scale.primaryScale.border,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:radix_colors/radix_colors.dart';
 
 import 'theme_service.dart';
@@ -274,7 +275,7 @@ extension ToScaleColor on RadixColor {
         subtleBackground: step2,
         elementBackground: step3,
         hoverElementBackground: step4,
-        activedElementBackground: step5,
+        activeElementBackground: step5,
         subtleBorder: step6,
         border: step7,
         hoverBorder: step8,
@@ -507,13 +508,39 @@ ColorScheme _radixColorScheme(Brightness brightness, RadixScheme radix) =>
       surfaceTint: radix.primaryAlphaScale.step4,
     );
 
+ChatTheme makeChatTheme(ScaleScheme scale, TextTheme textTheme) =>
+    DefaultChatTheme(
+      primaryColor: scale.primaryScale.background,
+      secondaryColor: scale.secondaryScale.background,
+      backgroundColor: scale.grayScale.subtleBackground,
+      inputBackgroundColor: Colors.blue,
+      inputBorderRadius: BorderRadius.zero,
+      inputTextDecoration: InputDecoration(
+        filled: true,
+        fillColor: scale.primaryScale.elementBackground,
+        isDense: true,
+        contentPadding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
+        border: const OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.all(Radius.circular(16))),
+      ),
+      inputContainerDecoration: BoxDecoration(color: scale.primaryScale.border),
+      inputPadding: const EdgeInsets.all(9),
+      inputTextColor: scale.primaryScale.text,
+      attachmentButtonIcon: Icon(Icons.attach_file),
+    );
+
 ThemeData radixGenerator(Brightness brightness, RadixThemeColor themeColor) {
-  TextTheme? textTheme;
+  final textTheme = (brightness == Brightness.light)
+      ? Typography.blackCupertino
+      : Typography.whiteCupertino;
   final radix = _radixScheme(brightness, themeColor);
   final colorScheme = _radixColorScheme(brightness, radix);
+  final scaleScheme = radix.toScale();
+
   return ThemeData.from(
           colorScheme: colorScheme, textTheme: textTheme, useMaterial3: true)
       .copyWith(extensions: <ThemeExtension<dynamic>>[
-    radix.toScale(),
+    scaleScheme,
   ]);
 }

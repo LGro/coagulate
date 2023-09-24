@@ -33,11 +33,11 @@ class ContactInvitationListWidgetState
 
     return Container(
       width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(4, 0, 4, 4),
       decoration: ShapeDecoration(
-          color: scale.primaryScale.subtleBorder,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          )),
+        borderRadius: BorderRadius.circular(16),
+      )),
       constraints: const BoxConstraints(maxHeight: 200),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -47,9 +47,8 @@ class ContactInvitationListWidgetState
               decoration: ShapeDecoration(
                   color: scale.primaryScale.subtleBackground,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                          color: scale.primaryScale.subtleBorder, width: 4))),
+                    borderRadius: BorderRadius.circular(16),
+                  )),
               child: ListView.builder(
                 controller: _scrollController,
                 itemCount: widget.contactInvitationRecordList.length,
@@ -75,7 +74,7 @@ class ContactInvitationListWidgetState
                   return index;
                 },
                 shrinkWrap: true,
-              ))
+              ).paddingLTRB(0, 0, 0, 4))
         ],
       ),
     );

@@ -47,6 +47,8 @@ class BottomSheetActionButtonState
     //
     return _showFab
         ? FloatingActionButton(
+            elevation: 0,
+            hoverElevation: 0,
             shape: widget.shape,
             foregroundColor: widget.foregroundColor,
             backgroundColor: widget.backgroundColor,

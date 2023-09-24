@@ -114,8 +114,8 @@ class HomePageState extends ConsumerState<HomePage>
             color: scale.secondaryScale.text,
             constraints: const BoxConstraints.expand(height: 64, width: 64),
             style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(
-                    scale.secondaryScale.subtleBorder),
+                backgroundColor:
+                    MaterialStateProperty.all(scale.secondaryScale.border),
                 shape: MaterialStateProperty.all(const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(16))))),
             tooltip: translate('app_bar.settings_tooltip'),
@@ -212,12 +212,19 @@ class HomePageState extends ConsumerState<HomePage>
   // ignore: prefer_expression_function_bodies
   Widget buildTablet(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
+    final theme = Theme.of(context);
+    final scale = theme.extension<ScaleScheme>()!;
+
     final children = [
       ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 300, maxWidth: 300),
           child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: w / 2),
               child: buildTabletLeftPane(context))),
+      SizedBox(
+          width: 2,
+          height: double.infinity,
+          child: ColoredBox(color: scale.primaryScale.hoverBorder)),
       Expanded(child: buildTabletRightPane(context)),
     ];
 
@@ -247,8 +254,8 @@ class HomePageState extends ConsumerState<HomePage>
         child: GestureDetector(
             onTap: () => FocusScope.of(context).requestFocus(_unfocusNode),
             child: DecoratedBox(
-              decoration:
-                  BoxDecoration(color: scale.primaryScale.elementBackground),
+              decoration: BoxDecoration(
+                  color: scale.primaryScale.activeElementBackground),
               child: responsiveVisibility(
                 context: context,
                 phone: false,

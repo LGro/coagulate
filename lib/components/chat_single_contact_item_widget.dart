@@ -28,12 +28,12 @@ class ChatSingleContactItemWidget extends ConsumerWidget {
     final selected = activeChat == remoteConversationRecordKey;
 
     return Container(
-        margin: const EdgeInsets.fromLTRB(4, 4, 4, 0),
+        margin: const EdgeInsets.fromLTRB(0, 4, 0, 0),
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
-            color: scale.tertiaryScale.subtleBackground,
+            color: scale.tertiaryScale.subtleBorder,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(8),
             )),
         child: Slidable(
             key: ObjectKey(contact),

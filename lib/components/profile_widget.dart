@@ -26,11 +26,9 @@ class ProfileWidget extends ConsumerWidget {
 
     return DecoratedBox(
       decoration: ShapeDecoration(
-          color: scale.primaryScale.subtleBorder,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                  width: 0, color: scale.primaryScale.subtleBorder))),
+          color: scale.primaryScale.border,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
       child: Column(children: [
         Text(
           name,

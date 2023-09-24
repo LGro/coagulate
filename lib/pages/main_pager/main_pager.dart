@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
+import 'package:preload_page_view/preload_page_view.dart';
 import 'package:stylish_bottom_bar/model/bar_items.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
@@ -47,7 +48,7 @@ class MainPagerState extends ConsumerState<MainPager>
   final _unfocusNode = FocusNode();
 
   var _currentPage = 0;
-  final pageController = PageController();
+  final pageController = PreloadPageController();
 
   final _selectedIconList = <IconData>[Icons.person, Icons.chat];
   // final _unselectedIconList = <IconData>[
@@ -221,14 +222,14 @@ class MainPagerState extends ConsumerState<MainPager>
       backgroundColor: Colors.transparent,
       body: NotificationListener<ScrollNotification>(
           onNotification: onScrollNotification,
-          child: PageView(
+          child: PreloadPageView(
               controller: pageController,
+              preloadPagesCount: 2,
               onPageChanged: (index) {
                 setState(() {
                   _currentPage = index;
                 });
               },
-              //physics: const NeverScrollableScrollPhysics(),
               children: [
                 AccountPage(
                     localAccounts: widget.localAccounts,
@@ -244,7 +245,7 @@ class MainPagerState extends ConsumerState<MainPager>
       //   ),
       // ),
       bottomNavigationBar: StylishBottomBar(
-        backgroundColor: scale.primaryScale.background,
+        backgroundColor: scale.primaryScale.hoverBorder,
         // gradient: LinearGradient(
         //     begin: Alignment.topCenter,
         //     end: Alignment.bottomCenter,
@@ -275,7 +276,7 @@ class MainPagerState extends ConsumerState<MainPager>
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(14))),
           //foregroundColor: scale.secondaryScale.text,
-          backgroundColor: scale.secondaryScale.background,
+          backgroundColor: scale.secondaryScale.hoverBorder,
           builder: (context) => Icon(
                 _fabIconList[_currentPage],
                 color: scale.secondaryScale.text,

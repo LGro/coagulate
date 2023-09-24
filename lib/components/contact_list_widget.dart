@@ -22,8 +22,11 @@ class ContactListWidget extends ConsumerWidget {
   }
 
   @override
-  // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    //final textTheme = theme.textTheme;
+    final scale = theme.extension<ScaleScheme>()!;
+
     return SizedBox.expand(
         child: styledTitleContainer(
             context: context,
@@ -33,7 +36,6 @@ class ContactListWidget extends ConsumerWidget {
                   ? const EmptyContactListWidget()
                   : SearchableList<proto.Contact>(
                       autoFocusOnSearch: false,
-                      shrinkWrap: true,
                       initialList: contactList.toList(),
                       builder: (l, i, c) => ContactItemWidget(contact: c),
                       filter: (value) {
@@ -48,17 +50,19 @@ class ContactListWidget extends ConsumerWidget {
                                     .contains(lowerValue))
                             .toList();
                       },
+                      spaceBetweenSearchAndList: 4,
                       inputDecoration: InputDecoration(
                         labelText: translate('contact_list.search'),
-                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.all(2),
+                        fillColor: scale.primaryScale.text,
                         focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            color: Colors.blue,
+                          borderSide: BorderSide(
+                            color: scale.primaryScale.hoverBorder,
                           ),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                    ),
+                    ).paddingAll(8),
             ))).paddingLTRB(8, 0, 8, 8);
   }
 }

@@ -12,8 +12,7 @@ import '../entities/identity.dart';
 import '../providers/account.dart';
 import '../providers/chat.dart';
 import '../providers/conversation.dart';
-import '../tools/theme_service.dart';
-import '../tools/widget_helpers.dart';
+import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 
 class ChatComponent extends ConsumerStatefulWidget {
@@ -121,8 +120,8 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scale = theme.extension<ScaleScheme>()!;
-    final chatTheme = scale.toChatTheme();
     final textTheme = Theme.of(context).textTheme;
+    final chatTheme = makeChatTheme(scale, textTheme);
     final contactName = widget.activeChatContact.editedProfile.name;
 
     final protoMessages =
@@ -147,7 +146,7 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                   Container(
                     height: 48,
                     decoration: BoxDecoration(
-                      color: scale.primaryScale.subtleBackground,
+                      color: scale.primaryScale.subtleBorder,
                     ),
                     child: Row(children: [
                       Align(
@@ -159,7 +158,7 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                                 textAlign: TextAlign.start,
                                 style: textTheme.titleMedium),
                           )),
-                      Spacer(),
+                      const Spacer(),
                       IconButton(
                           icon: const Icon(Icons.close),
                           onPressed: () async {
@@ -168,7 +167,7 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                     ]),
                   ),
                   Expanded(
-                    child: Container(
+                    child: DecoratedBox(
                       decoration: const BoxDecoration(),
                       child: Chat(
                         theme: chatTheme,
@@ -180,8 +179,8 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                         onSendPressed: (message) {
                           unawaited(_handleSendPressed(message));
                         },
-                        showUserAvatars: true,
-                        showUserNames: true,
+                        //showUserAvatars: false,
+                        //showUserNames: true,
                         user: _localUser,
                       ),
                     ),

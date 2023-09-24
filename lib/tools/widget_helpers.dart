@@ -76,9 +76,9 @@ Widget styledTitleContainer(
   final scale = theme.extension<ScaleScheme>()!;
   final textTheme = theme.textTheme;
 
-  return Container(
+  return DecoratedBox(
       decoration: ShapeDecoration(
-          color: scale.primaryScale.subtleBorder,
+          color: scale.primaryScale.border,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           )),
@@ -87,7 +87,7 @@ Widget styledTitleContainer(
           title,
           style: textTheme.titleMedium!
               .copyWith(color: scale.primaryScale.subtleText),
-        ).paddingLTRB(4, 4, 4, 0),
+        ).paddingLTRB(8, 8, 8, 8),
         DecoratedBox(
                 decoration: ShapeDecoration(
                     color: scale.primaryScale.subtleBackground,
@@ -130,7 +130,7 @@ Future<T?> showStyledDialog<T>(
                       borderRadius: BorderRadius.circular(16))),
               child: DecoratedBox(
                   decoration: ShapeDecoration(
-                      color: scale.primaryScale.subtleBackground,
+                      color: scale.primaryScale.appBackground,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12))),
                   child: child.paddingAll(0)))));
