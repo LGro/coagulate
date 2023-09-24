@@ -15,6 +15,7 @@ class EmptyContactListWidget extends ConsumerWidget {
     final scale = theme.extension<ScaleScheme>()!;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(

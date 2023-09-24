@@ -11,6 +11,7 @@ import '../../entities/proto.dart' as proto;
 import '../../providers/contact.dart';
 import '../../providers/contact_invite.dart';
 import '../../tools/theme_service.dart';
+import '../../tools/tools.dart';
 import '../../veilid_support/veilid_support.dart';
 
 class AccountPage extends ConsumerStatefulWidget {
@@ -56,7 +57,8 @@ class AccountPageState extends ConsumerState<AccountPage> {
     final contactList = ref.watch(fetchContactListProvider).asData?.value ??
         const IListConst([]);
 
-    return Column(children: <Widget>[
+    return SizedBox(
+        child: Column(children: <Widget>[
       if (contactInvitationRecordList.isNotEmpty)
         ExpansionTile(
           tilePadding: EdgeInsets.fromLTRB(8, 0, 8, 0),
@@ -81,6 +83,6 @@ class AccountPageState extends ConsumerState<AccountPage> {
           ],
         ).paddingLTRB(8, 0, 8, 8),
       ContactListWidget(contactList: contactList).expanded(),
-    ]);
+    ]));
   }
 }

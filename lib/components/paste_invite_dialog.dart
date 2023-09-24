@@ -23,38 +23,10 @@ class PasteInviteDialog extends ConsumerStatefulWidget {
   PasteInviteDialogState createState() => PasteInviteDialogState();
 
   static Future<void> show(BuildContext context) async {
-    final theme = Theme.of(context);
-    final scale = theme.extension<ScaleScheme>()!;
-    final textTheme = theme.textTheme;
-
-    await showDialog<void>(
+    await showStyledDialog<void>(
         context: context,
-        // ignore: prefer_expression_function_bodies
-        builder: (context) {
-          return AlertDialog(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: const BorderRadius.all(Radius.circular(16)),
-                side: BorderSide(width: 4, color: scale.primaryScale.border),
-              ),
-              contentPadding: EdgeInsets.zero,
-              backgroundColor: scale.primaryScale.border,
-              title: Text(
-                translate('paste_invite_dialog.title'),
-                style: textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
-              titlePadding: EdgeInsets.fromLTRB(4, 4, 4, 0),
-              content: DecoratedBox(
-                  decoration: ShapeDecoration(
-                      color: scale.primaryScale.subtleBackground,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                            width: 4, color: scale.primaryScale.border),
-                      )),
-                  child: const PasteInviteDialog().paddingAll(4)));
-        });
+        title: translate('paste_invite_dialog.title'),
+        child: const PasteInviteDialog());
   }
 }
 

@@ -22,23 +22,10 @@ class SendInviteDialog extends ConsumerStatefulWidget {
   SendInviteDialogState createState() => SendInviteDialogState();
 
   static Future<void> show(BuildContext context) async {
-    await showDialog<void>(
+    await showStyledDialog<void>(
         context: context,
-        // ignore: prefer_expression_function_bodies
-        builder: (context) {
-          return AlertDialog(
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-              ),
-              contentPadding: const EdgeInsets.only(
-                top: 10,
-              ),
-              title: Text(
-                translate('send_invite_dialog.title'),
-                style: const TextStyle(fontSize: 24),
-              ),
-              content: const SendInviteDialog());
-        });
+        title: translate('send_invite_dialog.title'),
+        child: const SendInviteDialog());
   }
 }
 
@@ -146,11 +133,16 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
   @override
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context) {
+    final windowSize = MediaQuery.of(context).size;
+    final maxDialogHeight = windowSize.height - 64;
+    final maxDialogWidth = windowSize.width - 64;
+
     final theme = Theme.of(context);
     //final scale = theme.extension<ScaleScheme>()!;
     final textTheme = theme.textTheme;
-    return SizedBox(
-      height: 400,
+    return ConstrainedBox(
+      constraints:
+          BoxConstraints(maxHeight: maxDialogHeight, maxWidth: maxDialogWidth),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(8),
         child: Column(

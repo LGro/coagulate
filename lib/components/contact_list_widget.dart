@@ -24,65 +24,41 @@ class ContactListWidget extends ConsumerWidget {
   @override
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final scale = theme.extension<ScaleScheme>()!;
-
-    return Container(
-      width: double.infinity,
-      decoration: ShapeDecoration(
-          color: scale.primaryScale.subtleBorder,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          )),
-      constraints: const BoxConstraints(
-        minHeight: 64,
-      ),
-      child: Column(children: [
-        Text(
-          translate('contact_list.title'),
-          style: textTheme.titleMedium!
-              .copyWith(color: scale.primaryScale.subtleText),
-        ).paddingLTRB(4, 4, 4, 0),
-        Container(
-          width: double.infinity,
-          decoration: ShapeDecoration(
-              color: scale.primaryScale.subtleBackground,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                      color: scale.primaryScale.subtleBorder, width: 4))),
-          child: (contactList.isEmpty)
-              ? const EmptyContactListWidget().toCenter()
-              : SearchableList<proto.Contact>(
-                  autoFocusOnSearch: false,
-                  initialList: contactList.toList(),
-                  builder: (l, i, c) => ContactItemWidget(contact: c),
-                  filter: (value) {
-                    final lowerValue = value.toLowerCase();
-                    return contactList
-                        .where((element) =>
-                            element.editedProfile.name
-                                .toLowerCase()
-                                .contains(lowerValue) ||
-                            element.editedProfile.title
-                                .toLowerCase()
-                                .contains(lowerValue))
-                        .toList();
-                  },
-                  inputDecoration: InputDecoration(
-                    labelText: translate('contact_list.search'),
-                    fillColor: Colors.white,
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(
-                        color: Colors.blue,
+    return SizedBox.expand(
+        child: styledTitleContainer(
+            context: context,
+            title: translate('contact_list.title'),
+            child: SizedBox.expand(
+              child: (contactList.isEmpty)
+                  ? const EmptyContactListWidget()
+                  : SearchableList<proto.Contact>(
+                      autoFocusOnSearch: false,
+                      shrinkWrap: true,
+                      initialList: contactList.toList(),
+                      builder: (l, i, c) => ContactItemWidget(contact: c),
+                      filter: (value) {
+                        final lowerValue = value.toLowerCase();
+                        return contactList
+                            .where((element) =>
+                                element.editedProfile.name
+                                    .toLowerCase()
+                                    .contains(lowerValue) ||
+                                element.editedProfile.title
+                                    .toLowerCase()
+                                    .contains(lowerValue))
+                            .toList();
+                      },
+                      inputDecoration: InputDecoration(
+                        labelText: translate('contact_list.search'),
+                        fillColor: Colors.white,
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(
+                            color: Colors.blue,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(10),
                     ),
-                  ),
-                ),
-        ).expanded()
-      ]),
-    ).paddingLTRB(8, 0, 8, 8);
+            ))).paddingLTRB(8, 0, 8, 8);
   }
 }

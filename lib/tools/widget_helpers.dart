@@ -1,3 +1,4 @@
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:blurry_modal_progress_hud/blurry_modal_progress_hud.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -65,4 +66,72 @@ void showInfoToast(BuildContext context, String message) {
     title: Text(translate('toast.info')),
     description: Text(message),
   ).show(context);
+}
+
+Widget styledTitleContainer(
+    {required BuildContext context,
+    required String title,
+    required Widget child}) {
+  final theme = Theme.of(context);
+  final scale = theme.extension<ScaleScheme>()!;
+  final textTheme = theme.textTheme;
+
+  return Container(
+      decoration: ShapeDecoration(
+          color: scale.primaryScale.subtleBorder,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          )),
+      child: Column(children: [
+        Text(
+          title,
+          style: textTheme.titleMedium!
+              .copyWith(color: scale.primaryScale.subtleText),
+        ).paddingLTRB(4, 4, 4, 0),
+        DecoratedBox(
+                decoration: ShapeDecoration(
+                    color: scale.primaryScale.subtleBackground,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    )),
+                child: child)
+            .paddingAll(4)
+            .expanded()
+      ]));
+}
+
+Future<T?> showStyledDialog<T>(
+    {required BuildContext context,
+    required String title,
+    required Widget child}) async {
+  final theme = Theme.of(context);
+  final scale = theme.extension<ScaleScheme>()!;
+  final textTheme = theme.textTheme;
+
+  return showDialog<T>(
+      context: context,
+      builder: (context) => AlertDialog(
+          elevation: 0,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
+          contentPadding: const EdgeInsets.all(4),
+          backgroundColor: scale.primaryScale.border,
+          title: Text(
+            title,
+            style: textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+          content: DecoratedBox(
+              decoration: ShapeDecoration(
+                  color: scale.primaryScale.border,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16))),
+              child: DecoratedBox(
+                  decoration: ShapeDecoration(
+                      color: scale.primaryScale.subtleBackground,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12))),
+                  child: child.paddingAll(0)))));
 }
