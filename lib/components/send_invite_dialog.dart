@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/foundation.dart';
@@ -134,8 +135,8 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context) {
     final windowSize = MediaQuery.of(context).size;
-    final maxDialogHeight = windowSize.height - 64;
-    final maxDialogWidth = windowSize.width - 64;
+    final maxDialogWidth = min(windowSize.width - 64.0, 800.0 - 64.0);
+    final maxDialogHeight = windowSize.height - 64.0;
 
     final theme = Theme.of(context);
     //final scale = theme.extension<ScaleScheme>()!;
