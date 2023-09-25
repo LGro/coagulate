@@ -120,11 +120,11 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
     while (currentDeps.isNotEmpty) {
       final nextDep = currentDeps.removeLast();
 
+      // Ensure we get the exclusive lock on this record
+      await _recordOpened(nextDep);
+
       // Remove this child from its parent
       await _removeDependency(nextDep);
-
-      // Ensure all records are closed before delete
-      assert(!_opened.containsKey(nextDep), 'should not delete opened record');
 
       allDeps.add(nextDep);
       final childDeps =
@@ -136,6 +136,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
     final allFutures = <Future<void>>[];
     for (final dep in allDeps) {
       allFutures.add(_routingContext.deleteDHTRecord(dep));
+      recordClosed(dep);
     }
     await Future.wait(allFutures);
   }
@@ -324,4 +325,10 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
         defaultSubkey: defaultSubkey,
         crypto: crypto,
       );
+
+  /// Get the parent of a DHTRecord key if it exists
+  TypedKey? getParentRecord(TypedKey child) {
+    final childJson = child.toJson();
+    return _state.parentByChild[childJson];
+  }
 }

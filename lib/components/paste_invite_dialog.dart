@@ -33,9 +33,6 @@ class PasteInviteDialog extends ConsumerStatefulWidget {
 class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
   final _pasteTextController = TextEditingController();
 
-  EncryptionKeyType _encryptionKeyType = EncryptionKeyType.none;
-  String _encryptionKey = '';
-  Timestamp? _expiration;
   ValidContactInvitation? _validInvitation;
   bool _validatingPaste = false;
   bool _isAccepting = false;
@@ -44,61 +41,6 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
   void initState() {
     super.initState();
   }
-
-  // Future<void> _onNoneEncryptionSelected(bool selected) async {
-  //   setState(() {
-  //     if (selected) {
-  //       _encryptionKeyType = EncryptionKeyType.none;
-  //     }
-  //   });
-  // }
-
-  // Future<void> _onPinEncryptionSelected(bool selected) async {
-  //   final description = translate('receive_invite_dialog.pin_description');
-  //   final pin = await showDialog<String>(
-  //       context: context,
-  //       builder: (context) => EnterPinDialog(description: description));
-  //   if (pin == null) {
-  //     return;
-  //   }
-  //   // ignore: use_build_context_synchronously
-  //   if (!context.mounted) {
-  //     return;
-  //   }
-  //   final matchpin = await showDialog<String>(
-  //       context: context,
-  //       builder: (context) => EnterPinDialog(
-  //             matchPin: pin,
-  //             description: description,
-  //           ));
-  //   if (matchpin == null) {
-  //     return;
-  //   } else if (pin == matchpin) {
-  //     setState(() {
-  //       _encryptionKeyType = EncryptionKeyType.pin;
-  //       _encryptionKey = pin;
-  //     });
-  //   } else {
-  //     // ignore: use_build_context_synchronously
-  //     if (!context.mounted) {
-  //       return;
-  //     }
-  //     showErrorToast(
-  //         context, translate('receive_invite_dialog.pin_does_not_match'));
-  //     setState(() {
-  //       _encryptionKeyType = EncryptionKeyType.none;
-  //       _encryptionKey = '';
-  //     });
-  //   }
-  // }
-
-  // Future<void> _onPasswordEncryptionSelected(bool selected) async {
-  //   setState(() {
-  //     if (selected) {
-  //       _encryptionKeyType = EncryptionKeyType.password;
-  //     }
-  //   });
-  // }
 
   Future<void> _onAccept() async {
     final navigator = Navigator.of(context);
@@ -133,7 +75,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
           ..invalidate(fetchContactListProvider);
       } else {
         if (context.mounted) {
-          showErrorToast(context, 'paste_invite_dialog.failed_to_accept');
+          showErrorToast(context, 'contact_invite.failed_to_accept');
         }
       }
     }
@@ -163,7 +105,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
         // do nothing right now
       } else {
         if (context.mounted) {
-          showErrorToast(context, 'paste_invite_dialog.failed_to_reject');
+          showErrorToast(context, 'contact_invite.failed_to_reject');
         }
       }
     }
@@ -203,23 +145,74 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
       final inviteDataBase64 = lines.sublist(firstline, lastline).join();
       final inviteData = base64UrlNoPadDecode(inviteDataBase64);
 
+      final activeAccountInfo =
+          await ref.read(fetchActiveAccountProvider.future);
+      if (activeAccountInfo == null) {
+        setState(() {
+          _validatingPaste = false;
+          _validInvitation = null;
+        });
+        return;
+      }
+
       setState(() {
         _validatingPaste = true;
         _validInvitation = null;
       });
       final validatedContactInvitation = await validateContactInvitation(
-          inviteData, (encryptionKeyType, encryptedSecret) async {
-        switch (encryptionKeyType) {
-          case EncryptionKeyType.none:
-            return SecretKey.fromBytes(encryptedSecret);
-          case EncryptionKeyType.pin:
-            //xxx
-            return SecretKey.fromBytes(encryptedSecret);
-          case EncryptionKeyType.password:
-            //xxx
-            return SecretKey.fromBytes(encryptedSecret);
-        }
-      });
+          activeAccountInfo: activeAccountInfo,
+          inviteData: inviteData,
+          getEncryptionKeyCallback:
+              (cs, encryptionKeyType, encryptedSecret) async {
+            String encryptionKey;
+            switch (encryptionKeyType) {
+              case EncryptionKeyType.none:
+                encryptionKey = '';
+              case EncryptionKeyType.pin:
+                final description =
+                    translate('contact_invite.protected_with_pin');
+                if (!context.mounted) {
+                  return null;
+                }
+                final pin = await showDialog<String>(
+                    context: context,
+                    builder: (context) =>
+                        EnterPinDialog(description: description));
+                if (pin == null) {
+                  return null;
+                }
+                encryptionKey = pin;
+              case EncryptionKeyType.password:
+                final description =
+                    translate('contact_invite.protected_with_pin');
+                if (!context.mounted) {
+                  return null;
+                }
+                final password = await showDialog<String>(
+                    context: context,
+                    builder: (context) =>
+                        EnterPinDialog(description: description));
+                if (password == null) {
+                  return null;
+                }
+                encryptionKey = password;
+            }
+            return decryptSecretFromBytes(
+                secretBytes: encryptedSecret,
+                cryptoKind: cs.kind(),
+                encryptionKeyType: encryptionKeyType,
+                encryptionKey: encryptionKey);
+          });
+
+      // Check if validation was cancelled
+      if (validatedContactInvitation == null) {
+        setState(() {
+          _validatingPaste = false;
+          _validInvitation = null;
+        });
+        return;
+      }
+
       // Verify expiration
       // xxx
 
@@ -227,11 +220,29 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
         _validatingPaste = false;
         _validInvitation = validatedContactInvitation;
       });
+    } on ContactInviteInvalidKeyException catch (e) {
+      String errorText;
+      switch (e.type) {
+        case EncryptionKeyType.none:
+          errorText = translate('contact_invite.invalid_invitation');
+        case EncryptionKeyType.password:
+          errorText = translate('contact_invite.invalid_pin');
+        case EncryptionKeyType.pin:
+          errorText = translate('contact_invite.invalid_password');
+      }
+      if (context.mounted) {
+        showErrorToast(context, errorText);
+      }
+      setState(() {
+        _validatingPaste = false;
+        _validInvitation = null;
+      });
     } on Exception catch (_) {
       setState(() {
         _validatingPaste = false;
         _validInvitation = null;
       });
+      rethrow;
     }
   }
 
@@ -277,7 +288,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
                 )).paddingLTRB(0, 0, 0, 8),
             if (_validatingPaste)
               Column(children: [
-                Text(translate('paste_invite_dialog.validating'))
+                Text(translate('contact_invite.validating'))
                     .paddingLTRB(0, 0, 0, 8),
                 buildProgressIndicator(context),
               ]).paddingAll(16).toCenter(),
@@ -285,7 +296,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
                 !_validatingPaste &&
                 _pasteTextController.text.isNotEmpty)
               Column(children: [
-                Text(translate('paste_invite_dialog.invalid_invitation')),
+                Text(translate('contact_invite.invalid_invitation')),
                 const Icon(Icons.error)
               ]).paddingAll(16).toCenter(),
             if (_validInvitation != null && !_validatingPaste)

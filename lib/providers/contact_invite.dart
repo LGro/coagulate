@@ -24,6 +24,11 @@ import 'conversation.dart';
 
 part 'contact_invite.g.dart';
 
+class ContactInviteInvalidKeyException implements Exception {
+  const ContactInviteInvalidKeyException(this.type) : super();
+  final EncryptionKeyType type;
+}
+
 class AcceptedContact {
   AcceptedContact({
     required this.profile,
@@ -238,8 +243,8 @@ Future<Uint8List> createContactInvitation(
       ..chatRecordKey = localConversation.key.toProto()
       ..expiration = expiration?.toInt64() ?? Int64.ZERO;
     final crprivbytes = crpriv.writeToBuffer();
-    final encryptedContactRequestPrivate = await cs.encryptNoAuthWithNonce(
-        crprivbytes, contactRequestWriter.secret);
+    final encryptedContactRequestPrivate =
+        await cs.encryptAeadWithNonce(crprivbytes, contactRequestWriter.secret);
 
     // Create ContactRequest and embed contactrequestprivate
     final creq = ContactRequest()
@@ -315,11 +320,18 @@ class ValidContactInvitation {
   KeyPair writer;
 }
 
-typedef GetEncryptionKeyCallback = Future<SecretKey> Function(
-    EncryptionKeyType encryptionKeyType, Uint8List encryptedSecret);
+typedef GetEncryptionKeyCallback = Future<SecretKey?> Function(
+    VeilidCryptoSystem cs,
+    EncryptionKeyType encryptionKeyType,
+    Uint8List encryptedSecret);
 
-Future<ValidContactInvitation> validateContactInvitation(Uint8List inviteData,
-    GetEncryptionKeyCallback getEncryptionKeyCallback) async {
+Future<ValidContactInvitation?> validateContactInvitation(
+    {required ActiveAccountInfo activeAccountInfo,
+    required Uint8List inviteData,
+    required GetEncryptionKeyCallback getEncryptionKeyCallback}) async {
+  final accountRecordKey =
+      activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+
   final signedContactInvitation =
       proto.SignedContactInvitation.fromBuffer(inviteData);
 
@@ -334,19 +346,27 @@ Future<ValidContactInvitation> validateContactInvitation(Uint8List inviteData,
   late final ValidContactInvitation out;
 
   final pool = await DHTRecordPool.instance();
-  await (await pool.openRead(contactRequestInboxKey))
-      .deleteScope((contactRequestInbox) async {
+  final cs = await pool.veilid.getCryptoSystem(contactRequestInboxKey.kind);
+
+  // See if we're chatting to ourselves, if so, don't delete it here
+  final ownKey = pool.getParentRecord(contactRequestInboxKey) != null;
+
+  await (await pool.openRead(contactRequestInboxKey, parent: accountRecordKey))
+      .maybeDeleteScope(!ownKey, (contactRequestInbox) async {
     //
     final contactRequest =
         await contactRequestInbox.getProtobuf(proto.ContactRequest.fromBuffer);
+
     // Decrypt contact request private
     final encryptionKeyType =
         EncryptionKeyType.fromProto(contactRequest!.encryptionKeyType);
-    final writerSecret = await getEncryptionKeyCallback(
-        encryptionKeyType, Uint8List.fromList(contactInvitation.writerSecret));
+    final writerSecret = await getEncryptionKeyCallback(cs, encryptionKeyType,
+        Uint8List.fromList(contactInvitation.writerSecret));
+    if (writerSecret == null) {
+      return null;
+    }
 
-    final cs = await pool.veilid.getCryptoSystem(contactRequestInboxKey.kind);
-    final contactRequestPrivateBytes = await cs.decryptNoAuthWithNonce(
+    final contactRequestPrivateBytes = await cs.decryptAeadWithNonce(
         Uint8List.fromList(contactRequest.private), writerSecret);
     final contactRequestPrivate =
         proto.ContactRequestPrivate.fromBuffer(contactRequestPrivateBytes);
@@ -360,8 +380,12 @@ Future<ValidContactInvitation> validateContactInvitation(Uint8List inviteData,
     // Verify
     final signature = proto.SignatureProto.fromProto(
         signedContactInvitation.identitySignature);
-    await cs.verify(contactIdentityMaster.identityPublicKey,
-        contactInvitationBytes, signature);
+    try {
+      await cs.verify(contactIdentityMaster.identityPublicKey,
+          contactInvitationBytes, signature);
+    } on Exception catch (_) {
+      throw ContactInviteInvalidKeyException(encryptionKeyType);
+    }
 
     final writer = KeyPair(
         key: proto.CryptoKeyProto.fromProto(contactRequestPrivate.writerKey),
@@ -385,10 +409,18 @@ Future<AcceptedContact?> acceptContactInvitation(
     ValidContactInvitation validContactInvitation) async {
   final pool = await DHTRecordPool.instance();
   try {
+    // Ensure we don't delete this if we're trying to chat to self
+    final ownKey =
+        pool.getParentRecord(validContactInvitation.contactRequestInboxKey) !=
+            null;
+    final accountRecordKey =
+        activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+
     return (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
-            validContactInvitation.writer))
+            validContactInvitation.writer,
+            parent: accountRecordKey))
         // ignore: prefer_expression_function_bodies
-        .deleteScope((contactRequestInbox) async {
+        .maybeDeleteScope(!ownKey, (contactRequestInbox) async {
       // Create local conversation key for this
       // contact and send via contact response
       return createConversation(
@@ -441,9 +473,18 @@ Future<AcceptedContact?> acceptContactInvitation(
 Future<bool> rejectContactInvitation(ActiveAccountInfo activeAccountInfo,
     ValidContactInvitation validContactInvitation) async {
   final pool = await DHTRecordPool.instance();
+
+  // Ensure we don't delete this if we're trying to chat to self
+  final ownKey =
+      pool.getParentRecord(validContactInvitation.contactRequestInboxKey) !=
+          null;
+  final accountRecordKey =
+      activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+
   return (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
-          validContactInvitation.writer))
-      .deleteScope((contactRequestInbox) async {
+          validContactInvitation.writer,
+          parent: accountRecordKey))
+      .maybeDeleteScope(!ownKey, (contactRequestInbox) async {
     final cs = await pool.veilid
         .getCryptoSystem(validContactInvitation.contactRequestInboxKey.kind);
 

@@ -196,30 +196,42 @@ class ScanInviteDialogState extends ConsumerState<ScanInviteDialog> {
       final inviteDataBase64 = lines.sublist(firstline, lastline).join();
       final inviteData = base64UrlNoPadDecode(inviteDataBase64);
 
+      final activeAccountInfo =
+          await ref.read(fetchActiveAccountProvider.future);
+      if (activeAccountInfo == null) {
+        setState(() {
+          _validatingPaste = false;
+          _validInvitation = null;
+        });
+        return;
+      }
+
       setState(() {
         _validatingPaste = true;
         _validInvitation = null;
       });
-      final validatedContactInvitation = await validateContactInvitation(
-          inviteData, (encryptionKeyType, encryptedSecret) async {
-        switch (encryptionKeyType) {
-          case EncryptionKeyType.none:
-            return SecretKey.fromBytes(encryptedSecret);
-          case EncryptionKeyType.pin:
-            //xxx
-            return SecretKey.fromBytes(encryptedSecret);
-          case EncryptionKeyType.password:
-            //xxx
-            return SecretKey.fromBytes(encryptedSecret);
-        }
-      });
+      // final validatedContactInvitation = await validateContactInvitation(
+      //     activeAccountInfo: activeAccountInfo,
+      //     inviteData: inviteData,
+      //     getEncryptionKeyCallback: (encryptionKeyType, encryptedSecret) async {
+      //       switch (encryptionKeyType) {
+      //         case EncryptionKeyType.none:
+      //           return SecretKey.fromBytes(encryptedSecret);
+      //         case EncryptionKeyType.pin:
+      //           //xxx
+      //           return SecretKey.fromBytes(encryptedSecret);
+      //         case EncryptionKeyType.password:
+      //           //xxx
+      //           return SecretKey.fromBytes(encryptedSecret);
+      //       }
+      //     });
       // Verify expiration
       // xxx
 
-      setState(() {
-        _validatingPaste = false;
-        _validInvitation = validatedContactInvitation;
-      });
+      //   setState(() {
+      //     _validatingPaste = false;
+      //     _validInvitation = validatedContactInvitation;
+      //   });
     } on Exception catch (_) {
       setState(() {
         _validatingPaste = false;

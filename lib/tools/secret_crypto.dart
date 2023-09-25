@@ -9,16 +9,37 @@ Future<Uint8List> encryptSecretToBytes(
     String encryptionKey = ''}) async {
   final veilid = await eventualVeilid.future;
 
-  late final Uint8List identitySecretBytes;
+  late final Uint8List secretBytes;
   switch (encryptionKeyType) {
     case EncryptionKeyType.none:
-      identitySecretBytes = secret.decode();
+      secretBytes = secret.decode();
     case EncryptionKeyType.pin:
     case EncryptionKeyType.password:
       final cs = await veilid.getCryptoSystem(cryptoKind);
 
-      identitySecretBytes =
-          await cs.encryptNoAuthWithPassword(secret.decode(), encryptionKey);
+      secretBytes =
+          await cs.encryptAeadWithPassword(secret.decode(), encryptionKey);
   }
-  return identitySecretBytes;
+  return secretBytes;
+}
+
+Future<SecretKey> decryptSecretFromBytes(
+    {required Uint8List secretBytes,
+    required CryptoKind cryptoKind,
+    EncryptionKeyType encryptionKeyType = EncryptionKeyType.none,
+    String encryptionKey = ''}) async {
+  final veilid = await eventualVeilid.future;
+
+  late final SecretKey secret;
+  switch (encryptionKeyType) {
+    case EncryptionKeyType.none:
+      secret = SecretKey.fromBytes(secretBytes);
+    case EncryptionKeyType.pin:
+    case EncryptionKeyType.password:
+      final cs = await veilid.getCryptoSystem(cryptoKind);
+
+      secret = SecretKey.fromBytes(
+          await cs.decryptAeadWithPassword(secretBytes, encryptionKey));
+  }
+  return secret;
 }

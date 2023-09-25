@@ -83,15 +83,21 @@
         "copy_invitation": "Copy Invitation",
         "invitation_copied": "Invitation Copied"
     },
+    "contact_invite": {
+        "message_from_contact": "Message from contact",
+        "validating": "Validating...",
+        "failed_to_accept": "Failed to accept contact invite",
+        "failed_to_reject": "Failed to reject contact invite",
+        "invalid_invitation": "Invalid invitation",
+        "protected_with_pin": "Contact invite is protected with a PIN",
+        "protected_with_password": "Contact invite is protected with a password",
+        "invalid_pin": "Invalid PIN",
+        "invalid_password": "Invalid password"
+    },
     "paste_invite_dialog": {
         "title": "Paste Contact Invite",
         "paste_invite_here": "Paste your contact invite here:",
-        "paste": "Paste",
-        "message_from_contact": "Message from contact",
-        "validating": "Validating...",
-        "invalid_invitation": "Invalid invitation",
-        "failed_to_accept": "Failed to accept contact invite",
-        "failed_to_reject": "Failed to reject contact invite"
+        "paste": "Paste"
     },
     "enter_pin_dialog": {
         "enter_pin": "Enter PIN",

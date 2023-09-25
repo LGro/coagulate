@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 
 import '../components/default_app_bar.dart';
 import '../components/signal_strength_meter.dart';
+import '../entities/entities.dart';
 import '../providers/local_accounts.dart';
 import '../providers/logins.dart';
 import '../providers/window_control.dart';
@@ -59,9 +60,9 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
           title: title);
 
       // Log in the new account by default with no pin
-      final ok = await logins
-          .loginWithNone(localAccount.identityMaster.masterRecordKey);
-      assert(ok == true, 'login with none should never fail');
+      final ok = await logins.login(localAccount.identityMaster.masterRecordKey,
+          EncryptionKeyType.none, '');
+      assert(ok, 'login with none should never fail');
     } on Exception catch (_) {
       await imws.delete();
       rethrow;

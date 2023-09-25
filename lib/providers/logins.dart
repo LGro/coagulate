@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../entities/entities.dart';
 import '../log/loggy.dart';
+import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import 'local_accounts.dart';
 
@@ -52,7 +53,7 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
     state = AsyncValue.data(updated);
   }
 
-  Future<bool> _loginCommon(
+  Future<bool> _decryptedLogin(
       IdentityMaster identityMaster, SecretKey identitySecret) async {
     final veilid = await eventualVeilid.future;
     final cs =
@@ -89,7 +90,8 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
     return true;
   }
 
-  Future<bool> loginWithNone(TypedKey accountMasterRecordKey) async {
+  Future<bool> login(TypedKey accountMasterRecordKey,
+      EncryptionKeyType encryptionKeyType, String encryptionKey) async {
     final localAccounts = ref.read(localAccountsProvider).requireValue;
 
     // Get account, throws if not found
@@ -99,42 +101,19 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
     // Log in with this local account
 
     // Derive key from password
-    if (localAccount.encryptionKeyType != EncryptionKeyType.none) {
+    if (localAccount.encryptionKeyType != encryptionKeyType) {
       throw Exception('Wrong authentication type');
     }
 
-    final identitySecret =
-        SecretKey.fromBytes(localAccount.identitySecretBytes);
+    final identitySecret = await decryptSecretFromBytes(
+      secretBytes: localAccount.identitySecretBytes,
+      cryptoKind: localAccount.identityMaster.identityRecordKey.kind,
+      encryptionKeyType: localAccount.encryptionKeyType,
+      encryptionKey: encryptionKey,
+    );
 
     // Validate this secret with the identity public key and log in
-    return _loginCommon(localAccount.identityMaster, identitySecret);
-  }
-
-  Future<bool> loginWithPasswordOrPin(
-      TypedKey accountMasterRecordKey, String encryptionKey) async {
-    final veilid = await eventualVeilid.future;
-    final localAccounts = ref.read(localAccountsProvider).requireValue;
-
-    // Get account, throws if not found
-    final localAccount = localAccounts.firstWhere(
-        (la) => la.identityMaster.masterRecordKey == accountMasterRecordKey);
-
-    // Log in with this local account
-
-    // Derive key from password
-    if (localAccount.encryptionKeyType != EncryptionKeyType.password ||
-        localAccount.encryptionKeyType != EncryptionKeyType.pin) {
-      throw Exception('Wrong authentication type');
-    }
-    final cs = await veilid
-        .getCryptoSystem(localAccount.identityMaster.identityRecordKey.kind);
-
-    final identitySecret = SecretKey.fromBytes(
-        await cs.decryptNoAuthWithPassword(
-            localAccount.identitySecretBytes, encryptionKey));
-
-    // Validate this secret with the identity public key and log in
-    return _loginCommon(localAccount.identityMaster, identitySecret);
+    return _decryptedLogin(localAccount.identityMaster, identitySecret);
   }
 
   Future<void> logout(TypedKey? accountMasterRecordKey) async {

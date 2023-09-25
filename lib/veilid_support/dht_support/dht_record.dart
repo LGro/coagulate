@@ -91,6 +91,15 @@ class DHTRecord {
     }
   }
 
+  Future<T> maybeDeleteScope<T>(
+      bool delete, Future<T> Function(DHTRecord) scopeFunction) async {
+    if (delete) {
+      return deleteScope(scopeFunction);
+    } else {
+      return scope(scopeFunction);
+    }
+  }
+
   Future<Uint8List?> get(
       {int subkey = -1,
       bool forceRefresh = false,
