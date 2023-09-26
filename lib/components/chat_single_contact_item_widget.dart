@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import '../../entities/proto.dart' as proto;
-import '../pages/main_pager/main_pager.dart';
 import '../providers/account.dart';
 import '../providers/chat.dart';
 import '../tools/theme_service.dart';
@@ -19,7 +17,7 @@ class ChatSingleContactItemWidget extends ConsumerWidget {
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
+    //final textTheme = theme.textTheme;
     final scale = theme.extension<ScaleScheme>()!;
 
     final activeChat = ref.watch(activeChatStateProvider).asData?.value;

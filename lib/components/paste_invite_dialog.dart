@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
-import 'package:quickalert/quickalert.dart';
 
 import '../entities/local_account.dart';
 import '../providers/account.dart';
@@ -61,15 +60,22 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
       final acceptedContact =
           await acceptContactInvitation(activeAccountInfo, validInvitation);
       if (acceptedContact != null) {
-        await createContact(
-          activeAccountInfo: activeAccountInfo,
-          profile: acceptedContact.profile,
-          remoteIdentity: acceptedContact.remoteIdentity,
-          remoteConversationRecordKey:
-              acceptedContact.remoteConversationRecordKey,
-          localConversationRecordKey:
-              acceptedContact.localConversationRecordKey,
-        );
+        // initiator when accept is received will create
+        // contact in the case of a 'note to self'
+        final isSelf =
+            activeAccountInfo.localAccount.identityMaster.identityPublicKey ==
+                acceptedContact.remoteIdentity.identityPublicKey;
+        if (!isSelf) {
+          await createContact(
+            activeAccountInfo: activeAccountInfo,
+            profile: acceptedContact.profile,
+            remoteIdentity: acceptedContact.remoteIdentity,
+            remoteConversationRecordKey:
+                acceptedContact.remoteConversationRecordKey,
+            localConversationRecordKey:
+                acceptedContact.localConversationRecordKey,
+          );
+        }
         ref
           ..invalidate(fetchContactInvitationRecordsProvider)
           ..invalidate(fetchContactListProvider);
@@ -154,6 +160,8 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
         });
         return;
       }
+      final contactInvitationRecords =
+          await ref.read(fetchContactInvitationRecordsProvider.future);
 
       setState(() {
         _validatingPaste = true;
@@ -161,6 +169,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
       });
       final validatedContactInvitation = await validateContactInvitation(
           activeAccountInfo: activeAccountInfo,
+          contactInvitationRecords: contactInvitationRecords,
           inviteData: inviteData,
           getEncryptionKeyCallback:
               (cs, encryptionKeyType, encryptedSecret) async {

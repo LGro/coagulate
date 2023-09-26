@@ -147,7 +147,7 @@ Future<AcceptedOrRejectedContact?> checkAcceptRejectContact(
         activeAccountInfo: activeAccountInfo,
         contactInvitationRecord: contactInvitationRecord);
 
-    return null;
+    rethrow;
   }
 }
 
@@ -327,6 +327,7 @@ typedef GetEncryptionKeyCallback = Future<SecretKey?> Function(
 
 Future<ValidContactInvitation?> validateContactInvitation(
     {required ActiveAccountInfo activeAccountInfo,
+    required IList<ContactInvitationRecord>? contactInvitationRecords,
     required Uint8List inviteData,
     required GetEncryptionKeyCallback getEncryptionKeyCallback}) async {
   final accountRecordKey =
@@ -349,10 +350,13 @@ Future<ValidContactInvitation?> validateContactInvitation(
   final cs = await pool.veilid.getCryptoSystem(contactRequestInboxKey.kind);
 
   // See if we're chatting to ourselves, if so, don't delete it here
-  final ownKey = pool.getParentRecord(contactRequestInboxKey) != null;
+  final isSelf = contactInvitationRecords?.indexWhere((cir) =>
+          proto.TypedKeyProto.fromProto(cir.contactRequestInbox.recordKey) ==
+          contactRequestInboxKey) !=
+      -1;
 
   await (await pool.openRead(contactRequestInboxKey, parent: accountRecordKey))
-      .maybeDeleteScope(!ownKey, (contactRequestInbox) async {
+      .maybeDeleteScope(!isSelf, (contactRequestInbox) async {
     //
     final contactRequest =
         await contactRequestInbox.getProtobuf(proto.ContactRequest.fromBuffer);
@@ -410,9 +414,9 @@ Future<AcceptedContact?> acceptContactInvitation(
   final pool = await DHTRecordPool.instance();
   try {
     // Ensure we don't delete this if we're trying to chat to self
-    final ownKey =
-        pool.getParentRecord(validContactInvitation.contactRequestInboxKey) !=
-            null;
+    final isSelf =
+        validContactInvitation.contactIdentityMaster.identityPublicKey ==
+            activeAccountInfo.localAccount.identityMaster.identityPublicKey;
     final accountRecordKey =
         activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
 
@@ -420,7 +424,7 @@ Future<AcceptedContact?> acceptContactInvitation(
             validContactInvitation.writer,
             parent: accountRecordKey))
         // ignore: prefer_expression_function_bodies
-        .maybeDeleteScope(!ownKey, (contactRequestInbox) async {
+        .maybeDeleteScope(!isSelf, (contactRequestInbox) async {
       // Create local conversation key for this
       // contact and send via contact response
       return createConversation(
@@ -475,16 +479,16 @@ Future<bool> rejectContactInvitation(ActiveAccountInfo activeAccountInfo,
   final pool = await DHTRecordPool.instance();
 
   // Ensure we don't delete this if we're trying to chat to self
-  final ownKey =
-      pool.getParentRecord(validContactInvitation.contactRequestInboxKey) !=
-          null;
+  final isSelf =
+      validContactInvitation.contactIdentityMaster.identityPublicKey ==
+          activeAccountInfo.localAccount.identityMaster.identityPublicKey;
   final accountRecordKey =
       activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
 
   return (await pool.openWrite(validContactInvitation.contactRequestInboxKey,
           validContactInvitation.writer,
           parent: accountRecordKey))
-      .maybeDeleteScope(!ownKey, (contactRequestInbox) async {
+      .maybeDeleteScope(!isSelf, (contactRequestInbox) async {
     final cs = await pool.veilid
         .getCryptoSystem(validContactInvitation.contactRequestInboxKey.kind);
 

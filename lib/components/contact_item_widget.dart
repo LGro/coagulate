@@ -20,7 +20,7 @@ class ContactItemWidget extends ConsumerWidget {
   // ignore: prefer_expression_function_bodies
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
+    //final textTheme = theme.textTheme;
     final scale = theme.extension<ScaleScheme>()!;
 
     final remoteConversationKey =
@@ -78,7 +78,9 @@ class ContactItemWidget extends ConsumerWidget {
                     await getOrCreateChatSingleContact(
                         activeAccountInfo: activeAccountInfo,
                         remoteConversationRecordKey: remoteConversationKey);
-
+                    ref
+                      ..invalidate(fetchContactListProvider)
+                      ..invalidate(fetchChatListProvider);
                     // Click over to chats
                     if (context.mounted) {
                       await MainPager.of(context)?.pageController.animateToPage(

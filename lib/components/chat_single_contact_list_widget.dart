@@ -1,6 +1,5 @@
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
@@ -9,9 +8,7 @@ import 'package:searchable_listview/searchable_listview.dart';
 import '../../entities/proto.dart' as proto;
 import '../tools/tools.dart';
 import 'chat_single_contact_item_widget.dart';
-import 'contact_item_widget.dart';
 import 'empty_chat_list_widget.dart';
-import 'empty_contact_list_widget.dart';
 
 class ChatSingleContactListWidget extends ConsumerWidget {
   ChatSingleContactListWidget(
