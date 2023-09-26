@@ -4,8 +4,7 @@ import 'package:ansicolor/ansicolor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:loggy/loggy.dart';
 
-// Loggy tools
-const LogLevel traceLevel = LogLevel('Trace', 1);
+import '../veilid_support/veilid_support.dart';
 
 String wrapWithLogColor(LogLevel? level, String text) {
   // XXX: https://github.com/flutter/flutter/issues/64491
@@ -73,11 +72,6 @@ class CallbackPrinter extends LoggyPrinter {
 }
 
 CallbackPrinter globalTerminalPrinter = CallbackPrinter();
-
-extension TraceLoggy on Loggy {
-  void trace(dynamic message, [Object? error, StackTrace? stackTrace]) =>
-      this.log(traceLevel, message, error, stackTrace);
-}
 
 LogOptions getLogOptions(LogLevel? level) => LogOptions(
       level ?? LogLevel.all,

@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +9,7 @@ import 'package:flutter_translate/flutter_translate.dart';
 import '../../components/contact_invitation_list_widget.dart';
 import '../../components/contact_list_widget.dart';
 import '../../entities/local_account.dart';
-import '../../entities/proto.dart' as proto;
+import '../../proto/proto.dart' as proto;
 import '../../providers/contact.dart';
 import '../../providers/contact_invite.dart';
 import '../../tools/theme_service.dart';

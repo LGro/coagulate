@@ -17,7 +17,7 @@ import '../../components/paste_invite_dialog.dart';
 import '../../components/scan_invite_dialog.dart';
 import '../../components/send_invite_dialog.dart';
 import '../../entities/local_account.dart';
-import '../../entities/proto.dart' as proto;
+import '../../proto/proto.dart' as proto;
 import '../../tools/tools.dart';
 import '../../veilid_support/veilid_support.dart';
 import 'account_page.dart';
@@ -235,7 +235,7 @@ class MainPagerState extends ConsumerState<MainPager>
                     localAccounts: widget.localAccounts,
                     activeUserLogin: widget.activeUserLogin,
                     account: widget.account),
-                ChatsPage(),
+                const ChatsPage(),
               ])),
       // appBar: AppBar(
       //   toolbarHeight: 24,

@@ -1,0 +1,61 @@
+syntax = "proto3";
+package veilid;
+
+// 32-byte value in bigendian format
+message CryptoKey {
+    fixed32 u0 = 1;
+    fixed32 u1 = 2;
+    fixed32 u2 = 3;
+    fixed32 u3 = 4;    
+    fixed32 u4 = 5;
+    fixed32 u5 = 6;
+    fixed32 u6 = 7;
+    fixed32 u7 = 8;    
+}
+
+// 64-byte value in bigendian format
+message Signature {
+    fixed32 u0 = 1;
+    fixed32 u1 = 2;
+    fixed32 u2 = 3;
+    fixed32 u3 = 4;    
+    fixed32 u4 = 5;
+    fixed32 u5 = 6;
+    fixed32 u6 = 7;
+    fixed32 u7 = 8;    
+    fixed32 u8 = 9;
+    fixed32 u9 = 10;
+    fixed32 u10 = 11;
+    fixed32 u11 = 12;    
+    fixed32 u12 = 13;
+    fixed32 u13 = 14;
+    fixed32 u14 = 15;
+    fixed32 u15 = 16;    
+}
+
+// 24-byte value in bigendian format
+message Nonce {
+    fixed32 u0 = 1;
+    fixed32 u1 = 2;
+    fixed32 u2 = 3;
+    fixed32 u3 = 4;    
+    fixed32 u4 = 5;
+    fixed32 u5 = 6;
+}
+
+// 36-byte typed crypto key
+message TypedKey {
+    // CryptoKind FourCC in bigendian format
+    fixed32 kind = 1;
+    // Key value
+    CryptoKey value = 2;
+}
+
+// Key pair
+message KeyPair {
+    // Public key
+    CryptoKey key = 1;
+    // Private key
+    CryptoKey secret = 2;
+}
+

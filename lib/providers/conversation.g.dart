@@ -7,7 +7,7 @@ part of 'conversation.dart';
 // **************************************************************************
 
 String _$activeConversationMessagesHash() =>
-    r'd65cd8bf71122806320325e7f0e5f8e751d13b55';
+    r'1ec73644fd9b6c96c891487e3d027eb8834d25b6';
 
 /// See also [ActiveConversationMessages].
 @ProviderFor(ActiveConversationMessages)
@@ -24,4 +24,5 @@ final activeConversationMessagesProvider = AutoDisposeAsyncNotifierProvider<
 
 typedef _$ActiveConversationMessages
     = AutoDisposeAsyncNotifier<IList<Message>?>;
-// ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

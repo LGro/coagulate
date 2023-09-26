@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:searchable_listview/searchable_listview.dart';
 
-import '../../entities/proto.dart' as proto;
+import '../proto/proto.dart' as proto;
 import '../tools/tools.dart';
 import 'chat_single_contact_item_widget.dart';
 import 'empty_chat_list_widget.dart';

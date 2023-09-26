@@ -3,8 +3,7 @@ import 'dart:typed_data';
 
 import 'package:protobuf/protobuf.dart';
 
-import '../../tools/tools.dart';
-import '../veilid_support.dart';
+import '../../veilid_support.dart';
 
 class DHTRecord {
   DHTRecord(

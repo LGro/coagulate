@@ -157,8 +157,10 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
           try {
             await createAccount();
           } on Exception catch (e) {
-            await showErrorModal(
-                context, translate('new_account_page.error'), 'Exception: $e');
+            if (context.mounted) {
+              await showErrorModal(context, translate('new_account_page.error'),
+                  'Exception: $e');
+            }
           }
         },
       ).paddingSymmetric(horizontal: 24, vertical: 8),

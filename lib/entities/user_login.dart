@@ -2,7 +2,6 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../veilid_support/veilid_support.dart';
-import 'identity.dart';
 
 part 'user_login.freezed.dart';
 part 'user_login.g.dart';

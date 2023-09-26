@@ -3,9 +3,8 @@ import 'dart:typed_data';
 
 import 'package:protobuf/protobuf.dart';
 
-import '../../entities/proto.dart' as proto;
-import '../../tools/tools.dart';
-import '../veilid_support.dart';
+import '../../veilid_support.dart';
+import '../proto/proto.dart' as proto;
 
 class _DHTShortArrayCache {
   _DHTShortArrayCache()
@@ -81,7 +80,8 @@ class DHTShortArray {
           parent: parent,
           routingContext: routingContext,
           schema: schema,
-          crypto: crypto);
+          crypto: crypto,
+          writer: smplWriter);
       // Reopen with SMPL writer
       await dhtCreateRecord.close();
       dhtRecord = await pool.openWrite(dhtCreateRecord.key, smplWriter,
@@ -234,7 +234,8 @@ class DHTShortArray {
   /// Validate a new head record
   Future<void> _newHead(proto.DHTShortArray head) async {
     // Get the set of new linked keys and validate it
-    final linkedKeys = head.keys.map(proto.TypedKeyProto.fromProto).toList();
+    final linkedKeys =
+        head.keys.map<TypedKey>(proto.TypedKeyProto.fromProto).toList();
     final index = head.index;
     final free = _validateHeadCacheData(linkedKeys, index);
 

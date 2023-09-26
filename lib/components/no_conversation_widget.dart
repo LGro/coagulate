@@ -15,7 +15,6 @@ class NoContactWidget extends ConsumerWidget {
         color: Theme.of(context).primaryColor,
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(

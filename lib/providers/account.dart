@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../entities/local_account.dart';
-import '../entities/proto.dart' as proto;
+import '../proto/proto.dart' as proto;
 import '../entities/user_login.dart';
 import '../veilid_support/veilid_support.dart';
 

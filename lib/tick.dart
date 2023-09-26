@@ -5,12 +5,13 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../entities/proto.dart' as proto;
+import 'proto/proto.dart' as proto;
 import 'providers/account.dart';
 import 'providers/chat.dart';
 import 'providers/contact.dart';
 import 'providers/contact_invite.dart';
 import 'providers/conversation.dart';
+import 'veilid_init.dart';
 
 const int ticksPerContactInvitationCheck = 5;
 const int ticksPerNewMessageCheck = 5;
@@ -57,6 +58,11 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
   }
 
   Future<void> _onTick() async {
+    // Don't tick until veilid is started
+    if (!eventualVeilid.isCompleted) {
+      return;
+    }
+
     _inTick = true;
     try {
       final unord = <Future<void>>[];

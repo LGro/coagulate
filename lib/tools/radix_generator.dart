@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:radix_colors/radix_colors.dart';
@@ -527,7 +526,7 @@ ChatTheme makeChatTheme(ScaleScheme scale, TextTheme textTheme) =>
       inputContainerDecoration: BoxDecoration(color: scale.primaryScale.border),
       inputPadding: const EdgeInsets.all(9),
       inputTextColor: scale.primaryScale.text,
-      attachmentButtonIcon: Icon(Icons.attach_file),
+      attachmentButtonIcon: const Icon(Icons.attach_file),
     );
 
 ThemeData radixGenerator(Brightness brightness, RadixThemeColor themeColor) {

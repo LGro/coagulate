@@ -29,8 +29,6 @@ class _SystemHash {
   }
 }
 
-typedef FetchLoginRef = AutoDisposeFutureProviderRef<UserLogin?>;
-
 /// See also [fetchLogin].
 @ProviderFor(fetchLogin)
 const fetchLoginProvider = FetchLoginFamily();
@@ -77,10 +75,10 @@ class FetchLoginFamily extends Family<AsyncValue<UserLogin?>> {
 class FetchLoginProvider extends AutoDisposeFutureProvider<UserLogin?> {
   /// See also [fetchLogin].
   FetchLoginProvider({
-    required this.accountMasterRecordKey,
-  }) : super.internal(
+    required Typed<FixedEncodedString43> accountMasterRecordKey,
+  }) : this._internal(
           (ref) => fetchLogin(
-            ref,
+            ref as FetchLoginRef,
             accountMasterRecordKey: accountMasterRecordKey,
           ),
           from: fetchLoginProvider,
@@ -92,9 +90,43 @@ class FetchLoginProvider extends AutoDisposeFutureProvider<UserLogin?> {
           dependencies: FetchLoginFamily._dependencies,
           allTransitiveDependencies:
               FetchLoginFamily._allTransitiveDependencies,
+          accountMasterRecordKey: accountMasterRecordKey,
         );
 
+  FetchLoginProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.accountMasterRecordKey,
+  }) : super.internal();
+
   final Typed<FixedEncodedString43> accountMasterRecordKey;
+
+  @override
+  Override overrideWith(
+    FutureOr<UserLogin?> Function(FetchLoginRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: FetchLoginProvider._internal(
+        (ref) => create(ref as FetchLoginRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        accountMasterRecordKey: accountMasterRecordKey,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<UserLogin?> createElement() {
+    return _FetchLoginProviderElement(this);
+  }
 
   @override
   bool operator ==(Object other) {
@@ -111,7 +143,21 @@ class FetchLoginProvider extends AutoDisposeFutureProvider<UserLogin?> {
   }
 }
 
-String _$loginsHash() => r'b07a2fe61a8662dbeb5f12d823d49d3645b2b944';
+mixin FetchLoginRef on AutoDisposeFutureProviderRef<UserLogin?> {
+  /// The parameter `accountMasterRecordKey` of this provider.
+  Typed<FixedEncodedString43> get accountMasterRecordKey;
+}
+
+class _FetchLoginProviderElement
+    extends AutoDisposeFutureProviderElement<UserLogin?> with FetchLoginRef {
+  _FetchLoginProviderElement(super.provider);
+
+  @override
+  Typed<FixedEncodedString43> get accountMasterRecordKey =>
+      (origin as FetchLoginProvider).accountMasterRecordKey;
+}
+
+String _$loginsHash() => r'41c4630869b474c409b2fb3461dd2a56d9350c7f';
 
 /// See also [Logins].
 @ProviderFor(Logins)
@@ -126,4 +172,5 @@ final loginsProvider =
 );
 
 typedef _$Logins = AutoDisposeAsyncNotifier<ActiveLogins>;
-// ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

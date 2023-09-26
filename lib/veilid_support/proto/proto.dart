@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 
-import '../veilid_support/veilid_support.dart';
+import '../../proto/veilid.pb.dart' as proto;
+import '../veilid_support.dart';
 
-import 'proto/veilidchat.pb.dart' as proto;
-
-export 'proto/veilidchat.pb.dart';
+export '../../proto/veilid.pb.dart';
+export '../../proto/veilid.pbenum.dart';
+export '../../proto/veilid.pbjson.dart';
+export '../../proto/veilid.pbserver.dart';
 
 /// CryptoKey protobuf marshaling
 ///
@@ -138,20 +140,4 @@ extension KeyPairProto on KeyPair {
   static KeyPair fromProto(proto.KeyPair p) => KeyPair(
       key: CryptoKeyProto.fromProto(p.key),
       secret: CryptoKeyProto.fromProto(p.secret));
-}
-
-/// OwnedDHTRecordPointer protobuf marshaling
-///
-extension OwnedDHTRecordPointerProto on OwnedDHTRecordPointer {
-  proto.OwnedDHTRecordPointer toProto() {
-    final out = proto.OwnedDHTRecordPointer()
-      ..recordKey = recordKey.toProto()
-      ..owner = owner.toProto();
-    return out;
-  }
-
-  static OwnedDHTRecordPointer fromProto(proto.OwnedDHTRecordPointer p) =>
-      OwnedDHTRecordPointer(
-          recordKey: TypedKeyProto.fromProto(p.recordKey),
-          owner: KeyPairProto.fromProto(p.owner));
 }

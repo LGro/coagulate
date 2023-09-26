@@ -10,6 +10,7 @@ import '../pages/settings.dart';
 import '../providers/chat.dart';
 import '../providers/local_accounts.dart';
 import '../tools/responsive.dart';
+import '../veilid_init.dart';
 
 part 'router_notifier.g.dart';
 
@@ -46,9 +47,14 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
     }
 
     // No matter where we are, if there's not
-
     switch (state.matchedLocation) {
       case '/':
+
+        // Wait for veilid to be initialized
+        if (!eventualVeilid.isCompleted) {
+          return null;
+        }
+
         return hasAnyAccount ? '/home' : '/new_account';
       case '/new_account':
         return hasAnyAccount ? '/home' : null;

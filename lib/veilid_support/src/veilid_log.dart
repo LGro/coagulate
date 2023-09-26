@@ -2,7 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:loggy/loggy.dart';
 import 'package:veilid/veilid.dart';
 
-import '../log/loggy.dart';
+// Loggy tools
+const LogLevel traceLevel = LogLevel('Trace', 1);
+
+extension TraceLoggy on Loggy {
+  void trace(dynamic message, [Object? error, StackTrace? stackTrace]) =>
+      log(traceLevel, message, error, stackTrace);
+}
 
 VeilidConfigLogLevel convertToVeilidConfigLogLevel(LogLevel? level) {
   if (level == null) {

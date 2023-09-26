@@ -4,12 +4,16 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../entities/entities.dart';
+import '../proto/proto.dart' as proto;
 import '../log/loggy.dart';
 import '../tools/tools.dart';
+import '../veilid_init.dart';
 import '../veilid_support/veilid_support.dart';
 import 'logins.dart';
 
 part 'local_accounts.g.dart';
+
+const String veilidChatAccountKey = 'com.veilid.veilidchat';
 
 // Local account manager
 @riverpod
@@ -34,6 +38,7 @@ class LocalAccounts extends _$LocalAccounts
   @override
   FutureOr<IList<LocalAccount>> build() async {
     try {
+      await eventualVeilid.future;
       return await load();
     } on Exception catch (e) {
       log.error('Failed to load LocalAccounts table: $e');
@@ -66,12 +71,34 @@ class LocalAccounts extends _$LocalAccounts
       String encryptionKey = ''}) async {
     final localAccounts = state.requireValue;
 
-    /////// Add account with profile to DHT
-    await identityMaster.newAccount(
-      identitySecret: identitySecret,
-      name: name,
-      title: title,
-    );
+    // Add account with profile to DHT
+    await identityMaster.addAccountToIdentity(
+        identitySecret: identitySecret,
+        accountKey: veilidChatAccountKey,
+        createAccountCallback: (parent) async {
+          // Make empty contact list
+          final contactList = await (await DHTShortArray.create(parent: parent))
+              .scope((r) async => r.record.ownedDHTRecordPointer);
+
+          // Make empty contact invitation record list
+          final contactInvitationRecords =
+              await (await DHTShortArray.create(parent: parent))
+                  .scope((r) async => r.record.ownedDHTRecordPointer);
+
+          // Make empty chat record list
+          final chatRecords = await (await DHTShortArray.create(parent: parent))
+              .scope((r) async => r.record.ownedDHTRecordPointer);
+
+          // Make account object
+          final account = proto.Account()
+            ..profile = (proto.Profile()
+              ..name = name
+              ..title = title)
+            ..contactList = contactList.toProto()
+            ..contactInvitationRecords = contactInvitationRecords.toProto()
+            ..chatList = chatRecords.toProto();
+          return account;
+        });
 
     // Encrypt identitySecret with key
     final identitySecretBytes = await encryptSecretToBytes(

@@ -4,10 +4,9 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../entities/identity.dart';
 import '../entities/local_account.dart';
-import '../entities/proto.dart' as proto;
-import '../entities/proto.dart'
+import '../proto/proto.dart' as proto;
+import '../proto/proto.dart'
     show
         ContactInvitation,
         ContactInvitationRecord,
@@ -16,7 +15,7 @@ import '../entities/proto.dart'
         ContactResponse,
         SignedContactInvitation,
         SignedContactResponse;
-import '../log/loggy.dart';
+import '../log/log.dart';
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';
@@ -60,13 +59,11 @@ Future<AcceptedOrRejectedContact?> checkAcceptRejectContact(
         proto.CryptoKeyProto.fromProto(contactInvitationRecord.writerKey);
     final writerSecret =
         proto.CryptoKeyProto.fromProto(contactInvitationRecord.writerSecret);
+    final recordKey = proto.TypedKeyProto.fromProto(
+        contactInvitationRecord.contactRequestInbox.recordKey);
     final writer = TypedKeyPair(
-        kind: contactInvitationRecord.contactRequestInbox.recordKey.kind,
-        key: writerKey,
-        secret: writerSecret);
-    final acceptReject = await (await pool.openRead(
-            proto.TypedKeyProto.fromProto(
-                contactInvitationRecord.contactRequestInbox.recordKey),
+        kind: recordKey.kind, key: writerKey, secret: writerSecret);
+    final acceptReject = await (await pool.openRead(recordKey,
             crypto: await DHTRecordCryptoPrivate.fromTypedKeyPair(writer),
             parent: accountRecordKey,
             defaultSubkey: 1))
@@ -83,8 +80,7 @@ Future<AcceptedOrRejectedContact?> checkAcceptRejectContact(
       final contactResponse = ContactResponse.fromBuffer(contactResponseBytes);
       final contactIdentityMasterRecordKey = proto.TypedKeyProto.fromProto(
           contactResponse.identityMasterRecordKey);
-      final cs = await pool.veilid.getCryptoSystem(
-          contactInvitationRecord.contactRequestInbox.recordKey.kind);
+      final cs = await pool.veilid.getCryptoSystem(recordKey.kind);
 
       // Fetch the remote contact's account master
       final contactIdentityMaster = await openIdentityMaster(
@@ -95,6 +91,11 @@ Future<AcceptedOrRejectedContact?> checkAcceptRejectContact(
           signedContactResponse.identitySignature);
       await cs.verify(contactIdentityMaster.identityPublicKey,
           contactResponseBytes, signature);
+
+      // Check for rejection
+      if (!contactResponse.accept) {
+        return AcceptedOrRejectedContact(acceptedContact: null);
+      }
 
       // Pull profile from remote conversation key
       final remoteConversationRecordKey = proto.TypedKeyProto.fromProto(

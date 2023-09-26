@@ -1,136 +1,8 @@
 syntax = "proto3";
+package veilidchat;
 
-// 32-byte value in bigendian format
-message CryptoKey {
-    fixed32 u0 = 1;
-    fixed32 u1 = 2;
-    fixed32 u2 = 3;
-    fixed32 u3 = 4;    
-    fixed32 u4 = 5;
-    fixed32 u5 = 6;
-    fixed32 u6 = 7;
-    fixed32 u7 = 8;    
-}
-
-// 64-byte value in bigendian format
-message Signature {
-    fixed32 u0 = 1;
-    fixed32 u1 = 2;
-    fixed32 u2 = 3;
-    fixed32 u3 = 4;    
-    fixed32 u4 = 5;
-    fixed32 u5 = 6;
-    fixed32 u6 = 7;
-    fixed32 u7 = 8;    
-    fixed32 u8 = 9;
-    fixed32 u9 = 10;
-    fixed32 u10 = 11;
-    fixed32 u11 = 12;    
-    fixed32 u12 = 13;
-    fixed32 u13 = 14;
-    fixed32 u14 = 15;
-    fixed32 u15 = 16;    
-}
-
-// 24-byte value in bigendian format
-message Nonce {
-    fixed32 u0 = 1;
-    fixed32 u1 = 2;
-    fixed32 u2 = 3;
-    fixed32 u3 = 4;    
-    fixed32 u4 = 5;
-    fixed32 u5 = 6;
-}
-
-// 36-byte typed crypto key
-message TypedKey {
-    // CryptoKind FourCC in bigendian format
-    fixed32 kind = 1;
-    // Key value
-    CryptoKey value = 2;
-}
-
-// Key pair
-message KeyPair {
-    // Public key
-    CryptoKey key = 1;
-    // Private key
-    CryptoKey secret = 2;
-}
-
-
-// DHTData - represents chunked blob data in the DHT
-// Header in subkey 0 follows this structure
-//
-// stride = descriptor subkey count on first key - 1
-// Subkeys 1..=stride on the first key are concatenated chunks
-// Subkeys 0..stride on the 'keys' keys are concatenated chunks
-//
-// Keys must use writable schema in order to make this data mutable
-
-message DHTData {
-    // Other keys to concatenate
-    // Uses the same writer as this DHTList with SMPL schema
-    repeated TypedKey keys = 1;
-    // Hash of reassembled data to verify contents
-    TypedKey hash = 2;
-    // Chunk size per subkey
-    uint32 chunk = 3;
-    // Total data size
-    uint32 size = 4;
-}
-
-// DHTShortArray - represents a re-orderable collection of up to 256 individual elements
-// Header in subkey 0 of first key follows this structure
-//
-// stride = descriptor subkey count on first key - 1
-// Subkeys 1..=stride on the first key are individual elements
-// Subkeys 0..stride on the 'keys' keys are also individual elements
-//
-// Keys must use writable schema in order to make this list mutable
-message DHTShortArray {
-    // Other keys to concatenate
-    // Uses the same writer as this DHTList with SMPL schema
-    repeated TypedKey keys = 1;
-    
-    // Item position index (uint8[256])
-    // Actual item location is:
-    //   idx = index[n] + 1 (offset for header at idx 0)
-    //   key = idx / stride
-    //   subkey = idx % stride
-    bytes index = 2;
-    // Free items are not represented in the list but can be
-    // calculated through iteration
-}
-
-// DHTLog - represents an appendable/truncatable log collection of individual elements
-// Header in subkey 0 of first key follows this structure
-//
-// stride = descriptor subkey count on first key - 1
-// Subkeys 1..=stride on the first key are individual elements
-// Subkeys 0..stride on the 'keys' keys are also individual elements
-// 
-// Keys must use writable schema in order to make this list mutable
-message DHTLog {
-    // Other keys to concatenate
-    repeated TypedKey keys = 1;
-    // Back link to another DHTLog further back
-    TypedKey back = 2;
-    // Count of subkeys in all keys in this DHTLog
-    repeated uint32 subkey_counts = 3;
-    // Total count of subkeys in all keys in this DHTLog including all backlogs
-    uint32 total_subkeys = 4;
-}
-
-// DataReference
-// Pointer to data somewhere in Veilid
-// Abstraction over DHTData and BlockStore
-message DataReference {
-    oneof kind {
-        TypedKey dht_data = 1;
-        // TypedKey block = 2;
-    }
-}
+import "veilid.proto";
+import "dht.proto";
 
 // AttachmentKind
 // Enumeration of well-known attachment types
@@ -149,9 +21,9 @@ message Attachment {
     // Title or filename
     string name = 3;
     // Pointer to the data content
-    DataReference content = 4;
+    dht.DataReference content = 4;
     // Author signature over all attachment fields and content fields and bytes
-    Signature signature = 5;
+    veilid.Signature signature = 5;
 }
 
 // A single message as part of a series of messages
@@ -159,13 +31,13 @@ message Attachment {
 // DHT Schema: SMPL(0,1,[identityPublicKey])
 message Message {
     // Author of the message
-    TypedKey author = 1;
+    veilid.TypedKey author = 1;
     // Time the message was sent (us since epoch)
     uint64 timestamp = 2;
     // Text of the message
     string text = 3;
     // Author signature over all of the fields and attachment signatures
-    Signature signature = 4;
+    veilid.Signature signature = 4;
     // Attachments on the message
     repeated Attachment attachments = 5;
 }
@@ -184,7 +56,7 @@ message Conversation {
     // Identity master (JSON) to publish to friend
     string identity_master_json = 2;
     // Messages DHTLog (xxx for now DHTShortArray)
-    TypedKey messages = 3;
+    veilid.TypedKey messages = 3;
 }
 
 // A record of a contact that has accepted a contact invitation
@@ -202,11 +74,11 @@ message Contact {
     // Copy of friend's IdentityMaster in JSON from remote conversation
     string identity_master_json = 3;
     // Copy of friend's most recent identity public key from their identityMaster
-    TypedKey identity_public_key = 4;
+    veilid.TypedKey identity_public_key = 4;
     // Remote conversation key to sync from friend
-    TypedKey remote_conversation_record_key = 5;
+    veilid.TypedKey remote_conversation_record_key = 5;
     // Our conversation key for friend to sync
-    TypedKey local_conversation_record_key = 6;
+    veilid.TypedKey local_conversation_record_key = 6;
     // Show availability
     bool show_availability = 7;
 }
@@ -235,16 +107,9 @@ message Profile  {
     // Availability
     Availability availability = 4;
     // Avatar DHTData
-    optional TypedKey avatar = 5;
+    optional veilid.TypedKey avatar = 5;
 }
 
-// A pointer to an child DHT record
-message OwnedDHTRecordPointer {
-    // DHT Record key
-    TypedKey record_key = 1;
-    // DHT record owner key
-    KeyPair owner = 2;
-}
 
 enum ChatType {
     CHAT_TYPE_UNSPECIFIED = 0;
@@ -257,7 +122,7 @@ message Chat {
     // What kind of chat is this
     ChatType type = 1;
     // 1-1 Chat key
-    TypedKey remote_conversation_key = 2;
+    veilid.TypedKey remote_conversation_key = 2;
 }
 
 // A record of an individual account
@@ -274,13 +139,13 @@ message Account {
     uint32 auto_away_timeout_sec = 3;
     // The contacts DHTList for this account
     // DHT Private
-    OwnedDHTRecordPointer contact_list = 4;
+    dht.OwnedDHTRecordPointer contact_list = 4;
     // The ContactInvitationRecord DHTShortArray for this account
     // DHT Private
-    OwnedDHTRecordPointer contact_invitation_records = 5;
+    dht.OwnedDHTRecordPointer contact_invitation_records = 5;
     // The chats DHTList for this account
     // DHT Private
-    OwnedDHTRecordPointer chat_list = 6;
+    dht.OwnedDHTRecordPointer chat_list = 6;
     
 }
 
@@ -299,7 +164,7 @@ enum EncryptionKeyType {
 // in the ContactRequestInbox subkey 0 DHT key
 message ContactInvitation {
     // Contact request DHT record key
-    TypedKey contact_request_inbox_key = 1;
+    veilid.TypedKey contact_request_inbox_key = 1;
     // Writer secret key bytes possibly encrypted with nonce appended
     bytes writer_secret = 2;
 }
@@ -309,7 +174,7 @@ message SignedContactInvitation {
     // The serialized bytes for the contact invitation
     bytes contact_invitation = 1;
     // The signature of the contact_invitation bytes with the identity
-    Signature identity_signature = 2;
+    veilid.Signature identity_signature = 2;
 }
 
 // Contact request unicastinbox on the DHT
@@ -325,13 +190,13 @@ message ContactRequest {
 // Symmetrically encrypted with writer secret
 message ContactRequestPrivate {
     // Writer public key for signing writes to contact request unicastinbox
-    CryptoKey writer_key = 1;
+    veilid.CryptoKey writer_key = 1;
     // Snapshot of profile
     Profile profile = 2;
     // Identity master DHT record key
-    TypedKey identity_master_record_key = 3;
+    veilid.TypedKey identity_master_record_key = 3;
     // Local chat DHT record key
-    TypedKey chat_record_key = 4;
+    veilid.TypedKey chat_record_key = 4;
     // Expiration timestamp
     uint64 expiration = 5;
 }
@@ -341,9 +206,9 @@ message ContactResponse {
     // Accept or reject
     bool accept = 1;
     // Remote identity master DHT record key
-    TypedKey identity_master_record_key = 2;
+    veilid.TypedKey identity_master_record_key = 2;
     // Remote chat DHT record key if accepted
-    TypedKey remote_conversation_record_key = 3;
+    veilid.TypedKey remote_conversation_record_key = 3;
 }
 
 // Signature of response with identity
@@ -352,19 +217,19 @@ message SignedContactResponse {
     // Serialized bytes for ContactResponse
     bytes contact_response = 1;
     // Signature of the contact_accept bytes with the identity
-    Signature identity_signature = 2;
+    veilid.Signature identity_signature = 2;
 }
 
 // Contact request record kept in Account DHTList to keep track of extant contact invitations
 message ContactInvitationRecord {
     // Contact request unicastinbox DHT record key (parent is accountkey)
-    OwnedDHTRecordPointer contact_request_inbox = 1;
+    dht.OwnedDHTRecordPointer contact_request_inbox = 1;
     // Writer key sent to contact for the contact_request_inbox smpl inbox subkey
-    CryptoKey writer_key = 2;
+    veilid.CryptoKey writer_key = 2;
     // Writer secret sent encrypted in the invitation
-    CryptoKey writer_secret = 3; 
+    veilid.CryptoKey writer_secret = 3; 
     // Local chat DHT record key (parent is accountkey, will be moved to Contact if accepted)
-    TypedKey local_conversation_record_key = 4;
+    veilid.TypedKey local_conversation_record_key = 4;
     // Expiration timestamp
     uint64 expiration = 5;
     // A copy of the raw SignedContactInvitation invitation bytes post-encryption and signing

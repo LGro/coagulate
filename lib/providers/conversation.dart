@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../entities/proto.dart' as proto;
-import '../entities/proto.dart' show Conversation, Message;
+import '../proto/proto.dart' as proto;
+import '../proto/proto.dart' show Conversation, Message;
 
 import '../log/loggy.dart';
+import '../veilid_init.dart';
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';
 import 'chat.dart';
@@ -332,6 +333,8 @@ class ActiveConversationMessages extends _$ActiveConversationMessages {
   /// Get message for active converation
   @override
   FutureOr<IList<Message>?> build() async {
+    await eventualVeilid.future;
+
     final activeChat = activeChatState.currentState;
     if (activeChat == null) {
       return null;

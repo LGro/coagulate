@@ -3,12 +3,12 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../entities/proto.dart' as proto;
+import '../proto/proto.dart' as proto;
 import '../tools/tools.dart';
 import 'contact_invitation_item_widget.dart';
 
 class ContactInvitationListWidget extends ConsumerStatefulWidget {
-  ContactInvitationListWidget({
+  const ContactInvitationListWidget({
     required this.contactInvitationRecordList,
     super.key,
   });

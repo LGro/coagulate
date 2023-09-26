@@ -3,9 +3,8 @@ import 'dart:typed_data';
 import 'package:change_case/change_case.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../entities/proto.dart' as proto;
+import '../proto/proto.dart' as proto;
 import '../veilid_support/veilid_support.dart';
-import 'identity.dart';
 
 part 'local_account.freezed.dart';
 part 'local_account.g.dart';

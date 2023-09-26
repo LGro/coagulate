@@ -3,9 +3,8 @@ import 'dart:convert';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../entities/identity.dart';
-import '../entities/proto.dart' as proto;
-import '../entities/proto.dart' show Contact;
+import '../proto/proto.dart' as proto;
+import '../proto/proto.dart' show Contact;
 
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';

@@ -29,8 +29,6 @@ class _SystemHash {
   }
 }
 
-typedef FetchLocalAccountRef = AutoDisposeFutureProviderRef<LocalAccount?>;
-
 /// See also [fetchLocalAccount].
 @ProviderFor(fetchLocalAccount)
 const fetchLocalAccountProvider = FetchLocalAccountFamily();
@@ -78,10 +76,10 @@ class FetchLocalAccountProvider
     extends AutoDisposeFutureProvider<LocalAccount?> {
   /// See also [fetchLocalAccount].
   FetchLocalAccountProvider({
-    required this.accountMasterRecordKey,
-  }) : super.internal(
+    required Typed<FixedEncodedString43> accountMasterRecordKey,
+  }) : this._internal(
           (ref) => fetchLocalAccount(
-            ref,
+            ref as FetchLocalAccountRef,
             accountMasterRecordKey: accountMasterRecordKey,
           ),
           from: fetchLocalAccountProvider,
@@ -93,9 +91,43 @@ class FetchLocalAccountProvider
           dependencies: FetchLocalAccountFamily._dependencies,
           allTransitiveDependencies:
               FetchLocalAccountFamily._allTransitiveDependencies,
+          accountMasterRecordKey: accountMasterRecordKey,
         );
 
+  FetchLocalAccountProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.accountMasterRecordKey,
+  }) : super.internal();
+
   final Typed<FixedEncodedString43> accountMasterRecordKey;
+
+  @override
+  Override overrideWith(
+    FutureOr<LocalAccount?> Function(FetchLocalAccountRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: FetchLocalAccountProvider._internal(
+        (ref) => create(ref as FetchLocalAccountRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        accountMasterRecordKey: accountMasterRecordKey,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<LocalAccount?> createElement() {
+    return _FetchLocalAccountProviderElement(this);
+  }
 
   @override
   bool operator ==(Object other) {
@@ -112,7 +144,22 @@ class FetchLocalAccountProvider
   }
 }
 
-String _$localAccountsHash() => r'3f532f7a6caf8e4eaa9f8636a632126a10b8b07f';
+mixin FetchLocalAccountRef on AutoDisposeFutureProviderRef<LocalAccount?> {
+  /// The parameter `accountMasterRecordKey` of this provider.
+  Typed<FixedEncodedString43> get accountMasterRecordKey;
+}
+
+class _FetchLocalAccountProviderElement
+    extends AutoDisposeFutureProviderElement<LocalAccount?>
+    with FetchLocalAccountRef {
+  _FetchLocalAccountProviderElement(super.provider);
+
+  @override
+  Typed<FixedEncodedString43> get accountMasterRecordKey =>
+      (origin as FetchLocalAccountProvider).accountMasterRecordKey;
+}
+
+String _$localAccountsHash() => r'0ab9eca923cb9e15149f06d9edbb9de0cfed6790';
 
 /// See also [LocalAccounts].
 @ProviderFor(LocalAccounts)
@@ -128,4 +175,5 @@ final localAccountsProvider = AutoDisposeAsyncNotifierProvider<LocalAccounts,
 );
 
 typedef _$LocalAccounts = AutoDisposeAsyncNotifier<IList<LocalAccount>>;
-// ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

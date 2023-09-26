@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../entities/entities.dart';
 import '../log/loggy.dart';
 import '../tools/tools.dart';
+import '../veilid_init.dart';
 import '../veilid_support/veilid_support.dart';
 import 'local_accounts.dart';
 
@@ -31,6 +32,7 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
   @override
   FutureOr<ActiveLogins> build() async {
     try {
+      await eventualVeilid.future;
       return await load();
     } on Exception catch (e) {
       log.error('Failed to load ActiveLogins table: $e');
@@ -66,7 +68,7 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
 
     // Read the identity key to get the account keys
     final accountRecordInfo = await identityMaster.readAccountFromIdentity(
-        identitySecret: identitySecret);
+        identitySecret: identitySecret, accountKey: veilidChatAccountKey);
 
     // Add to user logins and select it
     final current = state.requireValue;

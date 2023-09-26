@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:veilid/veilid.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'processor.dart';
-import 'veilid_log.dart';
+import 'veilid_support/veilid_support.dart';
+
+part 'veilid_init.g.dart';
 
 Future<String> getVeilidVersion() async {
   String veilidVersion;
@@ -40,7 +42,7 @@ void _initVeilid() {
             otlp: VeilidFFIConfigLoggingOtlp(
                 enabled: false,
                 level: VeilidConfigLogLevel.trace,
-                grpcEndpoint: '192.168.1.40:4317',
+                grpcEndpoint: '127.0.0.1:4317',
                 serviceName: 'VeilidChat'),
             api: VeilidFFIConfigLoggingApi(
                 enabled: true, level: VeilidConfigLogLevel.info)));
@@ -69,3 +71,8 @@ Future<void> initializeVeilid() async {
   // Share the initialized veilid instance to the rest of the app
   eventualVeilid.complete(Veilid.instance);
 }
+
+// Expose the Veilid instance as a FutureProvider
+@riverpod
+FutureOr<Veilid> veilidInstance(VeilidInstanceRef ref) async =>
+    await eventualVeilid.future;

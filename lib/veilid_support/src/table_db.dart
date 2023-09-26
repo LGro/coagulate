@@ -1,11 +1,9 @@
 import 'package:veilid/veilid.dart';
-import 'veilid_init.dart';
 
 Future<T> tableScope<T>(
     String name, Future<T> Function(VeilidTableDB tdb) callback,
     {int columnCount = 1}) async {
-  final veilid = await eventualVeilid.future;
-  final tableDB = await veilid.openTableDB(name, columnCount);
+  final tableDB = await Veilid.instance.openTableDB(name, columnCount);
   try {
     return await callback(tableDB);
   } finally {

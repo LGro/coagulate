@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../entities/proto.dart' as proto;
+import '../proto/proto.dart' as proto;
 import '../components/chat_component.dart';
 import '../components/empty_chat_widget.dart';
 import '../components/profile_widget.dart';
@@ -83,7 +83,7 @@ class HomePageState extends ConsumerState<HomePage>
 
   // ignore: prefer_expression_function_bodies
   Widget buildAccountList() {
-    return Column(children: [
+    return const Column(children: [
       Center(child: Text("Small Profile")),
       Center(child: Text("Contact invitations")),
       Center(child: Text("Contacts"))
@@ -95,7 +95,7 @@ class HomePageState extends ConsumerState<HomePage>
     IList<LocalAccount> localAccounts,
     // ignore: prefer_expression_function_bodies
   ) {
-    return Center(child: Text("unlock account"));
+    return const Center(child: Text("unlock account"));
   }
 
   /// We have an active, unlocked, user login

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_translate/flutter_translate.dart';
-import '../../entities/proto.dart' as proto;
+import '../proto/proto.dart' as proto;
 import '../providers/account.dart';
 import '../providers/chat.dart';
 import '../tools/theme_service.dart';

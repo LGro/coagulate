@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../components/chat_single_contact_list_widget.dart';
 import '../../components/empty_chat_list_widget.dart';
 import '../../entities/local_account.dart';
-import '../../entities/proto.dart' as proto;
+import '../../proto/proto.dart' as proto;
 import '../../providers/account.dart';
 import '../../providers/chat.dart';
 import '../../providers/contact.dart';

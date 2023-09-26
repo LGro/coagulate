@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:veilid/veilid.dart';
 
-import '../log/log.dart';
-import '../providers/connection_state.dart';
-import 'config.dart';
-import 'veilid_log.dart';
+import 'log/log.dart';
+import 'providers/connection_state.dart';
+import 'veilid_support/src/config.dart';
+import 'veilid_support/src/veilid_log.dart';
 
 class Processor {
   Processor();

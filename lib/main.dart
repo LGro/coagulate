@@ -10,7 +10,7 @@ import 'app.dart';
 import 'log/log.dart';
 import 'providers/window_control.dart';
 import 'tools/theme_service.dart';
-import 'veilid_support/veilid_support.dart';
+import 'veilid_init.dart';
 
 void main() async {
   // Disable all debugprints in release mode

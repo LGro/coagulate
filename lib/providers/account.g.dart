@@ -29,8 +29,6 @@ class _SystemHash {
   }
 }
 
-typedef FetchAccountRef = AutoDisposeFutureProviderRef<AccountInfo>;
-
 /// Get an account from the identity key and if it is logged in and we
 /// have its secret available, return the account record contents
 ///
@@ -95,10 +93,10 @@ class FetchAccountProvider extends AutoDisposeFutureProvider<AccountInfo> {
   ///
   /// Copied from [fetchAccount].
   FetchAccountProvider({
-    required this.accountMasterRecordKey,
-  }) : super.internal(
+    required Typed<FixedEncodedString43> accountMasterRecordKey,
+  }) : this._internal(
           (ref) => fetchAccount(
-            ref,
+            ref as FetchAccountRef,
             accountMasterRecordKey: accountMasterRecordKey,
           ),
           from: fetchAccountProvider,
@@ -110,9 +108,43 @@ class FetchAccountProvider extends AutoDisposeFutureProvider<AccountInfo> {
           dependencies: FetchAccountFamily._dependencies,
           allTransitiveDependencies:
               FetchAccountFamily._allTransitiveDependencies,
+          accountMasterRecordKey: accountMasterRecordKey,
         );
 
+  FetchAccountProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.accountMasterRecordKey,
+  }) : super.internal();
+
   final Typed<FixedEncodedString43> accountMasterRecordKey;
+
+  @override
+  Override overrideWith(
+    FutureOr<AccountInfo> Function(FetchAccountRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: FetchAccountProvider._internal(
+        (ref) => create(ref as FetchAccountRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        accountMasterRecordKey: accountMasterRecordKey,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<AccountInfo> createElement() {
+    return _FetchAccountProviderElement(this);
+  }
 
   @override
   bool operator ==(Object other) {
@@ -127,6 +159,20 @@ class FetchAccountProvider extends AutoDisposeFutureProvider<AccountInfo> {
 
     return _SystemHash.finish(hash);
   }
+}
+
+mixin FetchAccountRef on AutoDisposeFutureProviderRef<AccountInfo> {
+  /// The parameter `accountMasterRecordKey` of this provider.
+  Typed<FixedEncodedString43> get accountMasterRecordKey;
+}
+
+class _FetchAccountProviderElement
+    extends AutoDisposeFutureProviderElement<AccountInfo> with FetchAccountRef {
+  _FetchAccountProviderElement(super.provider);
+
+  @override
+  Typed<FixedEncodedString43> get accountMasterRecordKey =>
+      (origin as FetchAccountProvider).accountMasterRecordKey;
 }
 
 String _$fetchActiveAccountHash() =>
@@ -149,4 +195,5 @@ final fetchActiveAccountProvider =
 
 typedef FetchActiveAccountRef
     = AutoDisposeFutureProviderRef<ActiveAccountInfo?>;
-// ignore_for_file: unnecessary_raw_strings, subtype_of_sealed_class, invalid_use_of_internal_member, do_not_use_environment, prefer_const_constructors, public_member_api_docs, avoid_private_typedef_functions
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

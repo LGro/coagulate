@@ -2,8 +2,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:mutex/mutex.dart';
 
-import '../../log/loggy.dart';
-import '../veilid_support.dart';
+import '../../veilid_support.dart';
 
 part 'dht_record_pool.freezed.dart';
 part 'dht_record_pool.g.dart';
@@ -78,17 +77,12 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
   static Future<DHTRecordPool> instance() async {
     return instanceSetupMutex.protect(() async {
       if (_singleton == null) {
-        final veilid = await eventualVeilid.future;
-        final routingContext = (await veilid.routingContext())
+        final routingContext = (await Veilid.instance.routingContext())
             .withPrivacy()
             .withSequencing(Sequencing.preferOrdered);
 
-        final globalPool = DHTRecordPool._(veilid, routingContext);
-        try {
-          globalPool._state = await globalPool.load();
-        } on Exception catch (e) {
-          log.error('Failed to load DHTRecordPool: $e');
-        }
+        final globalPool = DHTRecordPool._(Veilid.instance, routingContext);
+        globalPool._state = await globalPool.load();
         _singleton = globalPool;
       }
       return _singleton!;
@@ -208,12 +202,14 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
   ///////////////////////////////////////////////////////////////////////
 
   /// Create a root DHTRecord that has no dependent records
-  Future<DHTRecord> create(
-      {VeilidRoutingContext? routingContext,
-      TypedKey? parent,
-      DHTSchema schema = const DHTSchema.dflt(oCnt: 1),
-      int defaultSubkey = 0,
-      DHTRecordCrypto? crypto}) async {
+  Future<DHTRecord> create({
+    VeilidRoutingContext? routingContext,
+    TypedKey? parent,
+    DHTSchema schema = const DHTSchema.dflt(oCnt: 1),
+    int defaultSubkey = 0,
+    DHTRecordCrypto? crypto,
+    KeyPair? writer,
+  }) async {
     final dhtctx = routingContext ?? _routingContext;
     final recordDescriptor = await dhtctx.createDHTRecord(schema);
 
@@ -221,7 +217,7 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
         routingContext: dhtctx,
         recordDescriptor: recordDescriptor,
         defaultSubkey: defaultSubkey,
-        writer: recordDescriptor.ownerKeyPair(),
+        writer: writer ?? recordDescriptor.ownerKeyPair(),
         crypto: crypto ??
             await DHTRecordCryptoPrivate.fromTypedKeyPair(
                 recordDescriptor.ownerTypedKeyPair()!));
