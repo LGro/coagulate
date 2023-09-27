@@ -24,8 +24,8 @@ build:
     - brew install capnp cmake wabt llvm protobuf openjdk@17 jq
     - cargo install wasm-bindgen-cli wasm-pack cargo-edit
     - sudo gem install cocoapods
-    - wget -P /Downloads https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_3.13.5-stable.zip
-    - unzip ~/Downloads/flutter_macos_3.13.5-stable.zip -d /Downloads && export PATH="$PATH:Downloads/flutter/bin"
+    - wget https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_3.13.5-stable.zip
+    - unzip flutter_macos_3.13.5-stable.zip && export PATH="$PATH:`pwd`/flutter/bin"
     - yes | flutter doctor --android-licenses
     - ../veilid/veilid-flutter/setup_flutter.sh
 
