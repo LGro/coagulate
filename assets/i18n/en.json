@@ -83,7 +83,7 @@
         "copy_invitation": "Copy Invitation",
         "invitation_copied": "Invitation Copied"
     },
-    "contact_invite": {
+    "invite_dialog": {
         "message_from_contact": "Message from contact",
         "validating": "Validating...",
         "failed_to_accept": "Failed to accept contact invite",
@@ -98,6 +98,11 @@
         "title": "Paste Contact Invite",
         "paste_invite_here": "Paste your contact invite here:",
         "paste": "Paste"
+    },
+    "scan_invite_dialog": {
+        "title": "Scan Contact Invite",
+        "scan_invite_here": "Scan your contact invite QR code here:",
+        "scan": "Scan"
     },
     "enter_pin_dialog": {
         "enter_pin": "Enter PIN",
