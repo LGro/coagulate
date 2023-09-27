@@ -16,7 +16,7 @@ build:
   script:
     - echo "place holder for build"
     - git clone https://gitlab.com/veilid/veilid.git ../veilid
-    - curl –proto ‘=https’ –tlsv1.2 -sSf https://sh.rustup.rs | sh
+    - curl –proto ‘=https’ –tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - sudo -H -u $BREW_USER brew install capnp cmake wabt llvm protobuf openjdk@17 jq
     - cargo install wasm-bindgen-cli wasm-pack cargo-edit
     - sudo gem install cocoapods
