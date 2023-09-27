@@ -8,7 +8,13 @@ stages:
   image: macos-12-xcode-14
   before_script:
     - echo "started by ${GITLAB_USER_NAME}"
+
+build:
+  extends:
+    - .macos_saas_runners
+  stage: build
   script:
+    - echo "place holder for build"
     - git clone https://gitlab.com/veilid/veilid.git ../
     - curl –proto ‘=https’ –tlsv1.2 -sSf https://sh.rustup.rs | sh
     - sudo -H -u $BREW_USER brew install capnp cmake wabt llvm protobuf openjdk@17 jq
@@ -18,13 +24,6 @@ stages:
     - unzip ~/Downloads/flutter_macos_3.13.5-stable.zip -d /Downloads && export PATH="$PATH:Downloads/flutter/bin"
     - yes | flutter doctor --android-licenses
     - ../veilid/veilid-flutter/setup_flutter.sh
-
-build:
-  extends:
-    - .macos_saas_runners
-  stage: build
-  script:
-    - echo "place holder for build"
 
 #test:
 #  extends:
