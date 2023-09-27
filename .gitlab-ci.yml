@@ -1,3 +1,6 @@
+variables:
+  HOMEBREW_NO_AUTO_UPDATE: 1
+
 stages:
   - build
 # - test
@@ -17,7 +20,8 @@ build:
     - echo "place holder for build"
     - git clone https://gitlab.com/veilid/veilid.git ../veilid
     - curl –proto ‘=https’ –tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    - sudo -H -u $BREW_USER brew install capnp cmake wabt llvm protobuf openjdk@17 jq
+    - source "$HOME/.cargo/env"
+    - sudo brew install capnp cmake wabt llvm protobuf openjdk@17 jq
     - cargo install wasm-bindgen-cli wasm-pack cargo-edit
     - sudo gem install cocoapods
     - wget -P /Downloads https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_3.13.5-stable.zip
