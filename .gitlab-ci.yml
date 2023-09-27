@@ -1,0 +1,25 @@
+stages:
+  - build
+  - test
+
+.macos_saas_runners:
+  tags:
+    - saas-macos-medium-m1
+  image: macos-12-xcode-14
+  before_script:
+    - echo "started by ${GITLAB_USER_NAME}"
+
+build:
+  extends:
+    - .macos_saas_runners
+  stage: build
+  script:
+    - echo "place holder for build"
+
+test:
+  extends:
+    - .macos_saas_runners
+  stage: test
+  script:
+    - echo "place holder for test"
+
