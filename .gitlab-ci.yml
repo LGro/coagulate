@@ -26,7 +26,7 @@ build:
     - sudo gem install cocoapods
     - wget https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_3.13.5-stable.zip
     - unzip flutter_macos_3.13.5-stable.zip && export PATH="$PATH:`pwd`/flutter/bin"
-    - yes | flutter doctor --android-licenses
+    #- yes | flutter doctor --android-licenses
     - flutter config --enable-macos-desktop --enable-ios
     - flutter config --no-analytics
     - dart --disable-analytics
