@@ -21,7 +21,7 @@ build:
     - git clone https://gitlab.com/veilid/veilid.git ../veilid
     - curl –proto ‘=https’ –tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - source "$HOME/.cargo/env"
-    - sudo brew install capnp cmake wabt llvm protobuf openjdk@17 jq
+    - brew install capnp cmake wabt llvm protobuf openjdk@17 jq
     - cargo install wasm-bindgen-cli wasm-pack cargo-edit
     - sudo gem install cocoapods
     - wget -P /Downloads https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_3.13.5-stable.zip
