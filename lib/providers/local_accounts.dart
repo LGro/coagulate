@@ -5,7 +5,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../entities/entities.dart';
 import '../proto/proto.dart' as proto;
-import '../log/loggy.dart';
 import '../tools/tools.dart';
 import '../veilid_init.dart';
 import '../veilid_support/veilid_support.dart';

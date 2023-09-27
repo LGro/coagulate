@@ -15,7 +15,6 @@ import '../proto/proto.dart'
         ContactResponse,
         SignedContactInvitation,
         SignedContactResponse;
-import '../log/log.dart';
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';
@@ -345,7 +344,7 @@ Future<ValidContactInvitation?> validateContactInvitation(
   final contactRequestInboxKey =
       proto.TypedKeyProto.fromProto(contactInvitation.contactRequestInboxKey);
 
-  late final ValidContactInvitation out;
+  ValidContactInvitation? out;
 
   final pool = await DHTRecordPool.instance();
   final cs = await pool.veilid.getCryptoSystem(contactRequestInboxKey.kind);
@@ -365,14 +364,20 @@ Future<ValidContactInvitation?> validateContactInvitation(
     // Decrypt contact request private
     final encryptionKeyType =
         EncryptionKeyType.fromProto(contactRequest!.encryptionKeyType);
-    final writerSecret = await getEncryptionKeyCallback(cs, encryptionKeyType,
-        Uint8List.fromList(contactInvitation.writerSecret));
+    late final SharedSecret? writerSecret;
+    try {
+      writerSecret = await getEncryptionKeyCallback(cs, encryptionKeyType,
+          Uint8List.fromList(contactInvitation.writerSecret));
+    } on Exception catch (_) {
+      throw ContactInviteInvalidKeyException(encryptionKeyType);
+    }
     if (writerSecret == null) {
       return null;
     }
 
     final contactRequestPrivateBytes = await cs.decryptAeadWithNonce(
         Uint8List.fromList(contactRequest.private), writerSecret);
+
     final contactRequestPrivate =
         proto.ContactRequestPrivate.fromBuffer(contactRequestPrivateBytes);
     final contactIdentityMasterRecordKey = proto.TypedKeyProto.fromProto(
@@ -385,12 +390,8 @@ Future<ValidContactInvitation?> validateContactInvitation(
     // Verify
     final signature = proto.SignatureProto.fromProto(
         signedContactInvitation.identitySignature);
-    try {
-      await cs.verify(contactIdentityMaster.identityPublicKey,
-          contactInvitationBytes, signature);
-    } on Exception catch (_) {
-      throw ContactInviteInvalidKeyException(encryptionKeyType);
-    }
+    await cs.verify(contactIdentityMaster.identityPublicKey,
+        contactInvitationBytes, signature);
 
     final writer = KeyPair(
         key: proto.CryptoKeyProto.fromProto(contactRequestPrivate.writerKey),

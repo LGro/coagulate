@@ -4,7 +4,6 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../entities/entities.dart';
-import '../log/loggy.dart';
 import '../tools/tools.dart';
 import '../veilid_init.dart';
 import '../veilid_support/veilid_support.dart';

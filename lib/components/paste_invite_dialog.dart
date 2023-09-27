@@ -11,6 +11,7 @@ import '../providers/contact.dart';
 import '../providers/contact_invite.dart';
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
+import 'enter_password.dart';
 import 'enter_pin.dart';
 import 'profile_widget.dart';
 
@@ -184,22 +185,22 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
                 }
                 final pin = await showDialog<String>(
                     context: context,
-                    builder: (context) =>
-                        EnterPinDialog(description: description));
+                    builder: (context) => EnterPinDialog(
+                        reenter: false, description: description));
                 if (pin == null) {
                   return null;
                 }
                 encryptionKey = pin;
               case EncryptionKeyType.password:
                 final description =
-                    translate('contact_invite.protected_with_pin');
+                    translate('contact_invite.protected_with_password');
                 if (!context.mounted) {
                   return null;
                 }
                 final password = await showDialog<String>(
                     context: context,
                     builder: (context) =>
-                        EnterPinDialog(description: description));
+                        EnterPasswordDialog(description: description));
                 if (password == null) {
                   return null;
                 }
@@ -215,6 +216,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
       // Check if validation was cancelled
       if (validatedContactInvitation == null) {
         setState(() {
+          _pasteTextController.text = '';
           _validatingPaste = false;
           _validInvitation = null;
         });
@@ -233,20 +235,22 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
       switch (e.type) {
         case EncryptionKeyType.none:
           errorText = translate('contact_invite.invalid_invitation');
-        case EncryptionKeyType.password:
-          errorText = translate('contact_invite.invalid_pin');
         case EncryptionKeyType.pin:
+          errorText = translate('contact_invite.invalid_pin');
+        case EncryptionKeyType.password:
           errorText = translate('contact_invite.invalid_password');
       }
       if (context.mounted) {
         showErrorToast(context, errorText);
       }
       setState(() {
+        _pasteTextController.text = '';
         _validatingPaste = false;
         _validInvitation = null;
       });
     } on Exception catch (_) {
       setState(() {
+        _pasteTextController.text = '';
         _validatingPaste = false;
         _validInvitation = null;
       });

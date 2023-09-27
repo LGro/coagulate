@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:veilid/veilid.dart';
 
-import 'log/log.dart';
 import 'providers/connection_state.dart';
+import 'tools/tools.dart';
 import 'veilid_support/src/config.dart';
 import 'veilid_support/src/veilid_log.dart';
 

@@ -10,12 +10,12 @@ import '../tools/tools.dart';
 
 class EnterPinDialog extends ConsumerStatefulWidget {
   const EnterPinDialog({
-    this.matchPin,
-    this.description,
+    required this.reenter,
+    required this.description,
     super.key,
   });
 
-  final String? matchPin;
+  final bool reenter;
   final String? description;
 
   @override
@@ -25,8 +25,8 @@ class EnterPinDialog extends ConsumerStatefulWidget {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(StringProperty('matchPin', matchPin))
-      ..add(StringProperty('description', description));
+      ..add(StringProperty('description', description))
+      ..add(DiagnosticsProperty<bool>('reenter', reenter));
   }
 }
 
@@ -77,7 +77,7 @@ class EnterPinDialogState extends ConsumerState<EnterPinDialog> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                widget.matchPin == null
+                !widget.reenter
                     ? translate('enter_pin_dialog.enter_pin')
                     : translate('enter_pin_dialog.reenter_pin'),
                 style: theme.textTheme.titleLarge,
@@ -94,22 +94,9 @@ class EnterPinDialogState extends ConsumerState<EnterPinDialog> {
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly
                   ],
-                  // validator: (widget.matchPin != null)
-                  //     ? (value) => value == widget.matchPin
-                  //         ? null
-                  //         : translate('enter_pin_dialog.pin_does_not_match')
-                  //     : null,
-                  // onClipboardFound: (value) {
-                  //   debugPrint('onClipboardFound: $value');
-                  //   pinController.setText(value);
-                  // },
                   hapticFeedbackType: HapticFeedbackType.lightImpact,
                   onCompleted: (pin) {
-                    debugPrint('onCompleted: $pin');
                     Navigator.pop(context, pin);
-                  },
-                  onChanged: (value) {
-                    debugPrint('onChanged: $value');
                   },
                   cursor: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -127,13 +114,6 @@ class EnterPinDialogState extends ConsumerState<EnterPinDialog> {
                     width: 64,
                     decoration: defaultPinTheme.decoration!.copyWith(
                       border: Border.all(color: borderColor),
-                    ),
-                  ),
-                  errorText: '',
-                  errorPinTheme: defaultPinTheme.copyWith(
-                    decoration: BoxDecoration(
-                      color: scale.errorScale.border,
-                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 ).paddingAll(16),

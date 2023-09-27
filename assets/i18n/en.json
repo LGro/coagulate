@@ -101,7 +101,13 @@
     },
     "enter_pin_dialog": {
         "enter_pin": "Enter PIN",
-        "reenter_pin": "Re-Enter PIN To Confirm"
+        "reenter_pin": "Re-Enter PIN To Confirm",
+        "pin_does_not_match": "PIN does not match"
+    },
+    "enter_password_dialog": {
+        "enter_password": "Enter Password",
+        "reenter_password": "Re-Enter Password To Confirm",
+        "password_does_not_match": "Password does not match"
     },
     "contact_list": {
         "title": "Contact List",

@@ -7,9 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 
 import 'app.dart';
-import 'log/log.dart';
 import 'providers/window_control.dart';
-import 'tools/theme_service.dart';
+import 'tools/tools.dart';
 import 'veilid_init.dart';
 
 void main() async {

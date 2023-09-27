@@ -14,6 +14,7 @@ import '../providers/contact_invite.dart';
 import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import 'contact_invitation_display.dart';
+import 'enter_password.dart';
 import 'enter_pin.dart';
 
 class SendInviteDialog extends ConsumerStatefulWidget {
@@ -55,7 +56,8 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
     final description = translate('send_invite_dialog.pin_description');
     final pin = await showDialog<String>(
         context: context,
-        builder: (context) => EnterPinDialog(description: description));
+        builder: (context) =>
+            EnterPinDialog(reenter: false, description: description));
     if (pin == null) {
       return;
     }
@@ -66,7 +68,7 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
     final matchpin = await showDialog<String>(
         context: context,
         builder: (context) => EnterPinDialog(
-              matchPin: pin,
+              reenter: true,
               description: description,
             ));
     if (matchpin == null) {
@@ -91,11 +93,42 @@ class SendInviteDialogState extends ConsumerState<SendInviteDialog> {
   }
 
   Future<void> _onPasswordEncryptionSelected(bool selected) async {
-    setState(() {
-      if (selected) {
+    final description = translate('send_invite_dialog.password_description');
+    final password = await showDialog<String>(
+        context: context,
+        builder: (context) => EnterPasswordDialog(description: description));
+    if (password == null) {
+      return;
+    }
+    // ignore: use_build_context_synchronously
+    if (!context.mounted) {
+      return;
+    }
+    final matchpass = await showDialog<String>(
+        context: context,
+        builder: (context) => EnterPasswordDialog(
+              matchPass: password,
+              description: description,
+            ));
+    if (matchpass == null) {
+      return;
+    } else if (password == matchpass) {
+      setState(() {
         _encryptionKeyType = EncryptionKeyType.password;
+        _encryptionKey = password;
+      });
+    } else {
+      // ignore: use_build_context_synchronously
+      if (!context.mounted) {
+        return;
       }
-    });
+      showErrorToast(
+          context, translate('send_invite_dialog.password_does_not_match'));
+      setState(() {
+        _encryptionKeyType = EncryptionKeyType.none;
+        _encryptionKey = '';
+      });
+    }
   }
 
   Future<void> _onGenerateButtonPressed() async {
