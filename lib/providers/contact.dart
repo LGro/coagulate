@@ -7,6 +7,7 @@ import '../proto/proto.dart' as proto;
 import '../proto/proto.dart' show Contact;
 
 import '../veilid_support/veilid_support.dart';
+import '../tools/tools.dart';
 import 'account.dart';
 import 'chat.dart';
 
@@ -54,6 +55,8 @@ Future<void> deleteContact(
   final pool = await DHTRecordPool.instance();
   final accountRecordKey =
       activeAccountInfo.userLogin.accountRecordInfo.accountRecord.recordKey;
+  final localConversationKey =
+      proto.TypedKeyProto.fromProto(contact.localConversationRecordKey);
   final remoteConversationKey =
       proto.TypedKeyProto.fromProto(contact.remoteConversationRecordKey);
 
@@ -80,12 +83,22 @@ Future<void> deleteContact(
         break;
       }
     }
-    await (await pool.openRead(
-            proto.TypedKeyProto.fromProto(contact.localConversationRecordKey),
-            parent: accountRecordKey))
-        .delete();
-    await (await pool.openRead(remoteConversationKey, parent: accountRecordKey))
-        .delete();
+    try {
+      await (await pool.openRead(localConversationKey,
+              parent: accountRecordKey))
+          .delete();
+    } on Exception catch (e) {
+      log.debug('error removing local conversation record key: $e', e);
+    }
+    try {
+      if (localConversationKey != remoteConversationKey) {
+        await (await pool.openRead(remoteConversationKey,
+                parent: accountRecordKey))
+            .delete();
+      }
+    } on Exception catch (e) {
+      log.debug('error removing remove conversation record key: $e', e);
+    }
   });
 }
 

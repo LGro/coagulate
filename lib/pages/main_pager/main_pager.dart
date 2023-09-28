@@ -195,7 +195,11 @@ class MainPagerState extends ConsumerState<MainPager>
 
   // ignore: prefer_expression_function_bodies
   Widget _onNewChatBottomSheetBuilder(BuildContext context) {
-    return const SizedBox(height: 200, child: Center(child: Text("test")));
+    return const SizedBox(
+        height: 200,
+        child: Center(
+            child: Text(
+                "Group and custom chat functionality is not available yet")));
   }
 
   Widget _bottomSheetBuilder(BuildContext context) {

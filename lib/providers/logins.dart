@@ -34,7 +34,7 @@ class Logins extends _$Logins with AsyncTableDBBacked<ActiveLogins> {
       await eventualVeilid.future;
       return await load();
     } on Exception catch (e) {
-      log.error('Failed to load ActiveLogins table: $e');
+      log.error('Failed to load ActiveLogins table: $e', e);
       return const ActiveLogins(userLogins: IListConst([]));
     }
   }

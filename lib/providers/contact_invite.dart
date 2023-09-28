@@ -139,7 +139,7 @@ Future<AcceptedOrRejectedContact?> checkAcceptRejectContact(
 
     return acceptReject;
   } on Exception catch (e) {
-    log.error('Exception in checkAcceptRejectContact: $e');
+    log.error('Exception in checkAcceptRejectContact: $e', e);
 
     // Attempt to clean up. All this needs better lifetime management
     await deleteContactInvitation(
@@ -471,7 +471,7 @@ Future<AcceptedContact?> acceptContactInvitation(
           });
     });
   } on Exception catch (e) {
-    log.error('exception: $e');
+    log.debug('exception: $e', e);
     return null;
   }
 }

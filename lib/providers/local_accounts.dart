@@ -40,7 +40,7 @@ class LocalAccounts extends _$LocalAccounts
       await eventualVeilid.future;
       return await load();
     } on Exception catch (e) {
-      log.error('Failed to load LocalAccounts table: $e');
+      log.error('Failed to load LocalAccounts table: $e', e);
       return const IListConst([]);
     }
   }

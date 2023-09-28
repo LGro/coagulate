@@ -254,7 +254,8 @@ class InviteDialogState extends ConsumerState<InviteDialog> {
         _validInvitation = null;
         widget.onValidationFailed();
       });
-    } on Exception catch (_) {
+    } on Exception catch (e) {
+      log.debug('exception: $e', e);
       setState(() {
         _isValidating = false;
         _validInvitation = null;
