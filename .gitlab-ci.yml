@@ -33,6 +33,7 @@ build:
     - dart --disable-analytics
     - flutter doctor -v
     - flutter build ipa
+  when: manual
 
 #test:
 #  extends:
