@@ -117,11 +117,11 @@ class _$LocalAccountCopyWithImpl<$Res, $Val extends LocalAccount>
 }
 
 /// @nodoc
-abstract class _$$_LocalAccountCopyWith<$Res>
+abstract class _$$LocalAccountImplCopyWith<$Res>
     implements $LocalAccountCopyWith<$Res> {
-  factory _$$_LocalAccountCopyWith(
-          _$_LocalAccount value, $Res Function(_$_LocalAccount) then) =
-      __$$_LocalAccountCopyWithImpl<$Res>;
+  factory _$$LocalAccountImplCopyWith(
+          _$LocalAccountImpl value, $Res Function(_$LocalAccountImpl) then) =
+      __$$LocalAccountImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -137,11 +137,11 @@ abstract class _$$_LocalAccountCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_LocalAccountCopyWithImpl<$Res>
-    extends _$LocalAccountCopyWithImpl<$Res, _$_LocalAccount>
-    implements _$$_LocalAccountCopyWith<$Res> {
-  __$$_LocalAccountCopyWithImpl(
-      _$_LocalAccount _value, $Res Function(_$_LocalAccount) _then)
+class __$$LocalAccountImplCopyWithImpl<$Res>
+    extends _$LocalAccountCopyWithImpl<$Res, _$LocalAccountImpl>
+    implements _$$LocalAccountImplCopyWith<$Res> {
+  __$$LocalAccountImplCopyWithImpl(
+      _$LocalAccountImpl _value, $Res Function(_$LocalAccountImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -154,7 +154,7 @@ class __$$_LocalAccountCopyWithImpl<$Res>
     Object? hiddenAccount = null,
     Object? name = null,
   }) {
-    return _then(_$_LocalAccount(
+    return _then(_$LocalAccountImpl(
       identityMaster: null == identityMaster
           ? _value.identityMaster
           : identityMaster // ignore: cast_nullable_to_non_nullable
@@ -185,8 +185,8 @@ class __$$_LocalAccountCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_LocalAccount implements _LocalAccount {
-  const _$_LocalAccount(
+class _$LocalAccountImpl implements _LocalAccount {
+  const _$LocalAccountImpl(
       {required this.identityMaster,
       @Uint8ListJsonConverter() required this.identitySecretBytes,
       required this.encryptionKeyType,
@@ -194,8 +194,8 @@ class _$_LocalAccount implements _LocalAccount {
       required this.hiddenAccount,
       required this.name});
 
-  factory _$_LocalAccount.fromJson(Map<String, dynamic> json) =>
-      _$$_LocalAccountFromJson(json);
+  factory _$LocalAccountImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LocalAccountImplFromJson(json);
 
 // The master key record for the account, containing the identityPublicKey
   @override
@@ -228,7 +228,7 @@ class _$_LocalAccount implements _LocalAccount {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_LocalAccount &&
+            other is _$LocalAccountImpl &&
             (identical(other.identityMaster, identityMaster) ||
                 other.identityMaster == identityMaster) &&
             const DeepCollectionEquality()
@@ -256,12 +256,12 @@ class _$_LocalAccount implements _LocalAccount {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_LocalAccountCopyWith<_$_LocalAccount> get copyWith =>
-      __$$_LocalAccountCopyWithImpl<_$_LocalAccount>(this, _$identity);
+  _$$LocalAccountImplCopyWith<_$LocalAccountImpl> get copyWith =>
+      __$$LocalAccountImplCopyWithImpl<_$LocalAccountImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_LocalAccountToJson(
+    return _$$LocalAccountImplToJson(
       this,
     );
   }
@@ -274,10 +274,10 @@ abstract class _LocalAccount implements LocalAccount {
       required final EncryptionKeyType encryptionKeyType,
       required final bool biometricsEnabled,
       required final bool hiddenAccount,
-      required final String name}) = _$_LocalAccount;
+      required final String name}) = _$LocalAccountImpl;
 
   factory _LocalAccount.fromJson(Map<String, dynamic> json) =
-      _$_LocalAccount.fromJson;
+      _$LocalAccountImpl.fromJson;
 
   @override // The master key record for the account, containing the identityPublicKey
   IdentityMaster get identityMaster;
@@ -296,6 +296,6 @@ abstract class _LocalAccount implements LocalAccount {
   String get name;
   @override
   @JsonKey(ignore: true)
-  _$$_LocalAccountCopyWith<_$_LocalAccount> get copyWith =>
+  _$$LocalAccountImplCopyWith<_$LocalAccountImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

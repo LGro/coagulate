@@ -27,7 +27,7 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
   final _formKey = GlobalKey<FormBuilderState>();
   late bool isInAsyncCall = false;
   static const String formFieldName = 'name';
-  static const String formFieldTitle = 'title';
+  static const String formFieldPronouns = 'pronouns';
 
   @override
   void initState() {
@@ -48,8 +48,8 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
     final logins = ref.read(loginsProvider.notifier);
 
     final name = _formKey.currentState!.fields[formFieldName]!.value as String;
-    final title =
-        _formKey.currentState!.fields[formFieldTitle]!.value as String;
+    final pronouns =
+        _formKey.currentState!.fields[formFieldPronouns]!.value as String;
 
     final imws = await IdentityMasterWithSecrets.create();
     try {
@@ -57,7 +57,7 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
           identityMaster: imws.identityMaster,
           identitySecret: imws.identitySecret,
           name: name,
-          title: title);
+          pronouns: pronouns);
 
       // Log in the new account by default with no pin
       final ok = await logins.login(localAccount.identityMaster.masterRecordKey,
@@ -83,7 +83,7 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
               autofocus: true,
               name: formFieldName,
               decoration:
-                  InputDecoration(hintText: translate('account.form_name')),
+                  InputDecoration(labelText: translate('account.form_name')),
               maxLength: 64,
               // The validator receives the text that the user has entered.
               validator: FormBuilderValidators.compose([
@@ -91,10 +91,10 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
               ]),
             ),
             FormBuilderTextField(
-              name: formFieldTitle,
+              name: formFieldPronouns,
               maxLength: 64,
-              decoration:
-                  InputDecoration(hintText: translate('account.form_title')),
+              decoration: InputDecoration(
+                  labelText: translate('account.form_pronouns')),
             ),
             Row(children: [
               const Spacer(),

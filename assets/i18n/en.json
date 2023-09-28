@@ -12,7 +12,7 @@
     },
     "account": {
         "form_name": "Name",
-        "form_title": "Title (optional)",
+        "form_pronouns": "Pronouns (optional)",
         "form_lock_type": "Lock Type",
         "lock_type_none": "none",
         "lock_type_pin": "pin",
@@ -23,7 +23,9 @@
         "header": "Account Profile",
         "create": "Create",
         "instructions": "This information will be shared with the people you invite to connect with you on VeilidChat.",
-        "error": "Account creation error"
+        "error": "Account creation error",
+        "name": "Name",
+        "pronouns": "Pronouns"
     },
     "button": {
         "ok": "Ok",
@@ -101,8 +103,16 @@
     },
     "scan_invite_dialog": {
         "title": "Scan Contact Invite",
-        "scan_invite_here": "Scan your contact invite QR code here:",
-        "scan": "Scan"
+        "instructions": "Position the contact invite QR code in the frame",
+        "scan_qr_here": "Click here to scan a contact invite QR code:",
+        "paste_qr_here": "Camera scanning is only available on mobile devices. You can copy a QR code image and paste it here:",
+        "scan": "Scan",
+        "paste": "Paste",
+        "not_an_image": "Pasted data is not an image",
+        "could_not_decode_image": "Could not decode pasted image",
+        "not_a_valid_qr_code": "Not a valid QR code",
+        "error": "Failed to capture QR code",
+        "permission_error": "Capturing QR codes requires camera permisions. Allow camera permissions for VeilidChat in your settings."
     },
     "enter_pin_dialog": {
         "enter_pin": "Enter PIN",

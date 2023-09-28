@@ -45,7 +45,7 @@ class ContactListWidget extends ConsumerWidget {
                                 element.editedProfile.name
                                     .toLowerCase()
                                     .contains(lowerValue) ||
-                                element.editedProfile.title
+                                element.editedProfile.pronouns
                                     .toLowerCase()
                                     .contains(lowerValue))
                             .toList();

@@ -304,14 +304,14 @@ class InviteDialogState extends ConsumerState<InviteDialog> {
               if (_validInvitation != null && !_isValidating)
                 Column(children: [
                   Container(
-                          constraints: const BoxConstraints(maxHeight: 64),
-                          width: double.infinity,
-                          child: ProfileWidget(
-                              name: _validInvitation!
-                                  .contactRequestPrivate.profile.name,
-                              title: _validInvitation!
-                                  .contactRequestPrivate.profile.title))
-                      .paddingLTRB(0, 0, 0, 8),
+                      constraints: const BoxConstraints(maxHeight: 64),
+                      width: double.infinity,
+                      child: ProfileWidget(
+                        name: _validInvitation!
+                            .contactRequestPrivate.profile.name,
+                        pronouns: _validInvitation!
+                            .contactRequestPrivate.profile.pronouns,
+                      )).paddingLTRB(0, 0, 0, 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [

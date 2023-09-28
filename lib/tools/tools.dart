@@ -8,3 +8,4 @@ export 'secret_crypto.dart';
 export 'state_logger.dart';
 export 'theme_service.dart';
 export 'widget_helpers.dart';
+export 'scanner_error_widget.dart';

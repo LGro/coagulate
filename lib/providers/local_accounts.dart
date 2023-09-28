@@ -65,7 +65,7 @@ class LocalAccounts extends _$LocalAccounts
       {required IdentityMaster identityMaster,
       required SecretKey identitySecret,
       required String name,
-      required String title,
+      required String pronouns,
       EncryptionKeyType encryptionKeyType = EncryptionKeyType.none,
       String encryptionKey = ''}) async {
     final localAccounts = state.requireValue;
@@ -92,7 +92,7 @@ class LocalAccounts extends _$LocalAccounts
           final account = proto.Account()
             ..profile = (proto.Profile()
               ..name = name
-              ..title = title)
+              ..pronouns = pronouns)
             ..contactList = contactList.toProto()
             ..contactInvitationRecords = contactInvitationRecords.toProto()
             ..chatList = chatRecords.toProto();

@@ -8,12 +8,12 @@ import '../tools/tools.dart';
 class ProfileWidget extends ConsumerWidget {
   const ProfileWidget({
     required this.name,
-    this.title,
+    this.pronouns,
     super.key,
   });
 
   final String name;
-  final String? title;
+  final String? pronouns;
 
   @override
   // ignore: prefer_expression_function_bodies
@@ -33,8 +33,8 @@ class ProfileWidget extends ConsumerWidget {
           style: textTheme.headlineSmall,
           textAlign: TextAlign.left,
         ).paddingAll(4),
-        if (title != null && title!.isNotEmpty)
-          Text(title!, style: textTheme.bodyMedium).paddingLTRB(4, 0, 4, 4),
+        if (pronouns != null && pronouns!.isNotEmpty)
+          Text(pronouns!, style: textTheme.bodyMedium).paddingLTRB(4, 0, 4, 4),
       ]),
     );
   }
@@ -44,6 +44,6 @@ class ProfileWidget extends ConsumerWidget {
     super.debugFillProperties(properties);
     properties
       ..add(StringProperty('name', name))
-      ..add(StringProperty('title', title));
+      ..add(StringProperty('pronouns', pronouns));
   }
 }

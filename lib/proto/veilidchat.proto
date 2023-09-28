@@ -95,13 +95,13 @@ enum Availability {
 // Publicly shared profile information for both contacts and accounts
 // Contains:
 // Name - Friendly name
-// Title - Title of user
+// Pronouns - Pronouns of user
 // Icon - Little picture to represent user in contact list
 message Profile  {
     // Friendy name
     string name = 1;
-    // Title of user
-    string title = 2;
+    // Pronouns of user
+    string pronouns = 2;
     // Status/away message
     string status = 3;
     // Availability

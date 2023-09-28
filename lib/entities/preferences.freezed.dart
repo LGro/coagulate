@@ -77,11 +77,11 @@ class _$LockPreferenceCopyWithImpl<$Res, $Val extends LockPreference>
 }
 
 /// @nodoc
-abstract class _$$_LockPreferenceCopyWith<$Res>
+abstract class _$$LockPreferenceImplCopyWith<$Res>
     implements $LockPreferenceCopyWith<$Res> {
-  factory _$$_LockPreferenceCopyWith(
-          _$_LockPreference value, $Res Function(_$_LockPreference) then) =
-      __$$_LockPreferenceCopyWithImpl<$Res>;
+  factory _$$LockPreferenceImplCopyWith(_$LockPreferenceImpl value,
+          $Res Function(_$LockPreferenceImpl) then) =
+      __$$LockPreferenceImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -91,11 +91,11 @@ abstract class _$$_LockPreferenceCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_LockPreferenceCopyWithImpl<$Res>
-    extends _$LockPreferenceCopyWithImpl<$Res, _$_LockPreference>
-    implements _$$_LockPreferenceCopyWith<$Res> {
-  __$$_LockPreferenceCopyWithImpl(
-      _$_LockPreference _value, $Res Function(_$_LockPreference) _then)
+class __$$LockPreferenceImplCopyWithImpl<$Res>
+    extends _$LockPreferenceCopyWithImpl<$Res, _$LockPreferenceImpl>
+    implements _$$LockPreferenceImplCopyWith<$Res> {
+  __$$LockPreferenceImplCopyWithImpl(
+      _$LockPreferenceImpl _value, $Res Function(_$LockPreferenceImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -105,7 +105,7 @@ class __$$_LockPreferenceCopyWithImpl<$Res>
     Object? lockWhenSwitching = null,
     Object? lockWithSystemLock = null,
   }) {
-    return _then(_$_LockPreference(
+    return _then(_$LockPreferenceImpl(
       inactivityLockSecs: null == inactivityLockSecs
           ? _value.inactivityLockSecs
           : inactivityLockSecs // ignore: cast_nullable_to_non_nullable
@@ -124,14 +124,14 @@ class __$$_LockPreferenceCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_LockPreference implements _LockPreference {
-  const _$_LockPreference(
+class _$LockPreferenceImpl implements _LockPreference {
+  const _$LockPreferenceImpl(
       {required this.inactivityLockSecs,
       required this.lockWhenSwitching,
       required this.lockWithSystemLock});
 
-  factory _$_LockPreference.fromJson(Map<String, dynamic> json) =>
-      _$$_LockPreferenceFromJson(json);
+  factory _$LockPreferenceImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LockPreferenceImplFromJson(json);
 
   @override
   final int inactivityLockSecs;
@@ -149,7 +149,7 @@ class _$_LockPreference implements _LockPreference {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_LockPreference &&
+            other is _$LockPreferenceImpl &&
             (identical(other.inactivityLockSecs, inactivityLockSecs) ||
                 other.inactivityLockSecs == inactivityLockSecs) &&
             (identical(other.lockWhenSwitching, lockWhenSwitching) ||
@@ -166,12 +166,13 @@ class _$_LockPreference implements _LockPreference {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_LockPreferenceCopyWith<_$_LockPreference> get copyWith =>
-      __$$_LockPreferenceCopyWithImpl<_$_LockPreference>(this, _$identity);
+  _$$LockPreferenceImplCopyWith<_$LockPreferenceImpl> get copyWith =>
+      __$$LockPreferenceImplCopyWithImpl<_$LockPreferenceImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_LockPreferenceToJson(
+    return _$$LockPreferenceImplToJson(
       this,
     );
   }
@@ -181,10 +182,10 @@ abstract class _LockPreference implements LockPreference {
   const factory _LockPreference(
       {required final int inactivityLockSecs,
       required final bool lockWhenSwitching,
-      required final bool lockWithSystemLock}) = _$_LockPreference;
+      required final bool lockWithSystemLock}) = _$LockPreferenceImpl;
 
   factory _LockPreference.fromJson(Map<String, dynamic> json) =
-      _$_LockPreference.fromJson;
+      _$LockPreferenceImpl.fromJson;
 
   @override
   int get inactivityLockSecs;
@@ -194,7 +195,7 @@ abstract class _LockPreference implements LockPreference {
   bool get lockWithSystemLock;
   @override
   @JsonKey(ignore: true)
-  _$$_LockPreferenceCopyWith<_$_LockPreference> get copyWith =>
+  _$$LockPreferenceImplCopyWith<_$LockPreferenceImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -262,11 +263,11 @@ class _$ThemePreferencesCopyWithImpl<$Res, $Val extends ThemePreferences>
 }
 
 /// @nodoc
-abstract class _$$_ThemePreferencesCopyWith<$Res>
+abstract class _$$ThemePreferencesImplCopyWith<$Res>
     implements $ThemePreferencesCopyWith<$Res> {
-  factory _$$_ThemePreferencesCopyWith(
-          _$_ThemePreferences value, $Res Function(_$_ThemePreferences) then) =
-      __$$_ThemePreferencesCopyWithImpl<$Res>;
+  factory _$$ThemePreferencesImplCopyWith(_$ThemePreferencesImpl value,
+          $Res Function(_$ThemePreferencesImpl) then) =
+      __$$ThemePreferencesImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -276,11 +277,11 @@ abstract class _$$_ThemePreferencesCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_ThemePreferencesCopyWithImpl<$Res>
-    extends _$ThemePreferencesCopyWithImpl<$Res, _$_ThemePreferences>
-    implements _$$_ThemePreferencesCopyWith<$Res> {
-  __$$_ThemePreferencesCopyWithImpl(
-      _$_ThemePreferences _value, $Res Function(_$_ThemePreferences) _then)
+class __$$ThemePreferencesImplCopyWithImpl<$Res>
+    extends _$ThemePreferencesCopyWithImpl<$Res, _$ThemePreferencesImpl>
+    implements _$$ThemePreferencesImplCopyWith<$Res> {
+  __$$ThemePreferencesImplCopyWithImpl(_$ThemePreferencesImpl _value,
+      $Res Function(_$ThemePreferencesImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -290,7 +291,7 @@ class __$$_ThemePreferencesCopyWithImpl<$Res>
     Object? colorPreference = null,
     Object? displayScale = null,
   }) {
-    return _then(_$_ThemePreferences(
+    return _then(_$ThemePreferencesImpl(
       brightnessPreference: null == brightnessPreference
           ? _value.brightnessPreference
           : brightnessPreference // ignore: cast_nullable_to_non_nullable
@@ -309,14 +310,14 @@ class __$$_ThemePreferencesCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_ThemePreferences implements _ThemePreferences {
-  const _$_ThemePreferences(
+class _$ThemePreferencesImpl implements _ThemePreferences {
+  const _$ThemePreferencesImpl(
       {required this.brightnessPreference,
       required this.colorPreference,
       required this.displayScale});
 
-  factory _$_ThemePreferences.fromJson(Map<String, dynamic> json) =>
-      _$$_ThemePreferencesFromJson(json);
+  factory _$ThemePreferencesImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ThemePreferencesImplFromJson(json);
 
   @override
   final BrightnessPreference brightnessPreference;
@@ -334,7 +335,7 @@ class _$_ThemePreferences implements _ThemePreferences {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_ThemePreferences &&
+            other is _$ThemePreferencesImpl &&
             (identical(other.brightnessPreference, brightnessPreference) ||
                 other.brightnessPreference == brightnessPreference) &&
             (identical(other.colorPreference, colorPreference) ||
@@ -351,12 +352,13 @@ class _$_ThemePreferences implements _ThemePreferences {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_ThemePreferencesCopyWith<_$_ThemePreferences> get copyWith =>
-      __$$_ThemePreferencesCopyWithImpl<_$_ThemePreferences>(this, _$identity);
+  _$$ThemePreferencesImplCopyWith<_$ThemePreferencesImpl> get copyWith =>
+      __$$ThemePreferencesImplCopyWithImpl<_$ThemePreferencesImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_ThemePreferencesToJson(
+    return _$$ThemePreferencesImplToJson(
       this,
     );
   }
@@ -366,10 +368,10 @@ abstract class _ThemePreferences implements ThemePreferences {
   const factory _ThemePreferences(
       {required final BrightnessPreference brightnessPreference,
       required final ColorPreference colorPreference,
-      required final double displayScale}) = _$_ThemePreferences;
+      required final double displayScale}) = _$ThemePreferencesImpl;
 
   factory _ThemePreferences.fromJson(Map<String, dynamic> json) =
-      _$_ThemePreferences.fromJson;
+      _$ThemePreferencesImpl.fromJson;
 
   @override
   BrightnessPreference get brightnessPreference;
@@ -379,7 +381,7 @@ abstract class _ThemePreferences implements ThemePreferences {
   double get displayScale;
   @override
   @JsonKey(ignore: true)
-  _$$_ThemePreferencesCopyWith<_$_ThemePreferences> get copyWith =>
+  _$$ThemePreferencesImplCopyWith<_$ThemePreferencesImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -465,11 +467,11 @@ class _$PreferencesCopyWithImpl<$Res, $Val extends Preferences>
 }
 
 /// @nodoc
-abstract class _$$_PreferencesCopyWith<$Res>
+abstract class _$$PreferencesImplCopyWith<$Res>
     implements $PreferencesCopyWith<$Res> {
-  factory _$$_PreferencesCopyWith(
-          _$_Preferences value, $Res Function(_$_Preferences) then) =
-      __$$_PreferencesCopyWithImpl<$Res>;
+  factory _$$PreferencesImplCopyWith(
+          _$PreferencesImpl value, $Res Function(_$PreferencesImpl) then) =
+      __$$PreferencesImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -484,11 +486,11 @@ abstract class _$$_PreferencesCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_PreferencesCopyWithImpl<$Res>
-    extends _$PreferencesCopyWithImpl<$Res, _$_Preferences>
-    implements _$$_PreferencesCopyWith<$Res> {
-  __$$_PreferencesCopyWithImpl(
-      _$_Preferences _value, $Res Function(_$_Preferences) _then)
+class __$$PreferencesImplCopyWithImpl<$Res>
+    extends _$PreferencesCopyWithImpl<$Res, _$PreferencesImpl>
+    implements _$$PreferencesImplCopyWith<$Res> {
+  __$$PreferencesImplCopyWithImpl(
+      _$PreferencesImpl _value, $Res Function(_$PreferencesImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -498,7 +500,7 @@ class __$$_PreferencesCopyWithImpl<$Res>
     Object? language = null,
     Object? locking = null,
   }) {
-    return _then(_$_Preferences(
+    return _then(_$PreferencesImpl(
       themePreferences: null == themePreferences
           ? _value.themePreferences
           : themePreferences // ignore: cast_nullable_to_non_nullable
@@ -517,14 +519,14 @@ class __$$_PreferencesCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Preferences implements _Preferences {
-  const _$_Preferences(
+class _$PreferencesImpl implements _Preferences {
+  const _$PreferencesImpl(
       {required this.themePreferences,
       required this.language,
       required this.locking});
 
-  factory _$_Preferences.fromJson(Map<String, dynamic> json) =>
-      _$$_PreferencesFromJson(json);
+  factory _$PreferencesImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PreferencesImplFromJson(json);
 
   @override
   final ThemePreferences themePreferences;
@@ -542,7 +544,7 @@ class _$_Preferences implements _Preferences {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Preferences &&
+            other is _$PreferencesImpl &&
             (identical(other.themePreferences, themePreferences) ||
                 other.themePreferences == themePreferences) &&
             (identical(other.language, language) ||
@@ -558,12 +560,12 @@ class _$_Preferences implements _Preferences {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_PreferencesCopyWith<_$_Preferences> get copyWith =>
-      __$$_PreferencesCopyWithImpl<_$_Preferences>(this, _$identity);
+  _$$PreferencesImplCopyWith<_$PreferencesImpl> get copyWith =>
+      __$$PreferencesImplCopyWithImpl<_$PreferencesImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_PreferencesToJson(
+    return _$$PreferencesImplToJson(
       this,
     );
   }
@@ -573,10 +575,10 @@ abstract class _Preferences implements Preferences {
   const factory _Preferences(
       {required final ThemePreferences themePreferences,
       required final LanguagePreference language,
-      required final LockPreference locking}) = _$_Preferences;
+      required final LockPreference locking}) = _$PreferencesImpl;
 
   factory _Preferences.fromJson(Map<String, dynamic> json) =
-      _$_Preferences.fromJson;
+      _$PreferencesImpl.fromJson;
 
   @override
   ThemePreferences get themePreferences;
@@ -586,6 +588,6 @@ abstract class _Preferences implements Preferences {
   LockPreference get locking;
   @override
   @JsonKey(ignore: true)
-  _$$_PreferencesCopyWith<_$_Preferences> get copyWith =>
+  _$$PreferencesImplCopyWith<_$PreferencesImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

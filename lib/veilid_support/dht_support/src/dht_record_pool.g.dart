@@ -6,9 +6,9 @@ part of 'dht_record_pool.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_DHTRecordPoolAllocations _$$_DHTRecordPoolAllocationsFromJson(
+_$DHTRecordPoolAllocationsImpl _$$DHTRecordPoolAllocationsImplFromJson(
         Map<String, dynamic> json) =>
-    _$_DHTRecordPoolAllocations(
+    _$DHTRecordPoolAllocationsImpl(
       childrenByParent:
           IMap<String, ISet<Typed<FixedEncodedString43>>>.fromJson(
               json['children_by_parent'] as Map<String, dynamic>,
@@ -24,8 +24,8 @@ _$_DHTRecordPoolAllocations _$$_DHTRecordPoolAllocationsFromJson(
           (value) => Typed<FixedEncodedString43>.fromJson(value)),
     );
 
-Map<String, dynamic> _$$_DHTRecordPoolAllocationsToJson(
-        _$_DHTRecordPoolAllocations instance) =>
+Map<String, dynamic> _$$DHTRecordPoolAllocationsImplToJson(
+        _$DHTRecordPoolAllocationsImpl instance) =>
     <String, dynamic>{
       'children_by_parent': instance.childrenByParent.toJson(
         (value) => value,
@@ -42,15 +42,15 @@ Map<String, dynamic> _$$_DHTRecordPoolAllocationsToJson(
       ),
     };
 
-_$_OwnedDHTRecordPointer _$$_OwnedDHTRecordPointerFromJson(
+_$OwnedDHTRecordPointerImpl _$$OwnedDHTRecordPointerImplFromJson(
         Map<String, dynamic> json) =>
-    _$_OwnedDHTRecordPointer(
+    _$OwnedDHTRecordPointerImpl(
       recordKey: Typed<FixedEncodedString43>.fromJson(json['record_key']),
       owner: KeyPair.fromJson(json['owner']),
     );
 
-Map<String, dynamic> _$$_OwnedDHTRecordPointerToJson(
-        _$_OwnedDHTRecordPointer instance) =>
+Map<String, dynamic> _$$OwnedDHTRecordPointerImplToJson(
+        _$OwnedDHTRecordPointerImpl instance) =>
     <String, dynamic>{
       'record_key': instance.recordKey.toJson(),
       'owner': instance.owner.toJson(),

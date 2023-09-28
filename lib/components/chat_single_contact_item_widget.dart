@@ -75,8 +75,8 @@ class ChatSingleContactItemWidget extends ConsumerWidget {
                 title: Text(contact.editedProfile.name),
 
                 /// xxx show last message here
-                subtitle: (contact.editedProfile.title.isNotEmpty)
-                    ? Text(contact.editedProfile.title)
+                subtitle: (contact.editedProfile.pronouns.isNotEmpty)
+                    ? Text(contact.editedProfile.pronouns)
                     : null,
                 iconColor: scale.tertiaryScale.background,
                 textColor: scale.tertiaryScale.text,

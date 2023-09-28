@@ -122,8 +122,10 @@ class HomePageState extends ConsumerState<HomePage>
             onPressed: () async {
               context.go('/home/settings');
             }).paddingLTRB(0, 0, 8, 0),
-        ProfileWidget(name: account.profile.name, title: account.profile.title)
-            .expanded(),
+        ProfileWidget(
+          name: account.profile.name,
+          pronouns: account.profile.pronouns,
+        ).expanded(),
       ]).paddingAll(8),
       MainPager(
               localAccounts: localAccounts,

@@ -59,7 +59,7 @@ class ChatSingleContactListWidget extends ConsumerWidget {
                                 return contact.editedProfile.name
                                         .toLowerCase()
                                         .contains(lowerValue) ||
-                                    contact.editedProfile.title
+                                    contact.editedProfile.pronouns
                                         .toLowerCase()
                                         .contains(lowerValue);
                               }).toList();

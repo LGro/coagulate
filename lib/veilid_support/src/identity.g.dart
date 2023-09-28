@@ -6,18 +6,20 @@ part of 'identity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_AccountRecordInfo _$$_AccountRecordInfoFromJson(Map<String, dynamic> json) =>
-    _$_AccountRecordInfo(
+_$AccountRecordInfoImpl _$$AccountRecordInfoImplFromJson(
+        Map<String, dynamic> json) =>
+    _$AccountRecordInfoImpl(
       accountRecord: OwnedDHTRecordPointer.fromJson(json['account_record']),
     );
 
-Map<String, dynamic> _$$_AccountRecordInfoToJson(
-        _$_AccountRecordInfo instance) =>
+Map<String, dynamic> _$$AccountRecordInfoImplToJson(
+        _$AccountRecordInfoImpl instance) =>
     <String, dynamic>{
       'account_record': instance.accountRecord.toJson(),
     };
 
-_$_Identity _$$_IdentityFromJson(Map<String, dynamic> json) => _$_Identity(
+_$IdentityImpl _$$IdentityImplFromJson(Map<String, dynamic> json) =>
+    _$IdentityImpl(
       accountRecords: IMap<String, ISet<AccountRecordInfo>>.fromJson(
           json['account_records'] as Map<String, dynamic>,
           (value) => value as String,
@@ -25,7 +27,7 @@ _$_Identity _$$_IdentityFromJson(Map<String, dynamic> json) => _$_Identity(
               value, (value) => AccountRecordInfo.fromJson(value))),
     );
 
-Map<String, dynamic> _$$_IdentityToJson(_$_Identity instance) =>
+Map<String, dynamic> _$$IdentityImplToJson(_$IdentityImpl instance) =>
     <String, dynamic>{
       'account_records': instance.accountRecords.toJson(
         (value) => value,
@@ -35,8 +37,8 @@ Map<String, dynamic> _$$_IdentityToJson(_$_Identity instance) =>
       ),
     };
 
-_$_IdentityMaster _$$_IdentityMasterFromJson(Map<String, dynamic> json) =>
-    _$_IdentityMaster(
+_$IdentityMasterImpl _$$IdentityMasterImplFromJson(Map<String, dynamic> json) =>
+    _$IdentityMasterImpl(
       identityRecordKey:
           Typed<FixedEncodedString43>.fromJson(json['identity_record_key']),
       identityPublicKey:
@@ -49,7 +51,8 @@ _$_IdentityMaster _$$_IdentityMasterFromJson(Map<String, dynamic> json) =>
       masterSignature: FixedEncodedString86.fromJson(json['master_signature']),
     );
 
-Map<String, dynamic> _$$_IdentityMasterToJson(_$_IdentityMaster instance) =>
+Map<String, dynamic> _$$IdentityMasterImplToJson(
+        _$IdentityMasterImpl instance) =>
     <String, dynamic>{
       'identity_record_key': instance.identityRecordKey.toJson(),
       'identity_public_key': instance.identityPublicKey.toJson(),

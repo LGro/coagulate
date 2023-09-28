@@ -73,11 +73,11 @@ class _$AccountRecordInfoCopyWithImpl<$Res, $Val extends AccountRecordInfo>
 }
 
 /// @nodoc
-abstract class _$$_AccountRecordInfoCopyWith<$Res>
+abstract class _$$AccountRecordInfoImplCopyWith<$Res>
     implements $AccountRecordInfoCopyWith<$Res> {
-  factory _$$_AccountRecordInfoCopyWith(_$_AccountRecordInfo value,
-          $Res Function(_$_AccountRecordInfo) then) =
-      __$$_AccountRecordInfoCopyWithImpl<$Res>;
+  factory _$$AccountRecordInfoImplCopyWith(_$AccountRecordInfoImpl value,
+          $Res Function(_$AccountRecordInfoImpl) then) =
+      __$$AccountRecordInfoImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({OwnedDHTRecordPointer accountRecord});
@@ -87,11 +87,11 @@ abstract class _$$_AccountRecordInfoCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_AccountRecordInfoCopyWithImpl<$Res>
-    extends _$AccountRecordInfoCopyWithImpl<$Res, _$_AccountRecordInfo>
-    implements _$$_AccountRecordInfoCopyWith<$Res> {
-  __$$_AccountRecordInfoCopyWithImpl(
-      _$_AccountRecordInfo _value, $Res Function(_$_AccountRecordInfo) _then)
+class __$$AccountRecordInfoImplCopyWithImpl<$Res>
+    extends _$AccountRecordInfoCopyWithImpl<$Res, _$AccountRecordInfoImpl>
+    implements _$$AccountRecordInfoImplCopyWith<$Res> {
+  __$$AccountRecordInfoImplCopyWithImpl(_$AccountRecordInfoImpl _value,
+      $Res Function(_$AccountRecordInfoImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -99,7 +99,7 @@ class __$$_AccountRecordInfoCopyWithImpl<$Res>
   $Res call({
     Object? accountRecord = null,
   }) {
-    return _then(_$_AccountRecordInfo(
+    return _then(_$AccountRecordInfoImpl(
       accountRecord: null == accountRecord
           ? _value.accountRecord
           : accountRecord // ignore: cast_nullable_to_non_nullable
@@ -110,11 +110,11 @@ class __$$_AccountRecordInfoCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_AccountRecordInfo implements _AccountRecordInfo {
-  const _$_AccountRecordInfo({required this.accountRecord});
+class _$AccountRecordInfoImpl implements _AccountRecordInfo {
+  const _$AccountRecordInfoImpl({required this.accountRecord});
 
-  factory _$_AccountRecordInfo.fromJson(Map<String, dynamic> json) =>
-      _$$_AccountRecordInfoFromJson(json);
+  factory _$AccountRecordInfoImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AccountRecordInfoImplFromJson(json);
 
 // Top level account keys and secrets
   @override
@@ -129,7 +129,7 @@ class _$_AccountRecordInfo implements _AccountRecordInfo {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_AccountRecordInfo &&
+            other is _$AccountRecordInfoImpl &&
             (identical(other.accountRecord, accountRecord) ||
                 other.accountRecord == accountRecord));
   }
@@ -141,13 +141,13 @@ class _$_AccountRecordInfo implements _AccountRecordInfo {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_AccountRecordInfoCopyWith<_$_AccountRecordInfo> get copyWith =>
-      __$$_AccountRecordInfoCopyWithImpl<_$_AccountRecordInfo>(
+  _$$AccountRecordInfoImplCopyWith<_$AccountRecordInfoImpl> get copyWith =>
+      __$$AccountRecordInfoImplCopyWithImpl<_$AccountRecordInfoImpl>(
           this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_AccountRecordInfoToJson(
+    return _$$AccountRecordInfoImplToJson(
       this,
     );
   }
@@ -156,16 +156,16 @@ class _$_AccountRecordInfo implements _AccountRecordInfo {
 abstract class _AccountRecordInfo implements AccountRecordInfo {
   const factory _AccountRecordInfo(
           {required final OwnedDHTRecordPointer accountRecord}) =
-      _$_AccountRecordInfo;
+      _$AccountRecordInfoImpl;
 
   factory _AccountRecordInfo.fromJson(Map<String, dynamic> json) =
-      _$_AccountRecordInfo.fromJson;
+      _$AccountRecordInfoImpl.fromJson;
 
   @override // Top level account keys and secrets
   OwnedDHTRecordPointer get accountRecord;
   @override
   @JsonKey(ignore: true)
-  _$$_AccountRecordInfoCopyWith<_$_AccountRecordInfo> get copyWith =>
+  _$$AccountRecordInfoImplCopyWith<_$AccountRecordInfoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -218,21 +218,22 @@ class _$IdentityCopyWithImpl<$Res, $Val extends Identity>
 }
 
 /// @nodoc
-abstract class _$$_IdentityCopyWith<$Res> implements $IdentityCopyWith<$Res> {
-  factory _$$_IdentityCopyWith(
-          _$_Identity value, $Res Function(_$_Identity) then) =
-      __$$_IdentityCopyWithImpl<$Res>;
+abstract class _$$IdentityImplCopyWith<$Res>
+    implements $IdentityCopyWith<$Res> {
+  factory _$$IdentityImplCopyWith(
+          _$IdentityImpl value, $Res Function(_$IdentityImpl) then) =
+      __$$IdentityImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({IMap<String, ISet<AccountRecordInfo>> accountRecords});
 }
 
 /// @nodoc
-class __$$_IdentityCopyWithImpl<$Res>
-    extends _$IdentityCopyWithImpl<$Res, _$_Identity>
-    implements _$$_IdentityCopyWith<$Res> {
-  __$$_IdentityCopyWithImpl(
-      _$_Identity _value, $Res Function(_$_Identity) _then)
+class __$$IdentityImplCopyWithImpl<$Res>
+    extends _$IdentityCopyWithImpl<$Res, _$IdentityImpl>
+    implements _$$IdentityImplCopyWith<$Res> {
+  __$$IdentityImplCopyWithImpl(
+      _$IdentityImpl _value, $Res Function(_$IdentityImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -240,7 +241,7 @@ class __$$_IdentityCopyWithImpl<$Res>
   $Res call({
     Object? accountRecords = null,
   }) {
-    return _then(_$_Identity(
+    return _then(_$IdentityImpl(
       accountRecords: null == accountRecords
           ? _value.accountRecords
           : accountRecords // ignore: cast_nullable_to_non_nullable
@@ -251,11 +252,11 @@ class __$$_IdentityCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Identity implements _Identity {
-  const _$_Identity({required this.accountRecords});
+class _$IdentityImpl implements _Identity {
+  const _$IdentityImpl({required this.accountRecords});
 
-  factory _$_Identity.fromJson(Map<String, dynamic> json) =>
-      _$$_IdentityFromJson(json);
+  factory _$IdentityImpl.fromJson(Map<String, dynamic> json) =>
+      _$$IdentityImplFromJson(json);
 
 // Top level account keys and secrets
   @override
@@ -270,7 +271,7 @@ class _$_Identity implements _Identity {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Identity &&
+            other is _$IdentityImpl &&
             (identical(other.accountRecords, accountRecords) ||
                 other.accountRecords == accountRecords));
   }
@@ -282,12 +283,12 @@ class _$_Identity implements _Identity {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_IdentityCopyWith<_$_Identity> get copyWith =>
-      __$$_IdentityCopyWithImpl<_$_Identity>(this, _$identity);
+  _$$IdentityImplCopyWith<_$IdentityImpl> get copyWith =>
+      __$$IdentityImplCopyWithImpl<_$IdentityImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_IdentityToJson(
+    return _$$IdentityImplToJson(
       this,
     );
   }
@@ -296,15 +297,16 @@ class _$_Identity implements _Identity {
 abstract class _Identity implements Identity {
   const factory _Identity(
       {required final IMap<String, ISet<AccountRecordInfo>>
-          accountRecords}) = _$_Identity;
+          accountRecords}) = _$IdentityImpl;
 
-  factory _Identity.fromJson(Map<String, dynamic> json) = _$_Identity.fromJson;
+  factory _Identity.fromJson(Map<String, dynamic> json) =
+      _$IdentityImpl.fromJson;
 
   @override // Top level account keys and secrets
   IMap<String, ISet<AccountRecordInfo>> get accountRecords;
   @override
   @JsonKey(ignore: true)
-  _$$_IdentityCopyWith<_$_Identity> get copyWith =>
+  _$$IdentityImplCopyWith<_$IdentityImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -399,11 +401,11 @@ class _$IdentityMasterCopyWithImpl<$Res, $Val extends IdentityMaster>
 }
 
 /// @nodoc
-abstract class _$$_IdentityMasterCopyWith<$Res>
+abstract class _$$IdentityMasterImplCopyWith<$Res>
     implements $IdentityMasterCopyWith<$Res> {
-  factory _$$_IdentityMasterCopyWith(
-          _$_IdentityMaster value, $Res Function(_$_IdentityMaster) then) =
-      __$$_IdentityMasterCopyWithImpl<$Res>;
+  factory _$$IdentityMasterImplCopyWith(_$IdentityMasterImpl value,
+          $Res Function(_$IdentityMasterImpl) then) =
+      __$$IdentityMasterImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -416,11 +418,11 @@ abstract class _$$_IdentityMasterCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_IdentityMasterCopyWithImpl<$Res>
-    extends _$IdentityMasterCopyWithImpl<$Res, _$_IdentityMaster>
-    implements _$$_IdentityMasterCopyWith<$Res> {
-  __$$_IdentityMasterCopyWithImpl(
-      _$_IdentityMaster _value, $Res Function(_$_IdentityMaster) _then)
+class __$$IdentityMasterImplCopyWithImpl<$Res>
+    extends _$IdentityMasterCopyWithImpl<$Res, _$IdentityMasterImpl>
+    implements _$$IdentityMasterImplCopyWith<$Res> {
+  __$$IdentityMasterImplCopyWithImpl(
+      _$IdentityMasterImpl _value, $Res Function(_$IdentityMasterImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -433,7 +435,7 @@ class __$$_IdentityMasterCopyWithImpl<$Res>
     Object? identitySignature = null,
     Object? masterSignature = null,
   }) {
-    return _then(_$_IdentityMaster(
+    return _then(_$IdentityMasterImpl(
       identityRecordKey: null == identityRecordKey
           ? _value.identityRecordKey
           : identityRecordKey // ignore: cast_nullable_to_non_nullable
@@ -464,8 +466,8 @@ class __$$_IdentityMasterCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_IdentityMaster implements _IdentityMaster {
-  const _$_IdentityMaster(
+class _$IdentityMasterImpl implements _IdentityMaster {
+  const _$IdentityMasterImpl(
       {required this.identityRecordKey,
       required this.identityPublicKey,
       required this.masterRecordKey,
@@ -473,8 +475,8 @@ class _$_IdentityMaster implements _IdentityMaster {
       required this.identitySignature,
       required this.masterSignature});
 
-  factory _$_IdentityMaster.fromJson(Map<String, dynamic> json) =>
-      _$$_IdentityMasterFromJson(json);
+  factory _$IdentityMasterImpl.fromJson(Map<String, dynamic> json) =>
+      _$$IdentityMasterImplFromJson(json);
 
 // Private DHT record storing identity account mapping
   @override
@@ -504,7 +506,7 @@ class _$_IdentityMaster implements _IdentityMaster {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_IdentityMaster &&
+            other is _$IdentityMasterImpl &&
             (identical(other.identityRecordKey, identityRecordKey) ||
                 other.identityRecordKey == identityRecordKey) &&
             (identical(other.identityPublicKey, identityPublicKey) ||
@@ -533,12 +535,13 @@ class _$_IdentityMaster implements _IdentityMaster {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_IdentityMasterCopyWith<_$_IdentityMaster> get copyWith =>
-      __$$_IdentityMasterCopyWithImpl<_$_IdentityMaster>(this, _$identity);
+  _$$IdentityMasterImplCopyWith<_$IdentityMasterImpl> get copyWith =>
+      __$$IdentityMasterImplCopyWithImpl<_$IdentityMasterImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_IdentityMasterToJson(
+    return _$$IdentityMasterImplToJson(
       this,
     );
   }
@@ -546,15 +549,16 @@ class _$_IdentityMaster implements _IdentityMaster {
 
 abstract class _IdentityMaster implements IdentityMaster {
   const factory _IdentityMaster(
-      {required final Typed<FixedEncodedString43> identityRecordKey,
-      required final FixedEncodedString43 identityPublicKey,
-      required final Typed<FixedEncodedString43> masterRecordKey,
-      required final FixedEncodedString43 masterPublicKey,
-      required final FixedEncodedString86 identitySignature,
-      required final FixedEncodedString86 masterSignature}) = _$_IdentityMaster;
+          {required final Typed<FixedEncodedString43> identityRecordKey,
+          required final FixedEncodedString43 identityPublicKey,
+          required final Typed<FixedEncodedString43> masterRecordKey,
+          required final FixedEncodedString43 masterPublicKey,
+          required final FixedEncodedString86 identitySignature,
+          required final FixedEncodedString86 masterSignature}) =
+      _$IdentityMasterImpl;
 
   factory _IdentityMaster.fromJson(Map<String, dynamic> json) =
-      _$_IdentityMaster.fromJson;
+      _$IdentityMasterImpl.fromJson;
 
   @override // Private DHT record storing identity account mapping
   Typed<FixedEncodedString43> get identityRecordKey;
@@ -570,6 +574,6 @@ abstract class _IdentityMaster implements IdentityMaster {
   FixedEncodedString86 get masterSignature;
   @override
   @JsonKey(ignore: true)
-  _$$_IdentityMasterCopyWith<_$_IdentityMaster> get copyWith =>
+  _$$IdentityMasterImplCopyWith<_$IdentityMasterImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

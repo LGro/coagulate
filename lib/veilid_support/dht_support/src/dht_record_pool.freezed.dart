@@ -82,12 +82,12 @@ class _$DHTRecordPoolAllocationsCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$_DHTRecordPoolAllocationsCopyWith<$Res>
+abstract class _$$DHTRecordPoolAllocationsImplCopyWith<$Res>
     implements $DHTRecordPoolAllocationsCopyWith<$Res> {
-  factory _$$_DHTRecordPoolAllocationsCopyWith(
-          _$_DHTRecordPoolAllocations value,
-          $Res Function(_$_DHTRecordPoolAllocations) then) =
-      __$$_DHTRecordPoolAllocationsCopyWithImpl<$Res>;
+  factory _$$DHTRecordPoolAllocationsImplCopyWith(
+          _$DHTRecordPoolAllocationsImpl value,
+          $Res Function(_$DHTRecordPoolAllocationsImpl) then) =
+      __$$DHTRecordPoolAllocationsImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -97,12 +97,13 @@ abstract class _$$_DHTRecordPoolAllocationsCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_DHTRecordPoolAllocationsCopyWithImpl<$Res>
+class __$$DHTRecordPoolAllocationsImplCopyWithImpl<$Res>
     extends _$DHTRecordPoolAllocationsCopyWithImpl<$Res,
-        _$_DHTRecordPoolAllocations>
-    implements _$$_DHTRecordPoolAllocationsCopyWith<$Res> {
-  __$$_DHTRecordPoolAllocationsCopyWithImpl(_$_DHTRecordPoolAllocations _value,
-      $Res Function(_$_DHTRecordPoolAllocations) _then)
+        _$DHTRecordPoolAllocationsImpl>
+    implements _$$DHTRecordPoolAllocationsImplCopyWith<$Res> {
+  __$$DHTRecordPoolAllocationsImplCopyWithImpl(
+      _$DHTRecordPoolAllocationsImpl _value,
+      $Res Function(_$DHTRecordPoolAllocationsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -112,7 +113,7 @@ class __$$_DHTRecordPoolAllocationsCopyWithImpl<$Res>
     Object? parentByChild = null,
     Object? rootRecords = null,
   }) {
-    return _then(_$_DHTRecordPoolAllocations(
+    return _then(_$DHTRecordPoolAllocationsImpl(
       childrenByParent: null == childrenByParent
           ? _value.childrenByParent
           : childrenByParent // ignore: cast_nullable_to_non_nullable
@@ -131,14 +132,14 @@ class __$$_DHTRecordPoolAllocationsCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_DHTRecordPoolAllocations implements _DHTRecordPoolAllocations {
-  const _$_DHTRecordPoolAllocations(
+class _$DHTRecordPoolAllocationsImpl implements _DHTRecordPoolAllocations {
+  const _$DHTRecordPoolAllocationsImpl(
       {required this.childrenByParent,
       required this.parentByChild,
       required this.rootRecords});
 
-  factory _$_DHTRecordPoolAllocations.fromJson(Map<String, dynamic> json) =>
-      _$$_DHTRecordPoolAllocationsFromJson(json);
+  factory _$DHTRecordPoolAllocationsImpl.fromJson(Map<String, dynamic> json) =>
+      _$$DHTRecordPoolAllocationsImplFromJson(json);
 
   @override
   final IMap<String, ISet<Typed<FixedEncodedString43>>> childrenByParent;
@@ -158,7 +159,7 @@ class _$_DHTRecordPoolAllocations implements _DHTRecordPoolAllocations {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_DHTRecordPoolAllocations &&
+            other is _$DHTRecordPoolAllocationsImpl &&
             (identical(other.childrenByParent, childrenByParent) ||
                 other.childrenByParent == childrenByParent) &&
             (identical(other.parentByChild, parentByChild) ||
@@ -175,13 +176,13 @@ class _$_DHTRecordPoolAllocations implements _DHTRecordPoolAllocations {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_DHTRecordPoolAllocationsCopyWith<_$_DHTRecordPoolAllocations>
-      get copyWith => __$$_DHTRecordPoolAllocationsCopyWithImpl<
-          _$_DHTRecordPoolAllocations>(this, _$identity);
+  _$$DHTRecordPoolAllocationsImplCopyWith<_$DHTRecordPoolAllocationsImpl>
+      get copyWith => __$$DHTRecordPoolAllocationsImplCopyWithImpl<
+          _$DHTRecordPoolAllocationsImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_DHTRecordPoolAllocationsToJson(
+    return _$$DHTRecordPoolAllocationsImplToJson(
       this,
     );
   }
@@ -193,10 +194,10 @@ abstract class _DHTRecordPoolAllocations implements DHTRecordPoolAllocations {
           childrenByParent,
       required final IMap<String, Typed<FixedEncodedString43>> parentByChild,
       required final ISet<Typed<FixedEncodedString43>>
-          rootRecords}) = _$_DHTRecordPoolAllocations;
+          rootRecords}) = _$DHTRecordPoolAllocationsImpl;
 
   factory _DHTRecordPoolAllocations.fromJson(Map<String, dynamic> json) =
-      _$_DHTRecordPoolAllocations.fromJson;
+      _$DHTRecordPoolAllocationsImpl.fromJson;
 
   @override
   IMap<String, ISet<Typed<FixedEncodedString43>>> get childrenByParent;
@@ -206,7 +207,7 @@ abstract class _DHTRecordPoolAllocations implements DHTRecordPoolAllocations {
   ISet<Typed<FixedEncodedString43>> get rootRecords;
   @override
   @JsonKey(ignore: true)
-  _$$_DHTRecordPoolAllocationsCopyWith<_$_DHTRecordPoolAllocations>
+  _$$DHTRecordPoolAllocationsImplCopyWith<_$DHTRecordPoolAllocationsImpl>
       get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -267,22 +268,24 @@ class _$OwnedDHTRecordPointerCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$_OwnedDHTRecordPointerCopyWith<$Res>
+abstract class _$$OwnedDHTRecordPointerImplCopyWith<$Res>
     implements $OwnedDHTRecordPointerCopyWith<$Res> {
-  factory _$$_OwnedDHTRecordPointerCopyWith(_$_OwnedDHTRecordPointer value,
-          $Res Function(_$_OwnedDHTRecordPointer) then) =
-      __$$_OwnedDHTRecordPointerCopyWithImpl<$Res>;
+  factory _$$OwnedDHTRecordPointerImplCopyWith(
+          _$OwnedDHTRecordPointerImpl value,
+          $Res Function(_$OwnedDHTRecordPointerImpl) then) =
+      __$$OwnedDHTRecordPointerImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({Typed<FixedEncodedString43> recordKey, KeyPair owner});
 }
 
 /// @nodoc
-class __$$_OwnedDHTRecordPointerCopyWithImpl<$Res>
-    extends _$OwnedDHTRecordPointerCopyWithImpl<$Res, _$_OwnedDHTRecordPointer>
-    implements _$$_OwnedDHTRecordPointerCopyWith<$Res> {
-  __$$_OwnedDHTRecordPointerCopyWithImpl(_$_OwnedDHTRecordPointer _value,
-      $Res Function(_$_OwnedDHTRecordPointer) _then)
+class __$$OwnedDHTRecordPointerImplCopyWithImpl<$Res>
+    extends _$OwnedDHTRecordPointerCopyWithImpl<$Res,
+        _$OwnedDHTRecordPointerImpl>
+    implements _$$OwnedDHTRecordPointerImplCopyWith<$Res> {
+  __$$OwnedDHTRecordPointerImplCopyWithImpl(_$OwnedDHTRecordPointerImpl _value,
+      $Res Function(_$OwnedDHTRecordPointerImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -291,7 +294,7 @@ class __$$_OwnedDHTRecordPointerCopyWithImpl<$Res>
     Object? recordKey = null,
     Object? owner = null,
   }) {
-    return _then(_$_OwnedDHTRecordPointer(
+    return _then(_$OwnedDHTRecordPointerImpl(
       recordKey: null == recordKey
           ? _value.recordKey
           : recordKey // ignore: cast_nullable_to_non_nullable
@@ -306,12 +309,12 @@ class __$$_OwnedDHTRecordPointerCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_OwnedDHTRecordPointer implements _OwnedDHTRecordPointer {
-  const _$_OwnedDHTRecordPointer(
+class _$OwnedDHTRecordPointerImpl implements _OwnedDHTRecordPointer {
+  const _$OwnedDHTRecordPointerImpl(
       {required this.recordKey, required this.owner});
 
-  factory _$_OwnedDHTRecordPointer.fromJson(Map<String, dynamic> json) =>
-      _$$_OwnedDHTRecordPointerFromJson(json);
+  factory _$OwnedDHTRecordPointerImpl.fromJson(Map<String, dynamic> json) =>
+      _$$OwnedDHTRecordPointerImplFromJson(json);
 
   @override
   final Typed<FixedEncodedString43> recordKey;
@@ -327,7 +330,7 @@ class _$_OwnedDHTRecordPointer implements _OwnedDHTRecordPointer {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_OwnedDHTRecordPointer &&
+            other is _$OwnedDHTRecordPointerImpl &&
             (identical(other.recordKey, recordKey) ||
                 other.recordKey == recordKey) &&
             (identical(other.owner, owner) || other.owner == owner));
@@ -340,13 +343,13 @@ class _$_OwnedDHTRecordPointer implements _OwnedDHTRecordPointer {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_OwnedDHTRecordPointerCopyWith<_$_OwnedDHTRecordPointer> get copyWith =>
-      __$$_OwnedDHTRecordPointerCopyWithImpl<_$_OwnedDHTRecordPointer>(
-          this, _$identity);
+  _$$OwnedDHTRecordPointerImplCopyWith<_$OwnedDHTRecordPointerImpl>
+      get copyWith => __$$OwnedDHTRecordPointerImplCopyWithImpl<
+          _$OwnedDHTRecordPointerImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_OwnedDHTRecordPointerToJson(
+    return _$$OwnedDHTRecordPointerImplToJson(
       this,
     );
   }
@@ -355,10 +358,10 @@ class _$_OwnedDHTRecordPointer implements _OwnedDHTRecordPointer {
 abstract class _OwnedDHTRecordPointer implements OwnedDHTRecordPointer {
   const factory _OwnedDHTRecordPointer(
       {required final Typed<FixedEncodedString43> recordKey,
-      required final KeyPair owner}) = _$_OwnedDHTRecordPointer;
+      required final KeyPair owner}) = _$OwnedDHTRecordPointerImpl;
 
   factory _OwnedDHTRecordPointer.fromJson(Map<String, dynamic> json) =
-      _$_OwnedDHTRecordPointer.fromJson;
+      _$OwnedDHTRecordPointerImpl.fromJson;
 
   @override
   Typed<FixedEncodedString43> get recordKey;
@@ -366,6 +369,6 @@ abstract class _OwnedDHTRecordPointer implements OwnedDHTRecordPointer {
   KeyPair get owner;
   @override
   @JsonKey(ignore: true)
-  _$$_OwnedDHTRecordPointerCopyWith<_$_OwnedDHTRecordPointer> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$OwnedDHTRecordPointerImplCopyWith<_$OwnedDHTRecordPointerImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }

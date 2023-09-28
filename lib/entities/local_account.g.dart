@@ -6,8 +6,8 @@ part of 'local_account.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_LocalAccount _$$_LocalAccountFromJson(Map<String, dynamic> json) =>
-    _$_LocalAccount(
+_$LocalAccountImpl _$$LocalAccountImplFromJson(Map<String, dynamic> json) =>
+    _$LocalAccountImpl(
       identityMaster: IdentityMaster.fromJson(json['identity_master']),
       identitySecretBytes: const Uint8ListJsonConverter()
           .fromJson(json['identity_secret_bytes'] as String),
@@ -18,7 +18,7 @@ _$_LocalAccount _$$_LocalAccountFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
     );
 
-Map<String, dynamic> _$$_LocalAccountToJson(_$_LocalAccount instance) =>
+Map<String, dynamic> _$$LocalAccountImplToJson(_$LocalAccountImpl instance) =>
     <String, dynamic>{
       'identity_master': instance.identityMaster.toJson(),
       'identity_secret_bytes':

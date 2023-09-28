@@ -173,7 +173,7 @@ class MainPagerState extends ConsumerState<MainPager>
                   IconButton(
                       onPressed: () async {
                         Navigator.pop(context);
-                        //await scanContactInvitationDialog(context);
+                        await ScanInviteDialog.show(context);
                       },
                       iconSize: 64,
                       icon: const Icon(Icons.qr_code_scanner)),

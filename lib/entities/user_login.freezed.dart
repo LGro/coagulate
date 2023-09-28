@@ -97,10 +97,11 @@ class _$UserLoginCopyWithImpl<$Res, $Val extends UserLogin>
 }
 
 /// @nodoc
-abstract class _$$_UserLoginCopyWith<$Res> implements $UserLoginCopyWith<$Res> {
-  factory _$$_UserLoginCopyWith(
-          _$_UserLogin value, $Res Function(_$_UserLogin) then) =
-      __$$_UserLoginCopyWithImpl<$Res>;
+abstract class _$$UserLoginImplCopyWith<$Res>
+    implements $UserLoginCopyWith<$Res> {
+  factory _$$UserLoginImplCopyWith(
+          _$UserLoginImpl value, $Res Function(_$UserLoginImpl) then) =
+      __$$UserLoginImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -114,11 +115,11 @@ abstract class _$$_UserLoginCopyWith<$Res> implements $UserLoginCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_UserLoginCopyWithImpl<$Res>
-    extends _$UserLoginCopyWithImpl<$Res, _$_UserLogin>
-    implements _$$_UserLoginCopyWith<$Res> {
-  __$$_UserLoginCopyWithImpl(
-      _$_UserLogin _value, $Res Function(_$_UserLogin) _then)
+class __$$UserLoginImplCopyWithImpl<$Res>
+    extends _$UserLoginCopyWithImpl<$Res, _$UserLoginImpl>
+    implements _$$UserLoginImplCopyWith<$Res> {
+  __$$UserLoginImplCopyWithImpl(
+      _$UserLoginImpl _value, $Res Function(_$UserLoginImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -129,7 +130,7 @@ class __$$_UserLoginCopyWithImpl<$Res>
     Object? accountRecordInfo = null,
     Object? lastActive = null,
   }) {
-    return _then(_$_UserLogin(
+    return _then(_$UserLoginImpl(
       accountMasterRecordKey: null == accountMasterRecordKey
           ? _value.accountMasterRecordKey
           : accountMasterRecordKey // ignore: cast_nullable_to_non_nullable
@@ -152,15 +153,15 @@ class __$$_UserLoginCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_UserLogin implements _UserLogin {
-  const _$_UserLogin(
+class _$UserLoginImpl implements _UserLogin {
+  const _$UserLoginImpl(
       {required this.accountMasterRecordKey,
       required this.identitySecret,
       required this.accountRecordInfo,
       required this.lastActive});
 
-  factory _$_UserLogin.fromJson(Map<String, dynamic> json) =>
-      _$$_UserLoginFromJson(json);
+  factory _$UserLoginImpl.fromJson(Map<String, dynamic> json) =>
+      _$$UserLoginImplFromJson(json);
 
 // Master record key for the user used to index the local accounts table
   @override
@@ -184,7 +185,7 @@ class _$_UserLogin implements _UserLogin {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_UserLogin &&
+            other is _$UserLoginImpl &&
             (identical(other.accountMasterRecordKey, accountMasterRecordKey) ||
                 other.accountMasterRecordKey == accountMasterRecordKey) &&
             (identical(other.identitySecret, identitySecret) ||
@@ -203,12 +204,12 @@ class _$_UserLogin implements _UserLogin {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_UserLoginCopyWith<_$_UserLogin> get copyWith =>
-      __$$_UserLoginCopyWithImpl<_$_UserLogin>(this, _$identity);
+  _$$UserLoginImplCopyWith<_$UserLoginImpl> get copyWith =>
+      __$$UserLoginImplCopyWithImpl<_$UserLoginImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_UserLoginToJson(
+    return _$$UserLoginImplToJson(
       this,
     );
   }
@@ -219,10 +220,10 @@ abstract class _UserLogin implements UserLogin {
       {required final Typed<FixedEncodedString43> accountMasterRecordKey,
       required final Typed<FixedEncodedString43> identitySecret,
       required final AccountRecordInfo accountRecordInfo,
-      required final Timestamp lastActive}) = _$_UserLogin;
+      required final Timestamp lastActive}) = _$UserLoginImpl;
 
   factory _UserLogin.fromJson(Map<String, dynamic> json) =
-      _$_UserLogin.fromJson;
+      _$UserLoginImpl.fromJson;
 
   @override // Master record key for the user used to index the local accounts table
   Typed<FixedEncodedString43> get accountMasterRecordKey;
@@ -234,7 +235,7 @@ abstract class _UserLogin implements UserLogin {
   Timestamp get lastActive;
   @override
   @JsonKey(ignore: true)
-  _$$_UserLoginCopyWith<_$_UserLogin> get copyWith =>
+  _$$UserLoginImplCopyWith<_$UserLoginImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -297,11 +298,11 @@ class _$ActiveLoginsCopyWithImpl<$Res, $Val extends ActiveLogins>
 }
 
 /// @nodoc
-abstract class _$$_ActiveLoginsCopyWith<$Res>
+abstract class _$$ActiveLoginsImplCopyWith<$Res>
     implements $ActiveLoginsCopyWith<$Res> {
-  factory _$$_ActiveLoginsCopyWith(
-          _$_ActiveLogins value, $Res Function(_$_ActiveLogins) then) =
-      __$$_ActiveLoginsCopyWithImpl<$Res>;
+  factory _$$ActiveLoginsImplCopyWith(
+          _$ActiveLoginsImpl value, $Res Function(_$ActiveLoginsImpl) then) =
+      __$$ActiveLoginsImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -310,11 +311,11 @@ abstract class _$$_ActiveLoginsCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_ActiveLoginsCopyWithImpl<$Res>
-    extends _$ActiveLoginsCopyWithImpl<$Res, _$_ActiveLogins>
-    implements _$$_ActiveLoginsCopyWith<$Res> {
-  __$$_ActiveLoginsCopyWithImpl(
-      _$_ActiveLogins _value, $Res Function(_$_ActiveLogins) _then)
+class __$$ActiveLoginsImplCopyWithImpl<$Res>
+    extends _$ActiveLoginsCopyWithImpl<$Res, _$ActiveLoginsImpl>
+    implements _$$ActiveLoginsImplCopyWith<$Res> {
+  __$$ActiveLoginsImplCopyWithImpl(
+      _$ActiveLoginsImpl _value, $Res Function(_$ActiveLoginsImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -323,7 +324,7 @@ class __$$_ActiveLoginsCopyWithImpl<$Res>
     Object? userLogins = null,
     Object? activeUserLogin = freezed,
   }) {
-    return _then(_$_ActiveLogins(
+    return _then(_$ActiveLoginsImpl(
       userLogins: null == userLogins
           ? _value.userLogins
           : userLogins // ignore: cast_nullable_to_non_nullable
@@ -338,11 +339,11 @@ class __$$_ActiveLoginsCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_ActiveLogins implements _ActiveLogins {
-  const _$_ActiveLogins({required this.userLogins, this.activeUserLogin});
+class _$ActiveLoginsImpl implements _ActiveLogins {
+  const _$ActiveLoginsImpl({required this.userLogins, this.activeUserLogin});
 
-  factory _$_ActiveLogins.fromJson(Map<String, dynamic> json) =>
-      _$$_ActiveLoginsFromJson(json);
+  factory _$ActiveLoginsImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ActiveLoginsImplFromJson(json);
 
 // The list of current logged in accounts
   @override
@@ -360,7 +361,7 @@ class _$_ActiveLogins implements _ActiveLogins {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_ActiveLogins &&
+            other is _$ActiveLoginsImpl &&
             const DeepCollectionEquality()
                 .equals(other.userLogins, userLogins) &&
             (identical(other.activeUserLogin, activeUserLogin) ||
@@ -375,12 +376,12 @@ class _$_ActiveLogins implements _ActiveLogins {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_ActiveLoginsCopyWith<_$_ActiveLogins> get copyWith =>
-      __$$_ActiveLoginsCopyWithImpl<_$_ActiveLogins>(this, _$identity);
+  _$$ActiveLoginsImplCopyWith<_$ActiveLoginsImpl> get copyWith =>
+      __$$ActiveLoginsImplCopyWithImpl<_$ActiveLoginsImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_ActiveLoginsToJson(
+    return _$$ActiveLoginsImplToJson(
       this,
     );
   }
@@ -389,10 +390,10 @@ class _$_ActiveLogins implements _ActiveLogins {
 abstract class _ActiveLogins implements ActiveLogins {
   const factory _ActiveLogins(
       {required final IList<UserLogin> userLogins,
-      final Typed<FixedEncodedString43>? activeUserLogin}) = _$_ActiveLogins;
+      final Typed<FixedEncodedString43>? activeUserLogin}) = _$ActiveLoginsImpl;
 
   factory _ActiveLogins.fromJson(Map<String, dynamic> json) =
-      _$_ActiveLogins.fromJson;
+      _$ActiveLoginsImpl.fromJson;
 
   @override // The list of current logged in accounts
   IList<UserLogin> get userLogins;
@@ -400,6 +401,6 @@ abstract class _ActiveLogins implements ActiveLogins {
   Typed<FixedEncodedString43>? get activeUserLogin;
   @override
   @JsonKey(ignore: true)
-  _$$_ActiveLoginsCopyWith<_$_ActiveLogins> get copyWith =>
+  _$$ActiveLoginsImplCopyWith<_$ActiveLoginsImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -372,7 +372,7 @@ class Profile extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Profile', package: const $pb.PackageName(_omitMessageNames ? '' : 'veilidchat'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOS(2, _omitFieldNames ? '' : 'title')
+    ..aOS(2, _omitFieldNames ? '' : 'pronouns')
     ..aOS(3, _omitFieldNames ? '' : 'status')
     ..e<Availability>(4, _omitFieldNames ? '' : 'availability', $pb.PbFieldType.OE, defaultOrMaker: Availability.AVAILABILITY_UNSPECIFIED, valueOf: Availability.valueOf, enumValues: Availability.values)
     ..aOM<$1.TypedKey>(5, _omitFieldNames ? '' : 'avatar', subBuilder: $1.TypedKey.create)
@@ -410,13 +410,13 @@ class Profile extends $pb.GeneratedMessage {
   void clearName() => clearField(1);
 
   @$pb.TagNumber(2)
-  $core.String get title => $_getSZ(1);
+  $core.String get pronouns => $_getSZ(1);
   @$pb.TagNumber(2)
-  set title($core.String v) { $_setString(1, v); }
+  set pronouns($core.String v) { $_setString(1, v); }
   @$pb.TagNumber(2)
-  $core.bool hasTitle() => $_has(1);
+  $core.bool hasPronouns() => $_has(1);
   @$pb.TagNumber(2)
-  void clearTitle() => clearField(2);
+  void clearPronouns() => clearField(2);
 
   @$pb.TagNumber(3)
   $core.String get status => $_getSZ(2);

@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  pasteboard
   screen_retriever
   share_plus
   smart_auth

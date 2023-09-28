@@ -163,7 +163,7 @@ const Profile$json = {
   '1': 'Profile',
   '2': [
     {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
-    {'1': 'title', '3': 2, '4': 1, '5': 9, '10': 'title'},
+    {'1': 'pronouns', '3': 2, '4': 1, '5': 9, '10': 'pronouns'},
     {'1': 'status', '3': 3, '4': 1, '5': 9, '10': 'status'},
     {'1': 'availability', '3': 4, '4': 1, '5': 14, '6': '.veilidchat.Availability', '10': 'availability'},
     {'1': 'avatar', '3': 5, '4': 1, '5': 11, '6': '.veilid.TypedKey', '9': 0, '10': 'avatar', '17': true},
@@ -175,10 +175,10 @@ const Profile$json = {
 
 /// Descriptor for `Profile`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List profileDescriptor = $convert.base64Decode(
-    'CgdQcm9maWxlEhIKBG5hbWUYASABKAlSBG5hbWUSFAoFdGl0bGUYAiABKAlSBXRpdGxlEhYKBn'
-    'N0YXR1cxgDIAEoCVIGc3RhdHVzEjwKDGF2YWlsYWJpbGl0eRgEIAEoDjIYLnZlaWxpZGNoYXQu'
-    'QXZhaWxhYmlsaXR5UgxhdmFpbGFiaWxpdHkSLQoGYXZhdGFyGAUgASgLMhAudmVpbGlkLlR5cG'
-    'VkS2V5SABSBmF2YXRhcogBAUIJCgdfYXZhdGFy');
+    'CgdQcm9maWxlEhIKBG5hbWUYASABKAlSBG5hbWUSGgoIcHJvbm91bnMYAiABKAlSCHByb25vdW'
+    '5zEhYKBnN0YXR1cxgDIAEoCVIGc3RhdHVzEjwKDGF2YWlsYWJpbGl0eRgEIAEoDjIYLnZlaWxp'
+    'ZGNoYXQuQXZhaWxhYmlsaXR5UgxhdmFpbGFiaWxpdHkSLQoGYXZhdGFyGAUgASgLMhAudmVpbG'
+    'lkLlR5cGVkS2V5SABSBmF2YXRhcogBAUIJCgdfYXZhdGFy');
 
 @$core.Deprecated('Use chatDescriptor instead')
 const Chat$json = {
