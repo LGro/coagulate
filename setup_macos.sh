@@ -8,7 +8,7 @@ if [[ "$(uname)" != "Darwin" ]]; then
 fi
 
 # run setup for veilid
-$VEILIDDIR/setup_macos.sh
+$VEILIDDIR/dev-setup/setup_macos.sh
 # run setup for veilid_flutter
 $VEILIDDIR/veilid-flutter/setup_flutter.sh
 
