@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class ScannerErrorWidget extends StatelessWidget {
-  const ScannerErrorWidget({Key? key, required this.error}) : super(key: key);
+  const ScannerErrorWidget({required this.error, super.key});
 
   final MobileScannerException error;
 
@@ -47,5 +47,10 @@ class ScannerErrorWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<MobileScannerException>('error', error));
   }
 }
