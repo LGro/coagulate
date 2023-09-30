@@ -97,7 +97,7 @@ Future<void> deleteContact(
             .delete();
       }
     } on Exception catch (e) {
-      log.debug('error removing remove conversation record key: $e', e);
+      log.debug('error removing remote conversation record key: $e', e);
     }
   });
 }
