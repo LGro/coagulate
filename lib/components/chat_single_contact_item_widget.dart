@@ -20,7 +20,7 @@ class ChatSingleContactItemWidget extends ConsumerWidget {
     //final textTheme = theme.textTheme;
     final scale = theme.extension<ScaleScheme>()!;
 
-    final activeChat = ref.watch(activeChatStateProvider).asData?.value;
+    final activeChat = ref.watch(activeChatStateProvider).value;
     final remoteConversationRecordKey =
         proto.TypedKeyProto.fromProto(contact.remoteConversationRecordKey);
     final selected = activeChat == remoteConversationRecordKey;

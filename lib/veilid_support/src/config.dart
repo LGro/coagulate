@@ -18,16 +18,15 @@ Future<VeilidConfig> getVeilidChatConfig() async {
         config.copyWith(blockStore: config.blockStore.copyWith(delete: true));
   }
 
-  // // xxx hack
-  // config = config.copyWith(
-  //     network: config.network.copyWith(
-  //         dht: config.network.dht.copyWith(
-  //             getValueCount: 3,
-  //             getValueFanout: 8,
-  //             getValueTimeoutMs: 5000,
-  //             setValueCount: 4,
-  //             setValueFanout: 10,
-  //             setValueTimeoutMs: 5000)));
-
-  return config;
+  return config.copyWith(
+    capabilities: const VeilidConfigCapabilities(disable: ['DHTV', 'TUNL']),
+    // network: config.network.copyWith(
+    //         dht: config.network.dht.copyWith(
+    //             getValueCount: 3,
+    //             getValueFanout: 8,
+    //             getValueTimeoutMs: 5000,
+    //             setValueCount: 4,
+    //             setValueFanout: 10,
+    //             setValueTimeoutMs: 5000))
+  );
 }

@@ -29,7 +29,7 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
     hasAnyAccount = await ref.watch(
       localAccountsProvider.selectAsync((data) => data.isNotEmpty),
     );
-    hasActiveChat = ref.watch(activeChatStateProvider).asData?.value != null;
+    hasActiveChat = ref.watch(activeChatStateProvider).value != null;
 
     // When this notifier's state changes, inform GoRouter
     ref.listenSelf((_, __) {

@@ -54,7 +54,10 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
     if (lastline <= firstline) {
       return;
     }
-    final inviteDataBase64 = lines.sublist(firstline, lastline).join();
+    final inviteDataBase64 = lines
+        .sublist(firstline, lastline)
+        .join()
+        .replaceAll(RegExp(r'[^A-Za-z0-9\-_]'), '');
     final inviteData = base64UrlNoPadDecode(inviteDataBase64);
 
     await validateInviteData(inviteData: inviteData);
