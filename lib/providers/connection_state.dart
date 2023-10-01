@@ -13,6 +13,6 @@ enum GlobalConnectionState {
 
 final globalConnectionState =
     StateController<GlobalConnectionState>(GlobalConnectionState.detached);
-final globalConnectionStateProvider = AutoDisposeStateNotifierProvider<
+final globalConnectionStateProvider = StateNotifierProvider<
     StateController<GlobalConnectionState>,
     GlobalConnectionState>((ref) => globalConnectionState);

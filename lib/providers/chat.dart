@@ -115,5 +115,5 @@ Future<IList<Chat>?> fetchChatList(FetchChatListRef ref) async {
 // The selected chat
 final activeChatState = StateController<TypedKey?>(null);
 final activeChatStateProvider =
-    AutoDisposeStateNotifierProvider<StateController<TypedKey?>, TypedKey?>(
+    StateNotifierProvider<StateController<TypedKey?>, TypedKey?>(
         (ref) => activeChatState);
