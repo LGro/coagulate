@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:awesome_extensions/awesome_extensions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -324,7 +325,7 @@ class ScanInviteDialogState extends ConsumerState<ScanInviteDialog> {
       InviteDialogState dialogState,
       Future<void> Function({required Uint8List inviteData})
           validateInviteData) {
-    final theme = Theme.of(context);
+    //final theme = Theme.of(context);
     //final scale = theme.extension<ScaleScheme>()!;
     //final textTheme = theme.textTheme;
     //final height = MediaQuery.of(context).size.height;
@@ -389,6 +390,7 @@ class ScanInviteDialogState extends ConsumerState<ScanInviteDialog> {
         inviteControlIsValid: inviteControlIsValid,
         buildInviteControl: buildInviteControl);
   }
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
