@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -42,47 +43,10 @@ class MainPager extends ConsumerStatefulWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(IterableProperty<LocalAccount>('localAccounts', localAccounts));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<TypedKey>('activeUserLogin', activeUserLogin));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<proto.Account>('account', account));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<TypedKey>('activeUserLogin', activeUserLogin));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<proto.Account>('account', account));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<TypedKey>('activeUserLogin', activeUserLogin));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<proto.Account>('account', account));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<TypedKey>('activeUserLogin', activeUserLogin));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<proto.Account>('account', account));
+    properties
+      ..add(IterableProperty<LocalAccount>('localAccounts', localAccounts))
+      ..add(DiagnosticsProperty<TypedKey>('activeUserLogin', activeUserLogin))
+      ..add(DiagnosticsProperty<proto.Account>('account', account));
   }
 }
 
@@ -334,9 +298,11 @@ class MainPagerState extends ConsumerState<MainPager>
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<PreloadPageController>('pageController', pageController));
+    properties.add(DiagnosticsProperty<PreloadPageController>(
+        'pageController', pageController));
   }
 }

@@ -1,5 +1,6 @@
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,7 +22,8 @@ class ContactInvitationListWidget extends ConsumerStatefulWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(IterableProperty<proto.ContactInvitationRecord>('contactInvitationRecordList', contactInvitationRecordList));
+    properties.add(IterableProperty<proto.ContactInvitationRecord>(
+        'contactInvitationRecordList', contactInvitationRecordList));
   }
 }
 

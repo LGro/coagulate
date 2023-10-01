@@ -1,5 +1,6 @@
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
@@ -79,29 +80,13 @@ class ChatSingleContactListWidget extends ConsumerWidget {
                           ).paddingAll(8))))
         .paddingLTRB(8, 8, 8, 65);
   }
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<IMap<proto.TypedKey, proto.Contact>>('contactMap', contactMap));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(IterableProperty<proto.Chat>('chatList', chatList));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(IterableProperty<proto.Chat>('chatList', chatList));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(IterableProperty<proto.Chat>('chatList', chatList));
-  }
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(IterableProperty<proto.Chat>('chatList', chatList));
+    properties
+      ..add(DiagnosticsProperty<IMap<proto.TypedKey, proto.Contact>>(
+          'contactMap', contactMap))
+      ..add(IterableProperty<proto.Chat>('chatList', chatList));
   }
 }
