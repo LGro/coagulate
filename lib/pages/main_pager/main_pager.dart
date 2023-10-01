@@ -39,6 +39,51 @@ class MainPager extends ConsumerStatefulWidget {
 
   static MainPagerState? of(BuildContext context) =>
       context.findAncestorStateOfType<MainPagerState>();
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IterableProperty<LocalAccount>('localAccounts', localAccounts));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<TypedKey>('activeUserLogin', activeUserLogin));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<proto.Account>('account', account));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<TypedKey>('activeUserLogin', activeUserLogin));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<proto.Account>('account', account));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<TypedKey>('activeUserLogin', activeUserLogin));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<proto.Account>('account', account));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<TypedKey>('activeUserLogin', activeUserLogin));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<proto.Account>('account', account));
+  }
 }
 
 class MainPagerState extends ConsumerState<MainPager>
@@ -199,7 +244,7 @@ class MainPagerState extends ConsumerState<MainPager>
         height: 200,
         child: Center(
             child: Text(
-                "Group and custom chat functionality is not available yet")));
+                'Group and custom chat functionality is not available yet')));
   }
 
   Widget _bottomSheetBuilder(BuildContext context) {
@@ -288,5 +333,10 @@ class MainPagerState extends ConsumerState<MainPager>
           bottomSheetBuilder: _bottomSheetBuilder),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<PreloadPageController>('pageController', pageController));
   }
 }

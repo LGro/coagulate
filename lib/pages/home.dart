@@ -84,9 +84,9 @@ class HomePageState extends ConsumerState<HomePage>
   // ignore: prefer_expression_function_bodies
   Widget buildAccountList() {
     return const Column(children: [
-      Center(child: Text("Small Profile")),
-      Center(child: Text("Contact invitations")),
-      Center(child: Text("Contacts"))
+      Center(child: Text('Small Profile')),
+      Center(child: Text('Contact invitations')),
+      Center(child: Text('Contacts'))
     ]);
   }
 
@@ -95,7 +95,7 @@ class HomePageState extends ConsumerState<HomePage>
     IList<LocalAccount> localAccounts,
     // ignore: prefer_expression_function_bodies
   ) {
-    return const Center(child: Text("unlock account"));
+    return const Center(child: Text('unlock account'));
   }
 
   /// We have an active, unlocked, user login

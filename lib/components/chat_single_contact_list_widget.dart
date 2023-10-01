@@ -79,4 +79,29 @@ class ChatSingleContactListWidget extends ConsumerWidget {
                           ).paddingAll(8))))
         .paddingLTRB(8, 8, 8, 65);
   }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<IMap<proto.TypedKey, proto.Contact>>('contactMap', contactMap));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IterableProperty<proto.Chat>('chatList', chatList));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IterableProperty<proto.Chat>('chatList', chatList));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IterableProperty<proto.Chat>('chatList', chatList));
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IterableProperty<proto.Chat>('chatList', chatList));
+  }
 }

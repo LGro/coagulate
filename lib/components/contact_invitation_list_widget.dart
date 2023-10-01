@@ -18,6 +18,11 @@ class ContactInvitationListWidget extends ConsumerStatefulWidget {
   @override
   ContactInvitationListWidgetState createState() =>
       ContactInvitationListWidgetState();
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IterableProperty<proto.ContactInvitationRecord>('contactInvitationRecordList', contactInvitationRecordList));
+  }
 }
 
 class ContactInvitationListWidgetState

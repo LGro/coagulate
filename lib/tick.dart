@@ -23,6 +23,11 @@ class BackgroundTicker extends ConsumerStatefulWidget {
 
   @override
   BackgroundTickerState createState() => BackgroundTickerState();
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(ObjectFlagProperty<Widget Function(BuildContext p1)>.has('builder', builder));
+  }
 }
 
 class BackgroundTickerState extends ConsumerState<BackgroundTicker> {

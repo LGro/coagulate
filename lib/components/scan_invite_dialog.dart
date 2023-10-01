@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:awesome_extensions/awesome_extensions.dart';
@@ -8,10 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
+import 'package:image/image.dart' as img;
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:pasteboard/pasteboard.dart';
 import 'package:zxing2/qrcode.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:image/image.dart' as img;
 
 import '../tools/tools.dart';
 import 'invite_dialog.dart';
@@ -389,5 +388,10 @@ class ScanInviteDialogState extends ConsumerState<ScanInviteDialog> {
         onValidationFailed: onValidationFailed,
         inviteControlIsValid: inviteControlIsValid,
         buildInviteControl: buildInviteControl);
+  }
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<bool>('scanned', scanned));
   }
 }
