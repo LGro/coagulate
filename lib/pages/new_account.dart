@@ -49,7 +49,8 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
 
     final name = _formKey.currentState!.fields[formFieldName]!.value as String;
     final pronouns =
-        _formKey.currentState!.fields[formFieldPronouns]!.value as String;
+        _formKey.currentState!.fields[formFieldPronouns]!.value as String? ??
+            '';
 
     final imws = await IdentityMasterWithSecrets.create();
     try {
