@@ -1,10 +1,10 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../proto/proto.dart' as proto;
 import '../proto/proto.dart' show Chat, ChatType;
 
-import '../tools/tools.dart';
 import '../veilid_support/veilid_support.dart';
 import 'account.dart';
 
@@ -72,8 +72,8 @@ Future<void> deleteChat(
       if (c.remoteConversationKey == remoteConversationKey) {
         await chatList.tryRemoveItem(i);
 
-        if (activeChatState.currentState == remoteConversationRecordKey) {
-          activeChatState.add(null);
+        if (activeChatState.state == remoteConversationRecordKey) {
+          activeChatState.state = null;
         }
 
         return;
@@ -113,7 +113,7 @@ Future<IList<Chat>?> fetchChatList(FetchChatListRef ref) async {
 }
 
 // The selected chat
-ExternalStreamState<TypedKey?> activeChatState =
-    ExternalStreamState<TypedKey?>(null);
-AutoDisposeStreamProvider<TypedKey?> activeChatStateProvider =
-    activeChatState.provider();
+final activeChatState = StateController<TypedKey?>(null);
+final activeChatStateProvider =
+    AutoDisposeStateNotifierProvider<StateController<TypedKey?>, TypedKey?>(
+        (ref) => activeChatState);

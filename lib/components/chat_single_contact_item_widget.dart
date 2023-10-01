@@ -20,7 +20,7 @@ class ChatSingleContactItemWidget extends ConsumerWidget {
     //final textTheme = theme.textTheme;
     final scale = theme.extension<ScaleScheme>()!;
 
-    final activeChat = ref.watch(activeChatStateProvider).value;
+    final activeChat = ref.watch(activeChatStateProvider);
     final remoteConversationRecordKey =
         proto.TypedKeyProto.fromProto(contact.remoteConversationRecordKey);
     final selected = activeChat == remoteConversationRecordKey;
@@ -69,7 +69,8 @@ class ChatSingleContactItemWidget extends ConsumerWidget {
             // component is not dragged.
             child: ListTile(
                 onTap: () async {
-                  activeChatState.add(remoteConversationRecordKey);
+                  ref.read(activeChatStateProvider.notifier).state =
+                      remoteConversationRecordKey;
                   ref.invalidate(fetchChatListProvider);
                 },
                 title: Text(contact.editedProfile.name),

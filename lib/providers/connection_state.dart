@@ -1,7 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../tools/tools.dart';
-
 enum GlobalConnectionState {
   detached,
   detaching,
@@ -13,7 +11,8 @@ enum GlobalConnectionState {
   overAttached,
 }
 
-ExternalStreamState<GlobalConnectionState> globalConnectionState =
-    ExternalStreamState<GlobalConnectionState>(GlobalConnectionState.detached);
-AutoDisposeStreamProvider<GlobalConnectionState> globalConnectionStateProvider =
-    globalConnectionState.provider();
+final globalConnectionState =
+    StateController<GlobalConnectionState>(GlobalConnectionState.detached);
+final globalConnectionStateProvider = AutoDisposeStateNotifierProvider<
+    StateController<GlobalConnectionState>,
+    GlobalConnectionState>((ref) => globalConnectionState);

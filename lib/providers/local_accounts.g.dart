@@ -159,7 +159,7 @@ class _FetchLocalAccountProviderElement
       (origin as FetchLocalAccountProvider).accountMasterRecordKey;
 }
 
-String _$localAccountsHash() => r'148d98fcd8a61147bb475708d50b9699887c5bec';
+String _$localAccountsHash() => r'f19ec560b585d353219be82bc383b2c091660c53';
 
 /// See also [LocalAccounts].
 @ProviderFor(LocalAccounts)

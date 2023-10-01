@@ -100,7 +100,7 @@ class Processor {
       }
     }
 
-    globalConnectionState.add(cs);
+    globalConnectionState.state = cs;
   }
 
   Future<void> processUpdateConfig(VeilidUpdateConfig updateConfig) async {

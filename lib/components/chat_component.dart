@@ -207,7 +207,8 @@ class ChatComponentState extends ConsumerState<ChatComponent> {
                       IconButton(
                           icon: const Icon(Icons.close),
                           onPressed: () async {
-                            activeChatState.add(null);
+                            ref.read(activeChatStateProvider.notifier).state =
+                                null;
                           }).paddingLTRB(16, 0, 16, 0)
                     ]),
                   ),

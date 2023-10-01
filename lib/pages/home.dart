@@ -31,7 +31,7 @@ class HomePage extends ConsumerStatefulWidget {
     final contactList = ref.watch(fetchContactListProvider).asData?.value ??
         const IListConst([]);
 
-    final activeChat = ref.watch(activeChatStateProvider).asData?.value;
+    final activeChat = ref.watch(activeChatStateProvider);
     if (activeChat == null) {
       return const EmptyChatWidget();
     }
@@ -48,7 +48,7 @@ class HomePage extends ConsumerStatefulWidget {
           activeChat,
     );
     if (activeChatContactIdx == -1) {
-      activeChatState.add(null);
+      ref.read(activeChatStateProvider.notifier).state = null;
       return const EmptyChatWidget();
     }
     final activeChatContact = contactList[activeChatContactIdx];

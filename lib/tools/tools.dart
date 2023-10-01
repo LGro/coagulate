@@ -1,5 +1,4 @@
 export 'animations.dart';
-export 'external_stream_state.dart';
 export 'loggy.dart';
 export 'phono_byte.dart';
 export 'radix_generator.dart';

@@ -15,10 +15,8 @@ class SignalStrengthMeterWidget extends ConsumerWidget {
     final scale = theme.extension<ScaleScheme>()!;
 
     const iconSize = 16.0;
-    final connState = ref.watch(globalConnectionStateProvider).value;
-    if (connState == null) {
-      return const Icon(Icons.signal_cellular_off, size: iconSize);
-    }
+    final connState = ref.watch(globalConnectionStateProvider);
+
     late final double value;
     late final Color color;
     late final Color inactiveColor;

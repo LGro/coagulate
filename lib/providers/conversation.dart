@@ -335,7 +335,7 @@ class ActiveConversationMessages extends _$ActiveConversationMessages {
   FutureOr<IList<Message>?> build() async {
     await eventualVeilid.future;
 
-    final activeChat = activeChatState.currentState;
+    final activeChat = ref.watch(activeChatStateProvider);
     if (activeChat == null) {
       return null;
     }

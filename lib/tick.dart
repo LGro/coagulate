@@ -133,7 +133,7 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
   }
 
   Future<void> _doNewMessageCheck() async {
-    final activeChat = activeChatState.currentState;
+    final activeChat = ref.read(activeChatStateProvider);
     if (activeChat == null) {
       return;
     }

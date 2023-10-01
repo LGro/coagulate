@@ -157,7 +157,7 @@ class _FetchLoginProviderElement
       (origin as FetchLoginProvider).accountMasterRecordKey;
 }
 
-String _$loginsHash() => r'41c4630869b474c409b2fb3461dd2a56d9350c7f';
+String _$loginsHash() => r'2660f71bb7903464187a93fba5c07e22041e8c40';
 
 /// See also [Logins].
 @ProviderFor(Logins)
