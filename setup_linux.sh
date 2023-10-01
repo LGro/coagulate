@@ -16,6 +16,7 @@ fi
 # run setup for veilid
 $VEILIDDIR/dev-setup/setup_linux.sh
 # run setup for veilid_flutter
+echo 'If prompted to install Flutter, choose an installation bundle (storage.googleapis.com), not snap.'
 $VEILIDDIR/veilid-flutter/setup_flutter.sh
 
 # ensure protoc is installed
