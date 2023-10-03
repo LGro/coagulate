@@ -7,7 +7,7 @@ bool get isAndroid => !kIsWeb && Platform.isAndroid;
 bool get isiOS => !kIsWeb && Platform.isIOS;
 bool get isWeb => kIsWeb;
 bool get isDesktop =>
-    Platform.isWindows || Platform.isLinux || Platform.isMacOS;
+    !isWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
 
 const kMobileWidthCutoff = 479.0;
 
