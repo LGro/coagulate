@@ -36,7 +36,7 @@ void _initVeilid() {
     const platformConfig = VeilidFFIConfig(
         logging: VeilidFFIConfigLogging(
             terminal: VeilidFFIConfigLoggingTerminal(
-              enabled: false,
+              enabled: true,
               level: VeilidConfigLogLevel.debug,
             ),
             otlp: VeilidFFIConfigLoggingOtlp(
