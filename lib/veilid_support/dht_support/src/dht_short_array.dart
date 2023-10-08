@@ -163,7 +163,7 @@ class DHTShortArray {
 
   ////////////////////////////////////////////////////////////////
 
-  /// Seralize and write out the current head record, possibly updating it
+  /// Serialize and write out the current head record, possibly updating it
   /// if a newer copy is available online. Returns true if the write was
   /// successful
   Future<bool> _tryWriteHead() async {
