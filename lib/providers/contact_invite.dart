@@ -510,7 +510,7 @@ Future<bool> rejectContactInvitation(ActiveAccountInfo activeAccountInfo,
       ..contactResponse = contactResponseBytes
       ..identitySignature = identitySignature.toProto();
 
-    // Write the rejection to the invox
+    // Write the rejection to the inbox
     if (await contactRequestInbox.tryWriteProtobuf(
             SignedContactResponse.fromBuffer, signedContactResponse,
             subkey: 1) !=
