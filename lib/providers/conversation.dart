@@ -37,7 +37,7 @@ KeyPair getConversationWriter({
 }
 
 // Create a conversation
-// If we were the initator of the conversation there may be an
+// If we were the initiator of the conversation there may be an
 // incomplete 'existingConversationRecord' that we need to fill
 // in now that we have the remote identity key
 Future<T> createConversation<T>(
@@ -330,7 +330,7 @@ Future<IList<Message>?> getRemoteConversationMessages({
 
 @riverpod
 class ActiveConversationMessages extends _$ActiveConversationMessages {
-  /// Get message for active converation
+  /// Get message for active conversation
   @override
   FutureOr<IList<Message>?> build() async {
     await eventualVeilid.future;
