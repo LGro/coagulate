@@ -164,5 +164,12 @@
         "title": "Developer Logs",
         "command": "Command",
         "copied": "Selection copied"
+    },
+    "log": {
+        "error": "Error",
+        "warning": "Warning",
+        "info": "Info",
+        "debug": "Debug",
+        "trace": "Trace"
     }
 }

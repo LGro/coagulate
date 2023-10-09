@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:loggy/loggy.dart';
 import 'package:xterm/xterm.dart';
 
 import '../tools/tools.dart';
@@ -28,7 +29,7 @@ class DeveloperPage extends ConsumerStatefulWidget {
 
 class DeveloperPageState extends ConsumerState<DeveloperPage> {
   final terminalController = TerminalController();
-
+  var logLevelDropDown = log.level.logLevel;
   final TextEditingController _debugCommandController = TextEditingController();
 
   @override
@@ -115,7 +116,30 @@ class DeveloperPageState extends ConsumerState<DeveloperPage> {
                     ? null
                     : () async {
                         await copySelection(context);
-                      })
+                      }),
+            DropdownMenu<LogLevel>(
+                initialSelection: logLevelDropDown,
+                onSelected: (value) {
+                  if (value != null) {
+                    setState(() {
+                      logLevelDropDown = value;
+                      //log. = value;
+                      setVeilidLogLevel(value);
+                    });
+                  }
+                },
+                dropdownMenuEntries: [
+                  DropdownMenuEntry<LogLevel>(
+                      value: LogLevel.error, label: translate('log.error')),
+                  DropdownMenuEntry<LogLevel>(
+                      value: LogLevel.warning, label: translate('log.warning')),
+                  DropdownMenuEntry<LogLevel>(
+                      value: LogLevel.info, label: translate('log.info')),
+                  DropdownMenuEntry<LogLevel>(
+                      value: LogLevel.debug, label: translate('log.debug')),
+                  DropdownMenuEntry<LogLevel>(
+                      value: traceLevel, label: translate('log.trace')),
+                ])
           ],
           title: Text(translate('developer.title')),
           centerTitle: true,
