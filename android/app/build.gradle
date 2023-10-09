@@ -62,6 +62,7 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+    namespace 'com.veilid.veilidchat'
 }
 
 flutter {

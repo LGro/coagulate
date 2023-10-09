@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:flutter/material.dart';
@@ -83,9 +84,15 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
       Future<void> Function({required Uint8List inviteData})
           validateInviteData) {
     final theme = Theme.of(context);
-    //final scale = theme.extension<ScaleScheme>()!;
-    final textTheme = theme.textTheme;
+    final scale = theme.extension<ScaleScheme>()!;
+    //final textTheme = theme.textTheme;
     //final height = MediaQuery.of(context).size.height;
+
+    final monoStyle = TextStyle(
+      fontFamily: 'Source Code Pro',
+      fontSize: 11,
+      color: scale.primaryScale.text,
+    );
 
     return Column(mainAxisSize: MainAxisSize.min, children: [
       Text(
@@ -97,8 +104,7 @@ class PasteInviteDialogState extends ConsumerState<PasteInviteDialog> {
             enabled: !dialogState.isValidating,
             onChanged: (text) async =>
                 _onPasteChanged(text, validateInviteData),
-            style: textTheme.labelSmall!
-                .copyWith(fontFamily: 'Victor Mono', fontSize: 11),
+            style: monoStyle,
             keyboardType: TextInputType.multiline,
             maxLines: null,
             controller: _pasteTextController,

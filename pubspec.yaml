@@ -71,6 +71,7 @@ dependencies:
     #   veilid: ^0.0.1
     path: ../veilid/veilid-flutter
   window_manager: ^0.3.5
+  xterm: ^3.5.0
   zxing2: ^0.2.0
 
 dev_dependencies:
@@ -120,9 +121,11 @@ flutter:
     - assets/images/vlogo.svg
     # Fonts
   fonts:
-    - family: Victor Mono
+    - family: Source Code Pro
       fonts:
-        - asset: assets/fonts/VictorMono-VariableFont_wght.ttf
+        - asset: assets/fonts/SourceCodePro-Regular.ttf
+        - asset: assets/fonts/SourceCodePro-Bold.ttf
+          weight: 700
     
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
