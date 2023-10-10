@@ -32,6 +32,15 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Flutter generated files
+# Not doing this at this time: https://stackoverflow.com/questions/56110386/should-i-commit-generated-code-in-flutter-dart-to-vcs
+# *.g.dart
+# *.freezed.dart
+# *.pb.dart
+# *.pbenum.dart
+# *.pbjson.dart
+# *.pbserver.dart
+
 # Symbolication related
 app.*.symbols
 

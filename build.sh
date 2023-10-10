@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-dart run build_runner build
+dart run build_runner build --delete-conflicting-outputs
 
 pushd lib > /dev/null
 protoc --dart_out=proto -I veilid_support/proto -I veilid_support/dht_support/proto -I proto veilidchat.proto
