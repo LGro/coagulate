@@ -92,6 +92,8 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
       case '/home/settings':
       case '/new_account/settings':
         return null;
+      case '/developer':
+        return null;
       default:
         return hasAnyAccount ? null : '/new_account';
     }

@@ -163,7 +163,9 @@
     "developer": {
         "title": "Developer Logs",
         "command": "Command",
-        "copied": "Selection copied"
+        "copied": "Selection copied",
+        "cleared": "Logs cleared",
+        "are_you_sure_clear": "Are you sure you want to clear the logs?"
     },
     "log": {
         "error": "Error",

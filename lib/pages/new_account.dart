@@ -153,7 +153,6 @@ class NewAccountPageState extends ConsumerState<NewAccountPage> {
       body: _newAccountForm(
         context,
         onSubmit: (formKey) async {
-          debugPrint(_formKey.currentState?.value.toString());
           FocusScope.of(context).unfocus();
           try {
             await createAccount();
