@@ -2,8 +2,11 @@ import 'dart:io' show Platform;
 
 import 'package:ansicolor/ansicolor.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_translate/flutter_translate.dart';
+import 'package:intl/intl.dart';
 import 'package:loggy/loggy.dart';
 
+import '../pages/developer.dart';
 import '../veilid_support/veilid_support.dart';
 
 String wrapWithLogColor(LogLevel? level, String text) {
@@ -47,12 +50,55 @@ String wrapWithLogColor(LogLevel? level, String text) {
   return text;
 }
 
+final DateFormat _dateFormatter = DateFormat('HH:mm:ss.SSS');
+
 extension PrettyPrintLogRecord on LogRecord {
   String pretty() {
-    final lstr =
-        wrapWithLogColor(level, '[${level.toString().substring(0, 1)}]');
-    return '$lstr $message';
+    final tm = _dateFormatter.format(time.toLocal());
+    final lev = logLevelEmoji(level);
+    final lstr = wrapWithLogColor(level, tm);
+    return '$lstr $lev $message';
   }
+}
+
+List<LogLevel> logLevels = [
+  LogLevel.error,
+  LogLevel.warning,
+  LogLevel.info,
+  LogLevel.debug,
+  traceLevel,
+];
+
+String logLevelName(LogLevel logLevel) {
+  switch (logLevel) {
+    case traceLevel:
+      return translate('log.trace');
+    case LogLevel.debug:
+      return translate('log.debug');
+    case LogLevel.info:
+      return translate('log.info');
+    case LogLevel.warning:
+      return translate('log.warning');
+    case LogLevel.error:
+      return translate('log.error');
+  }
+  return '???';
+}
+
+String logLevelEmoji(LogLevel logLevel) {
+  switch (logLevel) {
+    case traceLevel:
+      return '👾';
+    case LogLevel.debug:
+      return '🐛';
+    case LogLevel.info:
+      return '💡';
+    case LogLevel.warning:
+      return '🍋';
+    case LogLevel.error:
+      return '🛑';
+  }
+  return '❓';
 }
 
 class CallbackPrinter extends LoggyPrinter {
@@ -62,7 +108,9 @@ class CallbackPrinter extends LoggyPrinter {
 
   @override
   void onLog(LogRecord record) {
-    debugPrint(record.pretty());
+    final out = record.pretty();
+    debugPrint(out);
+    globalDebugTerminal.write('$out\n'.replaceAll('\n', '\r\n'));
     callback?.call(record);
   }
 

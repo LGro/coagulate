@@ -20,7 +20,6 @@ class VeilidChatApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-
     final localizationDelegate = LocalizedApp.of(context).delegate;
 
     return ThemeProvider(

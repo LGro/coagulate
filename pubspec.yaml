@@ -19,6 +19,7 @@ dependencies:
   charcode: ^1.3.1
   circular_profile_avatar: ^2.0.5
   circular_reveal_animation: ^2.0.1
+  cool_dropdown: ^2.1.0
   cupertino_icons: ^1.0.2
   equatable: ^2.0.5
   fast_immutable_collections: ^9.1.5
@@ -71,6 +72,7 @@ dependencies:
     #   veilid: ^0.0.1
     path: ../veilid/veilid-flutter
   window_manager: ^0.3.5
+  xterm: ^3.5.0
   zxing2: ^0.2.0
 
 dev_dependencies:
@@ -118,11 +120,14 @@ flutter:
     - assets/images/icon.svg
     - assets/images/title.svg
     - assets/images/vlogo.svg
+    - assets/images/ellet.png
     # Fonts
   fonts:
-    - family: Victor Mono
+    - family: Source Code Pro
       fonts:
-        - asset: assets/fonts/VictorMono-VariableFont_wght.ttf
+        - asset: assets/fonts/SourceCodePro-Regular.ttf
+        - asset: assets/fonts/SourceCodePro-Bold.ttf
+          weight: 700
     
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

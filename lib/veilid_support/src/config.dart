@@ -20,6 +20,7 @@ Future<VeilidConfig> getVeilidChatConfig() async {
 
   return config.copyWith(
     capabilities: const VeilidConfigCapabilities(disable: ['DHTV', 'TUNL']),
+    protectedStore: config.protectedStore.copyWith(allowInsecureFallback: true),
     // network: config.network.copyWith(
     //         dht: config.network.dht.copyWith(
     //             getValueCount: 3,

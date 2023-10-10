@@ -12,6 +12,13 @@ class IndexPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(windowControlProvider);
 
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final monoTextStyle = textTheme.labelSmall!
+        .copyWith(fontFamily: 'Source Code Pro', fontSize: 11);
+    final emojiTextStyle = textTheme.labelSmall!
+        .copyWith(fontFamily: 'Noto Color Emoji', fontSize: 11);
+
     return Scaffold(
         body: DecoratedBox(
       decoration: BoxDecoration(
@@ -28,6 +35,11 @@ class IndexPage extends ConsumerWidget {
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Hack to preload fonts
+                    Offstage(child: Text('🧱', style: emojiTextStyle)),
+                    // Hack to preload fonts
+                    Offstage(child: Text('A', style: monoTextStyle)),
+                    // Splash Screen
                     Expanded(
                         flex: 2,
                         child: SvgPicture.asset(

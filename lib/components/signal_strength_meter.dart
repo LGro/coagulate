@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:signal_strength_indicator/signal_strength_indicator.dart';
+import 'package:go_router/go_router.dart';
 
 import '../providers/connection_state.dart';
 import '../tools/tools.dart';
@@ -48,13 +49,17 @@ class SignalStrengthMeterWidget extends ConsumerWidget {
     }
     inactiveColor = scale.grayScale.subtleText;
 
-    return SignalStrengthIndicator.bars(
-      value: value,
-      activeColor: color,
-      inactiveColor: inactiveColor,
-      size: iconSize,
-      barCount: 4,
-      spacing: 1,
-    );
+    return GestureDetector(
+        onLongPress: () async {
+          await context.push('/developer');
+        },
+        child: SignalStrengthIndicator.bars(
+          value: value,
+          activeColor: color,
+          inactiveColor: inactiveColor,
+          size: iconSize,
+          barCount: 4,
+          spacing: 1,
+        ));
   }
 }
