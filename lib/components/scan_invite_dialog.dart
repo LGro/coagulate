@@ -369,10 +369,10 @@ class ScanInviteDialogState extends ConsumerState<ScanInviteDialog> {
                   : () async {
                       final inviteData = await pasteQRImage(context);
                       if (inviteData != null) {
+                        await validateInviteData(inviteData: inviteData);
                         setState(() {
                           scanned = true;
                         });
-                        await validateInviteData(inviteData: inviteData);
                       }
                     },
               child: Text(translate('scan_invite_dialog.paste'))),
