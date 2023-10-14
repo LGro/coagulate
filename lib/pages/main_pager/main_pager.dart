@@ -154,6 +154,10 @@ class MainPagerState extends ConsumerState<MainPager>
   Widget _newContactInvitationBottomSheetBuilder(
       // ignore: prefer_expression_function_bodies
       BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scale = theme.extension<ScaleScheme>()!;
+
     return KeyboardListener(
         focusNode: FocusNode(),
         onKeyEvent: (ke) {
@@ -165,37 +169,40 @@ class MainPagerState extends ConsumerState<MainPager>
             height: 200,
             child: Column(children: [
               Text(translate('accounts_menu.invite_contact'),
-                      style: Theme.of(context).textTheme.titleMedium)
+                      style: textTheme.titleMedium)
                   .paddingAll(8),
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Column(children: [
                   IconButton(
                       onPressed: () async {
                         Navigator.pop(context);
                         await SendInviteDialog.show(context);
                       },
                       iconSize: 64,
-                      icon: const Icon(Icons.contact_page)),
+                      icon: const Icon(Icons.contact_page),
+                      color: scale.primaryScale.background),
                   Text(translate('accounts_menu.create_invite'))
                 ]),
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Column(children: [
                   IconButton(
                       onPressed: () async {
                         Navigator.pop(context);
                         await ScanInviteDialog.show(context);
                       },
                       iconSize: 64,
-                      icon: const Icon(Icons.qr_code_scanner)),
+                      icon: const Icon(Icons.qr_code_scanner),
+                      color: scale.primaryScale.background),
                   Text(translate('accounts_menu.scan_invite'))
                 ]),
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Column(children: [
                   IconButton(
                       onPressed: () async {
                         Navigator.pop(context);
                         await PasteInviteDialog.show(context);
                       },
                       iconSize: 64,
-                      icon: const Icon(Icons.paste)),
+                      icon: const Icon(Icons.paste),
+                      color: scale.primaryScale.background),
                   Text(translate('accounts_menu.paste_invite'))
                 ])
               ]).expanded()
@@ -288,7 +295,7 @@ class MainPagerState extends ConsumerState<MainPager>
       floatingActionButton: BottomSheetActionButton(
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(14))),
-          //foregroundColor: scale.secondaryScale.text,
+          foregroundColor: scale.secondaryScale.text,
           backgroundColor: scale.secondaryScale.hoverBorder,
           builder: (context) => Icon(
                 _fabIconList[_currentPage],

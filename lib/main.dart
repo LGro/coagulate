@@ -27,28 +27,29 @@ void main() async {
   // Ansi colors
   ansiColorDisabled = false;
 
-  // Logs
-  initLoggy();
+  // Catch errors
+  await runZonedGuarded(() async {
+    // Logs
+    initLoggy();
 
-  // Prepare theme
-  WidgetsFlutterBinding.ensureInitialized();
-  final themeService = await ThemeService.instance;
-  final initTheme = themeService.initial;
+    // Prepare theme
+    WidgetsFlutterBinding.ensureInitialized();
+    final themeService = await ThemeService.instance;
+    final initTheme = themeService.initial;
 
-  // Manage window on desktop platforms
-  await WindowControl.initialize();
+    // Manage window on desktop platforms
+    await WindowControl.initialize();
 
-  // Make localization delegate
-  final delegate = await LocalizationDelegate.create(
-      fallbackLocale: 'en_US', supportedLocales: ['en_US']);
-  await initializeDateFormatting();
+    // Make localization delegate
+    final delegate = await LocalizationDelegate.create(
+        fallbackLocale: 'en_US', supportedLocales: ['en_US']);
+    await initializeDateFormatting();
 
-  // Start up Veilid and Veilid processor in the background
-  unawaited(initializeVeilid());
+    // Start up Veilid and Veilid processor in the background
+    unawaited(initializeVeilid());
 
-  // Run the app
-  // Hot reloads will only restart this part, not Veilid
-  runZonedGuarded(() {
+    // Run the app
+    // Hot reloads will only restart this part, not Veilid
     runApp(ProviderScope(
         observers: const [StateLogger()],
         child: LocalizedApp(delegate, VeilidChatApp(theme: initTheme))));

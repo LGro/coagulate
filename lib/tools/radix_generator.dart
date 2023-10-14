@@ -537,9 +537,15 @@ ThemeData radixGenerator(Brightness brightness, RadixThemeColor themeColor) {
   final colorScheme = _radixColorScheme(brightness, radix);
   final scaleScheme = radix.toScale();
 
-  return ThemeData.from(
-          colorScheme: colorScheme, textTheme: textTheme, useMaterial3: true)
-      .copyWith(extensions: <ThemeExtension<dynamic>>[
-    scaleScheme,
-  ]);
+  final themeData = ThemeData.from(
+      colorScheme: colorScheme, textTheme: textTheme, useMaterial3: true);
+  return themeData.copyWith(
+      bottomSheetTheme: themeData.bottomSheetTheme.copyWith(
+          elevation: 0,
+          modalElevation: 0,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+      extensions: <ThemeExtension<dynamic>>[
+        scaleScheme,
+      ]);
 }
