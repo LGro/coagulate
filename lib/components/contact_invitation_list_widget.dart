@@ -46,44 +46,36 @@ class ContactInvitationListWidgetState
         borderRadius: BorderRadius.circular(16),
       )),
       constraints: const BoxConstraints(maxHeight: 200),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-              width: double.infinity,
-              decoration: ShapeDecoration(
-                  color: scale.primaryScale.subtleBackground,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  )),
-              child: ListView.builder(
-                controller: _scrollController,
-                itemCount: widget.contactInvitationRecordList.length,
-                itemBuilder: (context, index) {
-                  if (index < 0 ||
-                      index >= widget.contactInvitationRecordList.length) {
-                    return null;
-                  }
-                  return ContactInvitationItemWidget(
-                          contactInvitationRecord:
-                              widget.contactInvitationRecordList[index],
-                          key: ObjectKey(
-                              widget.contactInvitationRecordList[index]))
-                      .paddingAll(2);
-                },
-                findChildIndexCallback: (key) {
-                  final index = widget.contactInvitationRecordList.indexOf(
-                      (key as ObjectKey).value!
-                          as proto.ContactInvitationRecord);
-                  if (index == -1) {
-                    return null;
-                  }
-                  return index;
-                },
-                shrinkWrap: true,
-              ).paddingLTRB(0, 0, 0, 4))
-        ],
-      ),
+      child: Container(
+          width: double.infinity,
+          decoration: ShapeDecoration(
+              color: scale.primaryScale.subtleBackground,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              )),
+          child: ListView.builder(
+            controller: _scrollController,
+            itemCount: widget.contactInvitationRecordList.length,
+            itemBuilder: (context, index) {
+              if (index < 0 ||
+                  index >= widget.contactInvitationRecordList.length) {
+                return null;
+              }
+              return ContactInvitationItemWidget(
+                      contactInvitationRecord:
+                          widget.contactInvitationRecordList[index],
+                      key: ObjectKey(widget.contactInvitationRecordList[index]))
+                  .paddingLTRB(4, 2, 4, 2);
+            },
+            findChildIndexCallback: (key) {
+              final index = widget.contactInvitationRecordList.indexOf(
+                  (key as ObjectKey).value! as proto.ContactInvitationRecord);
+              if (index == -1) {
+                return null;
+              }
+              return index;
+            },
+          ).paddingLTRB(4, 6, 4, 6)),
     );
   }
 }

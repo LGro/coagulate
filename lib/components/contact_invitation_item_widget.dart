@@ -30,7 +30,6 @@ class ContactInvitationItemWidget extends ConsumerWidget {
     final scale = theme.extension<ScaleScheme>()!;
 
     return Container(
-        margin: const EdgeInsets.fromLTRB(4, 4, 4, 0),
         clipBehavior: Clip.antiAlias,
         decoration: ShapeDecoration(
             color: scale.tertiaryScale.subtleBorder,
