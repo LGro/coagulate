@@ -10,7 +10,7 @@ _$LocalAccountImpl _$$LocalAccountImplFromJson(Map<String, dynamic> json) =>
     _$LocalAccountImpl(
       identityMaster: IdentityMaster.fromJson(json['identity_master']),
       identitySecretBytes: const Uint8ListJsonConverter()
-          .fromJson(json['identity_secret_bytes'] as String),
+          .fromJson(json['identity_secret_bytes']),
       encryptionKeyType:
           EncryptionKeyType.fromJson(json['encryption_key_type']),
       biometricsEnabled: json['biometrics_enabled'] as bool,
