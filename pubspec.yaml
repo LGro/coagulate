@@ -27,6 +27,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_animate: ^4.2.0+1
+  flutter_chat_types: ^3.6.2
   flutter_chat_ui: ^1.6.9
   flutter_form_builder: ^9.1.0
   flutter_hooks: ^0.20.1

@@ -536,19 +536,30 @@ Future<IList<ContactInvitationRecord>?> fetchContactInvitationRecords(
 
   // Decode the contact invitation list from the DHT
   IList<ContactInvitationRecord> out = const IListConst([]);
-  await (await DHTShortArray.openOwned(
-          proto.OwnedDHTRecordPointerProto.fromProto(
-              activeAccountInfo.account.contactInvitationRecords),
-          parent: accountRecordKey))
-      .scope((cirList) async {
-    for (var i = 0; i < cirList.length; i++) {
-      final cir = await cirList.getItem(i);
-      if (cir == null) {
-        throw Exception('Failed to get contact invitation record');
+
+  try {
+    await (await DHTShortArray.openOwned(
+            proto.OwnedDHTRecordPointerProto.fromProto(
+                activeAccountInfo.account.contactInvitationRecords),
+            parent: accountRecordKey))
+        .scope((cirList) async {
+      for (var i = 0; i < cirList.length; i++) {
+        final cir = await cirList.getItem(i);
+        if (cir == null) {
+          throw Exception('Failed to get contact invitation record');
+        }
+        out = out.add(ContactInvitationRecord.fromBuffer(cir));
       }
-      out = out.add(ContactInvitationRecord.fromBuffer(cir));
-    }
-  });
+    });
+  } on VeilidAPIExceptionTryAgain catch (_) {
+    // Try again later
+    ref.invalidateSelf();
+    return null;
+  } on Exception catch (_) {
+    // Try again later
+    ref.invalidateSelf();
+    rethrow;
+  }
 
   return out;
 }

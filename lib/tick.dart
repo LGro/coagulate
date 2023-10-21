@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'proto/proto.dart' as proto;
 import 'providers/account.dart';
 import 'providers/chat.dart';
+import 'providers/connection_state.dart';
 import 'providers/contact.dart';
 import 'providers/contact_invite.dart';
 import 'providers/conversation.dart';
@@ -65,8 +66,11 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
   }
 
   Future<void> _onTick() async {
-    // Don't tick until veilid is started
+    // Don't tick until veilid is started and attached
     if (!eventualVeilid.isCompleted) {
+      return;
+    }
+    if (!connectionState.state.isAttached) {
       return;
     }
 
@@ -95,10 +99,16 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
   }
 
   Future<void> _doContactInvitationCheck() async {
+    if (!connectionState.state.isPublicInternetReady) {
+      return;
+    }
     final contactInvitationRecords =
         await ref.read(fetchContactInvitationRecordsProvider.future);
+    if (contactInvitationRecords == null) {
+      return;
+    }
     final activeAccountInfo = await ref.read(fetchActiveAccountProvider.future);
-    if (contactInvitationRecords == null || activeAccountInfo == null) {
+    if (activeAccountInfo == null) {
       return;
     }
 
@@ -135,6 +145,9 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
   }
 
   Future<void> _doNewMessageCheck() async {
+    if (!connectionState.state.isPublicInternetReady) {
+      return;
+    }
     final activeChat = ref.read(activeChatStateProvider);
     if (activeChat == null) {
       return;

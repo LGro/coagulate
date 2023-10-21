@@ -17,7 +17,7 @@ enum OrientationCapability {
   landscapeOnly,
 }
 
-// Local account manager
+// Window Control
 @riverpod
 class WindowControl extends _$WindowControl {
   /// Change window control

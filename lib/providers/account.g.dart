@@ -6,7 +6,7 @@ part of 'account.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$fetchAccountHash() => r'88dadc0d005cef8b3df1d03088c8a5da728c333c';
+String _$fetchAccountHash() => r'f3072fdd89611b53cd9821613acab450b3c08820';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -176,7 +176,7 @@ class _FetchAccountProviderElement
 }
 
 String _$fetchActiveAccountHash() =>
-    r'd074ab2c160bab41ed3dd979b7054603b7d5b2b1';
+    r'197e5dd793563ff1d9927309a5ec9db1c9f67f07';
 
 /// Get the active account info
 ///

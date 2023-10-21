@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../providers/connection_state.dart';
 import '../tools/tools.dart';
+import '../veilid_support/veilid_support.dart';
 
 class SignalStrengthMeterWidget extends ConsumerWidget {
   const SignalStrengthMeterWidget({super.key});
@@ -16,34 +17,34 @@ class SignalStrengthMeterWidget extends ConsumerWidget {
     final scale = theme.extension<ScaleScheme>()!;
 
     const iconSize = 16.0;
-    final connState = ref.watch(globalConnectionStateProvider);
+    final connState = ref.watch(connectionStateProvider);
 
     late final double value;
     late final Color color;
     late final Color inactiveColor;
-    switch (connState) {
-      case GlobalConnectionState.detached:
+    switch (connState.attachment.state) {
+      case AttachmentState.detached:
         return Icon(Icons.signal_cellular_nodata,
             size: iconSize, color: scale.grayScale.text);
-      case GlobalConnectionState.detaching:
+      case AttachmentState.detaching:
         return Icon(Icons.signal_cellular_off,
             size: iconSize, color: scale.grayScale.text);
-      case GlobalConnectionState.attaching:
+      case AttachmentState.attaching:
         value = 0;
         color = scale.primaryScale.text;
-      case GlobalConnectionState.attachedWeak:
+      case AttachmentState.attachedWeak:
         value = 1;
         color = scale.primaryScale.text;
-      case GlobalConnectionState.attachedStrong:
+      case AttachmentState.attachedStrong:
         value = 2;
         color = scale.primaryScale.text;
-      case GlobalConnectionState.attachedGood:
+      case AttachmentState.attachedGood:
         value = 3;
         color = scale.primaryScale.text;
-      case GlobalConnectionState.fullyAttached:
+      case AttachmentState.fullyAttached:
         value = 4;
         color = scale.primaryScale.text;
-      case GlobalConnectionState.overAttached:
+      case AttachmentState.overAttached:
         value = 4;
         color = scale.secondaryScale.subtleText;
     }

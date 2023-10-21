@@ -64,6 +64,7 @@ Future<AccountInfo> fetchAccount(FetchAccountRef ref,
       .scope((accountRec) => accountRec.getProtobuf(proto.Account.fromBuffer));
   if (account == null) {
     // Account could not be read or decrypted from DHT
+    ref.invalidateSelf();
     return AccountInfo(
         status: AccountInfoStatus.accountInvalid, active: active);
   }
@@ -119,7 +120,7 @@ Future<ActiveAccountInfo?> fetchActiveAccount(FetchActiveAccountRef ref) async {
           parent: localAccount.identityMaster.identityRecordKey))
       .scope((accountRec) => accountRec.getProtobuf(proto.Account.fromBuffer));
   if (account == null) {
-    // Account could not be read or decrypted from DHT
+    ref.invalidateSelf();
     return null;
   }
 

@@ -117,7 +117,7 @@ class DHTShortArray {
         parent: parent, routingContext: routingContext, crypto: crypto);
     try {
       final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
-      await dhtShortArray._refreshHead(forceRefresh: true);
+      await dhtShortArray._refreshHead();
       return dhtShortArray;
     } on Exception catch (_) {
       await dhtRecord.close();
@@ -137,7 +137,7 @@ class DHTShortArray {
         parent: parent, routingContext: routingContext, crypto: crypto);
     try {
       final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
-      await dhtShortArray._refreshHead(forceRefresh: true);
+      await dhtShortArray._refreshHead();
       return dhtShortArray;
     } on Exception catch (_) {
       await dhtRecord.close();
