@@ -281,7 +281,7 @@ class DHTShortArray {
 
   /// Pull the latest or updated copy of the head record from the network
   Future<bool> _refreshHead(
-      {bool forceRefresh = false, bool onlyUpdates = false}) async {
+      {bool forceRefresh = true, bool onlyUpdates = false}) async {
     // Get an updated head record copy if one exists
     final head = await _headRecord.getProtobuf(proto.DHTShortArray.fromBuffer,
         forceRefresh: forceRefresh, onlyUpdates: onlyUpdates);
