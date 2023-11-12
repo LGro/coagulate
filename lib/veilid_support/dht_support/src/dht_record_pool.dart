@@ -78,7 +78,6 @@ class DHTRecordPool with AsyncTableDBBacked<DHTRecordPoolAllocations> {
     return instanceSetupMutex.protect(() async {
       if (_singleton == null) {
         final routingContext = await Veilid.instance.routingContext();
-
         final globalPool = DHTRecordPool._(Veilid.instance, routingContext);
         globalPool._state = await globalPool.load();
         _singleton = globalPool;
