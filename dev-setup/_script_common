@@ -6,8 +6,11 @@ get_abs_filename() {
 }
 
 # Veilid location
-VEILIDDIR=$(get_abs_filename "$SCRIPTDIR/../veilid")
+VEILIDDIR=$(get_abs_filename "$SCRIPTDIR/../../veilid")
 if [ ! -d "$VEILIDDIR" ]; then 
     echo 'Veilid git clone needs to be at $VEILIDDIR'
     exit 1
 fi
+
+# VeilidChat location
+VEILIDCHATDIR=$(get_abs_filename "$SCRIPTDIR/../../veilid")

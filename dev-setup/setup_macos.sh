@@ -9,6 +9,22 @@ fi
 
 # run setup for veilid
 $VEILIDDIR/dev-setup/setup_macos.sh
+
+# ensure packages are installed
+if [ "$BREW_USER" == "" ]; then
+    if [ -d /opt/homebrew ]; then
+        BREW_USER=`ls -lad /opt/homebrew/. | cut -d\  -f4`
+        echo "Must sudo to homebrew user \"$BREW_USER\" to install capnp package:"
+    elif [ -d /usr/local/Homebrew ]; then
+        BREW_USER=`ls -lad /usr/local/Homebrew/. | cut -d\  -f4`
+        echo "Must sudo to homebrew user \"$BREW_USER\" to install capnp package:"
+    else
+        echo "Homebrew is not installed in the normal place. Trying as current user"
+        BREW_USER=`whoami`
+    fi
+fi
+sudo -H -u $BREW_USER brew install protobuf
+
 # run setup for veilid_flutter
 $VEILIDDIR/veilid-flutter/setup_flutter.sh
 
@@ -28,19 +44,3 @@ else
     echo 'protoc-gen-dart is not available in the path. Add "$HOME/.pub-cache/bin" to your path.'
     exit 1
 fi
-
-# # ensure rsync is installed
-# if command -v rsync &> /dev/null; then 
-#     echo '[X] rsync is available in the path'
-# else
-#     echo 'rsync is not available in the path'
-#     exit 1
-# fi
-
-# # ensure sed is installed
-# if command -v sed &> /dev/null; then 
-#     echo '[X] sed is available in the path'
-# else
-#     echo 'sed is not available in the path'
-#     exit 1
-# fi
