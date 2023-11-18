@@ -38,6 +38,7 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
   bool _inTick = false;
   int _contactInvitationCheckTick = 0;
   int _newMessageCheckTick = 0;
+  bool _hasRefreshedContactList = false;
 
   @override
   void initState() {
@@ -77,6 +78,13 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
     _inTick = true;
     try {
       final unord = <Future<void>>[];
+      // If our contact list hasn't been refreshed yet, we need to
+      // refresh it. This happens every tick until it's non-empty.
+      // It will not happen until we are attached to Veilid.
+      if (_hasRefreshedContactList == false) {
+        unord.add(_doContactListRefresh());
+      }
+
       // Check extant contact invitations once every N seconds
       _contactInvitationCheckTick += 1;
       if (_contactInvitationCheckTick >= ticksPerContactInvitationCheck) {
@@ -95,6 +103,25 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
       }
     } finally {
       _inTick = false;
+    }
+  }
+
+  Future<void> _doContactListRefresh() async {
+    // Don't refresh the contact list until we're connected to Veilid, because
+    // that's when we can actually communicate.
+    if (!connectionState.state.isAttached) {
+      return;
+    }
+    // Get the contact list, or an empty IList.
+    final contactList = ref.read(fetchContactListProvider).asData?.value ??
+        const IListConst([]);
+    if (contactList.isEmpty) {
+      ref.invalidate(fetchContactListProvider);
+    } else {
+      // This happens on the tick after it refreshes, because invalidation
+      // and refresh happens only once per tick, and we won't know if it
+      // worked until it has.
+      _hasRefreshedContactList = true;
     }
   }
 
@@ -148,7 +175,9 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
     if (!connectionState.state.isPublicInternetReady) {
       return;
     }
+
     final activeChat = ref.read(activeChatStateProvider);
+
     if (activeChat == null) {
       return;
     }
@@ -159,7 +188,6 @@ class BackgroundTickerState extends ConsumerState<BackgroundTicker> {
 
     final contactList = ref.read(fetchContactListProvider).asData?.value ??
         const IListConst([]);
-
     final activeChatContactIdx = contactList.indexWhere(
       (c) =>
           proto.TypedKeyProto.fromProto(c.remoteConversationRecordKey) ==
