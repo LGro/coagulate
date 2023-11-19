@@ -20,20 +20,20 @@ build:
     - echo "place holder for build"
     - sudo softwareupdate --install-rosetta --agree-to-license
     - git clone https://gitlab.com/veilid/veilid.git ../veilid
-    - curl –proto ‘=https’ –tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    - source "$HOME/.cargo/env"
-    - brew install capnp cmake wabt llvm protobuf openjdk@17 jq cocoapods
-    - cargo install wasm-bindgen-cli wasm-pack cargo-edit
+    #- curl –proto ‘=https’ –tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    #- source "$HOME/.cargo/env"
+    #- brew install capnp cmake wabt llvm protobuf openjdk@17 jq cocoapods
+    #- cargo install wasm-bindgen-cli wasm-pack cargo-edit
     - wget https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_3.13.5-stable.zip
     - unzip flutter_macos_arm64_3.13.5-stable.zip && export PATH="$PATH:`pwd`/flutter/bin"
-    - flutter update
+    - flutter upgrade
     - yes | flutter doctor --android-licenses
     - flutter config --enable-macos-desktop --enable-ios
     - flutter config --no-analytics
     - dart --disable-analytics
     - flutter doctor -v
-    - flutter build ipa
-    - flutter build appbundle
+    #- flutter build ipa
+    #- flutter build appbundle
   when: manual
 
 #test:
