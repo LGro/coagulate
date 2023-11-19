@@ -54,3 +54,5 @@ app.*.map.json
 
 # WASM
 /web/wasm/
+
+android/key.properties

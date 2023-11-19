@@ -1552,7 +1552,7 @@ packages:
       path: "../veilid/veilid-flutter"
       relative: true
     source: path
-    version: "0.2.4"
+    version: "0.2.5"
   visibility_detector:
     dependency: transitive
     description:
