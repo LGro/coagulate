@@ -25,10 +25,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
+def buildConfig = 'debug'
+
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+   buildConfig = 'release'
 }
 
 android {
@@ -70,9 +73,13 @@ android {
    
    buildTypes {
        release {
-           shrinkResources false
-           minifyEnabled false
-           signingConfig signingConfigs.release
+            shrinkResources false
+            minifyEnabled false
+            if (buildConfig == 'release') {
+                signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
+            }
        }
    }
     
