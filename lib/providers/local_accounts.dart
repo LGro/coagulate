@@ -12,7 +12,7 @@ import 'logins.dart';
 
 part 'local_accounts.g.dart';
 
-const String veilidChatAccountKey = 'com.veilid.veilidchat';
+const String veilidChatAccountKey = 'de.wtfeg.coagulate';
 
 // Local account manager
 @riverpod

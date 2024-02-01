@@ -1,28 +1,14 @@
-# VeilidChat
+# Coagulate
 
-VeilidChat is a chat application written for the Veilid (https://www.veilid.com) distributed application platform. It has a familiar and simple interface and is designed for private, and secure person-to-person communications.
+Link your contact profile with others to keep them up to date whenever you move or get a new number, all while respecting everyone's privacy.
 
-For more information about VeilidChat: https://veilid.com/chat/
+This [Flutter](flutter.dev) based implementation is derived from [VeilidChat](https://gitlab.com/veilid/veilidchat/).
+Accordingly, the Copyright to all files belongs to the Veilid developers unless explicitly stated otherwise.
+Also, you might still find left over things called "veilidchat" that should be called "coagulate".
+If you find any, feel free to open a small pull request 😊
 
-For more information about the Veilid network protocol and app development platform: https://veilid.com
+## Development Setup
 
-## Setup
+While this is still in development, you must have a clone of the [Veilid](https://gitlab.com/veilid/veilid/) source checked out at `../veilid` relative to the working directory of this repository.
 
-While this is still in development, you must have a clone of the Veilid source checked out at `../veilid` relative to the working directory of this repository.
-
-### For Linux Systems:
-```
-./setup_linux.sh
-```
-
-### For Mac Systems:
-```
-./setup_macos.sh
-```
-
-## Updating Code
-
-### To update the WASM binary from `veilid-wasm`:
-* Debug WASM: run `./wasm_update.sh`
-* Release WASM: run `/wasm_update.sh release`
-
+For platform specific development setup, see the scripts in `./dev-setup`.

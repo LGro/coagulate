@@ -1,4 +1,4 @@
-package com.veilid.veilidchat
+package de.wtfeg.coagulate
 
 import io.flutter.embedding.android.FlutterActivity
 

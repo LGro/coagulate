@@ -1,59 +1,212 @@
-import 'dart:async';
-import 'dart:io';
+// Copyright 2024 Lukas Grossberger
 
-import 'package:ansicolor/ansicolor.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_translate/flutter_translate.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:coagulate/contact_list.dart';
+import 'package:coagulate/contact_page.dart';
 
-import 'app.dart';
-import 'providers/window_control.dart';
-import 'tools/tools.dart';
-import 'veilid_init.dart';
+void main() {
+  runApp(MyApp());
+}
 
-void main() async {
-  // Disable all debugprints in release mode
-  if (kReleaseMode) {
-    debugPrint = (message, {wrapWidth}) {};
+Widget avatar(Contact contact,
+    [double radius = 48.0, IconData defaultIcon = Icons.person]) {
+  if (contact.photoOrThumbnail != null) {
+    return CircleAvatar(
+      backgroundImage: MemoryImage(contact.photoOrThumbnail!),
+      radius: radius,
+    );
+  }
+  return CircleAvatar(
+    radius: radius,
+    child: Icon(defaultIcon),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'Navigation App',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: MyHomePage(),
+        // https://docs.flutter.dev/cookbook/navigation/navigate-with-arguments
+        routes: {
+          ContactPage.routeName: (context) => ContactPage(),
+        },
+      );
+}
+
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _selectedIndex = 0;
+  static const _bottomNavigationItems = [
+    BottomNavigationBarItem(
+      icon: Icon(Icons.person),
+      label: 'Profile',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.update),
+      label: 'Updates',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.contacts),
+      label: 'Contacts',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.map),
+      label: 'Map',
+    ),
+  ];
+
+  static final List<Widget> _widgetOptions = <Widget>[
+    ProfilePage(),
+    UpdatesPage(),
+    ContactListPage(),
+    MapPage(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
-  // Print our PID for debugging
-  if (!kIsWeb) {
-    debugPrint('VeilidChat PID: $pid');
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Text(_bottomNavigationItems.elementAt(_selectedIndex).label!),
+        ),
+        body: _widgetOptions.elementAt(_selectedIndex),
+        bottomNavigationBar: BottomNavigationBar(
+          items: _bottomNavigationItems,
+          currentIndex: _selectedIndex,
+          unselectedItemColor: Colors.black,
+          selectedItemColor: Colors.deepPurpleAccent,
+          onTap: _onItemTapped,
+        ),
+      );
+}
+
+class ProfilePage extends StatefulWidget {
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  Contact? _profileContact;
+
+  @override
+  void initState() {
+    super.initState();
+    _pickContact();
   }
 
-  // Ansi colors
-  ansiColorDisabled = false;
+  Future<void> _pickContact() async {
+    if (await FlutterContacts.requestPermission()) {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      var profileContactID = prefs.getString('profileContactID');
 
-  // Catch errors
-  await runZonedGuarded(() async {
-    // Logs
-    initLoggy();
+      if (profileContactID == null) {
+        final contact = await FlutterContacts.openExternalPick();
+        // TODO: Error handling
+        var profileContactID = contact!.id;
+        await prefs.setString('profileContactID', profileContactID);
+      }
 
-    // Prepare theme
-    WidgetsFlutterBinding.ensureInitialized();
-    final themeService = await ThemeService.instance;
-    final initTheme = themeService.initial;
+      // TODO: profileContactID is null after initial contact selection FIXME
+      final contact = await FlutterContacts.getContact(profileContactID!);
+      setState(() {
+        // TODO: Error handling
+        _profileContact = contact!;
+      });
+    } else {
+      print("Couldnt get contacts because of permission issues");
+    }
+  }
 
-    // Manage window on desktop platforms
-    await WindowControl.initialize();
+  @override
+  Widget build(BuildContext context) => (_profileContact == null)
+      ? Text("no profile contact stored")
+      : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          avatar(_profileContact!),
+          Text(
+            _profileContact!.displayName,
+            style: TextStyle(fontSize: 20),
+          ),
+          Text(
+              'Phone number: ${_profileContact!.phones.isNotEmpty ? _profileContact!.phones.first.number : '(none)'}'),
+          Text(
+              'Email address: ${_profileContact!.emails.isNotEmpty ? _profileContact!.emails.first.address : '(none)'}'),
+        ]);
+}
 
-    // Make localization delegate
-    final delegate = await LocalizationDelegate.create(
-        fallbackLocale: 'en_US', supportedLocales: ['en_US']);
-    await initializeDateFormatting();
+class UpdatesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => ListView(
+        children: List.generate(
+          10,
+          (index) => ListTile(
+            title: Text('Update $index'),
+          ),
+        ),
+      );
+}
 
-    // Start up Veilid and Veilid processor in the background
-    unawaited(initializeVeilid());
+class ContactsPage extends StatefulWidget {
+  @override
+  _ContactsPageState createState() => _ContactsPageState();
+}
 
-    // Run the app
-    // Hot reloads will only restart this part, not Veilid
-    runApp(ProviderScope(
-        observers: const [StateLogger()],
-        child: LocalizedApp(delegate, VeilidChatApp(theme: initTheme))));
-  }, (error, stackTrace) {
-    log.error('Dart Runtime: {$error}\n{$stackTrace}');
-  });
+class _ContactsPageState extends State<ContactsPage> {
+  List<Contact> _contacts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadContacts();
+  }
+
+  Future<void> _loadContacts() async {
+    if (await FlutterContacts.requestPermission()) {
+      // Get all contacts (lightly fetched)
+      List<Contact> contacts = await FlutterContacts.getContacts();
+
+      setState(() {
+        _contacts = contacts.toList();
+      });
+    } else {
+      print("Couldnt get contacts because of permission issues");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => _contacts.isNotEmpty
+      ? ListView.builder(
+          itemCount: _contacts.length,
+          itemBuilder: (context, index) {
+            Contact contact = _contacts[index];
+            return ListTile(
+              title: Text(contact.displayName ?? ''),
+              // subtitle: Text(contact.phones.isNotEmpty
+              //     ? contact.phones.first.value ?? ''
+              //     : ''),
+            );
+          },
+        )
+      : const Center(
+          child: Text('No contacts available.'),
+        );
+}
+
+class MapPage extends StatelessWidget {
+  // You can implement map view logic here
+  @override
+  Widget build(BuildContext context) => Text("Hi");
 }

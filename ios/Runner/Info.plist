@@ -55,5 +55,7 @@
 	<string>Microphone is required for voice chat</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Photos access is required to send images and get QR codes from photo library</string>
+	<key>NSContactsUsageDescription</key>
+    <string>Coagulation requires people</string>
 </dict>
 </plist>
