@@ -3,9 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:coagulate/contact_list.dart';
-import 'package:coagulate/contact_page.dart';
-import 'package:coagulate/map.dart';
+
+import 'contact_list.dart';
+import 'contact_page.dart';
+import 'map.dart';
+import 'updates.dart';
 
 void main() {
   runApp(MyApp());
@@ -146,62 +148,4 @@ class _ProfilePageState extends State<ProfilePage> {
           Text(
               'Email address: ${_profileContact!.emails.isNotEmpty ? _profileContact!.emails.first.address : '(none)'}'),
         ]);
-}
-
-class UpdatesPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => ListView(
-        children: List.generate(
-          10,
-          (index) => ListTile(
-            title: Text('Update $index'),
-          ),
-        ),
-      );
-}
-
-class ContactsPage extends StatefulWidget {
-  @override
-  _ContactsPageState createState() => _ContactsPageState();
-}
-
-class _ContactsPageState extends State<ContactsPage> {
-  List<Contact> _contacts = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadContacts();
-  }
-
-  Future<void> _loadContacts() async {
-    if (await FlutterContacts.requestPermission()) {
-      // Get all contacts (lightly fetched)
-      List<Contact> contacts = await FlutterContacts.getContacts();
-
-      setState(() {
-        _contacts = contacts.toList();
-      });
-    } else {
-      print("Couldnt get contacts because of permission issues");
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => _contacts.isNotEmpty
-      ? ListView.builder(
-          itemCount: _contacts.length,
-          itemBuilder: (context, index) {
-            Contact contact = _contacts[index];
-            return ListTile(
-              title: Text(contact.displayName ?? ''),
-              // subtitle: Text(contact.phones.isNotEmpty
-              //     ? contact.phones.first.value ?? ''
-              //     : ''),
-            );
-          },
-        )
-      : const Center(
-          child: Text('No contacts available.'),
-        );
 }
