@@ -51,6 +51,10 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
+    // NOTE: This might be a dirty workaround to an error supposedly related to
+    //       "using jniLibs and CMake IMPORTED targets"
+    packagingOptions.pickFirst("lib/*/libc++_shared.so")
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "de.wtfeg.coagulate"

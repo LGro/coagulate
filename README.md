@@ -13,6 +13,21 @@ While this is still in development, you must have a clone of the [Veilid](https:
 
 For platform specific development setup, see the scripts in `./dev-setup`.
 
+To enable the Mapbox driven map view, set your secret token in `~/.grade/gradle.properties`:
+```
+SDK_REGISTRY_TOKEN={SECRET-API-TOKEN}
+```
+
+and set the public token as an environment variable:
+```
+COAGULATE_MAPBOX_PUBLIC_TOKEN={PUBLIC-API-TOKEN}
+```
+
+Also, add your secret API token to a file `android/app/src/main/res/values/developer-config.xml`:
+```xml
+<string name="mapbox_access_token">{SECRET-API-TOKEN}</string>
+```
+
 ## User Stories
 
 ### Open app first time

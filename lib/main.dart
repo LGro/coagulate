@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:platform_maps_flutter/platform_maps_flutter.dart';
 import 'package:coagulate/contact_list.dart';
 import 'package:coagulate/contact_page.dart';
+import 'package:coagulate/map.dart';
 
 void main() {
   runApp(MyApp());
@@ -81,9 +81,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Text(_bottomNavigationItems.elementAt(_selectedIndex).label!),
-        ),
+        // appBar: AppBar(
+        //   title: Text(_bottomNavigationItems.elementAt(_selectedIndex).label!),
+        // ),
         body: _widgetOptions.elementAt(_selectedIndex),
         bottomNavigationBar: BottomNavigationBar(
           items: _bottomNavigationItems,
@@ -204,60 +204,4 @@ class _ContactsPageState extends State<ContactsPage> {
       : const Center(
           child: Text('No contacts available.'),
         );
-}
-
-class MapPage extends StatelessWidget {
-  // You can implement map view logic here
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // TODO: This requires additional setup like permissions for iOS and API key for Android
-      //       https://pub.dev/packages/platform_maps_flutter
-      body: PlatformMap(
-        initialCameraPosition: CameraPosition(
-          target: const LatLng(47.6, 8.8796),
-          zoom: 16.0,
-        ),
-        markers: Set<Marker>.of(
-          [
-            Marker(
-              markerId: MarkerId('marker_1'),
-              position: LatLng(47.6, 8.8796),
-              consumeTapEvents: true,
-              infoWindow: InfoWindow(
-                title: 'PlatformMarker',
-                snippet: "Hi I'm a Platform Marker",
-              ),
-              onTap: () {
-                print("Marker tapped");
-              },
-            ),
-          ],
-        ),
-        mapType: MapType.satellite,
-        onTap: (location) => print('onTap: $location'),
-        onCameraMove: (cameraUpdate) => print('onCameraMove: $cameraUpdate'),
-        compassEnabled: true,
-        onMapCreated: (controller) {
-          Future.delayed(Duration(seconds: 2)).then(
-            (_) {
-              controller.animateCamera(
-                CameraUpdate.newCameraPosition(
-                  const CameraPosition(
-                    bearing: 270.0,
-                    target: LatLng(51.5160895, -0.1294527),
-                    tilt: 30.0,
-                    zoom: 18,
-                  ),
-                ),
-              );
-              controller
-                  .getVisibleRegion()
-                  .then((bounds) => print("bounds: ${bounds.toString()}"));
-            },
-          );
-        },
-      ),
-    );
-  }
 }

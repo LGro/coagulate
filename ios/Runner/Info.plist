@@ -57,5 +57,7 @@
 	<string>Photos access is required to send images and get QR codes from photo library</string>
 	<key>NSContactsUsageDescription</key>
     <string>Coagulation requires people</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+    <string>Display contacts near you on a map</string>
 </dict>
 </plist>
