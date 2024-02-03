@@ -1,7 +1,10 @@
+// Copyright 2024 Lukas Grossberger
 import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'cubit/profile_contact_cubit.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -17,115 +20,142 @@ Widget avatar(Contact contact,
   );
 }
 
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  Widget build(BuildContext context) => BlocProvider(
+        create: (context) => ProfileContactCubit(),
+        child: ProfileView(),
+      );
 }
 
-class _ProfilePageState extends State<ProfilePage> {
-  Contact? _profileContact;
+class ProfileView extends StatefulWidget {
+  const ProfileView({super.key});
 
   @override
-  void initState() {
-    super.initState();
-    _pickContact();
-  }
+  ProfileViewState createState() => ProfileViewState();
+}
 
-  Future<void> _pickContact() async {
-    if (await FlutterContacts.requestPermission()) {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      var profileContactID = prefs.getString('profileContactID');
-
-      if (profileContactID == null) {
-        final contact = await FlutterContacts.openExternalPick();
-        // TODO: Error handling
-        var profileContactID = contact!.id;
-        await prefs.setString('profileContactID', profileContactID);
-      }
-
-      // TODO: profileContactID is null after initial contact selection FIXME
-      final contact = await FlutterContacts.getContact(profileContactID!);
-      setState(() {
-        // TODO: Error handling
-        _profileContact = contact!;
-      });
-    } else {
-      print("Couldnt get contacts because of permission issues");
-    }
-  }
-
+class ProfileViewState extends State<ProfileView> {
   static const _textStyle = TextStyle(fontSize: 19);
+
+  Widget _buildProfileScrollView(Contact contact) => CustomScrollView(slivers: [
+        SliverFillRemaining(
+            hasScrollBody: false,
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Card(
+                      margin: const EdgeInsets.only(
+                          left: 20, right: 20, bottom: 20),
+                      child: SizedBox(
+                          child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(children: [
+                                Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: avatar(contact)),
+                                Text(
+                                  contact.displayName,
+                                  style: _textStyle,
+                                ),
+                              ])))),
+                  if (contact.phones.isNotEmpty)
+                    Card(
+                        margin: const EdgeInsets.all(20.0),
+                        child: SizedBox(
+                            child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(children: [
+                                  const Icon(Icons.phone),
+                                  ...contact.phones.map((e) => Text(
+                                      '${e.label.name.toUpperFirstCase()}: ${e.number}',
+                                      style: _textStyle))
+                                ])))),
+                  if (contact.emails.isNotEmpty)
+                    Card(
+                        margin: const EdgeInsets.all(20.0),
+                        child: SizedBox(
+                            child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(children: [
+                                  const Icon(Icons.email),
+                                  ...contact.emails.map((e) => Text(
+                                      '${e.label.name.toUpperFirstCase()}: ${e.address}',
+                                      style: _textStyle))
+                                ])))),
+                  if (contact.addresses.isNotEmpty)
+                    Card(
+                        margin: const EdgeInsets.all(20.0),
+                        child: SizedBox(
+                            child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(children: [
+                                  const Icon(Icons.home),
+                                  ...contact.addresses.map((e) => Text(
+                                      '${e.label.name.toUpperFirstCase()}: ${e.address}',
+                                      style: _textStyle))
+                                ])))),
+                ]))
+      ]);
 
   @override
   Widget build(
     BuildContext context,
   ) =>
-      (_profileContact == null)
-          ? Text("no profile contact stored")
-          : Scaffold(
-              appBar: AppBar(
-                title: Text("Profile"),
+      Scaffold(
+          appBar: AppBar(
+            title: const Text('Profile'),
+            // TODO: Add update action; use system update view
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.replay_outlined),
+                onPressed: () {
+                  context.read<ProfileContactCubit>().setContact(null);
+                },
               ),
-              body: CustomScrollView(slivers: [
-                SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Card(
-                              margin: EdgeInsets.only(
-                                  left: 20.0, right: 20.0, bottom: 20.0),
-                              child: SizedBox(
-                                  child: Padding(
-                                      padding: EdgeInsets.all(16.0),
-                                      child: Column(children: [
-                                        Padding(
-                                            padding: EdgeInsets.only(bottom: 8),
-                                            child: avatar(_profileContact!)),
-                                        Text(
-                                          _profileContact!.displayName,
-                                          style: _textStyle,
-                                        ),
-                                      ])))),
-                          if (_profileContact!.phones.isNotEmpty)
-                            Card(
-                                margin: EdgeInsets.all(20.0),
-                                child: SizedBox(
-                                    child: Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Column(children: [
-                                          Icon(Icons.phone),
-                                          ..._profileContact!.phones.map((e) =>
-                                              Text(
-                                                  '${e.label.name.toUpperFirstCase()}: ${e.number}',
-                                                  style: _textStyle))
-                                        ])))),
-                          if (_profileContact!.emails.isNotEmpty)
-                            Card(
-                                margin: EdgeInsets.all(20.0),
-                                child: SizedBox(
-                                    child: Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Column(children: [
-                                          Icon(Icons.email),
-                                          ..._profileContact!.emails.map((e) =>
-                                              Text(
-                                                  '${e.label.name.toUpperFirstCase()}: ${e.address}',
-                                                  style: _textStyle))
-                                        ])))),
-                          if (_profileContact!.addresses.isNotEmpty)
-                            Card(
-                                margin: EdgeInsets.all(20.0),
-                                child: SizedBox(
-                                    child: Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Column(children: [
-                                          Icon(Icons.home),
-                                          ..._profileContact!.addresses.map(
-                                              (e) => Text(
-                                                  '${e.label.name.toUpperFirstCase()}: ${e.address}',
-                                                  style: _textStyle))
-                                        ])))),
-                        ]))
-              ]));
+            ],
+          ),
+          body: BlocConsumer<ProfileContactCubit, ProfileContactState>(
+              listener: (context, state) async {
+            if (state.status.isUnavailable) {
+              if (await FlutterContacts.requestPermission()) {
+                context
+                    .read<ProfileContactCubit>()
+                    .setContact(await FlutterContacts.openExternalPick());
+              } else {
+                // TODO: Trigger hint about missing permission
+                return;
+              }
+            }
+          }, builder: (context, state) {
+            switch (state.status) {
+              case ProfileContactStatus.initial:
+                return Center(
+                  child: Column(children: [
+                    TextButton(
+                        onPressed:
+                            context.read<ProfileContactCubit>().updateContact,
+                        child: const Text('Pick Profile Contact')),
+                    // TODO: Add possibility to create contact in case the user does not have themselves as a contact
+                    // TextButton(
+                    //     onPressed: () => {},
+                    //     child: const Text('Create Profile Contact')),
+                  ]),
+                );
+              case ProfileContactStatus.loading:
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              case ProfileContactStatus.unavailable:
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              case ProfileContactStatus.success:
+                return Center(
+                  child: _buildProfileScrollView(state.profileContact!),
+                );
+            }
+          }));
 }

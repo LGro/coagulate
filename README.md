@@ -28,6 +28,13 @@ Also, add your secret API token to a file `android/app/src/main/res/values/devel
 <string name="mapbox_access_token">{SECRET-API-TOKEN}</string>
 ```
 
+### Building
+
+To (re-)generate all code from templates, run
+```
+flutter packages pub run build_runner build
+```
+
 ## User Stories
 
 ### Open app first time

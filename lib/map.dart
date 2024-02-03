@@ -1,3 +1,4 @@
+// Copyright 2024 Lukas Grossberger
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
