@@ -13,7 +13,7 @@ While this is still in development, you must have a clone of the [Veilid](https:
 
 For platform specific development setup, see the scripts in `./dev-setup`.
 
-To enable the Mapbox driven map view, set your secret token in `~/.grade/gradle.properties`:
+To enable the Mapbox driven map view, set your secret token in `~/.gradle/gradle.properties`:
 ```
 SDK_REGISTRY_TOKEN={SECRET-API-TOKEN}
 ```
