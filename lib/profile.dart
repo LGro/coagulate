@@ -129,7 +129,9 @@ class ProfileViewState extends State<ProfileView> {
             } else if (state.status.isCreate) {
               if (await FlutterContacts.requestPermission()) {
                 // TODO: This doesn't seem to return the contact after creation
-                context.read<ProfileContactCubit>().setContact(await FlutterContacts.openExternalInsert());
+                context
+                    .read<ProfileContactCubit>()
+                    .setContact(await FlutterContacts.openExternalInsert());
                 } else {
                 // TODO: Trigger hint about missing permission
                 return;

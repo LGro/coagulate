@@ -18,9 +18,9 @@ To enable the Mapbox driven map view, set your secret token in `~/.gradle/gradle
 SDK_REGISTRY_TOKEN={SECRET-API-TOKEN}
 ```
 
-and set the public token as an environment variable:
+and set the public token as a build argument
 ```
-COAGULATE_MAPBOX_PUBLIC_TOKEN={PUBLIC-API-TOKEN}
+--dart-define PUBLIC_ACCESS_TOKEN={PUBLIC-API-TOKEN}
 ```
 
 Also, add your secret API token to a file `android/app/src/main/res/values/developer-config.xml`:
