@@ -132,37 +132,4 @@ class _ContactListPageState extends State<ContactListPage>
     );
   }
 
-  void _handleOverflowSelected(String value) {
-    switch (value) {
-      case 'Groups':
-        Navigator.of(context).pushNamed('/groups');
-        break;
-      case 'Insert external':
-        FlutterContacts.openExternalInsert();
-        break;
-      case 'Insert external (prepopulated)':
-        FlutterContacts.openExternalInsert(
-          Contact(
-            name: Name(first: 'John', last: 'Doe'),
-            phones: [Phone('+1 555-123-4567')],
-            emails: [Email('john.doe@gmail.com')],
-            addresses: [Address('123 Main St')],
-            websites: [Website('https://flutter.dev')],
-            organizations: [
-              Organization(company: 'Flutter', title: 'Developer')
-            ],
-          ),
-        );
-        break;
-      default:
-        log('Unknown overflow menu item: $value');
-    }
-  }
-
-  static PopupMenuItem<String> _menuItemBuilder(String choice) {
-    return PopupMenuItem<String>(
-      value: choice,
-      child: Text(choice),
-    );
-  }
 }

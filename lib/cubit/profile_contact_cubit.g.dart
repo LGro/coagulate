@@ -25,7 +25,7 @@ Map<String, dynamic> _$ProfileContactStateToJson(
 
 const _$ProfileContactStatusEnumMap = {
   ProfileContactStatus.initial: 'initial',
-  ProfileContactStatus.loading: 'loading',
   ProfileContactStatus.success: 'success',
-  ProfileContactStatus.unavailable: 'unavailable',
+  ProfileContactStatus.create: 'create',
+  ProfileContactStatus.pick: 'pick',
 };

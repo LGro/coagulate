@@ -1,13 +1,13 @@
 // Copyright 2024 Lukas Grossberger
 part of 'profile_contact_cubit.dart';
 
-enum ProfileContactStatus { initial, loading, success, unavailable }
+enum ProfileContactStatus { initial, success, create, pick }
 
 extension ProfileContactStatusX on ProfileContactStatus {
   bool get isInitial => this == ProfileContactStatus.initial;
-  bool get isLoading => this == ProfileContactStatus.loading;
   bool get isSuccess => this == ProfileContactStatus.success;
-  bool get isUnavailable => this == ProfileContactStatus.unavailable;
+  bool get isCreate => this == ProfileContactStatus.create;
+  bool get isPick => this == ProfileContactStatus.pick;
 }
 
 @JsonSerializable()

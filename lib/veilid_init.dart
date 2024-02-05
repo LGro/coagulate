@@ -43,7 +43,7 @@ void _initVeilid() {
                 enabled: false,
                 level: VeilidConfigLogLevel.trace,
                 grpcEndpoint: '127.0.0.1:4317',
-                serviceName: 'VeilidChat'),
+                serviceName: 'Coagulate'),
             api: VeilidFFIConfigLoggingApi(
                 enabled: true, level: VeilidConfigLogLevel.info)));
     Veilid.instance.initializeVeilidCore(platformConfig.toJson());

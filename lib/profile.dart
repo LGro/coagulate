@@ -37,10 +37,7 @@ class ProfileView extends StatefulWidget {
   ProfileViewState createState() => ProfileViewState();
 }
 
-class ProfileViewState extends State<ProfileView> {
-  static const _textStyle = TextStyle(fontSize: 19);
-
-  Widget _buildProfileScrollView(Contact contact) => CustomScrollView(slivers: [
+Widget buildProfileScrollView(Contact contact) => CustomScrollView(slivers: [
         SliverFillRemaining(
             hasScrollBody: false,
             child: Column(
@@ -58,7 +55,7 @@ class ProfileViewState extends State<ProfileView> {
                                     child: avatar(contact)),
                                 Text(
                                   contact.displayName,
-                                  style: _textStyle,
+                                  style: TextStyle(fontSize: 19),
                                 ),
                               ])))),
                   if (contact.phones.isNotEmpty)
@@ -71,7 +68,7 @@ class ProfileViewState extends State<ProfileView> {
                                   const Icon(Icons.phone),
                                   ...contact.phones.map((e) => Text(
                                       '${e.label.name.toUpperFirstCase()}: ${e.number}',
-                                      style: _textStyle))
+                                      style: TextStyle(fontSize: 19)))
                                 ])))),
                   if (contact.emails.isNotEmpty)
                     Card(
@@ -83,7 +80,7 @@ class ProfileViewState extends State<ProfileView> {
                                   const Icon(Icons.email),
                                   ...contact.emails.map((e) => Text(
                                       '${e.label.name.toUpperFirstCase()}: ${e.address}',
-                                      style: _textStyle))
+                                      style: TextStyle(fontSize: 19)))
                                 ])))),
                   if (contact.addresses.isNotEmpty)
                     Card(
@@ -95,11 +92,12 @@ class ProfileViewState extends State<ProfileView> {
                                   const Icon(Icons.home),
                                   ...contact.addresses.map((e) => Text(
                                       '${e.label.name.toUpperFirstCase()}: ${e.address}',
-                                      style: _textStyle))
+                                      style: TextStyle(fontSize: 19)))
                                 ])))),
                 ]))
       ]);
 
+class ProfileViewState extends State<ProfileView> {
   @override
   Widget build(
     BuildContext context,
@@ -119,12 +117,20 @@ class ProfileViewState extends State<ProfileView> {
           ),
           body: BlocConsumer<ProfileContactCubit, ProfileContactState>(
               listener: (context, state) async {
-            if (state.status.isUnavailable) {
+            if (state.status.isPick) {
               if (await FlutterContacts.requestPermission()) {
                 context
                     .read<ProfileContactCubit>()
                     .setContact(await FlutterContacts.openExternalPick());
               } else {
+                // TODO: Trigger hint about missing permission
+                return;
+              }
+            } else if (state.status.isCreate) {
+              if (await FlutterContacts.requestPermission()) {
+                // TODO: This doesn't seem to return the contact after creation
+                context.read<ProfileContactCubit>().setContact(await FlutterContacts.openExternalInsert());
+                } else {
                 // TODO: Trigger hint about missing permission
                 return;
               }
@@ -136,25 +142,24 @@ class ProfileViewState extends State<ProfileView> {
                   child: Column(children: [
                     TextButton(
                         onPressed:
-                            context.read<ProfileContactCubit>().updateContact,
+                            context.read<ProfileContactCubit>().promptPick,
                         child: const Text('Pick Profile Contact')),
-                    // TODO: Add possibility to create contact in case the user does not have themselves as a contact
-                    // TextButton(
-                    //     onPressed: () => {},
-                    //     child: const Text('Create Profile Contact')),
+                   TextButton(
+                        onPressed: context.read<ProfileContactCubit>().promptCreate,
+                        child: const Text('Create Profile Contact')),
                   ]),
                 );
-              case ProfileContactStatus.loading:
+              case ProfileContactStatus.create:
                 return const Center(
                   child: CircularProgressIndicator(),
                 );
-              case ProfileContactStatus.unavailable:
+              case ProfileContactStatus.pick:
                 return const Center(
                   child: CircularProgressIndicator(),
                 );
               case ProfileContactStatus.success:
                 return Center(
-                  child: _buildProfileScrollView(state.profileContact!),
+                  child: buildProfileScrollView(state.profileContact!),
                 );
             }
           }));
