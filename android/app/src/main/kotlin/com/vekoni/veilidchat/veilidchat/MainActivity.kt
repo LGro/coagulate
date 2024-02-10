@@ -1,4 +1,4 @@
-package de.wtfeg.coagulate
+package social.coagulate
 
 import io.flutter.embedding.android.FlutterActivity
 

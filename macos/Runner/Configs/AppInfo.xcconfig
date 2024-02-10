@@ -8,7 +8,7 @@
 PRODUCT_NAME = VeilidChat
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = de.wtfeg.coagulate
+PRODUCT_BUNDLE_IDENTIFIER = social.coagulate
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2023 The VeilidChat Authors. All rights reserved.
