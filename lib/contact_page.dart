@@ -24,13 +24,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+import 'dart:convert';
+
 import 'package:after_layout/after_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:pretty_json/pretty_json.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import 'entities/local_account.dart';
 import 'proto/proto.dart' as proto;
+import 'tools/secret_crypto.dart';
+import 'veilid_support/dht_support/src/dht_record.dart';
+import 'veilid_support/dht_support/src/dht_record_pool.dart';
+import 'veilid_support/veilid_support.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -277,8 +284,47 @@ class _ContactPageState extends State<ContactPage>
               Center(
                   child: TextButton(
                 onPressed: () {},
-                child: Text("Activate NFC"),
-              ))
+                child: const Text('Activate NFC'),
+              )),
+              Center(
+                  child: TextButton(
+                    child: const Text('Create DHT Record'),
+                    onPressed: () async {
+                      final pool = await DHTRecordPool.instance();
+                      // const contactSpecificPreSharedKey = 'our secret';
+                      // final cs = await pool.veilid.bestCryptoSystem();
+                      // final contactRequestWriter = await cs.generateKeyPair();
+
+                      // final encryptedSecret = await encryptSecretToBytes(
+                      //   secret: contactRequestWriter.secret,
+                      //   cryptoKind: cs.kind(),
+                      //   encryptionKey: contactSpecificPreSharedKey,
+                      //   encryptionKeyType: EncryptionKeyType.password);
+
+                      final encryptedProfile = utf8.encode(
+                        'Secrets that should be encrypted.');
+                      final record = await pool.create();
+                      // await record.tryWriteJson((p0) => null, 'newvalue'); // how is this different?
+                      await record.eventualWriteBytes(encryptedProfile);
+                      final dhtRecordKey = record.key.toString();
+                      final dhtRecordWriterSecret = record.writer!.secret.toString();
+                      print('DHT Record Key: $dhtRecordKey');
+                      print('DHT Record Writer Secret: $dhtRecordWriterSecret');
+
+                      // Need to close before we can read.
+                      await record.close();
+
+                      // TODO: How to go from string representation back?
+                      final retrievedRecord = await pool.openRead(
+                        record.key, crypto: await DHTRecordCryptoPrivate.fromTypedKeyPair(
+                          TypedKeyPair.fromKeyPair(record.key.kind, record.writer!)));
+                      print('Retrieved Record ${retrievedRecord.key.toString()}');
+                      final recordValue = await retrievedRecord.get();
+                      print('DHT Record Value: ${utf8.decode(recordValue!)}');
+                      await retrievedRecord.delete();
+                      print('DHT Record deleted');
+                    },
+                )),
             ],
           )
         ]),
