@@ -5,19 +5,27 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
-import 'profile_contact_bloc_observer.dart';
+import 'bloc_observer.dart';
 import 'tools/loggy.dart';
 import 'veilid_init.dart';
 
 void main() async {
+  // Initialize Veilid logging
   initLoggy();
 
+  // Startup Veilid network connectivity in the background
   unawaited(initializeVeilid());
 
   // Helps ensure that getting the app docs directory works
   WidgetsFlutterBinding.ensureInitialized();
-  Bloc.observer = const ProfilecontactBlocObserver();
+
+  // Observer for logging Bloc related things
+  Bloc.observer = const CoagulateBlocObserver();
+
+  // Persistent storage via hydrated blocs
   HydratedBloc.storage = await HydratedStorage.build(
       storageDirectory: await getApplicationDocumentsDirectory());
+
+  // Let's coagulate :)
   runApp(CoagulateApp());
 }
