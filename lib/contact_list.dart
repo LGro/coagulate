@@ -1,36 +1,11 @@
-// Adapted from the MIT Licensed https://github.com/QuisApp/flutter_contacts/tree/master/example_full/lib/pages
-
-/*
-MIT License
-
-Copyright (c) 2020 Joachim Valente
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
-import 'package:flutter/material.dart';
-import 'package:flutter_contacts/contact.dart';
-import 'dart:developer';
-
+// Copyright 2024 Lukas Grossberger
 import 'package:after_layout/after_layout.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:coagulate/contact_page.dart';
+
+import 'contact_page.dart';
+import 'cubit/peer_contact_cubit.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -40,96 +15,55 @@ Widget avatar(Contact contact,
       radius: radius,
     );
   }
-  return CircleAvatar(
-    radius: radius,
-    child: Icon(defaultIcon),
-  );
+  return CircleAvatar(radius: radius, child: Icon(defaultIcon));
 }
 
 class ContactListPage extends StatefulWidget {
+  const ContactListPage({super.key});
+
   @override
   _ContactListPageState createState() => _ContactListPageState();
 }
 
 class _ContactListPageState extends State<ContactListPage>
     with AfterLayoutMixin<ContactListPage> {
-  List<Contact> _contacts = [];
-  bool _permissionDenied = false;
+  @override
+  Future<void> afterFirstLayout(BuildContext context) async { }
 
   @override
-  void initState() {
-    super.initState();
-  }
+  Widget build(BuildContext context) => 
+  BlocProvider(
+        create: (context) => PeerContactCubit()..refreshContactsFromSystem(),
+        child:  BlocConsumer<PeerContactCubit, PeerContactState>(
+    listener: (context, state) async {
+    }, builder: (context, state) {
+      FlutterContacts.addListener(
+        context.read<PeerContactCubit>().refreshContactsFromSystem);
+      switch(state.status) {
+        case PeerContactStatus.initial:
+          return const Center(child: CircularProgressIndicator());
+        case PeerContactStatus.denied:
+          return Center(child: TextButton(
+            onPressed: context.read<PeerContactCubit>().refreshContactsFromSystem,
+            child: const Text('Grant access to contacts')) );
+        case PeerContactStatus.success:
+          // TODO: Figure out sorting
+          return _body(state.contacts.values.toList());
+    }}
+    ));
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  void afterFirstLayout(BuildContext context) {
-    _fetchContacts();
-  }
-
-  Future _fetchContacts() async {
-    if (!await FlutterContacts.requestPermission()) {
-      setState(() {
-        _contacts = [];
-        _permissionDenied = true;
-      });
-      return;
-    }
-
-    await _refetchContacts();
-
-    // Listen to DB changes
-    FlutterContacts.addListener(() async {
-      print('Contacts DB changed, refecthing contacts');
-      await _refetchContacts();
-    });
-  }
-
-  Future _refetchContacts() async {
-    // First load all contacts without photo
-    await _loadContacts(false);
-
-    // Next with photo
-    await _loadContacts(true);
-  }
-
-  Future _loadContacts(bool withPhotos) async {
-    final contacts = withPhotos
-        ? (await FlutterContacts.getContacts(withThumbnail: true)).toList()
-        : (await FlutterContacts.getContacts()).toList();
-    setState(() {
-      _contacts = contacts;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => _body();
-
-  Widget _body() {
-    if (_permissionDenied) {
-      return Center(child: Text('Permission denied'));
-    }
-    if (_contacts.isEmpty) {
-      return Center(child: CircularProgressIndicator());
-    }
-    return ListView.builder(
-      itemCount: _contacts.length,
+  Widget _body(List<PeerContact>contacts) => ListView.builder(
+      itemCount: contacts.length,
       itemBuilder: (context, i) {
-        final contact = _contacts[i];
+        final contact = contacts[i];
         return ListTile(
-          leading: avatar(contact, 18.0),
-          title: Text(contact.displayName),
-          onTap: () {
-            Navigator.pushNamed(context, ContactPage.routeName,
-                arguments: PassContactPage(contact));
+          leading: avatar(contact.contact, 18),
+          title: Text(contact.contact.displayName),
+          onTap: () async {
+            await Navigator.pushNamed(context, ContactPage.routeName,
+                arguments: PassContactPage(contact.contact));
           },
         );
       },
     );
-  }
-
 }

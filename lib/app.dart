@@ -41,10 +41,10 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
   @override
   Widget build(BuildContext context) => Scaffold(
         body: [
-          ProfilePage(),
+          const ProfilePage(),
           UpdatesPage(),
           ContactListPage(),
-          MapPage(),
+          const MapPage(),
         ].elementAt(_selectedIndex),
         bottomNavigationBar: BottomNavigationBar(
           items: const [
