@@ -8,11 +8,15 @@ part of 'peer_contact_cubit.dart';
 
 PeerContact _$PeerContactFromJson(Map<String, dynamic> json) => PeerContact(
       contact: Contact.fromJson(json['contact'] as Map<String, dynamic>),
+      lng: json['lng'] as num?,
+      lat: json['lat'] as num?,
     );
 
 Map<String, dynamic> _$PeerContactToJson(PeerContact instance) =>
     <String, dynamic>{
       'contact': instance.contact.toJson(),
+      'lng': instance.lng,
+      'lat': instance.lat,
     };
 
 PeerContactState _$PeerContactStateFromJson(Map<String, dynamic> json) =>

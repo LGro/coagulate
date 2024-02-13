@@ -1,6 +1,10 @@
 // Copyright 2024 Lukas Grossberger
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+
+import 'cubit/peer_contact_cubit.dart';
 
 // TODO: Work with clusters when zoomed out
 //       https://github.com/mapbox/mapbox-maps-flutter/blob/main/example/lib/cluster.dart
@@ -29,30 +33,27 @@ class AnnotationClickListener extends OnCircleAnnotationClickListener {
 class MapPageState extends State<MapPage> {
   MapPageState();
 
-  final contactLocations = [
-    ContactLocation(8.682127, 50.110924, '2433'),
-    ContactLocation(6.682127, 45.110924, '2431'),
-  ];
-
   MapboxMap? mapboxMap;
   CircleAnnotationManager? circleAnnotationManager;
 
-  void _onMapCreated(MapboxMap mapboxMap) {
-    print(" Token");
-    print(const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN'));
+  void _onMapCreated(MapboxMap mapboxMap, List<PeerContact> contacts) {
     this.mapboxMap = mapboxMap;
     mapboxMap.annotations
         .createCircleAnnotationManager()
         .then((circleAnnotationManager) async {
-      // NOTE: There is also createMulti
-      await circleAnnotationManager.createMulti(
-        // TODO: Add text annotation with conLoc.contactId based contact name
-        contactLocations.map((conLoc) => CircleAnnotationOptions(
-          geometry: Point(coordinates: Position(conLoc.lng, conLoc.lat)).toJson(),
-          circleRadius: 12,
-          )).toList());
-      circleAnnotationManager
-          .addOnCircleAnnotationClickListener(AnnotationClickListener());
+          await circleAnnotationManager.createMulti(
+            // TODO: Add text annotation with name
+            contacts
+              .where((contact) => contact.lng != null && contact.lat !=null)
+              .map((contact) => CircleAnnotationOptions(
+                geometry: Point(
+                  coordinates: Position(contact.lng!, contact.lat!)).toJson(),
+                circleRadius: 12,
+              ))
+              .toList()
+          );
+          circleAnnotationManager
+            .addOnCircleAnnotationClickListener(AnnotationClickListener());
     });
   }
 
@@ -76,13 +77,13 @@ class MapPageState extends State<MapPage> {
   */
 
   @override
-  Widget build(BuildContext context) {
-    final MapWidget mapWidget = MapWidget(
+  Widget build(BuildContext context) => BlocProvider(
+        create: (context) => PeerContactCubit()..refreshContactsFromSystem(),
+        child:  BlocConsumer<PeerContactCubit, PeerContactState>(
+    listener: (context, state) async {
+    }, builder: (context, state) => MapWidget(
       resourceOptions: ResourceOptions(
           accessToken: const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN')),
-      onMapCreated: _onMapCreated,
-    );
-
-    return mapWidget;
-  }
+      onMapCreated: (mapboxMap) => _onMapCreated(mapboxMap, state.contacts.values.asList()),
+    )));
 }

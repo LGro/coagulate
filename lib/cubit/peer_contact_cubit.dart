@@ -26,9 +26,10 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
         state.contacts[contact.id]!.copyWith(contact: contact):
         PeerContact(contact: contact);
       };
-    // TODO: When changing a contact, switching back to the contact list and leaving it,
-    //       it seems like it can happen that this still emits a state after the contacts
-    //       have been refreshed but the view is already closed with causes an error.
+    // TODO: When changing a contact, switching back to the contact list and
+    //       leaving it, it seems like it can happen that this still emits a
+    //       state after the contacts have been refreshed but the view is
+    //       already closed with causes an error.
     emit(PeerContactState(updatedContacts, PeerContactStatus.success));
   }
 

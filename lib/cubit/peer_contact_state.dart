@@ -26,7 +26,7 @@ part of 'peer_contact_cubit.dart';
 
 @JsonSerializable()
 class PeerContact {
-  PeerContact({required this.contact});
+  PeerContact({required this.contact, this.lng, this.lat});
 
   // System contact copy
   final Contact contact;
@@ -34,6 +34,9 @@ class PeerContact {
   // final PeerDHTRecord? peerRecord;
   // DHT record where I share updates with peer
   // final MyDHTRecord? myRecord;
+
+  final num? lng;
+  final num? lat;
 
   // TODO: Add missing fields
   // - last update recieved -> when I've received the last update from the DHT (use dhtwatchvalue)
@@ -46,7 +49,8 @@ class PeerContact {
   //   - content version
   //   - + all shared fields with values
 
-  PeerContact copyWith({required Contact contact}) => PeerContact(contact:contact);
+  PeerContact copyWith({required Contact contact}) => PeerContact(
+    contact:contact, lng:lng, lat:lat);
 
   factory PeerContact.fromJson(Map<String, dynamic> json) =>
       _$PeerContactFromJson(json);
