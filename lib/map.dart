@@ -9,13 +9,6 @@ import 'cubit/peer_contact_cubit.dart';
 // TODO: Work with clusters when zoomed out
 //       https://github.com/mapbox/mapbox-maps-flutter/blob/main/example/lib/cluster.dart
 
-class ContactLocation {
-  ContactLocation(this.lng, this.lat, this.contactId);
-  final num lng;
-  final num lat;
-  final String contactId;
-}
-
 class MapPage extends StatefulWidget {
   const MapPage();
 
@@ -23,10 +16,10 @@ class MapPage extends StatefulWidget {
   State<StatefulWidget> createState() => MapPageState();
 }
 
-class AnnotationClickListener extends OnCircleAnnotationClickListener {
+class AnnotationClickListener extends OnPointAnnotationClickListener {
   @override
-  void onCircleAnnotationClick(CircleAnnotation annotation) {
-    print("onAnnotationClick, id: ${annotation.id}");
+  void onPointAnnotationClick(PointAnnotation annotation) {
+    print("onAnnotationClick, id: ${annotation.id}, ${annotation.textField}");
   }
 }
 
@@ -34,45 +27,37 @@ class MapPageState extends State<MapPage> {
   MapPageState();
 
   MapboxMap? mapboxMap;
-  CircleAnnotationManager? circleAnnotationManager;
+  PointAnnotationManager? annotationManager;
 
   void _onMapCreated(MapboxMap mapboxMap, List<PeerContact> contacts) {
     this.mapboxMap = mapboxMap;
     mapboxMap.annotations
-        .createCircleAnnotationManager()
-        .then((circleAnnotationManager) async {
-          await circleAnnotationManager.createMulti(
-            // TODO: Add text annotation with name
+        .createPointAnnotationManager()
+        .then((annotationManager) async {
+          await annotationManager.createMulti(
             contacts
               .where((contact) => contact.lng != null && contact.lat !=null)
-              .map((contact) => CircleAnnotationOptions(
+              // TODO: Somehow the point annotation doesn't show, but the circle does; double check
+              .map((contact) => PointAnnotationOptions(
                 geometry: Point(
-                  coordinates: Position(contact.lng!, contact.lat!)).toJson(),
-                circleRadius: 12,
+                  coordinates: Position(contact.lng!, contact.lat!)
+                ).toJson(),
+                textOffset: [0.0, -2.0],
+                textColor: Colors.black.value,
+                iconSize: 1.3,
+                iconOffset: [0.0, -5.0],
+                symbolSortKey: 10,
+                textField: contact.contact.displayName,
+                iconImage: Icons.favorite.toString(),
               ))
               .toList()
           );
-          circleAnnotationManager
-            .addOnCircleAnnotationClickListener(AnnotationClickListener());
+          annotationManager
+            .addOnPointAnnotationClickListener(AnnotationClickListener());
     });
   }
 
   /* Interesting things to consider for the future:
-
-  PointAnnotationOptions(
-            geometry: Point(
-                coordinates: Position(
-              0.381457,
-              6.687337,
-            )).toJson(),
-            textField: "custom-icon",
-            textOffset: [0.0, -2.0],
-            textColor: Colors.red.value,
-            iconSize: 1.3,
-            iconOffset: [0.0, -5.0],
-            symbolSortKey: 10,
-            iconImage: Icons.favorite.toString())
-
     pointAnnotationManager?.deleteAll();
   */
 
