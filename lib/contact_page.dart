@@ -24,20 +24,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import 'dart:convert';
-
-import 'package:after_layout/after_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:pretty_json/pretty_json.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import 'entities/local_account.dart';
-import 'proto/proto.dart' as proto;
-import 'tools/secret_crypto.dart';
-import 'veilid_support/dht_support/src/dht_record.dart';
-import 'veilid_support/dht_support/src/dht_record_pool.dart';
-import 'veilid_support/veilid_support.dart';
+import 'cubit/peer_contact_cubit.dart';
+import 'cubit/profile_contact_cubit.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -54,65 +48,51 @@ Widget avatar(Contact contact,
 }
 
 class PassContactPage {
-  Contact contact;
-  PassContactPage(Contact this.contact);
+  String contactId;
+  PassContactPage(String this.contactId);
 }
 
-class ContactPage extends StatefulWidget {
-  const ContactPage({super.key});
+class ContactPage extends StatelessWidget {
+  const ContactPage({required this.contactId});
 
-  static const routeName = '/contactPage';
+  final String contactId;
 
-  @override
-  _ContactPageState createState() => _ContactPageState();
-}
-
-class _ContactPageState extends State<ContactPage>
-    with AfterLayoutMixin<ContactPage> {
-  Contact? _contact;
-
-  @override
-  void afterFirstLayout(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as PassContactPage;
-    setState(() {
-      _contact = args.contact;
-    });
-    _fetchContact();
-  }
-
-  Future _fetchContact() async {
-    // First fetch all contact details
-    await _fetchContactWith(highRes: false);
-
-    // Then fetch contact with high resolution photo
-    await _fetchContactWith(highRes: true);
-  }
-
-  Future _fetchContactWith({required bool highRes}) async {
-    final contact = await FlutterContacts.getContact(
-      _contact!.id,
-      withThumbnail: !highRes,
-      withPhoto: highRes,
-      withGroups: true,
-      withAccounts: true,
-    );
-    setState(() {
-      _contact = contact;
-    });
-  }
-
-  Widget _body() {
-    if (_contact?.name == null) {
+  Widget _body(BuildContext context, PeerContact? contact) {
+    if (contact?.contact.name == null) {
       return Center(child: CircularProgressIndicator());
     }
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: _withSpacing([
-          Center(child: avatar(_contact!)),
+          Center(child: avatar(contact!.contact)),
+          Card(
+              child: Center(
+                  child: (contact.sharingProfile == 'dont' ||
+                          contact.sharingProfile == null)
+                      ? BlocConsumer<ProfileContactCubit, ProfileContactState>(
+                          listener: (context, state) async {},
+                          builder: (context, state) => TextButton(
+                              onPressed: () async => {
+                                    context.read<PeerContactCubit>().shareWithPeer(
+                                        contact.contact.id,
+                                        // Profile probably comes in here fully
+                                        // constructed to allow filtering it inside
+                                        // depending on sharing preference
+                                        // TODO: Handle when no profile contact was set
+                                        state.profileContact!.toJson().toString())
+                                  },
+                              child: const Text('Coagulate')))
+                      : TextButton(
+                          onPressed: () async => {
+                                context
+                                    .read<PeerContactCubit>()
+                                    .unshareWithPeer(contact.contact.id)
+                              },
+                          child: const Text('Dissolve')))),
           _makeCard(
               'ID',
-              [_contact!],
+              [contact!.contact],
               (x) => [
                     Divider(),
                     Text('ID: ${x.id}'),
@@ -121,7 +101,7 @@ class _ContactPageState extends State<ContactPage>
                   ]),
           _makeCard(
               'Name',
-              [_contact!.name],
+              [contact!.contact.name],
               (x) => [
                     Divider(),
                     Text('Prefix: ${x.prefix}'),
@@ -134,10 +114,10 @@ class _ContactPageState extends State<ContactPage>
                     Text('Phonetic middle: ${x.middlePhonetic}'),
                     Text('Phonetic last: ${x.lastPhonetic}'),
                   ]),
-          if (_contact!.phones.isNotEmpty)
+          if (contact!.contact.phones.isNotEmpty)
             _makeCard(
                 'Phones',
-                _contact!.phones,
+                contact!.contact.phones,
                 (x) => [
                       Divider(),
                       Text('Number: ${x.number}'),
@@ -146,10 +126,10 @@ class _ContactPageState extends State<ContactPage>
                       Text('Custom label: ${x.customLabel}'),
                       Text('Primary: ${x.isPrimary}')
                     ]),
-          if (_contact!.emails.isNotEmpty)
+          if (contact!.contact.emails.isNotEmpty)
             _makeCard(
                 'Emails',
-                _contact!.emails,
+                contact!.contact.emails,
                 (x) => [
                       Divider(),
                       Text('Address: ${x.address}'),
@@ -157,10 +137,10 @@ class _ContactPageState extends State<ContactPage>
                       Text('Custom label: ${x.customLabel}'),
                       Text('Primary: ${x.isPrimary}')
                     ]),
-          if (_contact!.addresses.isNotEmpty)
+          if (contact!.contact.addresses.isNotEmpty)
             _makeCard(
                 'Addresses',
-                _contact!.addresses,
+                contact!.contact.addresses,
                 (x) => [
                       Divider(),
                       Text('Address: ${x.address}'),
@@ -177,10 +157,10 @@ class _ContactPageState extends State<ContactPage>
                       Text('Sub admin area: ${x.subAdminArea}'),
                       Text('Sub locality: ${x.subLocality}'),
                     ]),
-          if (_contact!.organizations.isNotEmpty)
+          if (contact!.contact.organizations.isNotEmpty)
             _makeCard(
                 'Organizations',
-                _contact!.organizations,
+                contact!.contact.organizations,
                 (x) => [
                       Divider(),
                       Text('Company: ${x.company}'),
@@ -191,57 +171,57 @@ class _ContactPageState extends State<ContactPage>
                       Text('Phonetic name: ${x.phoneticName}'),
                       Text('Office location: ${x.officeLocation}'),
                     ]),
-          if (_contact!.websites.isNotEmpty)
+          if (contact!.contact.websites.isNotEmpty)
             _makeCard(
                 'Websites',
-                _contact!.websites,
+                contact!.contact.websites,
                 (x) => [
                       Divider(),
                       Text('URL: ${x.url}'),
                       Text('Label: ${x.label}'),
                       Text('Custom label: ${x.customLabel}'),
                     ]),
-          if (_contact!.socialMedias.isNotEmpty)
+          if (contact!.contact.socialMedias.isNotEmpty)
             _makeCard(
                 'Social medias',
-                _contact!.socialMedias,
+                contact!.contact.socialMedias,
                 (x) => [
                       Divider(),
                       Text('Value: ${x.userName}'),
                       Text('Label: ${x.label}'),
                       Text('Custom label: ${x.customLabel}'),
                     ]),
-          if (_contact!.events.isNotEmpty)
+          if (contact!.contact.events.isNotEmpty)
             _makeCard(
                 'Events',
-                _contact!.events,
+                contact!.contact.events,
                 (x) => [
                       Divider(),
                       // Text('Date: ${_formatDate(x)}'),
                       Text('Label: ${x.label}'),
                       Text('Custom label: ${x.customLabel}'),
                     ]),
-          if (_contact!.notes.isNotEmpty)
+          if (contact!.contact.notes.isNotEmpty)
             _makeCard(
                 'Notes',
-                _contact!.notes,
+                contact!.contact.notes,
                 (x) => [
                       Divider(),
                       Text('Note: ${x.note}'),
                     ]),
-          if (_contact!.groups.isNotEmpty)
+          if (contact!.contact.groups.isNotEmpty)
             _makeCard(
                 'Groups',
-                _contact!.groups,
+                contact!.contact.groups,
                 (x) => [
                       Divider(),
                       Text('Group ID: ${x.id}'),
                       Text('Name: ${x.name}'),
                     ]),
-          if (_contact!.accounts.isNotEmpty)
+          if (contact!.contact.accounts.isNotEmpty)
             _makeCard(
                 'Accounts',
-                _contact!.accounts,
+                contact!.contact.accounts,
                 (x) => [
                       Divider(),
                       Text('Raw IDs: ${x.rawId}'),
@@ -251,80 +231,76 @@ class _ContactPageState extends State<ContactPage>
                     ]),
           _makeCard(
               'Raw JSON',
-              [_contact!],
+              [contact!.contact],
               (x) => [
                     Divider(),
                     Text(prettyJson(
                         x.toJson(withThumbnail: false, withPhoto: false))),
                   ]),
-          // TODO: Check whether there is already a DHT location and shared secret stored;
-          // if not, display a button "Connect" first, that on tap writes to DHT and then
-          // displays the QR Code, URI and NFC options
-          _makeCard(
-            "Connect via QR Code",
-            [_contact!],
-            (x) => [
-              Center(
-                  child: QrImageView(
-                data: 'coag://locationKeyDHT-sharedSecret',
-                version: QrVersions.auto,
-                size: 200.0,
-              ))
-            ],
-          ),
-          _makeCard(
-            "Connect via Link",
-            [_contact!],
-            (x) => [Center(child: Text("coag://locationKeyDHT-sharedSecret"))],
-          ),
+          // TODO: Switch to drop down selection when profiles are ready
+          //  DropdownButton(
+          //   // TODO make state dependent
+          //   value: (c.sharingProfile == null) ? 'dont' : c.sharingProfile ,
+          //   // TODO: Get from my profile preferences
+          //   items: [
+          //     DropdownMenuItem<String>(child: Text("Nothing"), value: "dont"),
+          //     DropdownMenuItem<String>(child: Text("Friends"), value: "friends"),
+          //     DropdownMenuItem<String>(child: Text("Work"), value: "work"),
+          //     ],
+          //   onChanged: (v) => context.read<PeerContactCubit>().updateContact(
+          //     c.contact.id as String, v! as String))]),
+          if (contact.myRecord == null &&
+              contact.peerRecord == null &&
+              contact.sharingProfile != null &&
+              contact.sharingProfile != "dont")
+            // const Text('No connection; share dialog QR, NFC etc.'),
+            _makeCard(
+              "Connect via QR Code",
+              [contact!],
+              (x) => [
+                Center(
+                    child: QrImageView(
+                  data: 'coag://locationKeyDHT-sharedSecret',
+                  version: QrVersions.auto,
+                  size: 200.0,
+                ))
+              ],
+            ),
+          if (contact.myRecord == null &&
+              contact.peerRecord != null &&
+              contact.sharingProfile != null &&
+              contact.sharingProfile != "dont")
+            // const Text('They shared; share back dialog'),
+            _makeCard(
+              "Connect via QR Code",
+              [contact!],
+              (x) => [
+                Center(
+                    child: QrImageView(
+                  data: 'coag://locationKeyDHT-sharedSecret',
+                  version: QrVersions.auto,
+                  size: 200.0,
+                ))
+              ],
+            ),
+          if (contact.myRecord != null &&
+              contact.peerRecord != null &&
+              contact.sharingProfile != null &&
+              contact.sharingProfile != "dont")
+            const Text('Full on coagulation; success!'),
+          if (contact.myRecord != null &&
+              contact.sharingProfile != null &&
+              contact.sharingProfile != "dont")
+            const Text('I am sharing; stop or change sharing dialog'),
           _makeCard(
             "Connect via NFC",
-            [_contact!],
+            [contact!],
             (x) => [
               Center(
                   child: TextButton(
                 onPressed: () {},
                 child: const Text('Activate NFC'),
               )),
-              Center(
-                  child: TextButton(
-                    child: const Text('Create DHT Record'),
-                    onPressed: () async {
-                      final pool = await DHTRecordPool.instance();
-                      // const contactSpecificPreSharedKey = 'our secret';
-                      // final cs = await pool.veilid.bestCryptoSystem();
-                      // final contactRequestWriter = await cs.generateKeyPair();
-
-                      // final encryptedSecret = await encryptSecretToBytes(
-                      //   secret: contactRequestWriter.secret,
-                      //   cryptoKind: cs.kind(),
-                      //   encryptionKey: contactSpecificPreSharedKey,
-                      //   encryptionKeyType: EncryptionKeyType.password);
-
-                      final encryptedProfile = utf8.encode(
-                        'Secrets that should be encrypted.');
-                      final record = await pool.create();
-                      // await record.tryWriteJson((p0) => null, 'newvalue'); // how is this different?
-                      await record.eventualWriteBytes(encryptedProfile);
-                      final dhtRecordKey = record.key.toString();
-                      final dhtRecordWriterSecret = record.writer!.secret.toString();
-                      print('DHT Record Key: $dhtRecordKey');
-                      print('DHT Record Writer Secret: $dhtRecordWriterSecret');
-
-                      // Need to close before we can read.
-                      await record.close();
-
-                      // TODO: How to go from string representation back?
-                      final retrievedRecord = await pool.openRead(
-                        record.key, crypto: await DHTRecordCryptoPrivate.fromTypedKeyPair(
-                          TypedKeyPair.fromKeyPair(record.key.kind, record.writer!)));
-                      print('Retrieved Record ${retrievedRecord.key.toString()}');
-                      final recordValue = await retrievedRecord.get();
-                      print('DHT Record Value: ${utf8.decode(recordValue!)}');
-                      await retrievedRecord.delete();
-                      print('DHT Record deleted');
-                    },
-                )),
             ],
           )
         ]),
@@ -362,39 +338,13 @@ class _ContactPageState extends State<ContactPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return _body();
-  }
-
-  // void async _publishProfileForContact() {
-  //     final protoMessage = proto.Message()
-  //       ..author = localAccount.identityMaster
-  //           .identityPublicTypedKey()
-  //           .toProto()
-  //       ..timestamp = (await eventualVeilid.future).now().toInt64()
-  //       ..text = "Message!"
-  //       ..signature = signature;
-
-  //     final message = protoMessageToMessage(protoMessage);
-
-  //     final localConversationRecordKey = proto.TypedKeyProto.fromProto(
-  //         widget.activeChatContact.localConversationRecordKey);
-  //     final remoteIdentityPublicKey = proto.TypedKeyProto.fromProto(
-  //         widget.activeChatContact.identityPublicKey);
-
-  // final messagesRecordKey =
-  //     proto.TypedKeyProto.fromProto(protoMessage);
-  // final crypto = await getConversationCrypto(
-  //     activeAccountInfo: activeAccountInfo,
-  //     remoteIdentityPublicKey: remoteIdentityPublicKey);
-  // final writer = getConversationWriter(activeAccountInfo: activeAccountInfo);
-
-  // await (await DHTShortArray.openWrite(messagesRecordKey, writer,
-  //         parent: localConversationRecordKey, crypto: crypto))
-  //     .scope((messages) async {
-  //   await messages.tryAddItem(message.writeToBuffer());
-  // });
-
-  //     ref.invalidate(activeConversationMessagesProvider);
-  // }
+  Widget build(BuildContext context) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => PeerContactCubit()),
+            BlocProvider(create: (context) => ProfileContactCubit())
+          ],
+          child: BlocConsumer<PeerContactCubit, PeerContactState>(
+              listener: (context, state) async {},
+              builder: (context, state) => _body(context,
+                  (contactId == null) ? null : state.contacts[contactId])));
 }

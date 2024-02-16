@@ -10,7 +10,7 @@ import 'cubit/peer_contact_cubit.dart';
 //       https://github.com/mapbox/mapbox-maps-flutter/blob/main/example/lib/cluster.dart
 
 class MapPage extends StatefulWidget {
-  const MapPage();
+  const MapPage({super.key});
 
   @override
   State<StatefulWidget> createState() => MapPageState();
@@ -29,19 +29,19 @@ class MapPageState extends State<MapPage> {
   MapboxMap? mapboxMap;
   PointAnnotationManager? annotationManager;
 
-  void _onMapCreated(MapboxMap mapboxMap, List<PeerContact> contacts) {
+  Future<void> _onMapCreated(
+      MapboxMap mapboxMap, List<PeerContact> contacts) async {
     this.mapboxMap = mapboxMap;
-    mapboxMap.annotations
+    await mapboxMap.annotations
         .createPointAnnotationManager()
         .then((annotationManager) async {
-          await annotationManager.createMulti(
-            contacts
-              .where((contact) => contact.lng != null && contact.lat !=null)
-              // TODO: Somehow the point annotation doesn't show, but the circle does; double check
-              .map((contact) => PointAnnotationOptions(
-                geometry: Point(
-                  coordinates: Position(contact.lng!, contact.lat!)
-                ).toJson(),
+      await annotationManager.createMulti(contacts
+          .where((contact) => contact.lng != null && contact.lat != null)
+          // TODO: Somehow the point annotation doesn't show, but the circle does; double check
+          .map((contact) => PointAnnotationOptions(
+                geometry:
+                    Point(coordinates: Position(contact.lng!, contact.lat!))
+                        .toJson(),
                 textOffset: [0.0, -2.0],
                 textColor: Colors.black.value,
                 iconSize: 1.3,
@@ -50,25 +50,22 @@ class MapPageState extends State<MapPage> {
                 textField: contact.contact.displayName,
                 iconImage: Icons.favorite.toString(),
               ))
-              .toList()
-          );
-          annotationManager
-            .addOnPointAnnotationClickListener(AnnotationClickListener());
+          .toList());
+      annotationManager
+          .addOnPointAnnotationClickListener(AnnotationClickListener());
     });
   }
 
-  /* Interesting things to consider for the future:
-    pointAnnotationManager?.deleteAll();
-  */
-
   @override
   Widget build(BuildContext context) => BlocProvider(
-        create: (context) => PeerContactCubit()..refreshContactsFromSystem(),
-        child:  BlocConsumer<PeerContactCubit, PeerContactState>(
-    listener: (context, state) async {
-    }, builder: (context, state) => MapWidget(
-      resourceOptions: ResourceOptions(
-          accessToken: const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN')),
-      onMapCreated: (mapboxMap) => _onMapCreated(mapboxMap, state.contacts.values.asList()),
-    )));
+      create: (context) => PeerContactCubit()..refreshContactsFromSystem(),
+      child: BlocConsumer<PeerContactCubit, PeerContactState>(
+          listener: (context, state) async {},
+          builder: (context, state) => MapWidget(
+                resourceOptions: ResourceOptions(
+                    accessToken: const String.fromEnvironment(
+                        'COAGULATE_MAPBOX_PUBLIC_TOKEN')),
+                onMapCreated: (mapboxMap) async =>
+                    _onMapCreated(mapboxMap, state.contacts.values.asList()),
+              )));
 }

@@ -31,12 +31,12 @@ class _ContactListPageState extends State<ContactListPage>
   Future<void> afterFirstLayout(BuildContext context) async { }
 
   @override
-  Widget build(BuildContext context) => 
-  BlocProvider(
+  Widget build(BuildContext context) => BlocProvider(
         create: (context) => PeerContactCubit()..refreshContactsFromSystem(),
         child:  BlocConsumer<PeerContactCubit, PeerContactState>(
     listener: (context, state) async {
     }, builder: (context, state) {
+      // TODO: Is  this in the right place, here?
       FlutterContacts.addListener(
         context.read<PeerContactCubit>().refreshContactsFromSystem);
       switch(state.status) {
@@ -60,8 +60,11 @@ class _ContactListPageState extends State<ContactListPage>
           leading: avatar(contact.contact, 18),
           title: Text(contact.contact.displayName),
           onTap: () async {
-            await Navigator.pushNamed(context, ContactPage.routeName,
-                arguments: PassContactPage(contact.contact));
+            await Navigator.push(context, 
+            MaterialPageRoute(
+                  builder: (_) => ContactPage(contactId: contact.contact.id),
+                ),
+            );
           },
         );
       },

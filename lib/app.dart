@@ -1,15 +1,14 @@
 // Copyright 2024 Lukas Grossberger
 import 'package:flutter/material.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:path_provider/path_provider.dart';
 
 import 'contact_list.dart';
-import 'contact_page.dart';
 import 'map.dart';
 import 'profile.dart';
 import 'updates.dart';
 
 class CoagulateApp extends StatelessWidget {
+  const CoagulateApp({super.key});
+
   @override
   Widget build(BuildContext context) => MaterialApp(
         title: 'Coagulate',
@@ -17,10 +16,6 @@ class CoagulateApp extends StatelessWidget {
           primarySwatch: Colors.blue,
         ),
         home: CoagulateAppView(),
-        // https://docs.flutter.dev/cookbook/navigation/navigate-with-arguments
-        routes: {
-          ContactPage.routeName: (context) => const ContactPage(),
-        },
       );
 }
 
