@@ -38,6 +38,7 @@ class MyDHTRecord {
   Map<String, dynamic> toJson() => _$MyDHTRecordToJson(this);
 }
 
+// TODO: Add state to allow displaying loading while coagulating indicator
 @JsonSerializable()
 class PeerContact {
   // TODO: Add constructor with everything, but remove sharing profile here to allow for default value

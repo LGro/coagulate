@@ -66,30 +66,33 @@ class ContactPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: _withSpacing([
           Center(child: avatar(contact!.contact)),
-          Card(
-              child: Center(
-                  child: (contact.sharingProfile == 'dont' ||
-                          contact.sharingProfile == null)
-                      ? BlocConsumer<ProfileContactCubit, ProfileContactState>(
-                          listener: (context, state) async {},
-                          builder: (context, state) => TextButton(
-                              onPressed: () async => {
-                                    context.read<PeerContactCubit>().shareWithPeer(
-                                        contact.contact.id,
-                                        // Profile probably comes in here fully
-                                        // constructed to allow filtering it inside
-                                        // depending on sharing preference
-                                        // TODO: Handle when no profile contact was set
-                                        state.profileContact!.toJson().toString())
-                                  },
-                              child: const Text('Coagulate')))
-                      : TextButton(
-                          onPressed: () async => {
-                                context
-                                    .read<PeerContactCubit>()
-                                    .unshareWithPeer(contact.contact.id)
-                              },
-                          child: const Text('Dissolve')))),
+          BlocConsumer<ProfileContactCubit, ProfileContactState>(
+              listener: (context, state) async {},
+              builder: (context, state) => (state.profileContact == null)
+                  ? const Card(
+                      child: Text(
+                          'Need to pick profile contact before coagulate.'))
+                  : Card(
+                      child: Center(
+                          child: (contact.sharingProfile == 'dont' ||
+                                  contact.sharingProfile == null)
+                              ? TextButton(
+                                  onPressed: () async => {
+                                        context.read<PeerContactCubit>().shareWithPeer(
+                                            contact.contact.id,
+                                            // Profile probably comes in here fully
+                                            // constructed to allow filtering it inside
+                                            // depending on sharing preference
+                                            state.profileContact!.displayName)
+                                      },
+                                  child: const Text('Coagulate'))
+                              : TextButton(
+                                  onPressed: () async => {
+                                        context
+                                            .read<PeerContactCubit>()
+                                            .unshareWithPeer(contact.contact.id)
+                                      },
+                                  child: const Text('Dissolve'))))),
           _makeCard(
               'ID',
               [contact!.contact],

@@ -67,12 +67,10 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
       myRecord = MyDHTRecord(
           key: myRecord.key,
           writer: myRecord.writer,
-          // TODO: Generate proper secret from strong rng
+          // TODO: Double check if this is strong enough
           psk: randomBytes(32).toString());
     }
-
-    // TODO: Use the actual profile info
-    await updateDHTRecord(contact.myRecord!, profileJson);
+    await updateDHTRecord(myRecord, profileJson);
 
     // TODO: Set sharing profile when feature available
     state.contacts[contactId] =
@@ -119,12 +117,12 @@ Future<(String, String)> createDHTRecord() async {
 
 Future<void> updateDHTRecord(MyDHTRecord myRecordInfo, String profile) async {
   final _key = Typed<FixedEncodedString43>.fromString(myRecordInfo.key);
+  final writer = KeyPair.fromString(myRecordInfo.writer);
   final pool = await DHTRecordPool.instance();
-  // TODO: Is the record crypto really needed when we do veilid independent psk enc?
-  final record = await pool.openRead(_key,
+  final record = await pool.openWrite(_key, writer,
+      // TODO: Is the record crypto really needed when we do veilid independent psk enc?
       crypto: await DHTRecordCryptoPrivate.fromTypedKeyPair(
-          TypedKeyPair.fromKeyPair(
-              _key.kind, KeyPair.fromString(myRecordInfo.writer))));
+          TypedKeyPair.fromKeyPair(_key.kind, writer)));
 
   final cs = await pool.veilid.bestCryptoSystem();
   // TODO: Ensure via type that psk is available
