@@ -78,12 +78,10 @@ class ContactPage extends StatelessWidget {
                                   contact.sharingProfile == null)
                               ? TextButton(
                                   onPressed: () async => {
-                                        context.read<PeerContactCubit>().shareWithPeer(
-                                            contact.contact.id,
-                                            // Profile probably comes in here fully
-                                            // constructed to allow filtering it inside
-                                            // depending on sharing preference
-                                            state.profileContact!.displayName)
+                                        context
+                                            .read<PeerContactCubit>()
+                                            .shareWithPeer(contact.contact.id,
+                                                state.profileContact!)
                                       },
                                   child: const Text('Coagulate'))
                               : TextButton(

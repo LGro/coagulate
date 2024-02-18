@@ -15,6 +15,7 @@ final class ProfileContactState extends Equatable {
   ProfileContactState({
     this.status = ProfileContactStatus.initial,
     this.profileContact,
+    this.locationCoordinates,
   });
 
   factory ProfileContactState.fromJson(Map<String, dynamic> json) =>
@@ -22,16 +23,20 @@ final class ProfileContactState extends Equatable {
 
   final ProfileContactStatus status;
   final Contact? profileContact;
+  final Map<String, (num, num)>? locationCoordinates;
 
   ProfileContactState copyWith(
-          {ProfileContactStatus? status, Contact? profileContact}) =>
+          {ProfileContactStatus? status,
+          Contact? profileContact,
+          Map<String, (num, num)>? locationCoordinates}) =>
       ProfileContactState(
         status: status ?? this.status,
         profileContact: profileContact ?? this.profileContact,
+        locationCoordinates: locationCoordinates ?? this.locationCoordinates,
       );
 
   Map<String, dynamic> toJson() => _$ProfileContactStateToJson(this);
 
   @override
-  List<Object?> get props => [status, profileContact];
+  List<Object?> get props => [status, profileContact, locationCoordinates];
 }

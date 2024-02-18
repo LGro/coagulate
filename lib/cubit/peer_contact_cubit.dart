@@ -12,6 +12,16 @@ import '../veilid_support/veilid_support.dart';
 part 'peer_contact_cubit.g.dart';
 part 'peer_contact_state.dart';
 
+String generateProfileJsonForSharing(Contact profile, String? shareProfile) {
+  final profileJson = <String, dynamic>{};
+  // TODO: Replace with shareProfile dependent filtering
+  profileJson['name'] = profile.name.toJson();
+  profileJson['emails'] = profile.emails.map((e) => e.toJson());
+  profileJson['phones'] = profile.phones.map((p) => p.toJson());
+  final profileJsonString = const JsonEncoder().convert(profileJson);
+  return profileJsonString;
+}
+
 class PeerContactCubit extends HydratedCubit<PeerContactState> {
   PeerContactCubit()
       : super(const PeerContactState({}, PeerContactStatus.initial));
@@ -48,7 +58,7 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
     emit(PeerContactState(state.contacts, PeerContactStatus.success));
   }
 
-  Future<void> shareWithPeer(String contactId, String profileJson) async {
+  Future<void> shareWithPeer(String contactId, Contact profileContact) async {
     if (!state.contacts.containsKey(contactId)) {
       // TODO: Log because this shouldn't happen
       return;
@@ -70,6 +80,7 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
           // TODO: Double check if this is strong enough
           psk: randomBytes(32).toString());
     }
+    final profileJson = generateProfileJsonForSharing(profileContact, null);
     await updateDHTRecord(myRecord, profileJson);
 
     // TODO: Set sharing profile when feature available

@@ -37,65 +37,118 @@ class ProfileView extends StatefulWidget {
   ProfileViewState createState() => ProfileViewState();
 }
 
-Widget buildProfileScrollView(Contact contact) => CustomScrollView(slivers: [
-        SliverFillRemaining(
-            hasScrollBody: false,
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Card(
-                      margin: const EdgeInsets.only(
-                          left: 20, right: 20, bottom: 20),
-                      child: SizedBox(
-                          child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(children: [
-                                Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: avatar(contact)),
-                                Text(
-                                  contact.displayName,
-                                  style: TextStyle(fontSize: 19),
-                                ),
-                              ])))),
-                  if (contact.phones.isNotEmpty)
-                    Card(
-                        margin: const EdgeInsets.all(20.0),
-                        child: SizedBox(
-                            child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(children: [
-                                  const Icon(Icons.phone),
-                                  ...contact.phones.map((e) => Text(
-                                      '${e.label.name.toUpperFirstCase()}: ${e.number}',
-                                      style: TextStyle(fontSize: 19)))
-                                ])))),
-                  if (contact.emails.isNotEmpty)
-                    Card(
-                        margin: const EdgeInsets.all(20.0),
-                        child: SizedBox(
-                            child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(children: [
-                                  const Icon(Icons.email),
-                                  ...contact.emails.map((e) => Text(
+Widget buildProfileScrollView(BuildContext context, Contact contact,
+        Map<String, (num, num)>? locationCoordinates) =>
+    CustomScrollView(slivers: [
+      SliverFillRemaining(
+          hasScrollBody: false,
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Card(
+                margin: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                child: SizedBox(
+                    child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(children: [
+                          Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: avatar(contact)),
+                          Text(
+                            contact.displayName,
+                            style: TextStyle(fontSize: 19),
+                          ),
+                        ])))),
+            if (contact.phones.isNotEmpty)
+              Card(
+                  margin: const EdgeInsets.all(20.0),
+                  child: SizedBox(
+                      child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(children: [
+                            const Icon(Icons.phone),
+                            ...contact.phones.map((e) => Text(
+                                '${e.label.name.toUpperFirstCase()}: ${e.number}',
+                                style: TextStyle(fontSize: 19)))
+                          ])))),
+            if (contact.emails.isNotEmpty)
+              Card(
+                  margin: const EdgeInsets.all(20.0),
+                  child: SizedBox(
+                      child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(children: [
+                            const Icon(Icons.email),
+                            ...contact.emails.map((e) => Text(
+                                '${e.label.name.toUpperFirstCase()}: ${e.address}',
+                                style: TextStyle(fontSize: 19)))
+                          ])))),
+            if (contact.addresses.isNotEmpty)
+              Card(
+                  margin: const EdgeInsets.all(20.0),
+                  child: SizedBox(
+                      child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(children: [
+                            const Icon(Icons.home),
+                            ...contact.addresses.map((e) => Column(children: [
+                                  Text(
                                       '${e.label.name.toUpperFirstCase()}: ${e.address}',
-                                      style: TextStyle(fontSize: 19)))
-                                ])))),
-                  if (contact.addresses.isNotEmpty)
-                    Card(
-                        margin: const EdgeInsets.all(20.0),
-                        child: SizedBox(
-                            child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(children: [
-                                  const Icon(Icons.home),
-                                  ...contact.addresses.map((e) => Text(
-                                      '${e.label.name.toUpperFirstCase()}: ${e.address}',
-                                      style: TextStyle(fontSize: 19)))
-                                ])))),
-                ]))
-      ]);
+                                      style: TextStyle(fontSize: 19)),
+                                  const Text(
+                                      "Coordinates to appear on others' map:"),
+                                  Row(
+                                    children: [
+                                      SizedBox(
+                                          width: 100,
+                                          child: TextField(
+                                              controller: TextEditingController(
+                                                  text: (locationCoordinates !=
+                                                              null &&
+                                                          locationCoordinates
+                                                              .containsKey(
+                                                                  e.label))
+                                                      ? '${locationCoordinates[e.label.toString()]}'
+                                                      : ''),
+                                              obscureText: true,
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: 'Lng',
+                                              ))),
+                                      SizedBox(
+                                          width: 100,
+                                          child: TextField(
+                                              controller: TextEditingController(
+                                                  text: (locationCoordinates !=
+                                                              null &&
+                                                          locationCoordinates
+                                                              .containsKey(e
+                                                                  .label
+                                                                  .toString()))
+                                                      ? '${locationCoordinates[e.label.toString()]}'
+                                                      : ''),
+                                              obscureText: true,
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: 'Lat',
+                                              ))),
+                                      TextButton(
+                                          // TODO: Handle update
+                                          onPressed: null,
+                                          child: Text('Update'))
+                                    ],
+                                  ),
+                                  TextButton(
+                                      child:
+                                          const Text('Auto Fetch Coordinates'),
+                                      // TODO: Switch to address index instead of label?
+                                      //       Can there be duplicates?
+                                      onPressed: () => context
+                                          .read<ProfileContactCubit>()
+                                          .fetchCoordinates(e.label.name))
+                                ]))
+                          ])))),
+          ]))
+    ]);
 
 class ProfileViewState extends State<ProfileView> {
   @override
@@ -132,7 +185,7 @@ class ProfileViewState extends State<ProfileView> {
                 context
                     .read<ProfileContactCubit>()
                     .setContact(await FlutterContacts.openExternalInsert());
-                } else {
+              } else {
                 // TODO: Trigger hint about missing permission
                 return;
               }
@@ -146,8 +199,9 @@ class ProfileViewState extends State<ProfileView> {
                         onPressed:
                             context.read<ProfileContactCubit>().promptPick,
                         child: const Text('Pick Profile Contact')),
-                   TextButton(
-                        onPressed: context.read<ProfileContactCubit>().promptCreate,
+                    TextButton(
+                        onPressed:
+                            context.read<ProfileContactCubit>().promptCreate,
                         child: const Text('Create Profile Contact')),
                   ]),
                 );
@@ -161,7 +215,8 @@ class ProfileViewState extends State<ProfileView> {
                 );
               case ProfileContactStatus.success:
                 return Center(
-                  child: buildProfileScrollView(state.profileContact!),
+                  child: buildProfileScrollView(context, state.profileContact!,
+                      state.locationCoordinates),
                 );
             }
           }));
