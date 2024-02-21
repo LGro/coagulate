@@ -47,6 +47,9 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
     //       leaving it, it seems like it can happen that this still emits a
     //       state after the contacts have been refreshed but the view is
     //       already closed with causes an error.
+    //       It also happens when a contact is updated in the address book in
+    //       the background.
+    //       https://stackoverflow.com/questions/55536461/flutter-unhandled-exception-bad-state-cannot-add-new-events-after-calling-clo
     emit(PeerContactState(updatedContacts, PeerContactStatus.success));
   }
 

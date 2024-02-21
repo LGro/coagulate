@@ -20,6 +20,128 @@ Widget avatar(Contact contact,
   );
 }
 
+Widget _emails(List<Email> emails) => Card(
+    color: Colors.white,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+    child: SizedBox(
+        child: Padding(
+            padding: const EdgeInsets.all(16),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              ...emails.map((e) => Text(
+                  '${e.label.name.toUpperFirstCase()}: ${e.address}',
+                  style: TextStyle(fontSize: 19)))
+            ]))));
+
+Widget _phones(List<Phone> phones) => Card(
+    color: Colors.white,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+    child: SizedBox(
+        child: Padding(
+            padding: const EdgeInsets.all(16),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              ...phones.map((e) => Text(
+                  '${e.label.name.toUpperFirstCase()}: ${e.number}',
+                  style: TextStyle(fontSize: 19)))
+            ]))));
+
+String _commaToNewline(String s) =>
+    s.replaceAll(', ', ',').replaceAll(',', "\n");
+
+Widget _addresses(BuildContext context, List<Address> addresses,
+        Map<String, (num, num)>? locationCoordinates) =>
+    Card(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        child: SizedBox(
+            child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ...addresses.map((e) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    (e.label.name != 'custom')
+                                        ? '${e.label.name.toUpperFirstCase()}:\n' +
+                                            _commaToNewline(e.address)
+                                        : '${e.customLabel.toUpperFirstCase()}:\n' +
+                                            _commaToNewline(e.address),
+                                    style: TextStyle(fontSize: 19)),
+                                const Text(
+                                    "Coordinates to appear on others' map:"),
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                        width: 100,
+                                        child: TextField(
+                                            controller: TextEditingController(
+                                                text: (locationCoordinates !=
+                                                            null &&
+                                                        locationCoordinates
+                                                            .containsKey(
+                                                                e.label))
+                                                    ? '${locationCoordinates[e.label.toString()]}'
+                                                    : ''),
+                                            obscureText: true,
+                                            decoration: InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: 'Lng',
+                                            ))),
+                                    SizedBox(
+                                        width: 100,
+                                        child: TextField(
+                                            controller: TextEditingController(
+                                                text: (locationCoordinates !=
+                                                            null &&
+                                                        locationCoordinates
+                                                            .containsKey(e.label
+                                                                .toString()))
+                                                    ? '${locationCoordinates[e.label.toString()]}'
+                                                    : ''),
+                                            obscureText: true,
+                                            decoration: InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: 'Lat',
+                                            ))),
+                                    TextButton(
+                                        // TODO: Handle update
+                                        onPressed: null,
+                                        child: Text('Update'))
+                                  ],
+                                ),
+                                TextButton(
+                                    child: const Text('Auto Fetch Coordinates'),
+                                    // TODO: Switch to address index instead of label?
+                                    //       Can there be duplicates?
+                                    onPressed: () => context
+                                        .read<ProfileContactCubit>()
+                                        .fetchCoordinates(e.label.name))
+                              ]))
+                    ]))));
+
+Widget _header(Contact contact) => Card(
+    color: Colors.white,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+    child: SizedBox(
+        child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(children: [
+              Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: avatar(contact)),
+              Text(
+                contact.displayName,
+                style: const TextStyle(fontSize: 19),
+              ),
+            ]))));
+
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
@@ -44,109 +166,11 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
           hasScrollBody: false,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Card(
-                margin: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-                child: SizedBox(
-                    child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(children: [
-                          Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: avatar(contact)),
-                          Text(
-                            contact.displayName,
-                            style: TextStyle(fontSize: 19),
-                          ),
-                        ])))),
-            if (contact.phones.isNotEmpty)
-              Card(
-                  margin: const EdgeInsets.all(20.0),
-                  child: SizedBox(
-                      child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(children: [
-                            const Icon(Icons.phone),
-                            ...contact.phones.map((e) => Text(
-                                '${e.label.name.toUpperFirstCase()}: ${e.number}',
-                                style: TextStyle(fontSize: 19)))
-                          ])))),
-            if (contact.emails.isNotEmpty)
-              Card(
-                  margin: const EdgeInsets.all(20.0),
-                  child: SizedBox(
-                      child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(children: [
-                            const Icon(Icons.email),
-                            ...contact.emails.map((e) => Text(
-                                '${e.label.name.toUpperFirstCase()}: ${e.address}',
-                                style: TextStyle(fontSize: 19)))
-                          ])))),
+            _header(contact),
+            if (contact.phones.isNotEmpty) _phones(contact.phones),
+            if (contact.emails.isNotEmpty) _emails(contact.emails),
             if (contact.addresses.isNotEmpty)
-              Card(
-                  margin: const EdgeInsets.all(20.0),
-                  child: SizedBox(
-                      child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(children: [
-                            const Icon(Icons.home),
-                            ...contact.addresses.map((e) => Column(children: [
-                                  Text(
-                                      '${e.label.name.toUpperFirstCase()}: ${e.address}',
-                                      style: TextStyle(fontSize: 19)),
-                                  const Text(
-                                      "Coordinates to appear on others' map:"),
-                                  Row(
-                                    children: [
-                                      SizedBox(
-                                          width: 100,
-                                          child: TextField(
-                                              controller: TextEditingController(
-                                                  text: (locationCoordinates !=
-                                                              null &&
-                                                          locationCoordinates
-                                                              .containsKey(
-                                                                  e.label))
-                                                      ? '${locationCoordinates[e.label.toString()]}'
-                                                      : ''),
-                                              obscureText: true,
-                                              decoration: InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: 'Lng',
-                                              ))),
-                                      SizedBox(
-                                          width: 100,
-                                          child: TextField(
-                                              controller: TextEditingController(
-                                                  text: (locationCoordinates !=
-                                                              null &&
-                                                          locationCoordinates
-                                                              .containsKey(e
-                                                                  .label
-                                                                  .toString()))
-                                                      ? '${locationCoordinates[e.label.toString()]}'
-                                                      : ''),
-                                              obscureText: true,
-                                              decoration: InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: 'Lat',
-                                              ))),
-                                      TextButton(
-                                          // TODO: Handle update
-                                          onPressed: null,
-                                          child: Text('Update'))
-                                    ],
-                                  ),
-                                  TextButton(
-                                      child:
-                                          const Text('Auto Fetch Coordinates'),
-                                      // TODO: Switch to address index instead of label?
-                                      //       Can there be duplicates?
-                                      onPressed: () => context
-                                          .read<ProfileContactCubit>()
-                                          .fetchCoordinates(e.label.name))
-                                ]))
-                          ])))),
+              _addresses(context, contact.addresses, locationCoordinates),
           ]))
     ]);
 
@@ -157,9 +181,15 @@ class ProfileViewState extends State<ProfileView> {
   ) =>
       Scaffold(
           appBar: AppBar(
-            title: const Text('Profile'),
+            title: const Text('My Profile'),
             // TODO: Add update action; use system update view
             actions: [
+              IconButton(
+                icon: const Icon(Icons.add_task_rounded),
+                onPressed: () {
+                  // TODO: Manage profile sharing settings
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.replay_outlined),
                 onPressed: () {
