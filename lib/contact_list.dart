@@ -28,45 +28,53 @@ class ContactListPage extends StatefulWidget {
 class _ContactListPageState extends State<ContactListPage>
     with AfterLayoutMixin<ContactListPage> {
   @override
-  Future<void> afterFirstLayout(BuildContext context) async { }
+  Future<void> afterFirstLayout(BuildContext context) async {}
 
   @override
-  Widget build(BuildContext context) => BlocProvider(
-        create: (context) => PeerContactCubit()..refreshContactsFromSystem(),
-        child:  BlocConsumer<PeerContactCubit, PeerContactState>(
-    listener: (context, state) async {
-    }, builder: (context, state) {
-      // TODO: Is  this in the right place, here?
-      FlutterContacts.addListener(
-        context.read<PeerContactCubit>().refreshContactsFromSystem);
-      switch(state.status) {
-        case PeerContactStatus.initial:
-          return const Center(child: CircularProgressIndicator());
-        case PeerContactStatus.denied:
-          return Center(child: TextButton(
-            onPressed: context.read<PeerContactCubit>().refreshContactsFromSystem,
-            child: const Text('Grant access to contacts')) );
-        case PeerContactStatus.success:
-          // TODO: Figure out sorting
-          return _body(state.contacts.values.toList());
-    }}
-    ));
+  Widget build(BuildContext context) => Scaffold(
+      appBar: AppBar(
+        title: const Text('Contacts'),
+      ),
+      body: BlocProvider(
+          create: (context) => PeerContactCubit()..refreshContactsFromSystem(),
+          child: BlocConsumer<PeerContactCubit, PeerContactState>(
+              listener: (context, state) async {},
+              builder: (context, state) {
+                // TODO: Is  this in the right place, here?
+                FlutterContacts.addListener(
+                    context.read<PeerContactCubit>().refreshContactsFromSystem);
+                switch (state.status) {
+                  case PeerContactStatus.initial:
+                    return const Center(child: CircularProgressIndicator());
+                  case PeerContactStatus.denied:
+                    return Center(
+                        child: TextButton(
+                            onPressed: context
+                                .read<PeerContactCubit>()
+                                .refreshContactsFromSystem,
+                            child: const Text('Grant access to contacts')));
+                  case PeerContactStatus.success:
+                    // TODO: Figure out sorting
+                    return _body(state.contacts.values.toList());
+                }
+              })));
 
-  Widget _body(List<PeerContact>contacts) => ListView.builder(
-      itemCount: contacts.length,
-      itemBuilder: (context, i) {
-        final contact = contacts[i];
-        return ListTile(
-          leading: avatar(contact.contact, 18),
-          title: Text(contact.contact.displayName),
-          onTap: () async {
-            await Navigator.push(context, 
-            MaterialPageRoute(
+  Widget _body(List<PeerContact> contacts) => ListView.builder(
+        itemCount: contacts.length,
+        itemBuilder: (context, i) {
+          final contact = contacts[i];
+          return ListTile(
+            leading: avatar(contact.contact, 18),
+            title: Text(contact.contact.displayName),
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
                   builder: (_) => ContactPage(contactId: contact.contact.id),
                 ),
-            );
-          },
-        );
-      },
-    );
+              );
+            },
+          );
+        },
+      );
 }

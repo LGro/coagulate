@@ -1,37 +1,12 @@
-// Adapted from the MIT Licensed https://github.com/QuisApp/flutter_contacts/tree/master/example_full/lib/pages
-
-/*
-MIT License
-
-Copyright (c) 2020 Joachim Valente
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
+// Copyright 2024 Lukas Grossberger
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:pretty_json/pretty_json.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'cubit/peer_contact_cubit.dart';
 import 'cubit/profile_contact_cubit.dart';
+import 'profile.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -59,12 +34,12 @@ class ContactPage extends StatelessWidget {
 
   Widget _body(BuildContext context, PeerContact? contact) {
     if (contact?.contact.name == null) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: _withSpacing([
+        children: [
           Center(child: avatar(contact!.contact)),
           BlocConsumer<ProfileContactCubit, ProfileContactState>(
               listener: (context, state) async {},
@@ -91,153 +66,10 @@ class ContactPage extends StatelessWidget {
                                             .unshareWithPeer(contact.contact.id)
                                       },
                                   child: const Text('Dissolve'))))),
-          _makeCard(
-              'ID',
-              [contact!.contact],
-              (x) => [
-                    Divider(),
-                    Text('ID: ${x.id}'),
-                    Text('Display name: ${x.displayName}'),
-                    Text('Starred: ${x.isStarred}'),
-                  ]),
-          _makeCard(
-              'Name',
-              [contact!.contact.name],
-              (x) => [
-                    Divider(),
-                    Text('Prefix: ${x.prefix}'),
-                    Text('First: ${x.first}'),
-                    Text('Middle: ${x.middle}'),
-                    Text('Last: ${x.last}'),
-                    Text('Suffix: ${x.suffix}'),
-                    Text('Nickname: ${x.nickname}'),
-                    Text('Phonetic first: ${x.firstPhonetic}'),
-                    Text('Phonetic middle: ${x.middlePhonetic}'),
-                    Text('Phonetic last: ${x.lastPhonetic}'),
-                  ]),
-          if (contact!.contact.phones.isNotEmpty)
-            _makeCard(
-                'Phones',
-                contact!.contact.phones,
-                (x) => [
-                      Divider(),
-                      Text('Number: ${x.number}'),
-                      Text('Normalized number: ${x.normalizedNumber}'),
-                      Text('Label: ${x.label}'),
-                      Text('Custom label: ${x.customLabel}'),
-                      Text('Primary: ${x.isPrimary}')
-                    ]),
-          if (contact!.contact.emails.isNotEmpty)
-            _makeCard(
-                'Emails',
-                contact!.contact.emails,
-                (x) => [
-                      Divider(),
-                      Text('Address: ${x.address}'),
-                      Text('Label: ${x.label}'),
-                      Text('Custom label: ${x.customLabel}'),
-                      Text('Primary: ${x.isPrimary}')
-                    ]),
-          if (contact!.contact.addresses.isNotEmpty)
-            _makeCard(
-                'Addresses',
-                contact!.contact.addresses,
-                (x) => [
-                      Divider(),
-                      Text('Address: ${x.address}'),
-                      Text('Label: ${x.label}'),
-                      Text('Custom label: ${x.customLabel}'),
-                      Text('Street: ${x.street}'),
-                      Text('PO box: ${x.pobox}'),
-                      Text('Neighborhood: ${x.neighborhood}'),
-                      Text('City: ${x.city}'),
-                      Text('State: ${x.state}'),
-                      Text('Postal code: ${x.postalCode}'),
-                      Text('Country: ${x.country}'),
-                      Text('ISO country: ${x.isoCountry}'),
-                      Text('Sub admin area: ${x.subAdminArea}'),
-                      Text('Sub locality: ${x.subLocality}'),
-                    ]),
-          if (contact!.contact.organizations.isNotEmpty)
-            _makeCard(
-                'Organizations',
-                contact!.contact.organizations,
-                (x) => [
-                      Divider(),
-                      Text('Company: ${x.company}'),
-                      Text('Title: ${x.title}'),
-                      Text('Department: ${x.department}'),
-                      Text('Job description: ${x.jobDescription}'),
-                      Text('Symbol: ${x.symbol}'),
-                      Text('Phonetic name: ${x.phoneticName}'),
-                      Text('Office location: ${x.officeLocation}'),
-                    ]),
-          if (contact!.contact.websites.isNotEmpty)
-            _makeCard(
-                'Websites',
-                contact!.contact.websites,
-                (x) => [
-                      Divider(),
-                      Text('URL: ${x.url}'),
-                      Text('Label: ${x.label}'),
-                      Text('Custom label: ${x.customLabel}'),
-                    ]),
-          if (contact!.contact.socialMedias.isNotEmpty)
-            _makeCard(
-                'Social medias',
-                contact!.contact.socialMedias,
-                (x) => [
-                      Divider(),
-                      Text('Value: ${x.userName}'),
-                      Text('Label: ${x.label}'),
-                      Text('Custom label: ${x.customLabel}'),
-                    ]),
-          if (contact!.contact.events.isNotEmpty)
-            _makeCard(
-                'Events',
-                contact!.contact.events,
-                (x) => [
-                      Divider(),
-                      // Text('Date: ${_formatDate(x)}'),
-                      Text('Label: ${x.label}'),
-                      Text('Custom label: ${x.customLabel}'),
-                    ]),
-          if (contact!.contact.notes.isNotEmpty)
-            _makeCard(
-                'Notes',
-                contact!.contact.notes,
-                (x) => [
-                      Divider(),
-                      Text('Note: ${x.note}'),
-                    ]),
-          if (contact!.contact.groups.isNotEmpty)
-            _makeCard(
-                'Groups',
-                contact!.contact.groups,
-                (x) => [
-                      Divider(),
-                      Text('Group ID: ${x.id}'),
-                      Text('Name: ${x.name}'),
-                    ]),
-          if (contact!.contact.accounts.isNotEmpty)
-            _makeCard(
-                'Accounts',
-                contact!.contact.accounts,
-                (x) => [
-                      Divider(),
-                      Text('Raw IDs: ${x.rawId}'),
-                      Text('Type: ${x.type}'),
-                      Text('Name: ${x.name}'),
-                      Text('Mimetypes: ${x.mimetypes}'),
-                    ]),
-          _makeCard(
-              'Raw JSON',
-              [contact!.contact],
-              (x) => [
-                    Divider(),
-                    Text(prettyJson(
-                        x.toJson(withThumbnail: false, withPhoto: false))),
-                  ]),
+          if (contact.contact.phones.isNotEmpty) phones(contact.contact.phones),
+          if (contact.contact.emails.isNotEmpty) emails(contact.contact.emails),
+          if (contact.contact.addresses.isNotEmpty)
+            addresses(context, contact.contact.addresses, null),
           // TODO: Switch to drop down selection when profiles are ready
           //  DropdownButton(
           //   // TODO make state dependent
@@ -256,8 +88,8 @@ class ContactPage extends StatelessWidget {
               contact.sharingProfile != "dont")
             // const Text('No connection; share dialog QR, NFC etc.'),
             _makeCard(
-              "Connect via QR Code",
-              [contact!],
+              'Connect via QR Code',
+              [contact],
               (x) => [
                 Center(
                     child: QrImageView(
@@ -273,8 +105,8 @@ class ContactPage extends StatelessWidget {
               contact.sharingProfile != "dont")
             // const Text('They shared; share back dialog'),
             _makeCard(
-              "Connect via QR Code",
-              [contact!],
+              'Connect via QR Code',
+              [contact],
               (x) => [
                 Center(
                     child: QrImageView(
@@ -294,8 +126,8 @@ class ContactPage extends StatelessWidget {
               contact.sharingProfile != "dont")
             const Text('I am sharing; stop or change sharing dialog'),
           _makeCard(
-            "Connect via NFC",
-            [contact!],
+            'Connect via NFC',
+            [contact],
             (x) => [
               Center(
                   child: TextButton(
@@ -304,15 +136,10 @@ class ContactPage extends StatelessWidget {
               )),
             ],
           )
-        ]),
+        ],
       ),
     );
   }
-
-  String _formatDate(Event e) =>
-      '${e.year?.toString()?.padLeft(4, '0') ?? '--'}/'
-      '${e.month.toString().padLeft(2, '0')}/'
-      '${e.day.toString().padLeft(2, '0')}';
 
   List<Widget> _withSpacing(List<Widget> widgets) {
     final spacer = SizedBox(height: 8);

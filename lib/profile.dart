@@ -1,5 +1,4 @@
 // Copyright 2024 Lukas Grossberger
-import 'package:change_case/change_case.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -20,7 +19,7 @@ Widget avatar(Contact contact,
   );
 }
 
-Widget _emails(List<Email> emails) => Card(
+Widget emails(List<Email> emails) => Card(
     color: Colors.white,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
@@ -29,12 +28,17 @@ Widget _emails(List<Email> emails) => Card(
             padding: const EdgeInsets.all(16),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              ...emails.map((e) => Text(
-                  '${e.label.name.toUpperFirstCase()}: ${e.address}',
-                  style: TextStyle(fontSize: 19)))
+              ...emails.map((e) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(e.label.name,
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black54)),
+                        Text(e.address, style: const TextStyle(fontSize: 19))
+                      ])),
             ]))));
 
-Widget _phones(List<Phone> phones) => Card(
+Widget phones(List<Phone> phones) => Card(
     color: Colors.white,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
@@ -43,15 +47,20 @@ Widget _phones(List<Phone> phones) => Card(
             padding: const EdgeInsets.all(16),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              ...phones.map((e) => Text(
-                  '${e.label.name.toUpperFirstCase()}: ${e.number}',
-                  style: TextStyle(fontSize: 19)))
+              ...phones.map((e) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(e.label.name,
+                            style: const TextStyle(
+                                fontSize: 16, color: Colors.black54)),
+                        Text(e.number, style: const TextStyle(fontSize: 19))
+                      ]))
             ]))));
 
 String _commaToNewline(String s) =>
     s.replaceAll(', ', ',').replaceAll(',', "\n");
 
-Widget _addresses(BuildContext context, List<Address> addresses,
+Widget addresses(BuildContext context, List<Address> addresses,
         Map<String, (num, num)>? locationCoordinates) =>
     Card(
         color: Colors.white,
@@ -68,11 +77,12 @@ Widget _addresses(BuildContext context, List<Address> addresses,
                               children: [
                                 Text(
                                     (e.label.name != 'custom')
-                                        ? '${e.label.name.toUpperFirstCase()}:\n' +
-                                            _commaToNewline(e.address)
-                                        : '${e.customLabel.toUpperFirstCase()}:\n' +
-                                            _commaToNewline(e.address),
-                                    style: TextStyle(fontSize: 19)),
+                                        ? e.label.name
+                                        : e.customLabel,
+                                    style: const TextStyle(
+                                        fontSize: 16, color: Colors.black54)),
+                                Text(_commaToNewline(e.address),
+                                    style: const TextStyle(fontSize: 19)),
                                 const Text(
                                     "Coordinates to appear on others' map:"),
                                 Row(
@@ -119,13 +129,13 @@ Widget _addresses(BuildContext context, List<Address> addresses,
                                     child: const Text('Auto Fetch Coordinates'),
                                     // TODO: Switch to address index instead of label?
                                     //       Can there be duplicates?
-                                    onPressed: () => context
+                                    onPressed: () async => context
                                         .read<ProfileContactCubit>()
                                         .fetchCoordinates(e.label.name))
                               ]))
                     ]))));
 
-Widget _header(Contact contact) => Card(
+Widget header(Contact contact) => Card(
     color: Colors.white,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
@@ -166,11 +176,11 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
           hasScrollBody: false,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _header(contact),
-            if (contact.phones.isNotEmpty) _phones(contact.phones),
-            if (contact.emails.isNotEmpty) _emails(contact.emails),
+            header(contact),
+            if (contact.phones.isNotEmpty) phones(contact.phones),
+            if (contact.emails.isNotEmpty) emails(contact.emails),
             if (contact.addresses.isNotEmpty)
-              _addresses(context, contact.addresses, locationCoordinates),
+              addresses(context, contact.addresses, locationCoordinates),
           ]))
     ]);
 
