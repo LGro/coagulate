@@ -15,7 +15,6 @@ import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
 import '../../components/bottom_sheet_action_button.dart';
 import '../../components/paste_invite_dialog.dart';
-import '../../components/scan_invite_dialog.dart';
 import '../../components/send_invite_dialog.dart';
 import '../../entities/local_account.dart';
 import '../../proto/proto.dart' as proto;
@@ -146,8 +145,7 @@ class MainPagerState extends ConsumerState<MainPager>
               title: Text(
                 'Scan Contact Invite',
                 style: TextStyle(fontSize: 24),
-              ),
-              content: ScanInviteDialog());
+              ));
         });
   }
 
@@ -187,7 +185,6 @@ class MainPagerState extends ConsumerState<MainPager>
                   IconButton(
                       onPressed: () async {
                         Navigator.pop(context);
-                        await ScanInviteDialog.show(context);
                       },
                       iconSize: 64,
                       icon: const Icon(Icons.qr_code_scanner),

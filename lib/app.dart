@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import 'contact_list.dart';
-import 'map.dart';
+import 'osm.dart';
 import 'profile.dart';
 import 'updates.dart';
 
@@ -39,7 +39,7 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
           const ProfilePage(),
           UpdatesPage(),
           ContactListPage(),
-          const MapPage(),
+          MapPage(),
         ].elementAt(_selectedIndex),
         bottomNavigationBar: BottomNavigationBar(
           items: const [

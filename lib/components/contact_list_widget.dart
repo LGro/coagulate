@@ -27,42 +27,6 @@ class ContactListWidget extends ConsumerWidget {
     //final textTheme = theme.textTheme;
     final scale = theme.extension<ScaleScheme>()!;
 
-    return SizedBox.expand(
-        child: styledTitleContainer(
-            context: context,
-            title: translate('contact_list.title'),
-            child: SizedBox.expand(
-              child: (contactList.isEmpty)
-                  ? const EmptyContactListWidget()
-                  : SearchableList<proto.Contact>(
-                      autoFocusOnSearch: false,
-                      initialList: contactList.toList(),
-                      builder: (l, i, c) => ContactItemWidget(contact: c),
-                      filter: (value) {
-                        final lowerValue = value.toLowerCase();
-                        return contactList
-                            .where((element) =>
-                                element.editedProfile.name
-                                    .toLowerCase()
-                                    .contains(lowerValue) ||
-                                element.editedProfile.pronouns
-                                    .toLowerCase()
-                                    .contains(lowerValue))
-                            .toList();
-                      },
-                      spaceBetweenSearchAndList: 4,
-                      inputDecoration: InputDecoration(
-                        labelText: translate('contact_list.search'),
-                        contentPadding: const EdgeInsets.all(2),
-                        fillColor: scale.primaryScale.text,
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: scale.primaryScale.hoverBorder,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ).paddingAll(8),
-            ))).paddingLTRB(8, 0, 8, 8);
+    return const Text('UNAVAILABLE');
   }
 }

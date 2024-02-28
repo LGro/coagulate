@@ -12,7 +12,7 @@ part of 'preferences.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 LockPreference _$LockPreferenceFromJson(Map<String, dynamic> json) {
   return _LockPreference.fromJson(json);
@@ -146,7 +146,7 @@ class _$LockPreferenceImpl implements _LockPreference {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$LockPreferenceImpl &&
@@ -332,7 +332,7 @@ class _$ThemePreferencesImpl implements _ThemePreferences {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$ThemePreferencesImpl &&
@@ -541,7 +541,7 @@ class _$PreferencesImpl implements _Preferences {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PreferencesImpl &&

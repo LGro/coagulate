@@ -30,55 +30,7 @@ class ChatSingleContactListWidget extends ConsumerWidget {
     //final textTheme = theme.textTheme;
     final scale = theme.extension<ScaleScheme>()!;
 
-    return SizedBox.expand(
-            child: styledTitleContainer(
-                context: context,
-                title: translate('chat_list.chats'),
-                child: SizedBox.expand(
-                    child: (chatList.isEmpty)
-                        ? const EmptyChatListWidget()
-                        : SearchableList<proto.Chat>(
-                            autoFocusOnSearch: false,
-                            initialList: chatList.toList(),
-                            builder: (l, i, c) {
-                              final contact =
-                                  contactMap[c.remoteConversationKey];
-                              if (contact == null) {
-                                return const Text('...');
-                              }
-                              return ChatSingleContactItemWidget(
-                                  contact: contact);
-                            },
-                            filter: (value) {
-                              final lowerValue = value.toLowerCase();
-                              return chatList.where((c) {
-                                final contact =
-                                    contactMap[c.remoteConversationKey];
-                                if (contact == null) {
-                                  return false;
-                                }
-                                return contact.editedProfile.name
-                                        .toLowerCase()
-                                        .contains(lowerValue) ||
-                                    contact.editedProfile.pronouns
-                                        .toLowerCase()
-                                        .contains(lowerValue);
-                              }).toList();
-                            },
-                            spaceBetweenSearchAndList: 4,
-                            inputDecoration: InputDecoration(
-                              labelText: translate('chat_list.search'),
-                              contentPadding: const EdgeInsets.all(2),
-                              fillColor: scale.primaryScale.text,
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: scale.primaryScale.hoverBorder,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ).paddingAll(8))))
-        .paddingLTRB(8, 8, 8, 65);
+    return const Text('UNAVAILABLE');
   }
 
   @override

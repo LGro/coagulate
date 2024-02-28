@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../pages/chat_only.dart';
-import '../pages/developer.dart';
 import '../pages/home.dart';
 import '../pages/index.dart';
 import '../pages/new_account.dart';
@@ -128,10 +127,6 @@ class RouterNotifier extends _$RouterNotifier implements Listenable {
               builder: (context, state) => const SettingsPage(),
             ),
           ],
-        ),
-        GoRoute(
-          path: '/developer',
-          builder: (context, state) => const DeveloperPage(),
         )
       ];
 

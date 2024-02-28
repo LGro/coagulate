@@ -1,7 +1,6 @@
 // Copyright 2024 Lukas Grossberger
 import 'dart:convert';
 
-import 'package:cryptography/helpers.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -80,8 +79,8 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
       myRecord = MyDHTRecord(
           key: myRecord.key,
           writer: myRecord.writer,
-          // TODO: Double check if this is strong enough
-          psk: randomBytes(32).toString());
+          // TODO: Generate from strong randomness
+          psk: 'randomsecret1234');
     }
     final profileJson = generateProfileJsonForSharing(profileContact, null);
     await updateDHTRecord(myRecord, profileJson);

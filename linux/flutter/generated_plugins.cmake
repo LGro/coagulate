@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  pasteboard
   screen_retriever
   smart_auth
   url_launcher_linux

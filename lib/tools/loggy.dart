@@ -6,7 +6,6 @@ import 'package:flutter_translate/flutter_translate.dart';
 import 'package:intl/intl.dart';
 import 'package:loggy/loggy.dart';
 
-import '../pages/developer.dart';
 import '../veilid_support/veilid_support.dart';
 
 String wrapWithLogColor(LogLevel? level, String text) {
@@ -110,7 +109,6 @@ class CallbackPrinter extends LoggyPrinter {
   void onLog(LogRecord record) {
     final out = record.pretty();
     debugPrint(out);
-    globalDebugTerminal.write('$out\n'.replaceAll('\n', '\r\n'));
     callback?.call(record);
   }
 

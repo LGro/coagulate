@@ -3,7 +3,6 @@ export 'loggy.dart';
 export 'phono_byte.dart';
 export 'radix_generator.dart';
 export 'responsive.dart';
-export 'scanner_error_widget.dart';
 export 'secret_crypto.dart';
 export 'state_logger.dart';
 export 'theme_service.dart';
