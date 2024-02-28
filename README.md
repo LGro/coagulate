@@ -35,6 +35,15 @@ To (re-)generate all code from templates, run
 flutter packages pub run build_runner build
 ```
 
+### Fastlane
+
+For Fastlane setup see https://docs.fastlane.tools/
+
+Based on the Gemfile of this repo, you can get fastlane with
+```
+bundle update
+```
+
 ## User Stories
 
 ### Open app first time
