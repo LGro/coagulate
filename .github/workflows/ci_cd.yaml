@@ -9,7 +9,7 @@ on:
     types: [published]
 
 jobs:
-  build:
+  android:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout Veilid
@@ -28,5 +28,21 @@ jobs:
         mkdir /home/runner/.gradle
         echo "SDK_REGISTRY_TOKEN=${{ secrets.MAPBOX_SECRET_TOKEN }}" > /home/runner/.gradle/gradle.properties
     - run: flutter pub get
-    - run: flutter build apk
     - run: flutter build appbundle
+
+  ios:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout Veilid
+      run: cd .. && git clone https://gitlab.com/veilid/veilid.git
+    - uses: actions/checkout@v3
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.1'
+    - name: Prep Mapbox Secrets
+      run: |
+        echo '<string name="mapbox_access_token">${{ secrets.MAPBOX_SECRET_TOKEN }}</string>' > android/app/src/main/res/values/developer-config.xml
+        echo "SDK_REGISTRY_TOKEN=${{ secrets.MAPBOX_SECRET_TOKEN }}" > /Users/runner/.gradle/gradle.properties
+        echo "machine api.mapbox.com\nlogin mapbox\npassword ${{ secrets.MAPBOX_SECRET_TOKEN }}" > /Users/runner/.netrc && chmod 600 /Users/runner/.netrc
+    - run: flutter pub get
+    - run: flutter build ipa
