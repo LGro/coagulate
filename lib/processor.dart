@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:veilid/veilid.dart';
 
-import 'providers/connection_state.dart';
 import 'tools/tools.dart';
 import 'veilid_support/src/config.dart';
 import 'veilid_support/src/veilid_log.dart';
@@ -57,14 +56,6 @@ class Processor {
   Future<void> processUpdateAttachment(
       VeilidUpdateAttachment updateAttachment) async {
     //loggy.info("Attachment: ${updateAttachment.json}");
-
-    // // Set connection meter and ui state for connection state
-
-    connectionState.state = ConnectionState(
-        attachment: VeilidStateAttachment(
-            state: updateAttachment.state,
-            publicInternetReady: updateAttachment.publicInternetReady,
-            localNetworkReady: updateAttachment.localNetworkReady));
   }
 
   Future<void> processUpdateConfig(VeilidUpdateConfig updateConfig) async {

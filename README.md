@@ -28,6 +28,13 @@ Also, add your secret API token to a file `android/app/src/main/res/values/devel
 <string name="mapbox_access_token">{SECRET-API-TOKEN}</string>
 ```
 
+For iOS, paste the contents below to `~/.netrc`:
+```
+machine api.mapbox.com 
+login mapbox
+password <SecretKey>
+```
+
 ### Building
 
 To (re-)generate all code from templates, run

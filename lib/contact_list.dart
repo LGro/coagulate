@@ -1,5 +1,4 @@
 // Copyright 2024 Lukas Grossberger
-import 'package:after_layout/after_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -25,11 +24,7 @@ class ContactListPage extends StatefulWidget {
   _ContactListPageState createState() => _ContactListPageState();
 }
 
-class _ContactListPageState extends State<ContactListPage>
-    with AfterLayoutMixin<ContactListPage> {
-  @override
-  Future<void> afterFirstLayout(BuildContext context) async {}
-
+class _ContactListPageState extends State<ContactListPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
