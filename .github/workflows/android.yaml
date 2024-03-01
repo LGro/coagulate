@@ -21,7 +21,7 @@ jobs:
         java-version: '11'
     - uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.16.8'
+        flutter-version: '3.19.1'
     - name: Prep Mapbox Secrets
       run: |
         echo '<string name="mapbox_access_token">${{ secrets.MAPBOX_SECRET_TOKEN }}</string>' > android/app/src/main/res/values/developer-config.xml
