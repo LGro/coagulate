@@ -9,12 +9,12 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../veilid_support/veilid_support.dart';
 
-part 'peer_contact_cubit.g.dart';
-part 'peer_contact_state.dart';
+part 'contacts_cubit.g.dart';
+part 'contacts_state.dart';
 
 String generateProfileJsonForSharing(Contact profile, String? shareProfile) {
   final profileJson = <String, dynamic>{};
-  // TODO: Replace with shareProfile dependent filtering
+  // TODO: Add shareProfile dependent filtering
   profileJson['name'] = profile.name.toJson();
   profileJson['emails'] = profile.emails.map((e) => e.toJson()).toList();
   profileJson['phones'] = profile.phones.map((p) => p.toJson()).toList();
@@ -30,27 +30,26 @@ String getRandomString(int length) {
       length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
 }
 
-class PeerContactCubit extends HydratedCubit<PeerContactState> {
-  PeerContactCubit()
-      : super(const PeerContactState({}, PeerContactStatus.initial));
+class CoagContactCubit extends HydratedCubit<CoagContactState> {
+  CoagContactCubit()
+      : super(const CoagContactState({}, CoagContactStatus.initial));
 
-  void refreshContactsFromSystem() async {
+  Future<void> refreshContactsFromSystem() async {
     if (!await FlutterContacts.requestPermission()) {
-      emit(PeerContactState(state.contacts, PeerContactStatus.denied));
+      emit(CoagContactState(state.contacts, CoagContactStatus.denied));
       return;
     }
 
     // TODO: Can this be done one the fly somehow instead of all at once
     //       or is it fast enough to not be a bottleneck?
-    Map<String, PeerContact> updatedContacts = {};
+    final updatedContacts = <String, CoagContact>{};
     // TODO: Consider loading them first without tumbnail and then with, to speed things up
-    for (Contact contact in (await FlutterContacts.getContacts(
-        withThumbnail: true, withProperties: true))) {
+    for (final contact in await FlutterContacts.getContacts(
+        withThumbnail: true, withProperties: true)) {
       updatedContacts[contact.id] = state.contacts.containsKey(contact.id)
           ? state.contacts[contact.id]!.copyWith(contact: contact)
-          : PeerContact(contact: contact);
+          : CoagContact(contact: contact);
     }
-    ;
     // TODO: When changing a contact, switching back to the contact list and
     //       leaving it, it seems like it can happen that this still emits a
     //       state after the contacts have been refreshed but the view is
@@ -58,15 +57,20 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
     //       It also happens when a contact is updated in the address book in
     //       the background.
     //       https://stackoverflow.com/questions/55536461/flutter-unhandled-exception-bad-state-cannot-add-new-events-after-calling-clo
-    emit(PeerContactState(updatedContacts, PeerContactStatus.success));
+    //       However, it might also instead be the case that we need to trigger
+    //       refreshs from somewhere more UI independent.
+    emit(CoagContactState(updatedContacts, CoagContactStatus.success));
   }
 
   void updateContact(String id, String sharingProfile) {
-    // TODO: Handle id not found
+    if (!state.contacts.containsKey(id)) {
+      // TODO: Handle id not found
+      return;
+    }
     // TODO: Is this really the way with all the copying?
     state.contacts[id] =
         state.contacts[id]!.copyWith(sharingProfile: sharingProfile);
-    emit(PeerContactState(state.contacts, PeerContactStatus.success));
+    emit(CoagContactState(state.contacts, CoagContactStatus.success));
   }
 
   Future<void> shareWithPeer(
@@ -89,14 +93,25 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
       myRecord = MyDHTRecord(
           key: myRecord.key, writer: myRecord.writer, psk: getRandomString(32));
     }
+
+    // TODO: Somehow only the first emit goes through
+    // state.contacts[peerContactId] =
+    //     contact.copyWith(dhtUpdateStatus: DhtUpdateStatus.progress);
+    // emit(CoagContactState(state.contacts, CoagContactStatus.success));
+
+    print('Attempting to update DHT Record');
     final profileJson = generateProfileJsonForSharing(profileContact, null);
     await updateDHTRecord(myRecord, profileJson);
+    print('Updated DHT Record');
 
     // TODO: Set sharing profile when feature available
-    state.contacts[peerContactId] =
-        contact.copyWith(myRecord: myRecord, sharingProfile: 'default');
+    // TODO: Also handle failed coagulation attempts
+    state.contacts[peerContactId] = contact.copyWith(
+        myRecord: myRecord,
+        sharingProfile: 'default',
+        dhtUpdateStatus: DhtUpdateStatus.success);
 
-    emit(PeerContactState(state.contacts, PeerContactStatus.success));
+    emit(CoagContactState(state.contacts, CoagContactStatus.success));
   }
 
   Future<void> unshareWithPeer(String peerContactId) async {
@@ -111,20 +126,30 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
       return;
     }
 
+    // TODO: Somehow only the first emit goes through
+    // state.contacts[peerContactId] =
+    //     contact.copyWith(dhtUpdateStatus: DhtUpdateStatus.progress);
+    // emit(CoagContactState(state.contacts, CoagContactStatus.success));
+
+    print('Attempting to update DHT Record');
     await updateDHTRecord(contact.myRecord!, '');
+    print('Updated DHT Record');
 
-    state.contacts[peerContactId] = contact.copyWith(sharingProfile: 'dont');
-
-    emit(PeerContactState(state.contacts, PeerContactStatus.success));
+    // TODO: Handle failure
+    state.contacts[peerContactId] = contact.copyWith(
+        sharingProfile: 'dont', dhtUpdateStatus: DhtUpdateStatus.success);
+    emit(CoagContactState(state.contacts, CoagContactStatus.success));
   }
 
   @override
-  PeerContactState fromJson(Map<String, dynamic> json) =>
-      PeerContactState.fromJson(json);
+  CoagContactState fromJson(Map<String, dynamic> json) =>
+      CoagContactState.fromJson(json);
 
   @override
-  Map<String, dynamic> toJson(PeerContactState state) => state.toJson();
+  Map<String, dynamic> toJson(CoagContactState state) => state.toJson();
 }
+
+// DHT Utils
 
 Future<(String, String)> createDHTRecord() async {
   final pool = await DHTRecordPool.instance();

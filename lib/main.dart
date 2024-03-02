@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
@@ -18,6 +19,10 @@ void main() async {
 
   // Helps ensure that getting the app docs directory works
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Set MapBox api token
+  MapboxOptions.setAccessToken(
+      const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN'));
 
   // Observer for logging Bloc related things
   Bloc.observer = const CoagulateBlocObserver();

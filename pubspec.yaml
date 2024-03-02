@@ -31,7 +31,7 @@ dependencies:
     path: ../veilid/veilid-flutter
   window_manager: ^0.3.5
   zxing2: ^0.2.0
-  mapbox_maps_flutter: ^0.5.1
+  mapbox_maps_flutter: ^1.0.0
   flutter_osm_plugin: ^1.0.0-rc.2
   flutter_contacts: ^1.1.7
   pretty_json: ^2.0.0

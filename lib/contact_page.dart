@@ -5,8 +5,8 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'cubit/peer_contact_cubit.dart';
-import 'cubit/profile_contact_cubit.dart';
+import 'cubit/contacts_cubit.dart';
+import 'cubit/profile_cubit.dart';
 import 'profile.dart';
 
 Widget avatar(Contact contact,
@@ -34,6 +34,26 @@ Uri _shareURL(MyDHTRecord record) {
 
 String _shareURI(MyDHTRecord record) => 'coag://${record.key}:${record.psk}';
 
+Widget _coagulateButton(
+    BuildContext context, CoagContact peer, Contact profile) {
+  if (peer.dhtUpdateStatus == DhtUpdateStatus.progress) {
+    return const TextButton(onPressed: null, child: Text('Preparing...'));
+  } else if (peer.sharingProfile == 'dont' || peer.sharingProfile == null) {
+    return TextButton(
+        onPressed: () async => {
+              context
+                  .read<CoagContactCubit>()
+                  .shareWithPeer(peer.contact.id, profile)
+            },
+        child: const Text('Coagulate'));
+  } else {
+    return TextButton(
+        onPressed: () async =>
+            {context.read<CoagContactCubit>().unshareWithPeer(peer.contact.id)},
+        child: const Text('Dissolve'));
+  }
+}
+
 class PassContactPage {
   String contactId;
   PassContactPage(String this.contactId);
@@ -44,7 +64,7 @@ class ContactPage extends StatelessWidget {
 
   final String contactId;
 
-  Widget _body(BuildContext context, PeerContact? contact) {
+  Widget _body(BuildContext context, CoagContact? contact) {
     if (contact?.contact.name == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -52,32 +72,23 @@ class ContactPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const SizedBox(height: 40),
           Center(child: avatar(contact!.contact)),
-          BlocConsumer<ProfileContactCubit, ProfileContactState>(
+          BlocConsumer<ProfileCubit, ProfileState>(
               listener: (context, state) async {},
-              builder: (context, state) => (state.profileContact == null)
-                  ? const Card(
+              builder: (context, state) {
+                if (state.profileContact == null) {
+                  return const Card(
                       child: Text(
-                          'Need to pick profile contact before coagulate.'))
-                  : Card(
+                          'Need to pick profile contact before coagulate.'));
+                } else {
+                  return Card(
                       child: Center(
-                          child: (contact.sharingProfile == 'dont' ||
-                                  contact.sharingProfile == null)
-                              ? TextButton(
-                                  onPressed: () async => {
-                                        context
-                                            .read<PeerContactCubit>()
-                                            .shareWithPeer(contact.contact.id,
-                                                state.profileContact!)
-                                      },
-                                  child: const Text('Coagulate'))
-                              : TextButton(
-                                  onPressed: () async => {
-                                        context
-                                            .read<PeerContactCubit>()
-                                            .unshareWithPeer(contact.contact.id)
-                                      },
-                                  child: const Text('Dissolve'))))),
+                          child: _coagulateButton(
+                              context, contact, state.profileContact!)));
+                }
+              }),
+          // TODO: Display name(s)
           if (contact.contact.phones.isNotEmpty) phones(contact.contact.phones),
           if (contact.contact.emails.isNotEmpty) emails(contact.contact.emails),
           if (contact.contact.addresses.isNotEmpty)
@@ -92,12 +103,12 @@ class ContactPage extends StatelessWidget {
           //     DropdownMenuItem<String>(child: Text("Friends"), value: "friends"),
           //     DropdownMenuItem<String>(child: Text("Work"), value: "work"),
           //     ],
-          //   onChanged: (v) => context.read<PeerContactCubit>().updateContact(
+          //   onChanged: (v) => context.read<CoagContactCubit>().updateContact(
           //     c.contact.id as String, v! as String))]),
           if (contact.myRecord == null &&
               contact.peerRecord == null &&
               contact.sharingProfile != null &&
-              contact.sharingProfile != "dont")
+              contact.sharingProfile != 'dont')
             // const Text('No connection; share dialog QR, NFC etc.'),
             _makeCard(
               'Connect via QR Code',
@@ -114,7 +125,7 @@ class ContactPage extends StatelessWidget {
           if (contact.myRecord == null &&
               contact.peerRecord != null &&
               contact.sharingProfile != null &&
-              contact.sharingProfile != "dont")
+              contact.sharingProfile != 'dont')
             // const Text('They shared; share back dialog'),
             _makeCard(
               'Connect via QR Code',
@@ -138,7 +149,6 @@ class ContactPage extends StatelessWidget {
               contact.sharingProfile != 'dont') ...[
             Card(
                 child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                   InkWell(
@@ -188,10 +198,10 @@ class ContactPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MultiBlocProvider(
           providers: [
-            BlocProvider(create: (context) => PeerContactCubit()),
-            BlocProvider(create: (context) => ProfileContactCubit())
+            BlocProvider(create: (context) => CoagContactCubit()),
+            BlocProvider(create: (context) => ProfileCubit())
           ],
-          child: BlocConsumer<PeerContactCubit, PeerContactState>(
+          child: BlocConsumer<CoagContactCubit, CoagContactState>(
               listener: (context, state) async {},
               builder: (context, state) => _body(context,
                   (contactId == null) ? null : state.contacts[contactId])));

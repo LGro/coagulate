@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
-import 'cubit/profile_contact_cubit.dart';
+import 'address_coordinates_form.dart';
+import 'cubit/profile_cubit.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -64,7 +65,7 @@ Widget addresses(BuildContext context, List<Address> addresses,
         Map<String, (num, num)>? locationCoordinates) =>
     Card(
         color: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
         child: SizedBox(
             child: Padding(
@@ -83,54 +84,18 @@ Widget addresses(BuildContext context, List<Address> addresses,
                                         fontSize: 16, color: Colors.black54)),
                                 Text(_commaToNewline(e.address),
                                     style: const TextStyle(fontSize: 19)),
-                                const Text(
-                                    "Coordinates to appear on others' map:"),
-                                Row(
-                                  children: [
-                                    SizedBox(
-                                        width: 100,
-                                        child: TextField(
-                                            controller: TextEditingController(
-                                                text: (locationCoordinates !=
-                                                            null &&
-                                                        locationCoordinates
-                                                            .containsKey(
-                                                                e.label))
-                                                    ? '${locationCoordinates[e.label.toString()]}'
-                                                    : ''),
-                                            obscureText: true,
-                                            decoration: InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: 'Lng',
-                                            ))),
-                                    SizedBox(
-                                        width: 100,
-                                        child: TextField(
-                                            controller: TextEditingController(
-                                                text: (locationCoordinates !=
-                                                            null &&
-                                                        locationCoordinates
-                                                            .containsKey(e.label
-                                                                .toString()))
-                                                    ? '${locationCoordinates[e.label.toString()]}'
-                                                    : ''),
-                                            obscureText: true,
-                                            decoration: InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: 'Lat',
-                                            ))),
-                                    TextButton(
-                                        // TODO: Handle update
-                                        onPressed: null,
-                                        child: Text('Update'))
-                                  ],
-                                ),
+                                AddressCoordinatesForm(
+                                    lng: locationCoordinates?[e.label.name]?.$1,
+                                    lat: locationCoordinates?[e.label.name]?.$2,
+                                    callback: (num lng, num lat) => context
+                                        .read<ProfileCubit>()
+                                        .updateCoordinates(
+                                            e.label.name, lng, lat)),
                                 TextButton(
                                     child: const Text('Auto Fetch Coordinates'),
-                                    // TODO: Switch to address index instead of label?
-                                    //       Can there be duplicates?
+                                    // TODO: Switch to address index instead of label? Can there be duplicates?
                                     onPressed: () async => context
-                                        .read<ProfileContactCubit>()
+                                        .read<ProfileCubit>()
                                         .fetchCoordinates(e.label.name))
                               ]))
                     ]))));
@@ -157,7 +122,7 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-        create: (context) => ProfileContactCubit(),
+        create: (context) => ProfileCubit(),
         child: ProfileView(),
       );
 }
@@ -203,17 +168,17 @@ class ProfileViewState extends State<ProfileView> {
               IconButton(
                 icon: const Icon(Icons.replay_outlined),
                 onPressed: () {
-                  context.read<ProfileContactCubit>().setContact(null);
+                  context.read<ProfileCubit>().setContact(null);
                 },
               ),
             ],
           ),
-          body: BlocConsumer<ProfileContactCubit, ProfileContactState>(
+          body: BlocConsumer<ProfileCubit, ProfileState>(
               listener: (context, state) async {
             if (state.status.isPick) {
               if (await FlutterContacts.requestPermission()) {
                 context
-                    .read<ProfileContactCubit>()
+                    .read<ProfileCubit>()
                     .setContact(await FlutterContacts.openExternalPick());
               } else {
                 // TODO: Trigger hint about missing permission
@@ -223,7 +188,7 @@ class ProfileViewState extends State<ProfileView> {
               if (await FlutterContacts.requestPermission()) {
                 // TODO: This doesn't seem to return the contact after creation
                 context
-                    .read<ProfileContactCubit>()
+                    .read<ProfileCubit>()
                     .setContact(await FlutterContacts.openExternalInsert());
               } else {
                 // TODO: Trigger hint about missing permission
@@ -232,28 +197,26 @@ class ProfileViewState extends State<ProfileView> {
             }
           }, builder: (context, state) {
             switch (state.status) {
-              case ProfileContactStatus.initial:
+              case ProfileStatus.initial:
                 return Center(
                   child: Column(children: [
                     TextButton(
-                        onPressed:
-                            context.read<ProfileContactCubit>().promptPick,
+                        onPressed: context.read<ProfileCubit>().promptPick,
                         child: const Text('Pick Profile Contact')),
                     TextButton(
-                        onPressed:
-                            context.read<ProfileContactCubit>().promptCreate,
+                        onPressed: context.read<ProfileCubit>().promptCreate,
                         child: const Text('Create Profile Contact')),
                   ]),
                 );
-              case ProfileContactStatus.create:
+              case ProfileStatus.create:
                 return const Center(
                   child: CircularProgressIndicator(),
                 );
-              case ProfileContactStatus.pick:
+              case ProfileStatus.pick:
                 return const Center(
                   child: CircularProgressIndicator(),
                 );
-              case ProfileContactStatus.success:
+              case ProfileStatus.success:
                 return Center(
                   child: buildProfileScrollView(context, state.profileContact!,
                       state.locationCoordinates),

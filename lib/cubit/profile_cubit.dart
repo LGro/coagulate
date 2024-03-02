@@ -5,28 +5,27 @@ import 'package:geocoding/geocoding.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'profile_contact_cubit.g.dart';
-part 'profile_contact_state.dart';
+part 'profile_cubit.g.dart';
+part 'profile_state.dart';
 
 // TODO: Add contact refresh as listener via
 //       FlutterContacts.addListener(() => print('Contact DB changed'));
 
-class ProfileContactCubit extends HydratedCubit<ProfileContactState> {
-  ProfileContactCubit() : super(ProfileContactState());
+class ProfileCubit extends HydratedCubit<ProfileState> {
+  ProfileCubit() : super(ProfileState());
 
   void promptCreate() {
-    emit(state.copyWith(status: ProfileContactStatus.create));
+    emit(state.copyWith(status: ProfileStatus.create));
   }
 
   void promptPick() {
-    emit(state.copyWith(status: ProfileContactStatus.pick));
+    emit(state.copyWith(status: ProfileStatus.pick));
   }
 
   void setContact(Contact? contact) {
     emit(state.copyWith(
-        status: (contact == null)
-            ? ProfileContactStatus.initial
-            : ProfileContactStatus.success,
+        status:
+            (contact == null) ? ProfileStatus.initial : ProfileStatus.success,
         profileContact: contact));
   }
 
@@ -37,11 +36,11 @@ class ProfileContactCubit extends HydratedCubit<ProfileContactState> {
   }
 
   @override
-  ProfileContactState fromJson(Map<String, dynamic> json) =>
-      ProfileContactState.fromJson(json);
+  ProfileState fromJson(Map<String, dynamic> json) =>
+      ProfileState.fromJson(json);
 
   @override
-  Map<String, dynamic> toJson(ProfileContactState state) => state.toJson();
+  Map<String, dynamic> toJson(ProfileState state) => state.toJson();
 
   // TODO: Switch to address index instead of labelName
   Future<void> fetchCoordinates(String labelName) async {
@@ -71,5 +70,14 @@ class ProfileContactCubit extends HydratedCubit<ProfileContactState> {
       // TODO: Proper error handling
       print('${e} ${address}');
     }
+  }
+
+  void updateCoordinates(String name, num lng, num lat) {
+    Map<String, (num, num)> updatedLocCoords = {};
+    if (state.locationCoordinates != null) {
+      updatedLocCoords = state.locationCoordinates!;
+    }
+    updatedLocCoords[name] = (lng, lat);
+    emit(state.copyWith(locationCoordinates: updatedLocCoords));
   }
 }

@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
 import 'contact_page.dart';
-import 'cubit/peer_contact_cubit.dart';
+import 'cubit/contacts_cubit.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -31,30 +31,30 @@ class _ContactListPageState extends State<ContactListPage> {
         title: const Text('Contacts'),
       ),
       body: BlocProvider(
-          create: (context) => PeerContactCubit()..refreshContactsFromSystem(),
-          child: BlocConsumer<PeerContactCubit, PeerContactState>(
+          create: (context) => CoagContactCubit()..refreshContactsFromSystem(),
+          child: BlocConsumer<CoagContactCubit, CoagContactState>(
               listener: (context, state) async {},
               builder: (context, state) {
                 // TODO: Is  this in the right place, here?
                 FlutterContacts.addListener(
-                    context.read<PeerContactCubit>().refreshContactsFromSystem);
+                    context.read<CoagContactCubit>().refreshContactsFromSystem);
                 switch (state.status) {
-                  case PeerContactStatus.initial:
+                  case CoagContactStatus.initial:
                     return const Center(child: CircularProgressIndicator());
-                  case PeerContactStatus.denied:
+                  case CoagContactStatus.denied:
                     return Center(
                         child: TextButton(
                             onPressed: context
-                                .read<PeerContactCubit>()
+                                .read<CoagContactCubit>()
                                 .refreshContactsFromSystem,
                             child: const Text('Grant access to contacts')));
-                  case PeerContactStatus.success:
+                  case CoagContactStatus.success:
                     // TODO: Figure out sorting
                     return _body(state.contacts.values.toList());
                 }
               })));
 
-  Widget _body(List<PeerContact> contacts) => ListView.builder(
+  Widget _body(List<CoagContact> contacts) => ListView.builder(
         itemCount: contacts.length,
         itemBuilder: (context, i) {
           final contact = contacts[i];
