@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -26,10 +24,26 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera is required for QR code scanning and video chat</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Coagulation requires people</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Display contacts near you on a map</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone is required for voice chat</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photos access is required to send images and get QR codes from photo library</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>processing</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -49,15 +63,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSCameraUsageDescription</key>
-	<string>Camera is required for QR code scanning and video chat</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Microphone is required for voice chat</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photos access is required to send images and get QR codes from photo library</string>
-	<key>NSContactsUsageDescription</key>
-    <string>Coagulation requires people</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-    <string>Display contacts near you on a map</string>
 </dict>
 </plist>
