@@ -150,7 +150,7 @@ class ContactPage extends StatelessWidget {
   Card _makeCard(
       String title, List fields, List<Widget> Function(dynamic) mapper) {
     var elements = <Widget>[];
-    fields?.forEach((field) => elements.addAll(mapper(field)));
+    fields.forEach((field) => elements.addAll(mapper(field)));
     return Card(
       child: Padding(
         padding: EdgeInsets.all(8),

@@ -1,12 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'processor.dart';
 import 'veilid_support/veilid_support.dart';
-
-part 'veilid_init.g.dart';
 
 Future<String> getVeilidVersion() async {
   String veilidVersion;
@@ -71,8 +68,3 @@ Future<void> initializeVeilid() async {
   // Share the initialized veilid instance to the rest of the app
   eventualVeilid.complete(Veilid.instance);
 }
-
-// Expose the Veilid instance as a FutureProvider
-@riverpod
-FutureOr<Veilid> veilidInstance(VeilidInstanceRef ref) async =>
-    await eventualVeilid.future;

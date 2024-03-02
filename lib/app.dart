@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import 'contact_list.dart';
-import 'osm.dart';
+import 'map.dart';
 import 'profile.dart';
 import 'updates.dart';
 
