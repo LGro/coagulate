@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'cubit/peer_contact_cubit.dart';
 import 'cubit/profile_contact_cubit.dart';
@@ -21,6 +22,17 @@ Widget avatar(Contact contact,
     child: Icon(defaultIcon),
   );
 }
+
+Uri _shareURL(MyDHTRecord record) {
+  final uri = Uri(
+      scheme: 'https',
+      host: 'coagulate.social',
+      fragment: '${record.key}:${record.psk}');
+  print(uri);
+  return uri;
+}
+
+String _shareURI(MyDHTRecord record) => 'coag://${record.key}:${record.psk}';
 
 class PassContactPage {
   String contactId;
@@ -119,23 +131,31 @@ class ContactPage extends StatelessWidget {
           if (contact.myRecord != null &&
               contact.peerRecord != null &&
               contact.sharingProfile != null &&
-              contact.sharingProfile != "dont")
+              contact.sharingProfile != 'dont')
             const Text('Full on coagulation; success!'),
           if (contact.myRecord != null &&
               contact.sharingProfile != null &&
-              contact.sharingProfile != "dont")
-            const Text('I am sharing; stop or change sharing dialog'),
-          _makeCard(
-            'Connect via NFC',
-            [contact],
-            (x) => [
-              Center(
-                  child: TextButton(
-                onPressed: () {},
-                child: const Text('Activate NFC'),
-              )),
-            ],
-          )
+              contact.sharingProfile != 'dont') ...[
+            Card(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  InkWell(
+                    child: const Text(
+                        'I am sharing; stop or change sharing dialog'),
+                    onTap: () async => launchUrl(_shareURL(contact.myRecord!)),
+                  ),
+                  Text(_shareURI(contact.myRecord!)),
+                  Center(
+                      child: QrImageView(
+                    data: _shareURI(contact.myRecord!),
+                    version: QrVersions.auto,
+                    size: 200,
+                  ))
+                ])),
+          ],
+          // TODO: Add option to connect via NFC
         ],
       ),
     );

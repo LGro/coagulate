@@ -1,5 +1,6 @@
 // Copyright 2024 Lukas Grossberger
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -15,10 +16,18 @@ String generateProfileJsonForSharing(Contact profile, String? shareProfile) {
   final profileJson = <String, dynamic>{};
   // TODO: Replace with shareProfile dependent filtering
   profileJson['name'] = profile.name.toJson();
-  profileJson['emails'] = profile.emails.map((e) => e.toJson());
-  profileJson['phones'] = profile.phones.map((p) => p.toJson());
+  profileJson['emails'] = profile.emails.map((e) => e.toJson()).toList();
+  profileJson['phones'] = profile.phones.map((p) => p.toJson()).toList();
   final profileJsonString = const JsonEncoder().convert(profileJson);
   return profileJsonString;
+}
+
+String getRandomString(int length) {
+  const _chars =
+      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  final _rnd = Random.secure();
+  return String.fromCharCodes(Iterable.generate(
+      length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
 }
 
 class PeerContactCubit extends HydratedCubit<PeerContactState> {
@@ -60,13 +69,14 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
     emit(PeerContactState(state.contacts, PeerContactStatus.success));
   }
 
-  Future<void> shareWithPeer(String contactId, Contact profileContact) async {
-    if (!state.contacts.containsKey(contactId)) {
+  Future<void> shareWithPeer(
+      String peerContactId, Contact profileContact) async {
+    if (!state.contacts.containsKey(peerContactId)) {
       // TODO: Log because this shouldn't happen
       return;
     }
 
-    final contact = state.contacts[contactId]!;
+    final contact = state.contacts[peerContactId]!;
     var myRecord = contact.myRecord;
     if (myRecord == null) {
       String key;
@@ -77,38 +87,33 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
 
     if (myRecord.psk == null) {
       myRecord = MyDHTRecord(
-          key: myRecord.key,
-          writer: myRecord.writer,
-          // TODO: Generate from strong randomness
-          psk: 'randomsecret1234');
+          key: myRecord.key, writer: myRecord.writer, psk: getRandomString(32));
     }
     final profileJson = generateProfileJsonForSharing(profileContact, null);
     await updateDHTRecord(myRecord, profileJson);
 
     // TODO: Set sharing profile when feature available
-    state.contacts[contactId] =
+    state.contacts[peerContactId] =
         contact.copyWith(myRecord: myRecord, sharingProfile: 'default');
 
     emit(PeerContactState(state.contacts, PeerContactStatus.success));
   }
 
-  Future<void> unshareWithPeer(String contactId) async {
-    if (!state.contacts.containsKey(contactId)) {
+  Future<void> unshareWithPeer(String peerContactId) async {
+    if (!state.contacts.containsKey(peerContactId)) {
       // TODO: Log because this shouldn't happen
       return;
     }
 
-    var contact = state.contacts[contactId]!;
+    var contact = state.contacts[peerContactId]!;
     if (contact.myRecord == null) {
       // TODO: Log because this shouldn't happen
       return;
     }
 
-    // TODO: Do we find writing empty more convenient because of the re-coagulation potential
-    //       or is deleting cleaner to not pollute the DHT?
     await updateDHTRecord(contact.myRecord!, '');
 
-    state.contacts[contactId] = contact.copyWith(sharingProfile: 'dont');
+    state.contacts[peerContactId] = contact.copyWith(sharingProfile: 'dont');
 
     emit(PeerContactState(state.contacts, PeerContactStatus.success));
   }
@@ -123,7 +128,7 @@ class PeerContactCubit extends HydratedCubit<PeerContactState> {
 
 Future<(String, String)> createDHTRecord() async {
   final pool = await DHTRecordPool.instance();
-  final record = await pool.create();
+  final record = await pool.create(crypto: const DHTRecordCryptoPublic());
   await record.close();
   return (record.key.toString(), record.writer!.toString());
 }
@@ -132,17 +137,15 @@ Future<void> updateDHTRecord(MyDHTRecord myRecordInfo, String profile) async {
   final _key = Typed<FixedEncodedString43>.fromString(myRecordInfo.key);
   final writer = KeyPair.fromString(myRecordInfo.writer);
   final pool = await DHTRecordPool.instance();
-  final record = await pool.openWrite(_key, writer,
-      // TODO: Is the record crypto really needed when we do veilid independent psk enc?
-      crypto: await DHTRecordCryptoPrivate.fromTypedKeyPair(
-          TypedKeyPair.fromKeyPair(_key.kind, writer)));
+  final record =
+      await pool.openWrite(_key, writer, crypto: const DHTRecordCryptoPublic());
 
   final cs = await pool.veilid.bestCryptoSystem();
   // TODO: Ensure via type that psk is available
   final encryptedProfile =
       await cs.encryptAeadWithPassword(utf8.encode(profile), myRecordInfo.psk!);
 
-  await record.eventualWriteBytes(encryptedProfile);
+  await record.tryWriteBytes(encryptedProfile);
   await record.close();
 }
 
@@ -150,8 +153,7 @@ Future<void> deleteDHTRecord(String key, String writer) async {
   final _key = Typed<FixedEncodedString43>.fromString(key);
   final pool = await DHTRecordPool.instance();
   // TODO: Is the record crypto really needed when we do veilid independent psk enc?
-  final retrievedRecord = await pool.openRead(_key,
-      crypto: await DHTRecordCryptoPrivate.fromTypedKeyPair(
-          TypedKeyPair.fromKeyPair(_key.kind, KeyPair.fromString(writer))));
+  final retrievedRecord =
+      await pool.openRead(_key, crypto: const DHTRecordCryptoPublic());
   await retrievedRecord.delete();
 }
