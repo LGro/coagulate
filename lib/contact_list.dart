@@ -5,6 +5,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 
 import 'contact_page.dart';
 import 'cubit/contacts_cubit.dart';
+import 'scan_qr_code.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -29,6 +30,16 @@ class _ContactListPageState extends State<ContactListPage> {
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: const Text('Contacts'),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.qr_code_scanner),
+              onPressed: () async {
+                await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const BarcodeScannerPageView()));
+              }),
+        ],
       ),
       body: BlocProvider(
           create: (context) => CoagContactCubit()..refreshContactsFromSystem(),
@@ -55,21 +66,18 @@ class _ContactListPageState extends State<ContactListPage> {
               })));
 
   Widget _body(List<CoagContact> contacts) => ListView.builder(
-        itemCount: contacts.length,
-        itemBuilder: (context, i) {
-          final contact = contacts[i];
-          return ListTile(
+      itemCount: contacts.length,
+      itemBuilder: (context, i) {
+        final contact = contacts[i];
+        return ListTile(
             leading: avatar(contact.contact, 18),
             title: Text(contact.contact.displayName),
             onTap: () async {
               await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ContactPage(contactId: contact.contact.id),
-                ),
-              );
-            },
-          );
-        },
-      );
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          ContactPage(contactId: contact.contact.id)));
+            });
+      });
 }

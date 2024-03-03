@@ -141,12 +141,61 @@ class CoagContactCubit extends HydratedCubit<CoagContactState> {
     emit(CoagContactState(state.contacts, CoagContactStatus.success));
   }
 
+  Future<void> fetchUpdateFromDHT(PeerDHTRecord contactRecord) async {
+    final contactProfile = await readDHTRecord(contactRecord);
+    // TODO: Unmarshall and store the profiles somewhere
+    // TODO: This needs to be able to handle known and unknown contacts
+    print('Fetched: ${contactProfile}');
+  }
+
+  Future<void> fetchUpdatesFromDHT() async {
+    for (var contact in state.contacts.values) {
+      if (contact.peerRecord != null) {
+        await fetchUpdateFromDHT(contact.peerRecord!);
+      }
+    }
+  }
+
   @override
   CoagContactState fromJson(Map<String, dynamic> json) =>
       CoagContactState.fromJson(json);
 
   @override
   Map<String, dynamic> toJson(CoagContactState state) => state.toJson();
+
+  Future<void> handleCoagulationURI(String uri) async {
+    print('Parsing: $uri');
+    String? payload;
+    if (uri.startsWith('https://coagulate.social')) {
+      final fragment = Uri.parse(uri).fragment;
+      if (fragment.isEmpty) {
+        // TODO: Log / feedback?
+        return;
+      }
+      payload = fragment;
+    } else if (uri.startsWith('coag://')) {
+      payload = uri.substring(7);
+    } else if (uri.startsWith('coagulate://')) {
+      payload = uri.substring(12);
+    }
+    if (payload == null) {
+      // TODO: Log / feedback?
+      return;
+    }
+    final components = payload.split(':');
+    if (components.length != 3) {
+      // TODO: Log / feedback?
+      return;
+    }
+
+    try {
+      await fetchUpdateFromDHT(PeerDHTRecord(
+          key: '${components[0]}:${components[1]}', psk: components[2]));
+    } on Exception catch (e) {
+      // TODO: Log properly / feedback?
+      print('Error fetching DHT UPDATE: ${e}');
+    }
+  }
 }
 
 // DHT Utils
@@ -156,6 +205,21 @@ Future<(String, String)> createDHTRecord() async {
   final record = await pool.create(crypto: const DHTRecordCryptoPublic());
   await record.close();
   return (record.key.toString(), record.writer!.toString());
+}
+
+Future<String> readDHTRecord(PeerDHTRecord contactRecord) async {
+  final _key = Typed<FixedEncodedString43>.fromString(contactRecord.key);
+  final pool = await DHTRecordPool.instance();
+  final record =
+      await pool.openRead(_key, crypto: const DHTRecordCryptoPublic());
+  final raw = await record.get();
+  final cs = await pool.veilid.bestCryptoSystem();
+  // TODO: Error handling
+  final decryptedProfile =
+      await cs.decryptAeadWithPassword(raw!, contactRecord.psk!);
+  await record.close();
+
+  return utf8.decode(decryptedProfile);
 }
 
 Future<void> updateDHTRecord(MyDHTRecord myRecordInfo, String profile) async {
