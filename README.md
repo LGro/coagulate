@@ -13,27 +13,7 @@ While this is still in development, you must have a clone of the [Veilid](https:
 
 For platform specific development setup, see the scripts in `./dev-setup`.
 
-To enable the Mapbox driven map view, set your secret token in `~/.gradle/gradle.properties`:
-```
-SDK_REGISTRY_TOKEN={SECRET-API-TOKEN}
-```
-
-and set the public token as a build argument
-```
---dart-define PUBLIC_ACCESS_TOKEN={PUBLIC-API-TOKEN}
-```
-
-Also, add your secret API token to a file `android/app/src/main/res/values/developer-config.xml`:
-```xml
-<string name="mapbox_access_token">{SECRET-API-TOKEN}</string>
-```
-
-For iOS, paste the contents below to `~/.netrc`:
-```
-machine api.mapbox.com 
-login mapbox
-password <SecretKey>
-```
+In case you prefer MapBox over OpenStreetMap as a map provider, specify an API token via the environment variable `COAGULATE_MAPBOX_PUBLIC_TOKEN`.
 
 ### Building
 

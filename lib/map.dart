@@ -1,106 +1,118 @@
-// Copyright 2024 Lukas Grossberger
 import 'dart:async';
 import 'dart:math';
 
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'contact_page.dart';
 import 'cubit/contacts_cubit.dart';
 
-// TODO: Work with clusters when zoomed out
-//       https://github.com/mapbox/mapbox-maps-flutter/blob/main/example/lib/cluster.dart
-
-class MapPage extends StatefulWidget {
-  const MapPage({super.key});
-
-  @override
-  State<StatefulWidget> createState() => MapPageState();
-}
-
-class AnnotationClickListener extends OnPointAnnotationClickListener {
-  AnnotationClickListener(
-      {required this.context, required this.annotationToContactIds});
-  final BuildContext context;
-  final Map<String, String> annotationToContactIds;
-
-  @override
-  void onPointAnnotationClick(PointAnnotation annotation) {
-    print(
-        "onAnnotationClick label: ${annotation.textField} contact: ${annotationToContactIds[annotation.id]}");
-    unawaited(Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            ContactPage(contactId: annotationToContactIds[annotation.id]!),
-      ),
-    ));
-  }
-}
-
-Map<String, dynamic> _contactToGeo(CoagContact contact) {
-  // TODO: Replace random dummy data with actual contact locations
+LatLng _contactToLatLng(CoagContact contact) {
   final rng = Random();
-  return Point(coordinates: Position(rng.nextInt(50), rng.nextInt(12)))
-      .toJson();
-  return Point(coordinates: Position(contact.lng!, contact.lat!)).toJson();
+  return LatLng(rng.nextDouble() * 50, rng.nextDouble() * 12);
+  // return LatLng(contact.lat!, contact.lng!);
 }
 
-Future<Uint8List> _contactMarkerImage() async {
-  // TODO: Pick different asset
-  final bytes = await rootBundle.load('assets/images/ellet.png');
-  return bytes.buffer.asUint8List();
-}
-
-class MapPageState extends State<MapPage> {
-  MapPageState();
-
-  MapboxMap? mapboxMap;
-  PointAnnotationManager? annotationManager;
-
-  Future<void> _onMapCreated(
-      MapboxMap mapboxMap, List<CoagContact> contacts) async {
-    this.mapboxMap = mapboxMap;
-    final markerImage = await _contactMarkerImage();
-    await mapboxMap.annotations
-        .createPointAnnotationManager()
-        .then((annotationManager) async {
-      final annotations = await annotationManager.createMulti(contacts
-          // TODO: Bring back to filter out the contacts with actual coordinate infos
-          //.where((contact) => contact.lng != null && contact.lat != null)
-          .map((contact) => PointAnnotationOptions(
-              geometry: _contactToGeo(contact),
-              textOffset: [0.0, -2.0],
-              textColor: Colors.black.value,
-              iconSize: 0.2,
-              iconOffset: [0.0, -5.0],
-              symbolSortKey: 10,
-              textField: contact.contact.displayName,
-              image: markerImage))
-          .toList());
-      Map<String, String> annotationToContactIds = {};
-      for (var i = 0; i < annotations.length; i++) {
-        annotationToContactIds[annotations[i]!.id] = contacts[i].contact.id;
-      }
-      // TODO: It seems to be bad practice to pass context like this; work with a callback instead?
-      annotationManager.addOnPointAnnotationClickListener(
-          AnnotationClickListener(
-              context: context,
-              annotationToContactIds: annotationToContactIds));
-    });
-  }
+class MapPage extends StatelessWidget {
+  const MapPage({super.key});
 
   @override
   Widget build(BuildContext context) => BlocProvider(
       create: (context) => CoagContactCubit()..refreshContactsFromSystem(),
       child: BlocConsumer<CoagContactCubit, CoagContactState>(
-          listener: (context, state) async {},
-          builder: (context, state) => MapWidget(
-                cameraOptions: CameraOptions(pitch: 0, zoom: 2),
-                onMapCreated: (mapboxMap) async =>
-                    _onMapCreated(mapboxMap, state.contacts.values.asList()),
-              )));
+        listener: (context, state) async {},
+        builder: (context, state) => FlutterMap(
+          options: MapOptions(
+            // initialCenter: LatLng((maxLatLng.latitude + minLatLng.latitude) / 2,
+            //     (maxLatLng.longitude + minLatLng.longitude) / 2),
+            initialZoom: 6,
+            maxZoom: 15,
+          ),
+          children: <Widget>[
+            TileLayer(
+              urlTemplate: (const String.fromEnvironment(
+                          'COAGULATE_MAPBOX_PUBLIC_TOKEN')
+                      .isEmpty)
+                  ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+                  // TODO: Add {r} along with retinaMode.isHighDensity and TileLayer.retinaMode
+                  : 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=${const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN')}',
+            ),
+            MarkerClusterLayerWidget(
+              options: MarkerClusterLayerOptions(
+                maxClusterRadius: 45,
+                size: const Size(40, 40),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(50),
+                maxZoom: 15,
+                // TODO: Bring back to filter out the contacts with actual coordinate infos
+                // .where((contact) => contact.lng != null && contact.lat != null)
+                markers: state.contacts.values
+                    .map(
+                      (contact) => Marker(
+                          height: 30,
+                          width: 30,
+                          point: _contactToLatLng(contact),
+                          alignment: Alignment.topCenter,
+                          child: GestureDetector(
+                            onTap: () {
+                              unawaited(Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => ContactPage(
+                                          contactId: contact.contact.id))));
+                            },
+                            // TODO: Increase size
+                            child: FittedBox(
+                                fit: BoxFit.contain,
+                                child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '${contact.contact.name.first} ${contact.contact.name.last}',
+                                        style: TextStyle(fontSize: 100),
+                                      ),
+                                      SizedBox(width: 5.0),
+                                      const Icon(Icons.location_pin,
+                                          size: 100, color: Colors.deepPurple)
+                                    ])),
+                          )),
+                    )
+                    .toList(),
+                builder: (context, markers) => Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.blue),
+                  child: Center(
+                    child: Text(
+                      markers.length.toString(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            RichAttributionWidget(
+                showFlutterMapAttribution: false,
+                attributions: [
+                  if (const String.fromEnvironment(
+                          'COAGULATE_MAPBOX_PUBLIC_TOKEN')
+                      .isEmpty)
+                    TextSourceAttribution(
+                      'OpenStreetMap',
+                      onTap: () async => launchUrl(
+                          Uri.parse('https://www.openstreetmap.org/copyright')),
+                    )
+                  else
+                    TextSourceAttribution(
+                      'Mapbox',
+                      onTap: () async => launchUrl(
+                          Uri.parse('https://www.mapbox.com/about/maps/')),
+                    ),
+                ])
+          ],
+        ),
+      ));
 }
