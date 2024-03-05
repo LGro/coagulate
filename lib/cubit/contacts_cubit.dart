@@ -12,14 +12,27 @@ import '../veilid_support/veilid_support.dart';
 part 'contacts_cubit.g.dart';
 part 'contacts_state.dart';
 
-String generateProfileJsonForSharing(Contact profile, String? shareProfile) {
-  final profileJson = <String, dynamic>{};
-  // TODO: Add shareProfile dependent filtering
-  profileJson['name'] = profile.name.toJson();
-  profileJson['emails'] = profile.emails.map((e) => e.toJson()).toList();
-  profileJson['phones'] = profile.phones.map((p) => p.toJson()).toList();
-  final profileJsonString = const JsonEncoder().convert(profileJson);
-  return profileJsonString;
+String generateProfileJsonForSharing(Contact profile, MyDHTRecord myRecord,
+    PeerDHTRecord? contactRecord, String? shareProfile) {
+  // TODO: Add my pubkey here as pubkey
+  final coagContact = CoagContactSchema(
+      // TODO: Add shareProfile dependent filtering
+      contact: Contact(
+          name: profile.name,
+          emails: profile.emails,
+          phones: profile.phones,
+          addresses: profile.addresses),
+      addressCoordinates: {},
+      dhtWriter: contactRecord?.writer,
+      dhtKey: contactRecord?.writer,
+      publicKey: null);
+  return const JsonEncoder().convert(coagContact);
+}
+
+CoagContactSchema generateContactFromProfileJson(String profile) {
+  // TODO: Error handling for the following two lines
+  final mapping = jsonDecode(profile) as Map<String, dynamic>;
+  return CoagContactSchema.fromJson(mapping);
 }
 
 String getRandomString(int length) {
@@ -28,6 +41,15 @@ String getRandomString(int length) {
   final _rnd = Random.secure();
   return String.fromCharCodes(Iterable.generate(
       length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+}
+
+Map<String, (double, double)> _randomAddressCoordinates(
+    List<Address> addresses) {
+  final rng = Random();
+  return {
+    for (var a in addresses)
+      a.label.name: (rng.nextDouble() * 50, rng.nextDouble() * 12)
+  };
 }
 
 class CoagContactCubit extends HydratedCubit<CoagContactState> {
@@ -48,7 +70,10 @@ class CoagContactCubit extends HydratedCubit<CoagContactState> {
         withThumbnail: true, withProperties: true)) {
       updatedContacts[contact.id] = state.contacts.containsKey(contact.id)
           ? state.contacts[contact.id]!.copyWith(contact: contact)
-          : CoagContact(contact: contact);
+          : CoagContact(
+              contact: contact,
+              // TODO: replace
+              addressCoordinates: _randomAddressCoordinates(contact.addresses));
     }
     // TODO: When changing a contact, switching back to the contact list and
     //       leaving it, it seems like it can happen that this still emits a
@@ -100,7 +125,8 @@ class CoagContactCubit extends HydratedCubit<CoagContactState> {
     // emit(CoagContactState(state.contacts, CoagContactStatus.success));
 
     print('Attempting to update DHT Record');
-    final profileJson = generateProfileJsonForSharing(profileContact, null);
+    final profileJson = generateProfileJsonForSharing(
+        profileContact, myRecord, contact.peerRecord, null);
     await updateDHTRecord(myRecord, profileJson);
     print('Updated DHT Record');
 
@@ -145,7 +171,10 @@ class CoagContactCubit extends HydratedCubit<CoagContactState> {
     final contactProfile = await readDHTRecord(contactRecord);
     // TODO: Unmarshall and store the profiles somewhere
     // TODO: This needs to be able to handle known and unknown contacts
+    final contact = generateContactFromProfileJson(contactProfile);
+
     print('Fetched: ${contactProfile}');
+    print('Fetched: ${contact}');
   }
 
   Future<void> fetchUpdatesFromDHT() async {

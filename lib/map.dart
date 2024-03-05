@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
@@ -12,9 +11,9 @@ import 'contact_page.dart';
 import 'cubit/contacts_cubit.dart';
 
 LatLng _contactToLatLng(CoagContact contact) {
-  final rng = Random();
-  return LatLng(rng.nextDouble() * 50, rng.nextDouble() * 12);
-  // return LatLng(contact.lat!, contact.lng!);
+  final latLng =
+      contact.addressCoordinates[contact.contact.addresses[0].label.name];
+  return LatLng(latLng!.$1, latLng.$2);
 }
 
 class MapPage extends StatelessWidget {
@@ -30,8 +29,8 @@ class MapPage extends StatelessWidget {
                 String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN');
 
             final markers = state.contacts.values
-                // TODO: Bring back to filter out the contacts with actual coordinate infos
-                // .where((contact) => contact.lng != null && contact.lat != null)
+                .where((contact) => contact.addressCoordinates.isNotEmpty)
+                // TODO: Display not just the first address but all of them
                 .map((contact) => Marker(
                     height: 60,
                     width: 100,
@@ -53,8 +52,8 @@ class MapPage extends StatelessWidget {
                             style: const TextStyle(fontSize: 14),
                           ),
                           // TODO: Display label of the address
-                          const Text(
-                            '(label)',
+                          Text(
+                            '(${contact.contact.addresses[0].label.name})',
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 10),
                           ),
@@ -71,10 +70,12 @@ class MapPage extends StatelessWidget {
 
             return FlutterMap(
               options: MapOptions(
-                initialCenter: LatLng(
-                  (allLats.last + allLats.first) / 2,
-                  (allLons.last + allLons.first) / 2,
-                ),
+                initialCenter: (markers.isEmpty)
+                    ? const LatLng(50.5, 30.51)
+                    : LatLng(
+                        (allLats.last + allLats.first) / 2,
+                        (allLons.last + allLons.first) / 2,
+                      ),
                 initialZoom: 3,
                 maxZoom: 15,
               ),
