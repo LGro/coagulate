@@ -41,59 +41,54 @@ class MapPage extends StatelessWidget {
                   : 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=${const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN')}',
             ),
             MarkerClusterLayerWidget(
-              options: MarkerClusterLayerOptions(
-                maxClusterRadius: 45,
-                size: const Size(40, 40),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(50),
-                maxZoom: 15,
-                // TODO: Bring back to filter out the contacts with actual coordinate infos
-                // .where((contact) => contact.lng != null && contact.lat != null)
-                markers: state.contacts.values
-                    .map(
-                      (contact) => Marker(
-                          height: 30,
-                          width: 30,
-                          point: _contactToLatLng(contact),
-                          alignment: Alignment.topCenter,
-                          child: GestureDetector(
-                            onTap: () {
-                              unawaited(Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => ContactPage(
-                                          contactId: contact.contact.id))));
-                            },
-                            // TODO: Increase size
-                            child: FittedBox(
-                                fit: BoxFit.contain,
+                options: MarkerClusterLayerOptions(
+                    maxClusterRadius: 100,
+                    size: const Size(40, 40),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(50),
+                    maxZoom: 15,
+                    builder: (context, markers) => DecoratedBox(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.deepPurple),
+                        child: Center(
+                            child: Text(markers.length.toString(),
+                                style: const TextStyle(color: Colors.white)))),
+                    // TODO: Bring back to filter out the contacts with actual coordinate infos
+                    // .where((contact) => contact.lng != null && contact.lat != null)
+                    markers: state.contacts.values
+                        .map((contact) => Marker(
+                            height: 60,
+                            width: 100,
+                            point: _contactToLatLng(contact),
+                            alignment: Alignment.topCenter,
+                            child: GestureDetector(
+                                onTap: () {
+                                  unawaited(Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => ContactPage(
+                                              contactId: contact.contact.id))));
+                                },
                                 child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
                                         '${contact.contact.name.first} ${contact.contact.name.last}',
-                                        style: TextStyle(fontSize: 100),
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 14),
                                       ),
-                                      SizedBox(width: 5.0),
+                                      // TODO: Display label of the address
+                                      const Text(
+                                        '(label)',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(fontSize: 10),
+                                      ),
+                                      const SizedBox(width: 5),
                                       const Icon(Icons.location_pin,
-                                          size: 100, color: Colors.deepPurple)
-                                    ])),
-                          )),
-                    )
-                    .toList(),
-                builder: (context, markers) => Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.blue),
-                  child: Center(
-                    child: Text(
-                      markers.length.toString(),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+                                          size: 26, color: Colors.deepPurple)
+                                    ]))))
+                        .toList())),
             RichAttributionWidget(
                 showFlutterMapAttribution: false,
                 attributions: [
@@ -110,7 +105,7 @@ class MapPage extends StatelessWidget {
                       'Mapbox',
                       onTap: () async => launchUrl(
                           Uri.parse('https://www.mapbox.com/about/maps/')),
-                    ),
+                    )
                 ])
           ],
         ),
