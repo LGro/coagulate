@@ -2,6 +2,26 @@
 part of 'contacts_cubit.dart';
 
 @JsonSerializable()
+class CoagContactSchema {
+  CoagContactSchema(
+      {required this.contact,
+      required this.addressCoordinates,
+      this.publicKey,
+      this.dhtKey,
+      this.dhtWriter});
+  final Contact contact;
+  final Map<String, (num, num)> addressCoordinates;
+  final String? publicKey;
+  final String? dhtKey;
+  final String? dhtWriter;
+
+  factory CoagContactSchema.fromJson(Map<String, dynamic> json) =>
+      _$CoagContactSchemaFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CoagContactSchemaToJson(this);
+}
+
+@JsonSerializable()
 class PeerDHTRecord {
   PeerDHTRecord({required this.key, this.writer, this.psk, this.pubKey});
 
@@ -49,20 +69,23 @@ extension DhtUpdateStatusX on DhtUpdateStatus {
 // TODO: Add state to allow displaying loading while coagulating indicator
 @JsonSerializable()
 class CoagContact {
-  factory CoagContact.fromJson(Map<String, dynamic> json) =>
-      _$CoagContactFromJson(json);
   // TODO: Add constructor with everything, but remove sharing profile here to allow for default value
   CoagContact(
       {required this.contact,
+      required this.addressCoordinates,
       this.dhtUpdateStatus,
       this.peerRecord,
       this.myRecord,
-      this.lng,
-      this.lat,
       this.sharingProfile});
+
+  factory CoagContact.fromJson(Map<String, dynamic> json) =>
+      _$CoagContactFromJson(json);
 
   // System contact copy
   final Contact contact;
+
+  // Location coordinates longitude and latitude for each address in contact
+  final Map<String, (double, double)> addressCoordinates;
 
   final DhtUpdateStatus? dhtUpdateStatus;
 
@@ -70,10 +93,6 @@ class CoagContact {
   final PeerDHTRecord? peerRecord;
   // DHT record where I share updates with peer
   final MyDHTRecord? myRecord;
-
-  // Location coordinates longitude and latitude
-  final num? lng;
-  final num? lat;
 
   final String? sharingProfile;
 
@@ -90,19 +109,19 @@ class CoagContact {
 
   CoagContact copyWith(
           {Contact? contact,
+          Map<String, (double, double)>? addressCoordinates,
           DhtUpdateStatus? dhtUpdateStatus,
-          num? lng,
-          num? lat,
           PeerDHTRecord? peerRecord,
           MyDHTRecord? myRecord,
           String? sharingProfile}) =>
       CoagContact(
           contact: (contact != null) ? contact : this.contact,
+          addressCoordinates: (addressCoordinates != null)
+              ? addressCoordinates
+              : this.addressCoordinates,
           dhtUpdateStatus: (dhtUpdateStatus != null)
               ? dhtUpdateStatus
               : this.dhtUpdateStatus,
-          lng: (lng != null) ? lng : this.lng,
-          lat: (lat != null) ? lat : this.lat,
           peerRecord: (peerRecord != null) ? peerRecord : this.peerRecord,
           myRecord: (myRecord != null) ? myRecord : this.myRecord,
           sharingProfile:
