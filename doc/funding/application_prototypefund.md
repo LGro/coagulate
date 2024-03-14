@@ -36,7 +36,9 @@ Kurz gesagt: Warum ist euer Projekt wichtig für die Gesellschaft?
 NICHT
 - Tech-Solutionismus: Wir erwarten keine magischen Lösungen, sondern realisierbare Ansätze.
 
-> 
+> globalere Welt, vernetzter, herausfordernd in Kontakt zu bleiben; zunehmend sozialer Austausch ins digitale, helfen Begegnung in Person
+> Daten neue öl und werbe Industrie im Kampf gegen Privatsphäre; Selbstbestimmung, digitale Souveränität
+> funktioniert im Internet; geht auch im intranet
 
 ## Wie willst du dein Projekt technisch umsetzen? (175W)
 
@@ -52,6 +54,8 @@ NICHT
 - Reine Aufzählungen von Tools – schreibt Sätze!
 
 > Das Peer-to-Peer Framework Veilid bildet das technische und kryptographische Rückgrat.
+> dabei kein isoliertes netzwerk sondern beitrag zur robustheit der Veilid DHT
+> flutter um Anstoß und iOS bedienen zu können
 
 ## Hast du schon an der Idee gearbeitet? Wenn ja, beschreibe kurz den aktuellen Stand und erkläre die geplanten Neuerungen. (100W)
 
@@ -65,7 +69,10 @@ Kurz gesagt: Was ist der Stand eures Projektes?
 NICHT
 - Der Prototype Fund fördert Software, daher können wir nur Projekte mit einem hohen Entwicklungsanteil zur Förderung auswählen. Bestehende Projekte, bei denen z. B. "nur" Dokumentation, Release und Marketing geplant sind, sind leider nicht förderfähig.
 
-> 
+> anfang 2024 gestartet; möglich durch Teilzeittätigkeit, finanzielle Einbußen, tröpfchenweise nach feierabend
+> weiter freistellungsphasen ermöglichen, finanziell kompensieren, schneller vorankommen
+> bisher steht mock up für Adressbuch sync; Veilid integration noch nicht funktionsfähig; location sharing fehlt komplett
+> Unterstützung von Beiträgen anderer Entwickler:innen um weniger von einzelperson abh
 
 ## Welche ähnlichen Ansätze gibt es schon und was wird dein Projekt anders bzw. besser machen? (60W)
 
@@ -106,6 +113,9 @@ Kurz gesagt: Was sollten wir über euch wissen?
 - Persönliche Erfahrungen, relevante (technische oder andere) Kenntnisse, Informationen über die Zusammensetzung des Teams, Hintergrund des Projekts
 - Wir bezeichnen diese Frage gerne als "Wild Card": Ihr entscheidet, was wir noch über euch und das Projekt wissen sollten!
 
+> international studiert, verteilter Bekanntenkreis, nicht genug Kapazität um mit allen intensiv zu pflegen, aber immer schön wenn zufällig Wege überschneiden 
+> mehrere Jahre selbstständig Software für KmU entwickelt, ua mobile anwendugen
+
 ## Skizziere kurz die wichtigsten Meilensteine, die im Förderzeitraum umgesetzt werden sollen. (100W)
 
 Meilensteine geben uns immer einen guten Einblick, wie ihr bei der Umsetzung eines Projektes vorgeht und wie ihr eure Arbeit strukturiert. Natürlich können sich die Meilensteine während des Förderzeitraums leicht ändern, da man bei der Umsetzung von Prototypen immer wieder auf unvorhergesehene Hindernisse stößt oder sich bestimmte Schritte als überflüssig erweisen können. Versucht einfach, so gut wie möglich abzuschätzen, wie euer Förderungszeitraum aussehen könnte.
@@ -116,3 +126,10 @@ voraussichtlich geplant sind. Nummerierte Schritte oder Bullet
 Points sehen wir hier sehr gerne.
 - Auch grobe Zeitangaben (z. B. in Wochen oder Monaten) sind
 für uns sehr hilfreich.
+
+> September: Kontaktdaten Synchronisation, solides state management, und Closed Beta Release für iOS und Android stores
+> Oktober: Check-in Funktion um Aufenthaltsort zu teilen
+> November: Nuanciert konfigurierbare Gruppen und Profile für angemessenes Teilen
+> Dezember: Nutzer:innenstudie und zukünftige Aufenthaltsorte teilen inkl Zeit Slider auf der Karte
+> Januar: Feedback von Studie umsetzen, F-droid distribution
+> Februar: Puffer & Release zum Ende des Wintersemesters
