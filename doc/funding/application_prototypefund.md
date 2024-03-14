@@ -16,7 +16,10 @@ NICHT:
 - Eine Projektbeschreibung, die nur technisch ist (das kommt später)
 - Eine Beschreibung, bei der vergessen wird zu erwähnen, wie die Software das beschriebene Problem löst
 
-> 
+> Menschen ermöglichen ihre kontaktdaten und Aufenthaltsorte mit ihren Freund:innen und bekannten Privatsphäre freundlich zu teilen um öfter physisch zusammen zu kommen.
+> Egal ob geografisch verteilter Bekanntenkreis oder nicht normatives leben, das sich organisiert.
+> Veilid DHT basierte peer to peer
+> ohne angst vor Überwachung und ohne selbst zum handelsobjekt der Datenbroker zu werden; digitale Souveränität
 
 ## Welchem Themenfeld ordnest du dein Projekt zu?
 
@@ -53,9 +56,12 @@ NICHT
 - Zu grobe Pläne: Begriffe wie "eine Website", "eine App" reichen nicht aus, um das Projekt technisch bewerten zu können.
 - Reine Aufzählungen von Tools – schreibt Sätze!
 
-> Das Peer-to-Peer Framework Veilid bildet das technische und kryptographische Rückgrat.
-> dabei kein isoliertes netzwerk sondern beitrag zur robustheit der Veilid DHT
-> flutter um Anstoß und iOS bedienen zu können
+> Das Peer-to-Peer Framework Veilid bildet das technische und kryptographische Rückgrat, hier wird vor allem die DHT genutzt; netzwerk konnektivität und ip private DHT lookups und writes sind gelöst
+> dabei kein isoliertes netzwerk sondern profitieren von und leisten beitrag zur robustheit der Veilid DHT
+> flutter um sowohl Android und iOS bedienen zu können; FFI für Veilid verfügbar; anbindung an Adressbuch und location services möglich
+> OSM für Karten Darstellung
+> fastlane für build und release management
+> GitHub.com für repo hosting und actions für kostenloses CI/CD auf MacOS und Linux
 
 ## Hast du schon an der Idee gearbeitet? Wenn ja, beschreibe kurz den aktuellen Stand und erkläre die geplanten Neuerungen. (100W)
 
@@ -69,9 +75,11 @@ Kurz gesagt: Was ist der Stand eures Projektes?
 NICHT
 - Der Prototype Fund fördert Software, daher können wir nur Projekte mit einem hohen Entwicklungsanteil zur Förderung auswählen. Bestehende Projekte, bei denen z. B. "nur" Dokumentation, Release und Marketing geplant sind, sind leider nicht förderfähig.
 
-> anfang 2024 gestartet; möglich durch Teilzeittätigkeit, finanzielle Einbußen, tröpfchenweise nach feierabend
+> idee schon jahre
+> mit veilid release Q4 2023 umsetzbar mit ueberschaubarem aufwand
+> anfang 2024 gestartet; möglich durch wechsel in Teilzeittätigkeit, finanzielle Einbußen, tröpfchenweise nach feierabend
 > weiter freistellungsphasen ermöglichen, finanziell kompensieren, schneller vorankommen
-> bisher steht mock up für Adressbuch sync; Veilid integration noch nicht funktionsfähig; location sharing fehlt komplett
+> bisher steht mock up für Adressbuch sync; Veilid integration noch nicht voll funktionsfähig; location sharing fehlt komplett
 > Unterstützung von Beiträgen anderer Entwickler:innen um weniger von einzelperson abh
 
 ## Welche ähnlichen Ansätze gibt es schon und was wird dein Projekt anders bzw. besser machen? (60W)
@@ -104,6 +112,7 @@ NICHT
 
 > Alle Menschen, die privatsphärebewusst mit ihren Freund:innen und Bekannten in Kontakt bleiben möchten.
 > ERASMUS Studis, AISEC + XYZ
+> nicht normatives leben besonders auf privaten austausch in vertrauten kreisen angewiesen; zB queere community
 
 ## Erfahrung, Hintergrund, Motivation, Perspektive: Was sollen wir über dich (bzw. euch) wissen und bei der Auswahl berücksichtigen? (100W)
 
@@ -115,6 +124,7 @@ Kurz gesagt: Was sollten wir über euch wissen?
 
 > international studiert, verteilter Bekanntenkreis, nicht genug Kapazität um mit allen intensiv zu pflegen, aber immer schön wenn zufällig Wege überschneiden 
 > mehrere Jahre selbstständig Software für KmU entwickelt, ua mobile anwendugen
+> interdisziplinär Psychologie Informatik; Blick für user experience und user centric design
 
 ## Skizziere kurz die wichtigsten Meilensteine, die im Förderzeitraum umgesetzt werden sollen. (100W)
 
@@ -127,9 +137,11 @@ Points sehen wir hier sehr gerne.
 - Auch grobe Zeitangaben (z. B. in Wochen oder Monaten) sind
 für uns sehr hilfreich.
 
-> September: Kontaktdaten Synchronisation, solides state management, und Closed Beta Release für iOS und Android stores
-> Oktober: Check-in Funktion um Aufenthaltsort zu teilen
-> November: Nuanciert konfigurierbare Gruppen und Profile für angemessenes Teilen
-> Dezember: Nutzer:innenstudie und zukünftige Aufenthaltsorte teilen inkl Zeit Slider auf der Karte
-> Januar: Feedback von Studie umsetzen, F-droid distribution
-> Februar: Puffer & Release zum Ende des Wintersemesters
+> September: Kontaktdaten Synchronisation, solides state management, und start Closed Beta für iOS und Android
+> Oktober: Check-in Funktion um aktuellen Aufenthaltsort zu teilen
+> November: Benachrichtigungen über geteilte Aufenthaltsorte im Unfeld, Nuanciert konfigurierbare Gruppen und Profile für angemessenes Teilen
+> Dezember: Nutzer:innenstudie und zukünftige Aufenthaltsorte teilen inkl Zeit Slider auf der Karte für browsing
+> Januar: Feedback von Studie umsetzen, account portabilität/recovery, ggf. F-droid distribution
+> Februar: Puffer & open beta zum Ende des Wintersemesters; multiplikation via austausch orgs
+
+> 15*4*6=360h
