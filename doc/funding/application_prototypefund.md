@@ -109,8 +109,8 @@ Kurz gesagt: Was sollten wir über euch wissen?
 - Persönliche Erfahrungen, relevante (technische oder andere) Kenntnisse, Informationen über die Zusammensetzung des Teams, Hintergrund des Projekts
 - Wir bezeichnen diese Frage gerne als "Wild Card": Ihr entscheidet, was wir noch über euch und das Projekt wissen sollten!
 
-> Aufgrund mehrfache Umzüge, u.a. wegen internationaler Studienaufenthalte, ist der Kreis meiner Freund\*innen und Bekannten geografisch stark verteilt. Und obowhl ich viele dieser Menschen sehr schätze fehlt mir für einige die Kapazität um aktiv unseren Kontakt zu pflegen. Coagulate soll hier helfen, den Überblick zu behalten, wer zur Zeit wo anzutreffen und wie kontaktierbar ist.
-Ich war mehrere Jahre selbstständiger Softwareentwickler, unter anderem auch für mobile Anwendungen, und bin auch aktuell im Softwareumfeld tätig. Mein akademischer Hintergrund an der Schnittstelle zwischen Psychologie und Informatik befähigt mich darüber hinaus mit einem besondern Blick für User Experience und User Centered Design.
+> Aufgrund mehrfache Umzüge, u.a. wegen internationaler Studienaufenthalte, ist der Kreis meiner Freund\*innen und Bekannten geografisch stark verteilt. Und obwohl ich viele dieser Menschen sehr schätze fehlt mir für einige die Kapazität um aktiv unseren Kontakt zu pflegen. Coagulate soll hier helfen, den Überblick zu behalten, wer zur Zeit wo anzutreffen und wie kontaktierbar ist.
+Ich war mehrere Jahre selbstständiger Softwareentwickler, unter anderem auch für mobile Anwendungen, und bin auch aktuell im Softwareumfeld tätig. Mein akademischer Hintergrund an der Schnittstelle zwischen Psychologie und Informatik befähigt mich darüber hinaus mit einem besonderen Blick für User Experience und User Centered Design.
 
 ## Skizziere kurz die wichtigsten Meilensteine, die im Förderzeitraum umgesetzt werden sollen. (100W)
 
