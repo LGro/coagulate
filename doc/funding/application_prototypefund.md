@@ -18,7 +18,10 @@ NICHT:
 - Eine Projektbeschreibung, die nur technisch ist (das kommt später)
 - Eine Beschreibung, bei der vergessen wird zu erwähnen, wie die Software das beschriebene Problem löst
 
-> Coagulate ist eine plattformübergreifende mobile Anwendung, die es Menschen ermöglicht, ihre Kontaktdaten und Aufenthaltsorte privat und sicher mit Freund\*innen und Bekannten zu teilen, um persönliche Begegnungen zu fördern. Basierend auf der Veilid Distributed Hash Table bietet sie eine Peer-to-Peer Lösung, die digitale Souveränität gewährleistet und Nutzer\*innen vor Überwachung und Datenhandel schützt. Egal ob der Bekanntenkreis geografisch verteilt ist oder nicht-normativ lebende Menschen sich organisieren möchten, Coagulate unterstützt sie dabei, physisch zusammenzukommen, ohne Angst vor Datenschutzverletzungen. Die Idee entstand aus dem Bedürfnis nach privatsphärefreundlicher Kommunikation und der Stärkung persönlicher Kontakte.
+> Coagulate soll eine Android und iOS App werden, die es Menschen ermöglicht, ihre Kontaktdaten und Aufenthaltsorte privat und sicher mit Freund\*innen und Bekannten zu teilen, um in Kontakt zu bleiben und persönliche Begegnungen zu fördern.
+Basierend auf der Veilid Distributed Hash Table bietet sie eine Peer-to-Peer Lösung, die digitale Souveränität gewährleistet und Nutzer\*innen vor Überwachung und Datenhandel schützt.
+Egal ob der Bekanntenkreis geografisch verteilt ist oder nicht-normativ lebende Menschen sich geschützt organisieren möchten, Coagulate unterstützt sie dabei, physisch zusammenzukommen.
+Die Idee entstand aus dem Bedürfnis nach privatsphärefreundlicher Kommunikation und der Stärkung persönlicher Kontakte.
 
 ## Welchem Themenfeld ordnest du dein Projekt zu?
 
@@ -38,9 +41,11 @@ Kurz gesagt: Warum ist euer Projekt wichtig für die Gesellschaft?
 NICHT
 - Tech-Solutionismus: Wir erwarten keine magischen Lösungen, sondern realisierbare Ansätze.
 
-> Eine globale und vernetzte Welt, sowie höhere Mobilität bringen Chancen aber auch die Herausforderung, dass Freund\*innen und Bekannt geografisch verstreut leben. Selbst für Menschen die in der gleichen Stadt leben, kann es herausfordernd sein in Kontakt zu bleiben. Coagulate soll Menschen helfen, wieder persönlich in Kontakt zu kommen und den sozialen Austausch fördern.
-Ich erkenne die Relevanz digitaler Kommunikation und Vernetzung, und möchte statt Nutzer\*innen noch mehr an ihre Geräte zu binden Impulse schaffen, damit Menschen vor Ort zusammen kommen.
-In einer Zeit wo Daten als neues Öl gehandelt werden und die digitale Souveränität durch große Werbefirmen gefährdet ist und in einem politischen Klima in dem unsicher bleibt ob Nicht-normatives Leben Gefahr läuft weiter marginalisiert oder sogar verfolgt zu werden, entsteht ein besonderer Bedarf für privatsphärefreundliche Lösungen.
+> Eine globale und vernetzte Welt, sowie höhere Mobilität birgt Chancen aber auch die Herausforderung, dass Freund\*innen und Bekannte geografisch verstreut sind.
+Darüber hinaus kann es selbst für Menschen die in der gleichen Stadt leben herausfordernd sein in Kontakt zu bleiben.
+Coagulate soll Menschen helfen, wieder persönlich in Kontakt zu kommen und den sozialen Austausch fördern.
+Ich erkenne die Relevanz digitaler Kommunikation und Vernetzung, und möchte statt Nutzer\*innen noch mehr an ihre Geräte zu binden diese nutzen um Impulse für Begegnungen zu schaffen.
+In Zeiten in denen Daten als neues Öl gehandelt werden, die digitale Souveränität durch große Werbefirmen gefährdet ist, und das politischen Klima in eine Richtung driftet die potenziell nicht-normatives Leben gefährdet, entsteht ein besonderer Bedarf für privatsphärefreundliche Lösungen wie Coagulate.
 
 ## Wie willst du dein Projekt technisch umsetzen? (175W)
 
@@ -56,9 +61,12 @@ NICHT
 - Reine Aufzählungen von Tools – schreibt Sätze!
 
 > Coagulate wird als plattformübergreifende mobile Anwendung für iOS und Android mit Flutter umgesetzt.
-Die Peer-to-Peer Funktionalität und privatsphärefreundliche Kommunikation basiert auf der Veilid Distributed Hash Table (DHT), da hier Lese- und Schreiboperationen möglich sind ohne die eigene IP Adresse preisgeben zu müssen. Hilfreich ist zudem, dass Veilid in Rust implementiert und mit Flutter/Dart Bindings bereit für die Integration in Coagulate ist. Dabei soll Coagulate keine separate DHT betreiben sondern von der Veilid DHT profitieren und selbst zu deren Robustheit beitragen um die Peer-to-Peer Infrastruktur zu stärken.
-Für die Kartendarstellung kommt eine Open Street Map Integration statt proprietärer Alternativen zum Einsatz.
-Release und Build Management wird mit Fastlane umgesetzt. Und der Quellcode auf GitHub.com gehosted, da dort MacOS und Linux Maschinen für Continuous Integration und Delivery verfügbar sind.
+Die Peer-to-Peer Funktionalität und privatsphärefreundliche Kommunikation basiert auf der Veilid Distributed Hash Table (DHT), da hier Lese- und Schreiboperationen möglich sind ohne die eigene IP Adresse preiszugeben.
+Hilfreich ist zudem, dass Veilid in Rust implementiert und mit Flutter/Dart Bindings bereits für die Integration bereit ist.
+Dabei soll Coagulate keine separate DHT betreiben sondern von der Veilid DHT profitieren und selbst zu deren Robustheit beitragen um die Peer-to-Peer Infrastruktur auch für andere Veilid basierte Anwendungen zu stärken.
+Für die Kartendarstellung von Kontaktadressen und Aufenthaltsorten kommt eine Open Street Map Integration zum Einsatz.
+Release und Build Management wird mit Fastlane umgesetzt. 
+Und der Quellcode auf GitHub.com gehosted, da dort MacOS und Linux Maschinen für Continuous Integration und Delivery verfügbar sind.
 
 ## Hast du schon an der Idee gearbeitet? Wenn ja, beschreibe kurz den aktuellen Stand und erkläre die geplanten Neuerungen. (100W)
 
@@ -72,7 +80,13 @@ Kurz gesagt: Was ist der Stand eures Projektes?
 NICHT
 - Der Prototype Fund fördert Software, daher können wir nur Projekte mit einem hohen Entwicklungsanteil zur Förderung auswählen. Bestehende Projekte, bei denen z. B. "nur" Dokumentation, Release und Marketing geplant sind, sind leider nicht förderfähig.
 
-> Die Idee, Kontaktdaten privatsphärefreundlich und dezentral zu teilen, begleitet mich seit Jahren. Mit der Veröffentlichung von Veilid wurde dies dank der Distributed Hash Table, die ohne Preisgabe der eigenen IP-Adresse funktioniert umsetzbar. Ich begann 2024 in Teilzeit zu arbeiten, um Coagulate zu entwickeln. Die Förderung durch den Prototype Fund soll finanzielle Einbußen ausgleichen und weitere Entwicklung ermöglichen. Bisher besteht ein Flutter-Projekt mit Veilid Integration, inklusive Adressbuchintegration und einer OpenStreetMap Karte mit Kontaktadressen. Die Synchronisation mit Veilid ist noch fehlerhaft, aber ein QR-Code- und Einladungslink-basierter Verknüpfungsprozess ist vorbereitet. Geplante Funktionalitäten umfassen das Teilen aktueller/zukünftiger Aufenthaltsorte sowie benutzerdefinierte Profile.
+> Die Idee, Kontaktdaten privatsphärefreundlich und dezentral zu teilen, begleitet mich seit Jahren.
+Mit der Veröffentlichung von Veilid wurde dies dank der Distributed Hash Table, die ohne Preisgabe der eigenen IP-Adresse funktioniert umsetzbar.
+Mit dem Wechsel in Teilzeit zu Beginn 2024 eröffnete sich für mich Raum Coagulate zu entwickeln.
+Die Förderung durch den Prototype Fund soll finanzielle Einbußen ausgleichen und weitere Entwicklung ermöglichen.
+Bisher besteht ein Flutter-Projekt mit Veilid Integration, inklusive Adressbuchintegration und einer OpenStreetMap Karte mit Kontaktadressen.
+Die Synchronisation mit Veilid ist noch fehlerhaft, aber ein QR-Code- und Einladungslink-basierter Verknüpfungsprozess ist vorbereitet.
+Geplante Funktionalitäten umfassen das Teilen aktueller/zukünftiger Aufenthaltsorte sowie benutzerdefinierte Profile.
 
 ## Welche ähnlichen Ansätze gibt es schon und was wird dein Projekt anders bzw. besser machen? (60W)
 
@@ -85,7 +99,9 @@ Kurz gesagt: Was unterscheidet euer Projekt von dem, was es schon gibt?
 NICHT
 - Die unbegründete Behauptung, dass keine Projekte vergleichbar seien. Dadurch wirkt das Projekt nicht innovativer, sondern die Bewerbung weniger durchdacht
 
-> Social Media Plattformen ermöglichen Nutzer\*innen Kontaktdaten zu teilen und Treffen zu organisieren, müssen dafür allerdings die Hoheit über ihre Daten abgeben. Standorte teilen ist auf Android und iOS nativ sowie mit Apps wie Glympse möglich, jedoch ohne überprüfbare kryptografische Garantien. Coagulate bietet sicheren und auditierbaren Austausch durch FOSS Lizenz und Peer-to-Peer Architektur, fördert lokale Interaktionen und verhindert Zensur oder Monetarisierung.
+> Social Media Plattformen ermöglichen Nutzer\*innen Kontaktdaten zu teilen und Treffen zu organisieren, müssen dafür allerdings die Hoheit über ihre Daten abgeben.
+Standorte teilen ist auf Android und iOS nativ sowie mit Apps wie Glympse möglich, jedoch ohne überprüfbare kryptografische Garantien.
+Coagulate bietet sicheren und auditierbaren Austausch durch FOSS Lizenz und Peer-to-Peer Architektur, fördert lokale Interaktionen und verhindert Zensur oder Monetarisierung.
 
 ## Wer ist die Zielgruppe und wie soll dein Projekt sie erreichen? (100W)
 
@@ -99,7 +115,12 @@ Kurz gesagt: Für wen ist das Projekt wichtig?
 NICHT
 - Unklare Pläne: Ihr wollt Vorträge auf Konferenzen halten? Nennt ein Beispiel. Ihr sucht Projektpartner? Nennt einige mögliche Organisationen, Communities oder Unternehmen, mit denen ihr Kontakt aufnehmen möchtet.
 
-> Coagulate ist für alle Menschen, die privatsphärebewusst mit ihren Freund\*innen und Bekannten in Kontakt bleiben möchten. Eine Pilotzielgruppe mit der ich gerne arbeiten möchte sind internationale Studierende (bspw. ERASMUS), die viele in Europa verteilte Kontakte knüpfen. Ihnen möchte ich mit Coagulate helfen, diesen Kontakten auch in Zukunft wieder zu begegnen. Eine strategische Kooperation mit Organisationen wie AISEC oder AEGEE scheint hier vielversprechend. Außerdem bietet Coagulate für nicht-normativ lebende Menschen, bspw. aus der Queeren Community, Potenzial in vertrauten Kreisen Zusammenkünfte zu organisieren und Kontakte zu pflegen. Hier möchte ich mir persönlichen Kontakten arbeiten um Feedback aus der Zielgruppe zu erhalten.
+> Coagulate ist für alle Menschen, die privatsphärebewusst mit ihren Freund\*innen und Bekannten in Kontakt bleiben möchten.
+Eine Pilotzielgruppe mit der ich gerne arbeiten möchte sind internationale Studierende (bspw. ERASMUS), die viele in Europa verteilte Kontakte knüpfen.
+Ihnen möchte ich mit Coagulate helfen, diesen Kontakten auch in Zukunft wieder zu begegnen.
+Eine strategische Kooperation mit Organisationen wie AISEC oder AEGEE scheint hier vielversprechend.
+Außerdem bietet Coagulate für nicht-normativ lebende Menschen, bspw. aus der Queeren Community, Potenzial in vertrauten Kreisen Zusammenkünfte zu organisieren und Kontakte zu pflegen.
+Hier möchte ich mir persönlichen Kontakten arbeiten um Feedback aus der Zielgruppe zu erhalten.
 
 ## Erfahrung, Hintergrund, Motivation, Perspektive: Was sollen wir über dich (bzw. euch) wissen und bei der Auswahl berücksichtigen? (100W)
 
@@ -109,8 +130,11 @@ Kurz gesagt: Was sollten wir über euch wissen?
 - Persönliche Erfahrungen, relevante (technische oder andere) Kenntnisse, Informationen über die Zusammensetzung des Teams, Hintergrund des Projekts
 - Wir bezeichnen diese Frage gerne als "Wild Card": Ihr entscheidet, was wir noch über euch und das Projekt wissen sollten!
 
-> Aufgrund mehrfache Umzüge, u.a. wegen internationaler Studienaufenthalte, ist der Kreis meiner Freund\*innen und Bekannten geografisch stark verteilt. Und obwohl ich viele dieser Menschen sehr schätze fehlt mir für einige die Kapazität um aktiv unseren Kontakt zu pflegen. Coagulate soll hier helfen, den Überblick zu behalten, wer zur Zeit wo anzutreffen und wie kontaktierbar ist.
-Ich war mehrere Jahre selbstständiger Softwareentwickler, unter anderem auch für mobile Anwendungen, und bin auch aktuell im Softwareumfeld tätig. Mein akademischer Hintergrund an der Schnittstelle zwischen Psychologie und Informatik befähigt mich darüber hinaus mit einem besonderen Blick für User Experience und User Centered Design.
+> Aufgrund mehrfache Umzüge, u.a. wegen internationaler Studienaufenthalte, ist der Kreis meiner Freund\*innen und Bekannten geografisch stark verteilt.
+Und obwohl ich viele dieser Menschen sehr schätze fehlt mir für einige die Kapazität um aktiv unseren Kontakt zu pflegen.
+Coagulate soll hier helfen, den Überblick zu behalten, wer zur Zeit wo anzutreffen und wie kontaktierbar ist.
+Ich war mehrere Jahre selbstständiger Softwareentwickler, unter anderem auch für mobile Anwendungen, und bin auch aktuell im Softwareumfeld tätig.
+Mein akademischer Hintergrund an der Schnittstelle zwischen Psychologie und Informatik befähigt mich darüber hinaus mit einem besonderen Blick für User Experience und User Centered Design.
 
 ## Skizziere kurz die wichtigsten Meilensteine, die im Förderzeitraum umgesetzt werden sollen. (100W)
 
