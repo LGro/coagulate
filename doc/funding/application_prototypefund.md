@@ -18,9 +18,10 @@ NICHT:
 - Eine Projektbeschreibung, die nur technisch ist (das kommt später)
 - Eine Beschreibung, bei der vergessen wird zu erwähnen, wie die Software das beschriebene Problem löst
 
-> Coagulate soll eine Android und iOS App werden, die es Menschen ermöglicht, ihre Kontaktdaten und Aufenthaltsorte privat und sicher mit Freund\*innen und Bekannten zu teilen, um in Kontakt zu bleiben und persönliche Begegnungen zu fördern.
+> Coagulate wird eine Smartphone App, die es Menschen ermöglicht, ihre Kontaktdaten und Aufenthaltsorte privat und sicher mit anderen zi teilen, um in Kontakt zu bleiben und persönliche Begegnungen zu fördern.
+Du kannst dabei individuell entscheiden was du mit Kolleg\*innen, Freund\*innen und Liebhaber\*innen teilst, damit alle genau die richtigen Infos erhalten und nicht mehr.
 Basierend auf der Veilid Distributed Hash Table bietet sie eine Peer-to-Peer Lösung, die digitale Souveränität gewährleistet und Nutzer\*innen vor Überwachung und Datenhandel schützt.
-Egal ob der Bekanntenkreis geografisch verteilt ist oder nicht-normativ lebende Menschen sich geschützt organisieren möchten, Coagulate unterstützt sie dabei, physisch zusammenzukommen.
+Egal ob der Bekanntenkreis geografisch verteilt ist, oder nicht-normativ lebende Menschen sich geschützt organisieren möchten, Coagulate unterstützt sie dabei, physisch zusammenzukommen.
 Die Idee entstand aus dem Bedürfnis nach privatsphärefreundlicher Kommunikation und der Stärkung persönlicher Kontakte.
 
 ## Welchem Themenfeld ordnest du dein Projekt zu?
@@ -41,7 +42,11 @@ Kurz gesagt: Warum ist euer Projekt wichtig für die Gesellschaft?
 NICHT
 - Tech-Solutionismus: Wir erwarten keine magischen Lösungen, sondern realisierbare Ansätze.
 
-> Eine Welt, die global vernetzt ist und in der Mobilität zunimmt, bietet sowohl Chancen als auch Herausforderungen. Eine dieser Herausforderungen besteht darin, dass Freund\*innen und Bekannte oft über große Entfernungen verstreut sind, selbst wenn sie in derselben Großstadt leben. Coagulate zielt darauf ab, Menschen dabei zu unterstützen, persönliche Kontakte zu pflegen und den sozialen Austausch zu fördern. Ich sehe den Wert digitaler Kommunikation und Vernetzung, aber anstatt die Nutzer\*innen noch stärker an ihre Geräte zu binden, möchte ich diese Technologie nutzen, um Begegnungen zu initiieren. Angesichts der Tatsache, dass Daten als das neue Öl betrachtet werden, die digitale Souveränität von großen Werbefirmen bedroht ist und das politische Klima eine potenzielle Gefahr für nicht-normatives Leben darstellt, besteht ein dringender Bedarf an privatsphärefreundlichen Lösungen wie Coagulate.
+> Eine Welt, die global vernetzt ist und in der Mobilität zunimmt, bietet sowohl Chancen als auch Herausforderungen.
+Eine dieser Herausforderungen besteht darin, dass Freund\*innen und Bekannte oft über große Entfernungen verstreut sind, selbst wenn sie in derselben Großstadt leben.
+Coagulate zielt darauf ab, Menschen dabei zu unterstützen, persönliche Kontakte zu pflegen und den sozialen Austausch zu fördern.
+Ich sehe den Wert digitaler Kommunikation und Vernetzung, aber anstatt die Nutzer\*innen noch stärker an ihre Geräte zu binden, möchte ich diese Technologie nutzen, um Begegnungen zu initiieren.
+Angesichts der Tatsache, dass Daten als das neue Öl betrachtet werden, die digitale Souveränität von großen Werbefirmen bedroht ist und das politische Klima eine potenzielle Gefahr für nicht-normatives Leben darstellt, besteht ein dringender Bedarf an privatsphärefreundlichen Lösungen wie Coagulate.
 
 ## Wie willst du dein Projekt technisch umsetzen? (175W)
 
