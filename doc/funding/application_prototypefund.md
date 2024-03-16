@@ -41,11 +41,7 @@ Kurz gesagt: Warum ist euer Projekt wichtig für die Gesellschaft?
 NICHT
 - Tech-Solutionismus: Wir erwarten keine magischen Lösungen, sondern realisierbare Ansätze.
 
-> Eine globale und vernetzte Welt, sowie höhere Mobilität birgt Chancen aber auch die Herausforderung, dass Freund\*innen und Bekannte geografisch verstreut sind.
-Darüber hinaus kann es selbst für Menschen die in der gleichen Stadt leben herausfordernd sein in Kontakt zu bleiben.
-Coagulate soll Menschen helfen, wieder persönlich in Kontakt zu kommen und den sozialen Austausch fördern.
-Ich erkenne die Relevanz digitaler Kommunikation und Vernetzung, und möchte statt Nutzer\*innen noch mehr an ihre Geräte zu binden diese nutzen um Impulse für Begegnungen zu schaffen.
-In Zeiten in denen Daten als neues Öl gehandelt werden, die digitale Souveränität durch große Werbefirmen gefährdet ist, und das politischen Klima in eine Richtung driftet die potenziell nicht-normatives Leben gefährdet, entsteht ein besonderer Bedarf für privatsphärefreundliche Lösungen wie Coagulate.
+> Eine Welt, die global vernetzt ist und in der Mobilität zunimmt, bietet sowohl Chancen als auch Herausforderungen. Eine dieser Herausforderungen besteht darin, dass Freund\*innen und Bekannte oft über große Entfernungen verstreut sind, selbst wenn sie in derselben Großstadt leben. Coagulate zielt darauf ab, Menschen dabei zu unterstützen, persönliche Kontakte zu pflegen und den sozialen Austausch zu fördern. Ich sehe den Wert digitaler Kommunikation und Vernetzung, aber statt die Nutzer noch stärker an ihre Geräte zu binden, möchte ich diese Technologie nutzen, um Begegnungen zu initiieren. Angesichts der Tatsache, dass Daten als das neue Öl betrachtet werden, die digitale Souveränität von großen Werbefirmen bedroht ist und das politische Klima eine potenzielle Gefahr für nicht-normatives Leben darstellt, besteht ein dringender Bedarf an privatsphärefreundlichen Lösungen wie Coagulate.
 
 ## Wie willst du dein Projekt technisch umsetzen? (175W)
 
@@ -62,11 +58,11 @@ NICHT
 
 > Coagulate wird als plattformübergreifende mobile Anwendung für iOS und Android mit Flutter umgesetzt.
 Die Peer-to-Peer Funktionalität und privatsphärefreundliche Kommunikation basiert auf der Veilid Distributed Hash Table (DHT), da hier Lese- und Schreiboperationen möglich sind ohne die eigene IP Adresse preiszugeben.
-Hilfreich ist zudem, dass Veilid in Rust implementiert und mit Flutter/Dart Bindings bereits für die Integration bereit ist.
-Dabei soll Coagulate keine separate DHT betreiben sondern von der Veilid DHT profitieren und selbst zu deren Robustheit beitragen um die Peer-to-Peer Infrastruktur auch für andere Veilid basierte Anwendungen zu stärken.
+Hilfreich ist zudem, dass Veilid in Rust implementiert und mit Flutter/Dart Bindings bereits direkt integrierbar ist.
+Dabei soll Coagulate keine separate DHT betreiben sondern von der Veilid DHT profitieren und selbst zu deren Robustheit beitragen, um die Peer-to-Peer Infrastruktur auch für andere Veilid basierte Anwendungen zu stärken.
 Für die Kartendarstellung von Kontaktadressen und Aufenthaltsorten kommt eine Open Street Map Integration zum Einsatz.
-Release und Build Management wird mit Fastlane umgesetzt. 
-Und der Quellcode auf GitHub.com gehosted, da dort MacOS und Linux Maschinen für Continuous Integration und Delivery verfügbar sind.
+Das Release und Build Management wird mit Fastlane umgesetzt. 
+Der Quellcode wird auf GitHub.com gehosted, da dort MacOS und Linux Maschinen für Continuous Integration und Delivery verfügbar sind.
 
 ## Hast du schon an der Idee gearbeitet? Wenn ja, beschreibe kurz den aktuellen Stand und erkläre die geplanten Neuerungen. (100W)
 
@@ -99,9 +95,9 @@ Kurz gesagt: Was unterscheidet euer Projekt von dem, was es schon gibt?
 NICHT
 - Die unbegründete Behauptung, dass keine Projekte vergleichbar seien. Dadurch wirkt das Projekt nicht innovativer, sondern die Bewerbung weniger durchdacht
 
-> Social Media Plattformen ermöglichen Nutzer\*innen Kontaktdaten zu teilen und Treffen zu organisieren, müssen dafür allerdings die Hoheit über ihre Daten abgeben.
+> Social Media Plattformen ermöglichen Nutzer\*innen Kontaktdaten zu teilen und Treffen zu organisieren, bedeuten aber den Verlust der Hoheit über die eigenen Daten.
 Standorte teilen ist auf Android und iOS nativ sowie mit Apps wie Glympse möglich, jedoch ohne überprüfbare kryptografische Garantien.
-Coagulate bietet sicheren und auditierbaren Austausch durch FOSS Lizenz und Peer-to-Peer Architektur, fördert lokale Interaktionen und verhindert Zensur oder Monetarisierung.
+Coagulate ermöglicht sicheren und auditierbaren Austausch durch FOSS Lizenz und Peer-to-Peer Architektur, fördert lokale Interaktionen und schließt Zensur und Monetarisierung der Nutzer\*innendaten aus.
 
 ## Wer ist die Zielgruppe und wie soll dein Projekt sie erreichen? (100W)
 
@@ -120,7 +116,7 @@ Eine Pilotzielgruppe mit der ich gerne arbeiten möchte sind internationale Stud
 Ihnen möchte ich mit Coagulate helfen, diesen Kontakten auch in Zukunft wieder zu begegnen.
 Eine strategische Kooperation mit Organisationen wie AISEC oder AEGEE scheint hier vielversprechend.
 Außerdem bietet Coagulate für nicht-normativ lebende Menschen, bspw. aus der Queeren Community, Potenzial in vertrauten Kreisen Zusammenkünfte zu organisieren und Kontakte zu pflegen.
-Hier möchte ich mir persönlichen Kontakten arbeiten um Feedback aus der Zielgruppe zu erhalten.
+Hier möchte ich mit persönlichen Kontakten arbeiten um Feedback aus der Zielgruppe zu erhalten.
 
 ## Erfahrung, Hintergrund, Motivation, Perspektive: Was sollen wir über dich (bzw. euch) wissen und bei der Auswahl berücksichtigen? (100W)
 
@@ -133,8 +129,8 @@ Kurz gesagt: Was sollten wir über euch wissen?
 > Aufgrund mehrfache Umzüge, u.a. wegen internationaler Studienaufenthalte, ist der Kreis meiner Freund\*innen und Bekannten geografisch stark verteilt.
 Und obwohl ich viele dieser Menschen sehr schätze fehlt mir für einige die Kapazität um aktiv unseren Kontakt zu pflegen.
 Coagulate soll hier helfen, den Überblick zu behalten, wer zur Zeit wo anzutreffen und wie kontaktierbar ist.
-Ich war mehrere Jahre selbstständiger Softwareentwickler, unter anderem auch für mobile Anwendungen, und bin auch aktuell im Softwareumfeld tätig.
-Mein akademischer Hintergrund an der Schnittstelle zwischen Psychologie und Informatik befähigt mich darüber hinaus mit einem besonderen Blick für User Experience und User Centered Design.
+Ich war mehrere Jahre selbstständiger Softwareentwickler, unter anderem für mobile Anwendungen, und bin auch aktuell im Softwareumfeld tätig.
+Mein akademischer Hintergrund an der Schnittstelle zwischen Psychologie und Informatik hat mich darüber hinaus für User Experience und User Centered Design sensibilisiert.
 
 ## Skizziere kurz die wichtigsten Meilensteine, die im Förderzeitraum umgesetzt werden sollen. (100W)
 
@@ -144,8 +140,7 @@ Kurz gesagt: Wann sollen die einzelnen Schritte des Projekts umgesetzt werden?
 - Eine Liste der Meilensteine, wie sie für den Förderzeitraum voraussichtlich geplant sind. Nummerierte Schritte oder Bullet Points sehen wir hier sehr gerne.
 - Auch grobe Zeitangaben (z. B. in Wochen oder Monaten) sind für uns sehr hilfreich.
 
-> Die folgenden Monatsangaben sind als Orientierung gedacht und variieren in der Umsetzung leicht:
-September & Oktober: Check-in Funktion um aktuellen Aufenthaltsort zu teilen und Visualisierung der Aufenthaltsorte anderer, sowie Start einer geschlossenen Beta für iOS und Android für kontinuierliches Feedback (100h)
+> September & Oktober: Check-in Funktion um aktuellen Aufenthaltsort zu teilen und Visualisierung der Aufenthaltsorte anderer, sowie Start einer geschlossenen Beta für iOS und Android für kontinuierliches Feedback (100h)
 November: Funktion zu nuanciert konfigurierbaren Gruppen und Profilvarianten für nutzer\*innendefiniertes Teilen (80h)
 Dezember: Funktion zukünftige Aufenthaltsorte teilen inkl. Zeit-Slider auf der Karte zur Visualisierung zukünftiger Aufenthaltsorte anderer (60h)
 Januar: Account Portabilität/Wiederherstellung bei Geräteverlust oder -wechsel, F-Droid Distribution (60h)
