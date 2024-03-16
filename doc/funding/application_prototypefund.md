@@ -41,7 +41,7 @@ Kurz gesagt: Warum ist euer Projekt wichtig für die Gesellschaft?
 NICHT
 - Tech-Solutionismus: Wir erwarten keine magischen Lösungen, sondern realisierbare Ansätze.
 
-> Eine Welt, die global vernetzt ist und in der Mobilität zunimmt, bietet sowohl Chancen als auch Herausforderungen. Eine dieser Herausforderungen besteht darin, dass Freund\*innen und Bekannte oft über große Entfernungen verstreut sind, selbst wenn sie in derselben Großstadt leben. Coagulate zielt darauf ab, Menschen dabei zu unterstützen, persönliche Kontakte zu pflegen und den sozialen Austausch zu fördern. Ich sehe den Wert digitaler Kommunikation und Vernetzung, aber statt die Nutzer noch stärker an ihre Geräte zu binden, möchte ich diese Technologie nutzen, um Begegnungen zu initiieren. Angesichts der Tatsache, dass Daten als das neue Öl betrachtet werden, die digitale Souveränität von großen Werbefirmen bedroht ist und das politische Klima eine potenzielle Gefahr für nicht-normatives Leben darstellt, besteht ein dringender Bedarf an privatsphärefreundlichen Lösungen wie Coagulate.
+> Eine Welt, die global vernetzt ist und in der Mobilität zunimmt, bietet sowohl Chancen als auch Herausforderungen. Eine dieser Herausforderungen besteht darin, dass Freund\*innen und Bekannte oft über große Entfernungen verstreut sind, selbst wenn sie in derselben Großstadt leben. Coagulate zielt darauf ab, Menschen dabei zu unterstützen, persönliche Kontakte zu pflegen und den sozialen Austausch zu fördern. Ich sehe den Wert digitaler Kommunikation und Vernetzung, aber anstatt die Nutzer\*innen noch stärker an ihre Geräte zu binden, möchte ich diese Technologie nutzen, um Begegnungen zu initiieren. Angesichts der Tatsache, dass Daten als das neue Öl betrachtet werden, die digitale Souveränität von großen Werbefirmen bedroht ist und das politische Klima eine potenzielle Gefahr für nicht-normatives Leben darstellt, besteht ein dringender Bedarf an privatsphärefreundlichen Lösungen wie Coagulate.
 
 ## Wie willst du dein Projekt technisch umsetzen? (175W)
 
@@ -78,7 +78,7 @@ NICHT
 
 > Die Idee, Kontaktdaten privatsphärefreundlich und dezentral zu teilen, begleitet mich seit Jahren.
 Mit der Veröffentlichung von Veilid wurde dies dank der Distributed Hash Table, die ohne Preisgabe der eigenen IP-Adresse funktioniert umsetzbar.
-Mit dem Wechsel in Teilzeit zu Beginn 2024 eröffnete sich für mich Raum Coagulate zu entwickeln.
+Der Raum an Coagulate zu entwickeln entstand für mich durch den Wechsel in Teilzeit Anfang 2024.
 Die Förderung durch den Prototype Fund soll finanzielle Einbußen ausgleichen und weitere Entwicklung ermöglichen.
 Bisher besteht ein Flutter-Projekt mit Veilid Integration, inklusive Adressbuchintegration und einer OpenStreetMap Karte mit Kontaktadressen.
 Die Synchronisation mit Veilid ist noch fehlerhaft, aber ein QR-Code- und Einladungslink-basierter Verknüpfungsprozess ist vorbereitet.
@@ -95,9 +95,9 @@ Kurz gesagt: Was unterscheidet euer Projekt von dem, was es schon gibt?
 NICHT
 - Die unbegründete Behauptung, dass keine Projekte vergleichbar seien. Dadurch wirkt das Projekt nicht innovativer, sondern die Bewerbung weniger durchdacht
 
-> Social Media Plattformen ermöglichen Nutzer\*innen Kontaktdaten zu teilen und Treffen zu organisieren, bedeuten aber den Verlust der Hoheit über die eigenen Daten.
-Standorte teilen ist auf Android und iOS nativ sowie mit Apps wie Glympse möglich, jedoch ohne überprüfbare kryptografische Garantien.
-Coagulate ermöglicht sicheren und auditierbaren Austausch durch FOSS Lizenz und Peer-to-Peer Architektur, fördert lokale Interaktionen und schließt Zensur und Monetarisierung der Nutzer\*innendaten aus.
+> Social Media Plattformen ermöglichen Nutzer\*innen Kontaktdaten zu teilen und Treffen zu organisieren, bedeuten aber den Hoheitsverlust über die eigenen Daten.
+Standorte teilen ist bspw. via "Find My", "Google Maps", oder "Glympse" Apps möglich, jedoch ohne überprüfbare kryptografische Garantien.
+Coagulate ermöglicht sicheren, auditierbaren Austausch durch FOSS Lizenz und Peer-to-Peer Architektur, fördert lokale Interaktionen und schließt Zensur und Monetarisierung der Nutzer\*innendaten aus.
 
 ## Wer ist die Zielgruppe und wie soll dein Projekt sie erreichen? (100W)
 
