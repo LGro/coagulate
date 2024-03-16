@@ -18,11 +18,11 @@ NICHT:
 - Eine Projektbeschreibung, die nur technisch ist (das kommt später)
 - Eine Beschreibung, bei der vergessen wird zu erwähnen, wie die Software das beschriebene Problem löst
 
-> Coagulate wird eine Smartphone App, die es Menschen ermöglicht, ihre Kontaktdaten und Aufenthaltsorte privat und sicher mit anderen zi teilen, um in Kontakt zu bleiben und persönliche Begegnungen zu fördern.
-Du kannst dabei individuell entscheiden was du mit Kolleg\*innen, Freund\*innen und Liebhaber\*innen teilst, damit alle genau die richtigen Infos erhalten und nicht mehr.
-Basierend auf der Veilid Distributed Hash Table bietet sie eine Peer-to-Peer Lösung, die digitale Souveränität gewährleistet und Nutzer\*innen vor Überwachung und Datenhandel schützt.
-Egal ob der Bekanntenkreis geografisch verteilt ist, oder nicht-normativ lebende Menschen sich geschützt organisieren möchten, Coagulate unterstützt sie dabei, physisch zusammenzukommen.
-Die Idee entstand aus dem Bedürfnis nach privatsphärefreundlicher Kommunikation und der Stärkung persönlicher Kontakte.
+> Coagulate wird eine Smartphone App, die es Menschen ermöglicht, ihre Kontaktdaten und Aufenthaltsorte privat und sicher mit anderen zu teilen, um in Kontakt zu bleiben und persönliche Begegnungen zu fördern.
+Du entscheidest dabei individuell was du mit Kolleg\*innen, Freund\*innen und Liebhaber\*innen teilst, damit alle genau die richtigen Infos erhalten.
+Basierend auf der Veilid Distributed Hash Table bietet Coagulate eine Peer-to-Peer Lösung, die digitale Souveränität gewährleistet und Nutzer\*innen vor Überwachung und Datenhandel schützt.
+Egal ob geografisch verteilter Bekanntenkreis, oder Treffen von nicht-normativ lebenden Menschen, Coagulate hilft digital vernetzten Menschen physisch zusammenzukommen.
+Kernmotivation ist ein Bedürfnis nach privatsphärefreundlicher Kommunikation und der Stärkung persönlicher Kontakte.
 
 ## Welchem Themenfeld ordnest du dein Projekt zu?
 
