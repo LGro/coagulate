@@ -36,6 +36,7 @@ jobs:
         source "$HOME/.cargo/env"
         PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
         rustup target add armv7-linux-androideabi
+        rustup target add aarch64-linux-android
         flutter build appbundle --release
 
   # ios:
