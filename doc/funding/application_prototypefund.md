@@ -70,6 +70,7 @@ NICHT
 Die Peer-to-Peer Funktionalität und privatsphärefreundliche Kommunikation basiert auf der Veilid Distributed Hash Table (DHT), da hier Lese- und Schreiboperationen möglich sind ohne die eigene IP Adresse preiszugeben.
 Hilfreich ist zudem, dass Veilid in Rust implementiert und mit Flutter/Dart Bindings bereits direkt integrierbar ist.
 Dabei soll Coagulate keine separate DHT betreiben sondern von der Veilid DHT profitieren und selbst zu deren Robustheit beitragen, um die Peer-to-Peer Infrastruktur auch für andere Veilid basierte Anwendungen zu stärken.
+User können sich miteinander durch QR-Codes und Einladungslinks verbinden.
 Für die Kartendarstellung von Kontaktadressen und Aufenthaltsorten kommt eine Open Street Map Integration zum Einsatz.
 Das Release und Build Management wird mit Fastlane umgesetzt. 
 Der Quellcode wird auf GitHub.com gehosted, da dort MacOS und Linux Maschinen für Continuous Integration und Delivery verfügbar sind.
@@ -87,10 +88,10 @@ NICHT
 - Der Prototype Fund fördert Software, daher können wir nur Projekte mit einem hohen Entwicklungsanteil zur Förderung auswählen. Bestehende Projekte, bei denen z. B. "nur" Dokumentation, Release und Marketing geplant sind, sind leider nicht förderfähig.
 
 > Die Idee, Kontaktdaten privatsphärefreundlich und dezentral zu teilen, begleitet mich seit Jahren.
-Mit der Veröffentlichung von Veilid wurde dies dank der Distributed Hash Table, die ohne Preisgabe der eigenen IP-Adresse funktioniert umsetzbar.
-Der Raum an Coagulate zu entwickeln entstand für mich durch den Wechsel in Teilzeit Anfang 2024.
-Die Förderung durch den Prototype Fund soll finanzielle Einbußen ausgleichen und weitere Entwicklung ermöglichen.
-Bisher besteht ein Flutter-Projekt mit Veilid Integration, inklusive Adressbuchintegration und einer OpenStreetMap Karte mit Kontaktadressen.
+Die Veröffentlichung von Veilid mit ihrer Distributed Hash Table, macht die Idee ohne Preisgabe der eigenen IP-Adresse umsetzbar.
+Der Wechsel in Teilzeit Anfang 2024 erlaubte mir mit der Entwicklung von Coagulate zu beginnen.
+Die Prototype-Fund-Förderung soll finanzielle Einbußen ausgleichen und weitere Entwicklung ermöglichen.
+Bisher besteht ein Flutter-Projekt mit Veilid Integration, Adressbuchintegration in iOS und Adroid sowie einer OpenStreetMap Karte mit Kontaktadressen.
 Die Synchronisation mit Veilid ist noch fehlerhaft, aber ein QR-Code- und Einladungslink-basierter Verknüpfungsprozess ist vorbereitet.
 Geplante Funktionalitäten umfassen das Teilen aktueller/zukünftiger Aufenthaltsorte sowie benutzerdefinierte Profile.
 
@@ -121,8 +122,8 @@ Kurz gesagt: Für wen ist das Projekt wichtig?
 NICHT
 - Unklare Pläne: Ihr wollt Vorträge auf Konferenzen halten? Nennt ein Beispiel. Ihr sucht Projektpartner? Nennt einige mögliche Organisationen, Communities oder Unternehmen, mit denen ihr Kontakt aufnehmen möchtet.
 
-> Coagulate ist für alle Menschen, die privatsphärebewusst mit ihren Freund\*innen und Bekannten in Kontakt bleiben möchten.
-Eine Pilotzielgruppe mit der ich gerne arbeiten möchte sind internationale Studierende (bspw. ERASMUS), die viele in Europa verteilte Kontakte knüpfen.
+> Coagulate ist für alle Menschen, die privatsphärenbewusst und plattformunabhängig mit ihren Freund\*innen und Bekannten in Kontakt bleiben möchten.
+Eine Pilotzielgruppe sind internationale Studierende (bspw. ERASMUS), die viele in Europa verteilte Kontakte knüpfen.
 Ihnen möchte ich mit Coagulate helfen, diesen Kontakten auch in Zukunft wieder zu begegnen.
 Eine strategische Kooperation mit Organisationen wie AISEC oder AEGEE scheint hier vielversprechend.
 Außerdem bietet Coagulate für nicht-normativ lebende Menschen, bspw. aus der Queeren Community, Potenzial in vertrauten Kreisen Zusammenkünfte zu organisieren und Kontakte zu pflegen.
