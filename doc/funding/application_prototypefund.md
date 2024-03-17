@@ -43,11 +43,15 @@ Kurz gesagt: Warum ist euer Projekt wichtig für die Gesellschaft?
 NICHT
 - Tech-Solutionismus: Wir erwarten keine magischen Lösungen, sondern realisierbare Ansätze.
 
-> Eine Welt, die global vernetzt ist und in der Mobilität zunimmt, bietet sowohl Chancen als auch Herausforderungen.
-Eine dieser Herausforderungen besteht darin, dass Freund\*innen und Bekannte oft über große Entfernungen verstreut sind, selbst wenn sie in derselben Großstadt leben.
-Coagulate zielt darauf ab, Menschen dabei zu unterstützen, persönliche Kontakte zu pflegen und den sozialen Austausch zu fördern.
-Ich sehe den Wert digitaler Kommunikation und Vernetzung, aber anstatt die Nutzer\*innen noch stärker an ihre Geräte zu binden, möchte ich diese Technologie nutzen, um Begegnungen zu initiieren.
-Angesichts der Tatsache, dass Daten als das neue Öl betrachtet werden, die digitale Souveränität von großen Werbefirmen bedroht ist und das politische Klima eine potenzielle Gefahr für nicht-normatives Leben darstellt, besteht ein dringender Bedarf an privatsphärefreundlichen Lösungen wie Coagulate.
+> Globale Digitalisierung und steigende Mobiliät im Lebensverlauf führen zu räumlich verteilten Freundes- und Bekanntenkreisen.
+Häufig übersieht man welche digitalen Kontakte tatsächlich in der gleichen Stadt leben, oder welche alte Bekanntschaft zufällig berufbedingt im Nachbarort sein wird.
+Trotz unserer digitalen Möglichkeiten nehmen Gefühle von Einsamkeit und Isolation zu.
+Zu Beginn der sozialen Netzwerk Plattformen gab es viele Menschen die sich darüber gefreut haben endlich wieder Kontakt zu alten Bekannten machen zu können.
+Andere haben ähnlich Interessesierte Menschen finden können.
+Zentralisierte Plattformen kommen jedoch immer mit einem fundamentalen Risiko für die informationelle Selbstbestimmung.
+Dies ist insbesondere für verfolgte und dikrimierte Gruppen gefährlich, wobei es genau diese Menschen sind die ein starkes soziales Netz brauchen.
+Aktuelle Innovationen aus der Kryptographie (private set intersection) und verteilten Systemen (distributed hash tables) machen es möglich Vorteile von digitalen sozialen Netzwerken privatsphärenfreundlich zu implementieren.
+
 
 ## Wie willst du dein Projekt technisch umsetzen? (175W)
 
