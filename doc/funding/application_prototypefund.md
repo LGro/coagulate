@@ -19,11 +19,11 @@ NICHT:
 - Eine Beschreibung, bei der vergessen wird zu erwähnen, wie die Software das beschriebene Problem löst
 
 > Coagulate wird eine Smartphone App, die es Menschen ermöglicht, ihre Kontaktdaten und Aufenthaltsorte privat und sicher mit anderen zu teilen.
-Egal ob geografisch verteilter Bekanntenkreis, oder Treffen von nicht-normativ lebenden Menschen, Coagulate hilft digital vernetzten Menschen physisch zusammenzukommen.
-Du entscheidest individuell was du mit Kolleg\*innen, Freund\*innen und Liebhaber\*innen teilst, damit jede genau die richtigen Infos hat um in Kontakt zu bleiben.
+Egal ob geografisch verteilter Bekanntenkreis, oder Treffen von nicht-normativ lebenden Menschen, Coagulate hilft digital vernetzten Menschen, physisch zusammenzukommen.
+Du entscheidest individuell, was du mit Kolleg\*innen, Freund\*innen und Liebhaber\*innen teilst, damit jede\*r genau die richtigen Infos hat, um in Kontakt zu bleiben.
 Coagulate nutzt die Veilid Distributed Hash Table um 100% Peer-to-Peer arbeiten zu können.
-So wird die digitale Souveränität gewährleistet und Nutzer\*innen vor Überwachung und Datenhandel geschützt.
-Kernmotivation ist ein Bedürfnis nach privatsphärefreundlicher Erhaltung und Stärkung des eigenen sozialen Netwerks.
+So werden die digitale Souveränität gewährleistet und Nutzer\*innen vor Überwachung und Datenhandel geschützt.
+Meine Kernmotivation ist mein Bedürfnis, privatsphärefreundlich soziale Kontakte zu stärken.
 
 ## Welchem Themenfeld ordnest du dein Projekt zu?
 
@@ -43,15 +43,13 @@ Kurz gesagt: Warum ist euer Projekt wichtig für die Gesellschaft?
 NICHT
 - Tech-Solutionismus: Wir erwarten keine magischen Lösungen, sondern realisierbare Ansätze.
 
-> Globale Digitalisierung und steigende Mobiliät im Lebensverlauf führen zu räumlich verteilten Freundes- und Bekanntenkreisen.
-Häufig übersieht man welche digitalen Kontakte tatsächlich in der gleichen Stadt leben, oder welche alte Bekanntschaft zufällig berufbedingt im Nachbarort sein wird.
+> Globale Digitalisierung und steigende Mobilität im Lebensverlauf führen zu räumlich verteilten Freundes- und Bekanntenkreisen.
+Häufig übersieht man welche digitalen Kontakte tatsächlich in der gleichen Großstadt leben, oder welche alte Bekanntschaft zufällig berufsbedingt im Nachbarort sein wird.
 Trotz unserer digitalen Möglichkeiten nehmen Gefühle von Einsamkeit und Isolation zu.
-Zu Beginn der sozialen Netzwerk Plattformen gab es viele Menschen die sich darüber gefreut haben endlich wieder Kontakt zu alten Bekannten machen zu können.
-Andere haben ähnlich Interessesierte Menschen finden können.
+Zu Beginn der sozialen Netzwerk Plattformen freuten sich viele, endlich einfacher Kontakt zu alten Bekannten pflegen zu können; Andere fanden Menschen mit ähnlichen Interessen.
 Zentralisierte Plattformen kommen jedoch immer mit einem fundamentalen Risiko für die informationelle Selbstbestimmung.
-Dies ist insbesondere für verfolgte und dikrimierte Gruppen gefährlich, wobei es genau diese Menschen sind die ein starkes soziales Netz brauchen.
-Aktuelle Innovationen aus der Kryptographie (private set intersection) und verteilten Systemen (distributed hash tables) machen es möglich Vorteile von digitalen sozialen Netzwerken privatsphärenfreundlich zu implementieren.
-
+Dies ist insbesondere für verfolgte und diskriminierte Gruppen gefährlich, wobei es im Besonderen diese Menschen sind, die von einem starken soziales Netz profitieren.
+Innovationen aus dem Bereich verteilter Systeme wie Private Routing für private Distributed Hash Table Operationen ermöglichen, soziale Kontakte mit Coagulate privatsphärefreundlich technologisch zu stärken und durch digitale Vernetzung persönliche Begegnungen zu fördern.
 
 ## Wie willst du dein Projekt technisch umsetzen? (175W)
 
@@ -67,7 +65,7 @@ NICHT
 - Reine Aufzählungen von Tools – schreibt Sätze!
 
 > Coagulate wird als plattformübergreifende mobile Anwendung für iOS und Android mit Flutter umgesetzt.
-Die Peer-to-Peer Funktionalität und privatsphärefreundliche Kommunikation basiert auf der Veilid Distributed Hash Table (DHT), da hier Lese- und Schreiboperationen möglich sind ohne die eigene IP Adresse preiszugeben.
+Peer-to-Peer Funktionalität und privatsphärefreundlicher Informationstransfer basieren auf der Veilid Distributed Hash Table (DHT), da hier Lese- und Schreiboperationen möglich sind ohne die eigene IP Adresse preiszugeben.
 Hilfreich ist zudem, dass Veilid in Rust implementiert und mit Flutter/Dart Bindings bereits direkt integrierbar ist.
 Dabei soll Coagulate keine separate DHT betreiben sondern von der Veilid DHT profitieren und selbst zu deren Robustheit beitragen, um die Peer-to-Peer Infrastruktur auch für andere Veilid basierte Anwendungen zu stärken.
 User können sich miteinander durch QR-Codes und Einladungslinks verbinden.
@@ -89,9 +87,9 @@ NICHT
 
 > Die Idee, Kontaktdaten privatsphärefreundlich und dezentral zu teilen, begleitet mich seit Jahren.
 Die Veröffentlichung von Veilid mit ihrer Distributed Hash Table, macht die Idee ohne Preisgabe der eigenen IP-Adresse umsetzbar.
-Der Wechsel in Teilzeit Anfang 2024 erlaubte mir mit der Entwicklung von Coagulate zu beginnen.
-Die Prototype-Fund-Förderung soll finanzielle Einbußen ausgleichen und weitere Entwicklung ermöglichen.
-Bisher besteht ein Flutter-Projekt mit Veilid Integration, Adressbuchintegration in iOS und Adroid sowie einer OpenStreetMap Karte mit Kontaktadressen.
+Der Wechsel in Teilzeit Anfang 2024 erlaubte mir, mit der Entwicklung von Coagulate zu beginnen.
+Die Prototype-Fund-Förderung soll finanzielle Einbußen ausgleichen und eine effektive weitere Entwicklung stärken.
+Bisher besteht ein Flutter-Projekt mit Veilid Anbindung, Adressbuchintegration in iOS und Android sowie einer OpenStreetMap Karte mit Kontaktadressen.
 Die Synchronisation mit Veilid ist noch fehlerhaft, aber ein QR-Code- und Einladungslink-basierter Verknüpfungsprozess ist vorbereitet.
 Geplante Funktionalitäten umfassen das Teilen aktueller/zukünftiger Aufenthaltsorte sowie benutzerdefinierte Profile.
 
@@ -151,8 +149,6 @@ Kurz gesagt: Wann sollen die einzelnen Schritte des Projekts umgesetzt werden?
 - Eine Liste der Meilensteine, wie sie für den Förderzeitraum voraussichtlich geplant sind. Nummerierte Schritte oder Bullet Points sehen wir hier sehr gerne.
 - Auch grobe Zeitangaben (z. B. in Wochen oder Monaten) sind für uns sehr hilfreich.
 
-> September & Oktober: Check-in Funktion um aktuellen Aufenthaltsort zu teilen und Visualisierung der Aufenthaltsorte anderer, sowie Start einer geschlossenen Beta für iOS und Android für kontinuierliches Feedback (100h)
-November: Funktion zu nuanciert konfigurierbaren Gruppen und Profilvarianten für nutzer\*innendefiniertes Teilen (80h)
-Dezember: Funktion zukünftige Aufenthaltsorte teilen inkl. Zeit-Slider auf der Karte zur Visualisierung zukünftiger Aufenthaltsorte anderer (60h)
-Januar: Account Portabilität/Wiederherstellung bei Geräteverlust oder -wechsel, F-Droid Distribution (60h)
-Februar: Puffer und Release in App und Play Store (60h)
+> Oktober: Check-in Funktion um aktuellen Aufenthaltsort zu teilen und Visualisierung der Aufenthaltsorte anderer, sowie Start einer geschlossenen iOS und Android Beta für kontinuierliches Feedback (100h)
+Dezember: Funktion "Circles" zu nuanciert konfigurierbaren Gruppen und Profilvarianten für nutzer\*innendefiniertes Teilen (140h)
+Februar: Funktion zukünftige Aufenthaltsorte teilen inkl. Zeit-Slider auf der Karte zur Visualisierung zukünftiger Aufenthaltsorte anderer; sowie Release in App/Play Store und auf F-droid (140h)
