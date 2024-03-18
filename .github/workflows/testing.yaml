@@ -1,12 +1,12 @@
-on: ["push"]
-  # push:
-  #   branches:
-  #     - main
-  # pull_request:
-  #   branches:
-  #     - main
-  # release:
-  #   types: [published]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types: [published]
 
 jobs:
   android:
@@ -41,14 +41,14 @@ jobs:
         rustup target add x86_64-linux-android
         flutter build appbundle --release
 
-  # ios:
-  #   runs-on: macos-latest
-  #   steps:
-  #   - name: Checkout Veilid
-  #     run: cd .. && git clone https://gitlab.com/veilid/veilid.git
-  #   - uses: actions/checkout@v3
-  #   - uses: subosito/flutter-action@v2
-  #     with:
-  #       flutter-version: '3.19.1'
-  #   - run: flutter pub get
-  #   - run: flutter build ipa
+  ios:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout Veilid
+      run: cd .. && git clone https://gitlab.com/veilid/veilid.git
+    - uses: actions/checkout@v3
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.1'
+    - run: flutter pub get
+    - run: flutter build ipa
