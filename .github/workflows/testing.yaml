@@ -32,6 +32,9 @@ jobs:
       run: cd .. && git clone https://gitlab.com/veilid/veilid.git
     - uses: actions/checkout@v3
     - shell: bash
+      env:
+        LC_ALL: en_US.UTF-8
+        LANG: en_US.UTF-8
       run: |
         source "$HOME/.cargo/env"
         PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
@@ -43,7 +46,7 @@ jobs:
         cd android
         gem install bundler
         bundle update
-        fastlane build
+        fastlane beta
 
   ios:
     runs-on: macos-latest
