@@ -1,0 +1,54 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    container: thyrlian/android-sdk
+    steps:
+    - name: apt update and install
+      run: |
+        apt -qq update && apt -qq upgrade -y
+        apt -q install git curl wget unzip build-essential clang cmake ninja-build pkg-config libgtk-3-dev python3 -y
+    - name: Flutter and Android SDK
+      run: |
+        git clone https://github.com/flutter/flutter.git /usr/local/flutter
+        export PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
+        sdkmanager "platforms;android-29" "build-tools;28.0.3" "ndk;25.1.8937393"
+        yes | sdkmanager --licenses
+        flutter config --android-sdk /opt/android-sdk
+        flutter doctor -v
+    - name: Rust
+      run: curl -proto '=https' -tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+    - name: Checkout Veilid
+      run: cd .. && git clone https://gitlab.com/veilid/veilid.git
+    - uses: actions/checkout@v3
+    - shell: bash
+      run: |
+        source "$HOME/.cargo/env"
+        PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
+        rustup target add armv7-linux-androideabi
+        rustup target add aarch64-linux-android
+        rustup target add i686-linux-android
+        rustup target add x86_64-linux-android
+        flutter build appbundle --release
+
+  ios:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout Veilid
+      run: cd .. && git clone https://gitlab.com/veilid/veilid.git
+    - uses: actions/checkout@v3
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.1'
+    - run: flutter pub get
+    - run: flutter build ipa
