@@ -1,6 +1,13 @@
 # Coagulate
 
-Link your contact profile with others to keep them up to date whenever you move or get a new number, all while respecting everyone's privacy.
+Coagulate is a smartphone app to synchronize contact details and share current as well as future locations in a privacy preserving manner for everyone who wants to stay in touch with their peers.
+
+When you are visiting a city, find out immediately who of your old friends you could meet and directly contact them with up-to-date contact details.
+
+**Features:**
+- You can connect with existing contacts in an end-to-end encrypted manner to securely and privately keep each others' contact details up-to-date, right in your smartphone's address book.
+- As soon as your contacts start sharing their addresses, current or future locations, you can see them on a map to plan your travels and coordinate meeting people you care about.
+- You can personalize what you share with whom so that colleagues, friends and lovers each stay up-to-date on what you want them to know and nothing else.
 
 This [Flutter](flutter.dev) based implementation is derived from [VeilidChat](https://gitlab.com/veilid/veilidchat/).
 Accordingly, the Copyright to all files belongs to the Veilid developers unless explicitly stated otherwise.
