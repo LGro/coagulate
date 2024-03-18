@@ -40,7 +40,10 @@ jobs:
         rustup target add i686-linux-android
         rustup target add x86_64-linux-android
         flutter build appbundle --release
-        cd android && bundle update && fastlane build
+        cd android
+        gem install bundler
+        bundle update
+        fastlane build
 
   ios:
     runs-on: macos-latest
