@@ -1,10 +1,11 @@
-// Copyright 2024 Lukas Grossberger
+// Copyright 2024 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'app.dart';
+import 'screens/app.dart';
 import 'bloc_observer.dart';
 import 'tools/loggy.dart';
 import 'veilid_init.dart';

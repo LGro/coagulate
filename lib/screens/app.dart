@@ -1,4 +1,5 @@
-// Copyright 2024 Lukas Grossberger
+// Copyright 2024 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 import 'package:flutter/material.dart';
 
 import 'contact_list.dart';
@@ -43,6 +44,7 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
         ].elementAt(_selectedIndex),
         bottomNavigationBar: BottomNavigationBar(
           items: const [
+            // TODO: Move profile selection to initial startup launch screen and then hide in settings?
             BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Profile',

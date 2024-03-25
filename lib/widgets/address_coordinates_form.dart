@@ -1,3 +1,5 @@
+// Copyright 2024 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 import 'package:flutter/material.dart';
 
 typedef UpdateLngLatCallback = void Function(num, num);

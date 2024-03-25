@@ -1,6 +1,6 @@
+// Copyright 2023 The Veilid Chat Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 import 'dart:async';
-
-import 'package:flutter/foundation.dart';
 
 import 'processor.dart';
 import 'veilid_support/veilid_support.dart';
@@ -15,36 +15,22 @@ Future<String> getVeilidVersion() async {
   return veilidVersion;
 }
 
-// Initialize Veilid
-// Call only once.
+// Initialize Veilid. Call only once.
 void _initVeilid() {
-  if (kIsWeb) {
-    const platformConfig = VeilidWASMConfig(
-        logging: VeilidWASMConfigLogging(
-            performance: VeilidWASMConfigLoggingPerformance(
-                enabled: true,
-                level: VeilidConfigLogLevel.debug,
-                logsInTimings: true,
-                logsInConsole: false),
-            api: VeilidWASMConfigLoggingApi(
-                enabled: true, level: VeilidConfigLogLevel.info)));
-    Veilid.instance.initializeVeilidCore(platformConfig.toJson());
-  } else {
-    const platformConfig = VeilidFFIConfig(
-        logging: VeilidFFIConfigLogging(
-            terminal: VeilidFFIConfigLoggingTerminal(
+  const platformConfig = VeilidFFIConfig(
+      logging: VeilidFFIConfigLogging(
+          terminal: VeilidFFIConfigLoggingTerminal(
+            enabled: false,
+            level: VeilidConfigLogLevel.debug,
+          ),
+          otlp: VeilidFFIConfigLoggingOtlp(
               enabled: false,
               level: VeilidConfigLogLevel.debug,
-            ),
-            otlp: VeilidFFIConfigLoggingOtlp(
-                enabled: false,
-                level: VeilidConfigLogLevel.trace,
-                grpcEndpoint: '127.0.0.1:4317',
-                serviceName: 'Coagulate'),
-            api: VeilidFFIConfigLoggingApi(
-                enabled: true, level: VeilidConfigLogLevel.info)));
-    Veilid.instance.initializeVeilidCore(platformConfig.toJson());
-  }
+              grpcEndpoint: '127.0.0.1:4317',
+              serviceName: 'Coagulate'),
+          api: VeilidFFIConfigLoggingApi(
+              enabled: true, level: VeilidConfigLogLevel.debug)));
+  Veilid.instance.initializeVeilidCore(platformConfig.toJson());
 }
 
 Completer<Veilid> eventualVeilid = Completer<Veilid>();

@@ -1,3 +1,5 @@
+// Copyright 2024 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 import 'dart:async';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
@@ -7,8 +9,49 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../cubit/contacts_cubit.dart';
 import 'contact_page.dart';
-import 'cubit/contacts_cubit.dart';
+
+class SliderExample extends StatefulWidget {
+  const SliderExample({super.key});
+
+  @override
+  State<SliderExample> createState() => _SliderExampleState();
+}
+
+int _getWeekNumber() {
+  DateTime date = DateTime.now();
+  DateTime firstDayOfYear = DateTime(date.year, 1, 1);
+  int daysOffset = firstDayOfYear.weekday - 1;
+  DateTime firstMondayOfYear =
+      firstDayOfYear.subtract(Duration(days: daysOffset));
+
+  int daysSinceFirstMonday = date.difference(firstMondayOfYear).inDays;
+  int weekNumber = (daysSinceFirstMonday / 7).ceil() + 1;
+
+  return weekNumber;
+}
+
+class _SliderExampleState extends State<SliderExample> {
+  // TODO: Manage state in the parent scope to allow state dependent filtering of markers
+  double _currentSliderValue = _getWeekNumber().roundToDouble();
+
+  @override
+  Widget build(BuildContext context) => Slider(
+        value: _currentSliderValue,
+        min: 1,
+        max: 52,
+        divisions: 51,
+        // TODO: Show Month as well
+        label: _currentSliderValue.round().toString(),
+        onChanged: (double value) {
+          setState(() {
+            _currentSliderValue = value;
+          });
+        },
+      );
+}
 
 LatLng _contactToLatLng(CoagContact contact) {
   final latLng =
@@ -78,12 +121,13 @@ class MapPage extends StatelessWidget {
                       ),
                 initialZoom: 3,
                 maxZoom: 15,
+                minZoom: 1,
               ),
               children: <Widget>[
                 TileLayer(
                   urlTemplate: (mapboxToken.isEmpty)
                       ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-                      // TODO: Add {r} along with retinaMode.isHighDensity and TileLayer.retinaMode
+                      // TODO: Add {r} along with retinaMode.isHighDensity and TileLayer.retinaMode #7
                       : 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=${mapboxToken}',
                 ),
                 MarkerClusterLayerWidget(
@@ -102,6 +146,10 @@ class MapPage extends StatelessWidget {
                           child: Text(markers.length.toString(),
                               style: const TextStyle(color: Colors.white)))),
                 )),
+                // TODO: Consider replacing it with a start and end date selection
+                // const Align(
+                //     alignment: Alignment.bottomLeft,
+                //     child: FittedBox(child: SliderExample())),
                 RichAttributionWidget(
                     showFlutterMapAttribution: false,
                     attributions: [

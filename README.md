@@ -10,7 +10,7 @@ When you are visiting a city, find out immediately who of your old friends you c
 - You can personalize what you share with whom so that colleagues, friends and lovers each stay up-to-date on what you want them to know and nothing else.
 
 This [Flutter](flutter.dev) based implementation is derived from [VeilidChat](https://gitlab.com/veilid/veilidchat/).
-Accordingly, the Copyright to all files belongs to the Veilid developers unless explicitly stated otherwise.
+Accordingly, the Copyright to all code files belongs to the Veilid developers unless explicitly stated otherwise.
 Also, you might still find left over things called "veilidchat" that should be called "coagulate".
 If you find any, feel free to open a small pull request 😊
 

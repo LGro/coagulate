@@ -1,12 +1,13 @@
-// Copyright 2024 Lukas Grossberger
+// Copyright 2024 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'cubit/contacts_cubit.dart';
-import 'cubit/profile_cubit.dart';
+import '../cubit/contacts_cubit.dart';
+import '../cubit/profile_cubit.dart';
 import 'profile.dart';
 
 Widget avatar(Contact contact,

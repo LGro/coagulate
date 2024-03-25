@@ -1,3 +1,5 @@
+// Copyright 2023 The Veilid Chat Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 import 'dart:async';
 
 import 'package:veilid/veilid.dart';

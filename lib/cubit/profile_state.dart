@@ -1,4 +1,5 @@
-// Copyright 2024 Lukas Grossberger
+// Copyright 2024 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 part of 'profile_cubit.dart';
 
 enum ProfileStatus { initial, success, create, pick }

@@ -1,10 +1,11 @@
-// Copyright 2024 Lukas Grossberger
+// Copyright 2024 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
-import 'address_coordinates_form.dart';
-import 'cubit/profile_cubit.dart';
+import '../cubit/profile_cubit.dart';
+import '../widgets/address_coordinates_form.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -146,6 +147,7 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
             if (contact.emails.isNotEmpty) emails(contact.emails),
             if (contact.addresses.isNotEmpty)
               addresses(context, contact.addresses, locationCoordinates),
+            // if (contact.websites.isNotEmpty) websites(contact.websites), #2
           ]))
     ]);
 
