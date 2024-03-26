@@ -8,7 +8,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../veilid_support/veilid_support.dart';
+import 'data_provider_dht.dart';
 
 part 'contacts_cubit.g.dart';
 part 'contacts_state.dart';
@@ -128,7 +128,11 @@ class CoagContactCubit extends HydratedCubit<CoagContactState> {
     print('Attempting to update DHT Record');
     final profileJson = generateProfileJsonForSharing(
         profileContact, myRecord, contact.peerRecord, null);
-    await updateDHTRecord(myRecord, profileJson);
+    await updatePasswordEncryptedDHTRecord(
+        recordKey: myRecord.key,
+        recordWriter: myRecord.writer,
+        secret: myRecord.psk!,
+        content: profileJson);
     print('Updated DHT Record');
 
     // TODO: Set sharing profile when feature available
@@ -153,13 +157,17 @@ class CoagContactCubit extends HydratedCubit<CoagContactState> {
       return;
     }
 
-    // TODO: Somehow only the first emit goes through
+    // TODO: Somehow only the first emit goes through; link the follow ups via repository or ui
     // state.contacts[peerContactId] =
     //     contact.copyWith(dhtUpdateStatus: DhtUpdateStatus.progress);
     // emit(CoagContactState(state.contacts, CoagContactStatus.success));
 
     print('Attempting to update DHT Record');
-    await updateDHTRecord(contact.myRecord!, '');
+    await updatePasswordEncryptedDHTRecord(
+        recordKey: contact.myRecord!.key,
+        recordWriter: contact.myRecord!.key,
+        secret: contact.myRecord!.psk!,
+        content: '');
     print('Updated DHT Record');
 
     // TODO: Handle failure
@@ -169,7 +177,8 @@ class CoagContactCubit extends HydratedCubit<CoagContactState> {
   }
 
   Future<void> fetchUpdateFromDHT(PeerDHTRecord contactRecord) async {
-    final contactProfile = await readDHTRecord(contactRecord);
+    final contactProfile = await readPasswordEncryptedDHTRecord(
+        recordKey: contactRecord.key, secret: contactRecord.psk!);
     // TODO: Unmarshall and store the profiles somewhere
     // TODO: This needs to be able to handle known and unknown contacts
     final contact = generateContactFromProfileJson(contactProfile);
@@ -226,53 +235,4 @@ class CoagContactCubit extends HydratedCubit<CoagContactState> {
       print('Error fetching DHT UPDATE: ${e}');
     }
   }
-}
-
-// DHT Utils
-
-Future<(String, String)> createDHTRecord() async {
-  final pool = await DHTRecordPool.instance();
-  final record = await pool.create(crypto: const DHTRecordCryptoPublic());
-  await record.close();
-  return (record.key.toString(), record.writer!.toString());
-}
-
-Future<String> readDHTRecord(PeerDHTRecord contactRecord) async {
-  final _key = Typed<FixedEncodedString43>.fromString(contactRecord.key);
-  final pool = await DHTRecordPool.instance();
-  final record =
-      await pool.openRead(_key, crypto: const DHTRecordCryptoPublic());
-  final raw = await record.get();
-  final cs = await pool.veilid.bestCryptoSystem();
-  // TODO: Error handling
-  final decryptedProfile =
-      await cs.decryptAeadWithPassword(raw!, contactRecord.psk!);
-  await record.close();
-
-  return utf8.decode(decryptedProfile);
-}
-
-Future<void> updateDHTRecord(MyDHTRecord myRecordInfo, String profile) async {
-  final _key = Typed<FixedEncodedString43>.fromString(myRecordInfo.key);
-  final writer = KeyPair.fromString(myRecordInfo.writer);
-  final pool = await DHTRecordPool.instance();
-  final record =
-      await pool.openWrite(_key, writer, crypto: const DHTRecordCryptoPublic());
-
-  final cs = await pool.veilid.bestCryptoSystem();
-  // TODO: Ensure via type that psk is available
-  final encryptedProfile =
-      await cs.encryptAeadWithPassword(utf8.encode(profile), myRecordInfo.psk!);
-
-  await record.tryWriteBytes(encryptedProfile);
-  await record.close();
-}
-
-Future<void> deleteDHTRecord(String key, String writer) async {
-  final _key = Typed<FixedEncodedString43>.fromString(key);
-  final pool = await DHTRecordPool.instance();
-  // TODO: Is the record crypto really needed when we do veilid independent psk enc?
-  final retrievedRecord =
-      await pool.openRead(_key, crypto: const DHTRecordCryptoPublic());
-  await retrievedRecord.delete();
 }
