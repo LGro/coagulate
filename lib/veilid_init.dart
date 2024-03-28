@@ -2,55 +2,33 @@
 // SPDX-License-Identifier: MPL-2.0
 import 'dart:async';
 
-import 'processor.dart';
-import 'veilid_support/veilid_support.dart';
+import 'package:flutter/foundation.dart';
+import 'package:veilid_support/veilid_support.dart';
 
-Future<String> getVeilidVersion() async {
-  String veilidVersion;
-  try {
-    veilidVersion = Veilid.instance.veilidVersionString();
-  } on Exception {
-    veilidVersion = 'Failed to get veilid version.';
-  }
-  return veilidVersion;
-}
+import 'tools/tools.dart';
+import 'veilid_processor/veilid_processor.dart';
 
-// Initialize Veilid. Call only once.
-void _initVeilid() {
-  const platformConfig = VeilidFFIConfig(
-      logging: VeilidFFIConfigLogging(
-          terminal: VeilidFFIConfigLoggingTerminal(
-            enabled: false,
-            level: VeilidConfigLogLevel.debug,
-          ),
-          otlp: VeilidFFIConfigLoggingOtlp(
-              enabled: false,
-              level: VeilidConfigLogLevel.debug,
-              grpcEndpoint: '127.0.0.1:4317',
-              serviceName: 'Coagulate'),
-          api: VeilidFFIConfigLoggingApi(
-              enabled: true, level: VeilidConfigLogLevel.debug)));
-  Veilid.instance.initializeVeilidCore(platformConfig.toJson());
-}
+final Completer<void> eventualInitialized = Completer<void>();
 
-Completer<Veilid> eventualVeilid = Completer<Veilid>();
-Processor processor = Processor();
-
+// Initialize Veilid
 Future<void> initializeVeilid() async {
-  // Ensure this runs only once
-  if (eventualVeilid.isCompleted) {
-    return;
-  }
-
   // Init Veilid
-  _initVeilid();
+  Veilid.instance
+      .initializeVeilidCore(getDefaultVeilidPlatformConfig(false, 'Coagulate'));
 
   // Veilid logging
-  initVeilidLog();
+  initVeilidLog(kDebugMode);
 
   // Startup Veilid
-  await processor.startup();
+  await ProcessorRepository.instance.startup();
 
-  // Share the initialized veilid instance to the rest of the app
-  eventualVeilid.complete(Veilid.instance);
+  // DHT Record Pool
+  await DHTRecordPool.init();
+}
+
+Future<void> initializeVeilidChat() async {
+  log.info('Initializing Veilid');
+  await initializeVeilid();
+
+  eventualInitialized.complete();
 }

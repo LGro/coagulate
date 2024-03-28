@@ -1,11 +1,16 @@
 import 'dart:io' show Platform;
 
 import 'package:ansicolor/ansicolor.dart';
+import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_translate/flutter_translate.dart';
+import 'package:intl/intl.dart';
 import 'package:loggy/loggy.dart';
+import 'package:veilid_support/veilid_support.dart';
 
-import '../veilid_support/veilid_support.dart';
+import 'state_logger.dart';
+
+const LogLevel traceLevel = LogLevel('Trace', 1);
 
 String wrapWithLogColor(LogLevel? level, String text) {
   // XXX: https://github.com/flutter/flutter/issues/64491
@@ -48,9 +53,11 @@ String wrapWithLogColor(LogLevel? level, String text) {
   return text;
 }
 
+final DateFormat _dateFormatter = DateFormat('HH:mm:ss.SSS');
+
 extension PrettyPrintLogRecord on LogRecord {
   String pretty() {
-    final tm = time.toLocal().toString();
+    final tm = _dateFormatter.format(time.toLocal());
     final lev = logLevelEmoji(level);
     final lstr = wrapWithLogColor(level, tm);
     return '$lstr $lev $message';
@@ -144,4 +151,7 @@ void initLoggy() {
   }
 
   Loggy('').level = getLogOptions(logLevel);
+
+  // Create state logger
+  Bloc.observer = const StateLogger();
 }

@@ -42,8 +42,12 @@ message Message {
     repeated Attachment attachments = 5;
 }
 
-// A record of a 1-1 chat that is synchronized between
-// two users. Visible and encrypted for the other party
+// The means of direct communications that is synchronized between
+// two users. Visible and encrypted for the other party.
+// Includes communications for:
+//  * Profile changes
+//  * Identity changes
+//  * 1-1 chat messages
 //
 // DHT Schema: SMPL(0,1,[identityPublicKey])
 // DHT Key (UnicastOutbox): localConversation
@@ -117,12 +121,15 @@ enum ChatType {
     GROUP = 2;
 }
 
-// Either a 1-1 converation or a group chat (eventually)
+// Either a 1-1 conversation or a group chat (eventually)
+// Privately encrypted, this is the local user's copy of the chat
 message Chat {
     // What kind of chat is this
     ChatType type = 1;
-    // 1-1 Chat key
-    veilid.TypedKey remote_conversation_key = 2;
+    // Conversation key for the other party
+    veilid.TypedKey remote_conversation_record_key = 2;
+    // Reconciled chat record DHTLog (xxx for now DHTShortArray)
+    dht.OwnedDHTRecordPointer reconciled_chat_record = 3;    
 }
 
 // A record of an individual account

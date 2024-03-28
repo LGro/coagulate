@@ -185,15 +185,17 @@ const Chat$json = {
   '1': 'Chat',
   '2': [
     {'1': 'type', '3': 1, '4': 1, '5': 14, '6': '.veilidchat.ChatType', '10': 'type'},
-    {'1': 'remote_conversation_key', '3': 2, '4': 1, '5': 11, '6': '.veilid.TypedKey', '10': 'remoteConversationKey'},
+    {'1': 'remote_conversation_record_key', '3': 2, '4': 1, '5': 11, '6': '.veilid.TypedKey', '10': 'remoteConversationRecordKey'},
+    {'1': 'reconciled_chat_record', '3': 3, '4': 1, '5': 11, '6': '.dht.OwnedDHTRecordPointer', '10': 'reconciledChatRecord'},
   ],
 };
 
 /// Descriptor for `Chat`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List chatDescriptor = $convert.base64Decode(
-    'CgRDaGF0EigKBHR5cGUYASABKA4yFC52ZWlsaWRjaGF0LkNoYXRUeXBlUgR0eXBlEkgKF3JlbW'
-    '90ZV9jb252ZXJzYXRpb25fa2V5GAIgASgLMhAudmVpbGlkLlR5cGVkS2V5UhVyZW1vdGVDb252'
-    'ZXJzYXRpb25LZXk=');
+    'CgRDaGF0EigKBHR5cGUYASABKA4yFC52ZWlsaWRjaGF0LkNoYXRUeXBlUgR0eXBlElUKHnJlbW'
+    '90ZV9jb252ZXJzYXRpb25fcmVjb3JkX2tleRgCIAEoCzIQLnZlaWxpZC5UeXBlZEtleVIbcmVt'
+    'b3RlQ29udmVyc2F0aW9uUmVjb3JkS2V5ElAKFnJlY29uY2lsZWRfY2hhdF9yZWNvcmQYAyABKA'
+    'syGi5kaHQuT3duZWRESFRSZWNvcmRQb2ludGVyUhRyZWNvbmNpbGVkQ2hhdFJlY29yZA==');
 
 @$core.Deprecated('Use accountDescriptor instead')
 const Account$json = {

@@ -14,8 +14,8 @@ import 'dart:core' as $core;
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
 
-import 'dht.pb.dart' as $0;
-import 'veilid.pb.dart' as $1;
+import 'package:veilid_support/proto/dht.pb.dart' as $0;
+import 'package:veilid_support/proto/veilid.pb.dart' as $1;
 import 'veilidchat.pbenum.dart';
 
 export 'veilidchat.pbenum.dart';
@@ -456,7 +456,8 @@ class Chat extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chat', package: const $pb.PackageName(_omitMessageNames ? '' : 'veilidchat'), createEmptyInstance: create)
     ..e<ChatType>(1, _omitFieldNames ? '' : 'type', $pb.PbFieldType.OE, defaultOrMaker: ChatType.CHAT_TYPE_UNSPECIFIED, valueOf: ChatType.valueOf, enumValues: ChatType.values)
-    ..aOM<$1.TypedKey>(2, _omitFieldNames ? '' : 'remoteConversationKey', subBuilder: $1.TypedKey.create)
+    ..aOM<$1.TypedKey>(2, _omitFieldNames ? '' : 'remoteConversationRecordKey', subBuilder: $1.TypedKey.create)
+    ..aOM<$0.OwnedDHTRecordPointer>(3, _omitFieldNames ? '' : 'reconciledChatRecord', subBuilder: $0.OwnedDHTRecordPointer.create)
     ..hasRequiredFields = false
   ;
 
@@ -491,15 +492,26 @@ class Chat extends $pb.GeneratedMessage {
   void clearType() => clearField(1);
 
   @$pb.TagNumber(2)
-  $1.TypedKey get remoteConversationKey => $_getN(1);
+  $1.TypedKey get remoteConversationRecordKey => $_getN(1);
   @$pb.TagNumber(2)
-  set remoteConversationKey($1.TypedKey v) { setField(2, v); }
+  set remoteConversationRecordKey($1.TypedKey v) { setField(2, v); }
   @$pb.TagNumber(2)
-  $core.bool hasRemoteConversationKey() => $_has(1);
+  $core.bool hasRemoteConversationRecordKey() => $_has(1);
   @$pb.TagNumber(2)
-  void clearRemoteConversationKey() => clearField(2);
+  void clearRemoteConversationRecordKey() => clearField(2);
   @$pb.TagNumber(2)
-  $1.TypedKey ensureRemoteConversationKey() => $_ensure(1);
+  $1.TypedKey ensureRemoteConversationRecordKey() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $0.OwnedDHTRecordPointer get reconciledChatRecord => $_getN(2);
+  @$pb.TagNumber(3)
+  set reconciledChatRecord($0.OwnedDHTRecordPointer v) { setField(3, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasReconciledChatRecord() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearReconciledChatRecord() => clearField(3);
+  @$pb.TagNumber(3)
+  $0.OwnedDHTRecordPointer ensureReconciledChatRecord() => $_ensure(2);
 }
 
 class Account extends $pb.GeneratedMessage {

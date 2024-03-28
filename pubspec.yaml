@@ -11,6 +11,8 @@ dependencies:
   ansicolor: ^2.0.2
   basic_utils: ^5.7.0
   bloc: ^8.1.3
+  bloc_tools:
+    path: packages/bloc_tools
   charcode: ^1.3.1
   equatable: ^2.0.5
   fast_immutable_collections: ^10.1.2
@@ -30,17 +32,21 @@ dependencies:
   latlong2: ^0.9.0
   loggy: ^2.0.3
   mobile_scanner: ^4.0.1 # TODO: Replace with privacy friendlier alternative
-  mutex: ^3.1.0
+  mutex:
+    path: packages/mutex
   path: ^1.9.0
   path_provider: ^2.1.2
   protobuf: ^3.1.0
   qr_flutter: ^4.1.0
+  rxdart: ^0.27.7
   shared_preferences: ^2.2.2
   url_launcher: ^6.2.5
   uuid: ^4.3.3
   veilid:
     #   veilid: ^0.0.1
     path: ../veilid/veilid-flutter
+  veilid_support:
+    path: packages/veilid_support
   workmanager: ^0.5.2
 
 dev_dependencies:

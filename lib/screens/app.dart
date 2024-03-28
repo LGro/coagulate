@@ -1,14 +1,19 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../cubit/repositories/contacts.dart';
+import '../tick.dart';
 import 'contact_list.dart';
 import 'map.dart';
 import 'profile.dart';
 import 'updates.dart';
 
 class CoagulateApp extends StatelessWidget {
-  const CoagulateApp({super.key});
+  const CoagulateApp({required this.contactsRepository, super.key});
+
+  final ContactsRepository contactsRepository;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -16,7 +21,10 @@ class CoagulateApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: CoagulateAppView(),
+        home: RepositoryProvider.value(
+          value: contactsRepository,
+          child: CoagulateAppView(),
+        ),
       );
 }
 
@@ -35,37 +43,38 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        body: [
-          const ProfilePage(),
-          UpdatesPage(),
-          ContactListPage(),
-          MapPage(),
-        ].elementAt(_selectedIndex),
-        bottomNavigationBar: BottomNavigationBar(
-          items: const [
-            // TODO: Move profile selection to initial startup launch screen and then hide in settings?
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
+  Widget build(BuildContext context) => BackgroundTicker(
+      builder: (context) => Scaffold(
+            body: [
+              const ProfilePage(),
+              UpdatesPage(),
+              ContactListPage(),
+              MapPage(),
+            ].elementAt(_selectedIndex),
+            bottomNavigationBar: BottomNavigationBar(
+              items: const [
+                // TODO: Move profile selection to initial startup launch screen and then hide in settings?
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.update),
+                  label: 'Updates',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.contacts),
+                  label: 'Contacts',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.map),
+                  label: 'Map',
+                ),
+              ],
+              currentIndex: _selectedIndex,
+              unselectedItemColor: Colors.black,
+              selectedItemColor: Colors.deepPurpleAccent,
+              onTap: _onItemTapped,
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.update),
-              label: 'Updates',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.contacts),
-              label: 'Contacts',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.map),
-              label: 'Map',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          unselectedItemColor: Colors.black,
-          selectedItemColor: Colors.deepPurpleAccent,
-          onTap: _onItemTapped,
-        ),
-      );
+          ));
 }
