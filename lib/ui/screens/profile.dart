@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
-import '../cubit/profile_cubit.dart';
+import '../../cubit/profile_cubit.dart';
 import '../widgets/address_coordinates_form.dart';
 
 Widget avatar(Contact contact,

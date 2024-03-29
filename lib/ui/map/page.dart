@@ -9,8 +9,11 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../cubit/contacts_cubit.dart';
-import 'contact_page.dart';
+import '../../cubit/contacts_cubit.dart';
+import '../../data/repositories/contacts.dart';
+import '../contact_details/page.dart';
+import '../../data/models/coag_contact.dart';
+import 'cubit.dart';
 
 class SliderExample extends StatefulWidget {
   const SliderExample({super.key});
@@ -52,34 +55,28 @@ class _SliderExampleState extends State<SliderExample> {
       );
 }
 
-LatLng _contactToLatLng(CoagContact contact) {
-  final latLng =
-      contact.addressCoordinates[contact.contact.addresses[0].label.name];
-  return LatLng(latLng!.$1, latLng.$2);
-}
-
 String mapboxToken() =>
     const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN');
 
 Marker _buildMarker(
-        {required CoagContact contact, required GestureTapCallback? onTap}) =>
+        {required Location location, required GestureTapCallback? onTap}) =>
     Marker(
         height: 60,
         width: 100,
-        point: _contactToLatLng(contact),
+        point: LatLng(location.latitude, location.longitude),
         alignment: Alignment.topCenter,
         child: GestureDetector(
             onTap: onTap,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               Text(
-                '${contact.contact.name.first} ${contact.contact.name.last}',
+                location.label,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 14),
               ),
               // TODO: Display not just the first address but all of them
               // TODO: Display label of the address
               Text(
-                '(${contact.contact.addresses[0].label.name})',
+                location.subLabel,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 10),
               ),
@@ -107,23 +104,23 @@ class MapPage extends StatelessWidget {
                 : 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=${mapboxToken()}',
           ),
           BlocProvider(
-              create: (context) =>
-                  CoagContactCubit()..refreshContactsFromSystem(),
-              child: BlocConsumer<CoagContactCubit, CoagContactState>(
+              create: (context) => MapCubit(context.read<ContactsRepository>()),
+              child: BlocConsumer<MapCubit, MapState>(
                   listener: (context, state) async {
                 print('map bloc provider listener');
               }, builder: (context, state) {
                 print('map bloc provider building');
-                final markers = state.contacts.values
-                    .where((contact) => contact.addressCoordinates.isNotEmpty)
-                    .map((contact) => _buildMarker(
-                        contact: contact,
+                final markers = state.locations
+                    .map((location) => _buildMarker(
+                        location: location,
                         onTap: () {
-                          unawaited(Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => ContactPage(
-                                      contactId: contact.contact.id))));
+                          // unawaited(Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         // FIXME: That's the wrong id, it expects a system contact id
+                          //         builder: (_) => ContactPage(
+                          //             contactId: location.coagContactId)
+                          //             )));
                         }))
                     .toList();
 

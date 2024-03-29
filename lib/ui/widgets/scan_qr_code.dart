@@ -40,7 +40,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../cubit/contacts_cubit.dart';
+import '../../cubit/contacts_cubit.dart';
+import '../../data/repositories/contacts.dart';
 
 class BarcodeScannerPageView extends StatefulWidget {
   const BarcodeScannerPageView({super.key});
@@ -100,7 +101,7 @@ class _BarcodeScannerPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-      create: (context) => CoagContactCubit(),
+      create: (context) => CoagContactCubit(context.read<ContactsRepository>()),
       child: BlocConsumer<CoagContactCubit, CoagContactState>(
         listener: (context, state) => {},
         builder: (context, state) => MobileScanner(

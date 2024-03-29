@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
-import '../cubit/contacts_cubit.dart';
+import '../../cubit/contacts_cubit.dart';
+import '../../data/repositories/contacts.dart';
+import '../../data/models/coag_contact.dart';
 import '../widgets/scan_qr_code.dart';
-import 'contact_page.dart';
+import '../contact_details/page.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -43,42 +45,37 @@ class _ContactListPageState extends State<ContactListPage> {
         ],
       ),
       body: BlocProvider(
-          create: (context) => CoagContactCubit()..refreshContactsFromSystem(),
+          create: (context) =>
+              CoagContactCubit(context.read<ContactsRepository>()),
           child: BlocConsumer<CoagContactCubit, CoagContactState>(
               listener: (context, state) async {},
               builder: (context, state) {
-                // TODO: Is  this in the right place, here?
-                FlutterContacts.addListener(
-                    context.read<CoagContactCubit>().refreshContactsFromSystem);
                 switch (state.status) {
                   case CoagContactStatus.initial:
                     return const Center(child: CircularProgressIndicator());
                   case CoagContactStatus.denied:
-                    return Center(
+                    return const Center(
                         child: TextButton(
-                            onPressed: context
-                                .read<CoagContactCubit>()
-                                .refreshContactsFromSystem,
-                            child: const Text('Grant access to contacts')));
+                            onPressed: FlutterContacts.requestPermission,
+                            child: Text('Grant access to contacts')));
                   case CoagContactStatus.success:
                     // TODO: Figure out sorting
-                    return _body(state.contacts.values.toList());
+                    return _body(state.contacts.values
+                        .where((cc) => cc.details != null)
+                        .toList());
                 }
               })));
 
+  // TODO: This currently assumes that only contacts with details are passed, make this less implicit
   Widget _body(List<CoagContact> contacts) => ListView.builder(
       itemCount: contacts.length,
       itemBuilder: (context, i) {
         final contact = contacts[i];
         return ListTile(
-            leading: avatar(contact.contact, 18),
-            title: Text(contact.contact.displayName),
-            onTap: () async {
-              await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) =>
-                          ContactPage(contactId: contact.contact.id)));
-            });
+            leading: avatar(contact.details!, 18),
+            title: Text(contact.details!.displayName),
+            trailing: Text(contact.dhtSettings == null ? '?' : 'C'),
+            onTap: () => Navigator.of(context)
+                .push(ContactPage.route(contact.coagContactId)));
       });
 }

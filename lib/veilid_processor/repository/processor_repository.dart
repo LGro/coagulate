@@ -120,6 +120,8 @@ class ProcessorRepository {
   void processUpdateValueChange(VeilidUpdateValueChange updateValueChange) {
     log.debug('UpdateValueChange: ${updateValueChange.toJson()}');
 
+    // TODO: Get in here to notify the contacts repo to re fetch if it's a known key
+
     // Send value updates to DHTRecordPool
     DHTRecordPool.instance.processRemoteValueChange(updateValueChange);
   }

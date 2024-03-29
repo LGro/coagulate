@@ -8,7 +8,9 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'data_provider_dht.dart';
+import '../data/models/coag_contact.dart';
+import '../data/providers/dht.dart';
+import '../data/repositories/contacts.dart';
 
 part 'contacts_cubit.g.dart';
 part 'contacts_state.dart';
@@ -54,145 +56,121 @@ Map<String, (double, double)> _randomAddressCoordinates(
 }
 
 class CoagContactCubit extends HydratedCubit<CoagContactState> {
-  CoagContactCubit()
-      : super(const CoagContactState({}, CoagContactStatus.initial));
-
-  Future<void> refreshContactsFromSystem() async {
-    if (!await FlutterContacts.requestPermission()) {
-      emit(CoagContactState(state.contacts, CoagContactStatus.denied));
-      return;
-    }
-
-    // TODO: Can this be done one the fly somehow instead of all at once
-    //       or is it fast enough to not be a bottleneck?
-    final updatedContacts = <String, CoagContact>{};
-    // TODO: Consider loading them first without tumbnail and then with, to speed things up
-    for (final contact in await FlutterContacts.getContacts(
-        withThumbnail: true, withProperties: true)) {
-      updatedContacts[contact.id] = state.contacts.containsKey(contact.id)
-          ? state.contacts[contact.id]!.copyWith(contact: contact)
-          : CoagContact(
-              contact: contact,
-              // TODO: replace
-              addressCoordinates: _randomAddressCoordinates(contact.addresses));
-    }
-    // TODO: When changing a contact, switching back to the contact list and
-    //       leaving it, it seems like it can happen that this still emits a
-    //       state after the contacts have been refreshed but the view is
-    //       already closed with causes an error.
-    //       It also happens when a contact is updated in the address book in
-    //       the background.
-    //       https://stackoverflow.com/questions/55536461/flutter-unhandled-exception-bad-state-cannot-add-new-events-after-calling-clo
-    //       However, it might also instead be the case that we need to trigger
-    //       refreshs from somewhere more UI independent.
-    emit(CoagContactState(updatedContacts, CoagContactStatus.success));
+  CoagContactCubit(this.contactsRepository)
+      : super(const CoagContactState({}, CoagContactStatus.initial)) {
+    // TODO: Subscribe to
+    // contactsRepository.getUpdateStatus()
+    emit(CoagContactState(
+        contactsRepository.coagContacts, CoagContactStatus.success));
   }
 
-  void updateContact(String id, String sharingProfile) {
-    if (!state.contacts.containsKey(id)) {
-      // TODO: Handle id not found
-      return;
-    }
-    // TODO: Is this really the way with all the copying?
-    state.contacts[id] =
-        state.contacts[id]!.copyWith(sharingProfile: sharingProfile);
-    emit(CoagContactState(state.contacts, CoagContactStatus.success));
-  }
+  final ContactsRepository contactsRepository;
+
+  // void updateContact(String id, String sharingProfile) {
+  //   if (!state.contacts.containsKey(id)) {
+  //     // TODO: Handle id not found
+  //     return;
+  //   }
+  //   // TODO: Is this really the way with all the copying?
+  //   state.contacts[id] =
+  //       state.contacts[id]!.copyWith(sharingProfile: sharingProfile);
+  //   emit(CoagContactState(state.contacts, CoagContactStatus.success));
+  // }
 
   Future<void> shareWithPeer(
       String peerContactId, Contact profileContact) async {
-    if (!state.contacts.containsKey(peerContactId)) {
-      // TODO: Log because this shouldn't happen
-      return;
-    }
+    // if (!state.contacts.containsKey(peerContactId)) {
+    //   // TODO: Log because this shouldn't happen
+    //   return;
+    // }
 
-    final contact = state.contacts[peerContactId]!;
-    var myRecord = contact.myRecord;
-    if (myRecord == null) {
-      String key;
-      String writer;
-      (key, writer) = await createDHTRecord();
-      myRecord = MyDHTRecord(key: key, writer: writer);
-    }
+    // final contact = state.contacts[peerContactId]!;
+    // var myRecord = contact.myRecord;
+    // if (myRecord == null) {
+    //   String key;
+    //   String writer;
+    //   (key, writer) = await createDHTRecord();
+    //   myRecord = MyDHTRecord(key: key, writer: writer);
+    // }
 
-    if (myRecord.psk == null) {
-      myRecord = MyDHTRecord(
-          key: myRecord.key, writer: myRecord.writer, psk: getRandomString(32));
-    }
+    // if (myRecord.psk == null) {
+    //   myRecord = MyDHTRecord(
+    //       key: myRecord.key, writer: myRecord.writer, psk: getRandomString(32));
+    // }
 
-    // TODO: Somehow only the first emit goes through
-    // state.contacts[peerContactId] =
-    //     contact.copyWith(dhtUpdateStatus: DhtUpdateStatus.progress);
+    // // TODO: Somehow only the first emit goes through
+    // // state.contacts[peerContactId] =
+    // //     contact.copyWith(dhtUpdateStatus: DhtUpdateStatus.progress);
+    // // emit(CoagContactState(state.contacts, CoagContactStatus.success));
+
+    // print('Attempting to update DHT Record');
+    // final profileJson = generateProfileJsonForSharing(
+    //     profileContact, myRecord, contact.peerRecord, null);
+    // await updatePasswordEncryptedDHTRecord(
+    //     recordKey: myRecord.key,
+    //     recordWriter: myRecord.writer,
+    //     secret: myRecord.psk!,
+    //     content: profileJson);
+    // print('Updated DHT Record');
+
+    // // TODO: Set sharing profile when feature available
+    // // TODO: Also handle failed coagulation attempts
+    // state.contacts[peerContactId] = contact.copyWith(
+    //     myRecord: myRecord,
+    //     sharingProfile: 'default',
+    //     dhtUpdateStatus: DhtUpdateStatus.success);
+
     // emit(CoagContactState(state.contacts, CoagContactStatus.success));
-
-    print('Attempting to update DHT Record');
-    final profileJson = generateProfileJsonForSharing(
-        profileContact, myRecord, contact.peerRecord, null);
-    await updatePasswordEncryptedDHTRecord(
-        recordKey: myRecord.key,
-        recordWriter: myRecord.writer,
-        secret: myRecord.psk!,
-        content: profileJson);
-    print('Updated DHT Record');
-
-    // TODO: Set sharing profile when feature available
-    // TODO: Also handle failed coagulation attempts
-    state.contacts[peerContactId] = contact.copyWith(
-        myRecord: myRecord,
-        sharingProfile: 'default',
-        dhtUpdateStatus: DhtUpdateStatus.success);
-
-    emit(CoagContactState(state.contacts, CoagContactStatus.success));
   }
 
   Future<void> unshareWithPeer(String peerContactId) async {
-    if (!state.contacts.containsKey(peerContactId)) {
-      // TODO: Log because this shouldn't happen
-      return;
-    }
+    // if (!state.contacts.containsKey(peerContactId)) {
+    //   // TODO: Log because this shouldn't happen
+    //   return;
+    // }
 
-    var contact = state.contacts[peerContactId]!;
-    if (contact.myRecord == null) {
-      // TODO: Log because this shouldn't happen
-      return;
-    }
+    // var contact = state.contacts[peerContactId]!;
+    // if (contact.myRecord == null) {
+    //   // TODO: Log because this shouldn't happen
+    //   return;
+    // }
 
-    // TODO: Somehow only the first emit goes through; link the follow ups via repository or ui
-    // state.contacts[peerContactId] =
-    //     contact.copyWith(dhtUpdateStatus: DhtUpdateStatus.progress);
+    // // TODO: Somehow only the first emit goes through; link the follow ups via repository or ui
+    // // state.contacts[peerContactId] =
+    // //     contact.copyWith(dhtUpdateStatus: DhtUpdateStatus.progress);
+    // // emit(CoagContactState(state.contacts, CoagContactStatus.success));
+
+    // print('Attempting to update DHT Record');
+    // await updatePasswordEncryptedDHTRecord(
+    //     recordKey: contact.myRecord!.key,
+    //     recordWriter: contact.myRecord!.key,
+    //     secret: contact.myRecord!.psk!,
+    //     content: '');
+    // print('Updated DHT Record');
+
+    // // TODO: Handle failure
+    // state.contacts[peerContactId] = contact.copyWith(
+    //     sharingProfile: 'dont', dhtUpdateStatus: DhtUpdateStatus.success);
     // emit(CoagContactState(state.contacts, CoagContactStatus.success));
-
-    print('Attempting to update DHT Record');
-    await updatePasswordEncryptedDHTRecord(
-        recordKey: contact.myRecord!.key,
-        recordWriter: contact.myRecord!.key,
-        secret: contact.myRecord!.psk!,
-        content: '');
-    print('Updated DHT Record');
-
-    // TODO: Handle failure
-    state.contacts[peerContactId] = contact.copyWith(
-        sharingProfile: 'dont', dhtUpdateStatus: DhtUpdateStatus.success);
-    emit(CoagContactState(state.contacts, CoagContactStatus.success));
   }
 
   Future<void> fetchUpdateFromDHT(PeerDHTRecord contactRecord) async {
-    final contactProfile = await readPasswordEncryptedDHTRecord(
-        recordKey: contactRecord.key, secret: contactRecord.psk!);
-    // TODO: Unmarshall and store the profiles somewhere
-    // TODO: This needs to be able to handle known and unknown contacts
-    final contact = generateContactFromProfileJson(contactProfile);
+    // final contactProfile = await readPasswordEncryptedDHTRecord(
+    //     recordKey: contactRecord.key, secret: contactRecord.psk!);
+    // // TODO: Unmarshall and store the profiles somewhere
+    // // TODO: This needs to be able to handle known and unknown contacts
+    // final contact = generateContactFromProfileJson(contactProfile);
 
-    print('Fetched: ${contactProfile}');
-    print('Fetched: ${contact}');
+    // print('Fetched: ${contactProfile}');
+    // print('Fetched: ${contact}');
   }
 
   Future<void> fetchUpdatesFromDHT() async {
-    for (var contact in state.contacts.values) {
-      if (contact.peerRecord != null) {
-        await fetchUpdateFromDHT(contact.peerRecord!);
-      }
-    }
+    // for (var contact in state.contacts.values) {
+    //   if (contact.peerRecord != null) {
+    //     await fetchUpdateFromDHT(contact.peerRecord!);
+    //   }
+    // }
   }
 
   @override
@@ -203,36 +181,36 @@ class CoagContactCubit extends HydratedCubit<CoagContactState> {
   Map<String, dynamic> toJson(CoagContactState state) => state.toJson();
 
   Future<void> handleCoagulationURI(String uri) async {
-    print('Parsing: $uri');
-    String? payload;
-    if (uri.startsWith('https://coagulate.social')) {
-      final fragment = Uri.parse(uri).fragment;
-      if (fragment.isEmpty) {
-        // TODO: Log / feedback?
-        return;
-      }
-      payload = fragment;
-    } else if (uri.startsWith('coag://')) {
-      payload = uri.substring(7);
-    } else if (uri.startsWith('coagulate://')) {
-      payload = uri.substring(12);
-    }
-    if (payload == null) {
-      // TODO: Log / feedback?
-      return;
-    }
-    final components = payload.split(':');
-    if (components.length != 3) {
-      // TODO: Log / feedback?
-      return;
-    }
+    // print('Parsing: $uri');
+    // String? payload;
+    // if (uri.startsWith('https://coagulate.social')) {
+    //   final fragment = Uri.parse(uri).fragment;
+    //   if (fragment.isEmpty) {
+    //     // TODO: Log / feedback?
+    //     return;
+    //   }
+    //   payload = fragment;
+    // } else if (uri.startsWith('coag://')) {
+    //   payload = uri.substring(7);
+    // } else if (uri.startsWith('coagulate://')) {
+    //   payload = uri.substring(12);
+    // }
+    // if (payload == null) {
+    //   // TODO: Log / feedback?
+    //   return;
+    // }
+    // final components = payload.split(':');
+    // if (components.length != 3) {
+    //   // TODO: Log / feedback?
+    //   return;
+    // }
 
-    try {
-      await fetchUpdateFromDHT(PeerDHTRecord(
-          key: '${components[0]}:${components[1]}', psk: components[2]));
-    } on Exception catch (e) {
-      // TODO: Log properly / feedback?
-      print('Error fetching DHT UPDATE: ${e}');
-    }
+    // try {
+    //   await fetchUpdateFromDHT(PeerDHTRecord(
+    //       key: '${components[0]}:${components[1]}', psk: components[2]));
+    // } on Exception catch (e) {
+    //   // TODO: Log properly / feedback?
+    //   print('Error fetching DHT UPDATE: ${e}');
+    // }
   }
 }

@@ -1,0 +1,29 @@
+// Copyright 2024 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
+
+part of 'cubit.dart';
+
+enum ContactDetailsStatus { initial, success, denied }
+
+extension ContactDetailsStatusX on ContactDetailsStatus {
+  bool get isInitial => this == ContactDetailsStatus.initial;
+  bool get isSuccess => this == ContactDetailsStatus.success;
+  bool get isDenied => this == ContactDetailsStatus.denied;
+}
+
+@JsonSerializable()
+final class ContactDetailsState extends Equatable {
+  const ContactDetailsState(this.coagContactId, this.status, {this.contact});
+
+  factory ContactDetailsState.fromJson(Map<String, dynamic> json) =>
+      _$ContactDetailsStateFromJson(json);
+
+  final String coagContactId;
+  final CoagContact? contact;
+  final ContactDetailsStatus status;
+
+  Map<String, dynamic> toJson() => _$ContactDetailsStateToJson(this);
+
+  @override
+  List<Object?> get props => [coagContactId, contact, status];
+}

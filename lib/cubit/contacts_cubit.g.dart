@@ -74,51 +74,6 @@ Map<String, dynamic> _$MyDHTRecordToJson(MyDHTRecord instance) =>
       'psk': instance.psk,
     };
 
-CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
-      contact: Contact.fromJson(json['contact'] as Map<String, dynamic>),
-      addressCoordinates:
-          (json['address_coordinates'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry(
-            k,
-            _$recordConvert(
-              e,
-              ($jsonValue) => (
-                ($jsonValue[r'$1'] as num).toDouble(),
-                ($jsonValue[r'$2'] as num).toDouble(),
-              ),
-            )),
-      ),
-      dhtUpdateStatus: $enumDecodeNullable(
-          _$DhtUpdateStatusEnumMap, json['dht_update_status']),
-      peerRecord: json['peer_record'] == null
-          ? null
-          : PeerDHTRecord.fromJson(json['peer_record'] as Map<String, dynamic>),
-      myRecord: json['my_record'] == null
-          ? null
-          : MyDHTRecord.fromJson(json['my_record'] as Map<String, dynamic>),
-      sharingProfile: json['sharing_profile'] as String?,
-    );
-
-Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
-    <String, dynamic>{
-      'contact': instance.contact.toJson(),
-      'address_coordinates':
-          instance.addressCoordinates.map((k, e) => MapEntry(k, {
-                r'$1': e.$1,
-                r'$2': e.$2,
-              })),
-      'dht_update_status': _$DhtUpdateStatusEnumMap[instance.dhtUpdateStatus],
-      'peer_record': instance.peerRecord?.toJson(),
-      'my_record': instance.myRecord?.toJson(),
-      'sharing_profile': instance.sharingProfile,
-    };
-
-const _$DhtUpdateStatusEnumMap = {
-  DhtUpdateStatus.progress: 'progress',
-  DhtUpdateStatus.success: 'success',
-  DhtUpdateStatus.failure: 'failure',
-};
-
 CoagContactState _$CoagContactStateFromJson(Map<String, dynamic> json) =>
     CoagContactState(
       (json['contacts'] as Map<String, dynamic>).map(
