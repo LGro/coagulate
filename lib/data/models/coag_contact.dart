@@ -43,14 +43,16 @@ class CoagContact extends Equatable {
       {required this.coagContactId,
       this.details,
       this.locations = const [],
-      this.dhtSettings,
+      this.dhtSettingsForSharing,
+      this.dhtSettingsForReceiving,
       this.sharedProfile});
 
   final String coagContactId;
   final Contact? details;
   final List<ContactLocation> locations;
-  final ContactDHTSettings? dhtSettings;
-  // TODO: Make this a proper type with toJson? and expose as init arg
+  final ContactDHTSettings? dhtSettingsForSharing;
+  final ContactDHTSettings? dhtSettingsForReceiving;
+  // TODO: Make this a proper type with toJson?
   final String? sharedProfile;
 
   factory CoagContact.fromJson(Map<String, dynamic> json) =>
@@ -61,16 +63,25 @@ class CoagContact extends Equatable {
   CoagContact copyWith(
           {Contact? details,
           List<ContactLocation>? locations,
-          ContactDHTSettings? dhtSettings,
+          ContactDHTSettings? dhtSettingsForSharing,
+          ContactDHTSettings? dhtSettingsForReceiving,
           String? sharedProfile}) =>
       CoagContact(
           coagContactId: this.coagContactId,
           details: details ?? this.details,
           locations: locations ?? this.locations,
-          dhtSettings: dhtSettings ?? this.dhtSettings,
+          dhtSettingsForSharing:
+              dhtSettingsForSharing ?? this.dhtSettingsForSharing,
+          dhtSettingsForReceiving:
+              dhtSettingsForReceiving ?? this.dhtSettingsForReceiving,
           sharedProfile: sharedProfile ?? this.sharedProfile);
 
   @override
-  List<Object?> get props =>
-      [coagContactId, details, dhtSettings, sharedProfile];
+  List<Object?> get props => [
+        coagContactId,
+        details,
+        dhtSettingsForSharing,
+        dhtSettingsForReceiving,
+        sharedProfile
+      ];
 }

@@ -27,4 +27,5 @@ const _$ContactDetailsStatusEnumMap = {
   ContactDetailsStatus.initial: 'initial',
   ContactDetailsStatus.success: 'success',
   ContactDetailsStatus.denied: 'denied',
+  ContactDetailsStatus.coagulationChangePending: 'coagulationChangePending',
 };

@@ -44,16 +44,22 @@ import '../../cubit/contacts_cubit.dart';
 import '../../data/repositories/contacts.dart';
 
 class BarcodeScannerPageView extends StatefulWidget {
-  const BarcodeScannerPageView({super.key});
+  const BarcodeScannerPageView({super.key, required this.onDetectCallback});
 
+  final void Function(BarcodeCapture barcodes) onDetectCallback;
   @override
-  State<BarcodeScannerPageView> createState() => _BarcodeScannerPageViewState();
+  State<BarcodeScannerPageView> createState() =>
+      _BarcodeScannerPageViewState(onDetectCallback: onDetectCallback);
 }
 
 class _BarcodeScannerPageViewState extends State<BarcodeScannerPageView> {
+  _BarcodeScannerPageViewState({required this.onDetectCallback});
+
   final MobileScannerController controller = MobileScannerController();
 
   final PageController pageController = PageController();
+
+  final void Function(BarcodeCapture barcodes) onDetectCallback;
 
   @override
   void initState() {
@@ -62,28 +68,26 @@ class _BarcodeScannerPageViewState extends State<BarcodeScannerPageView> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('QR Code Scanner')),
-        backgroundColor: Colors.black,
-        body: PageView(
-          controller: pageController,
-          onPageChanged: (index) async {
-            // Stop the camera view for the current page,
-            // and then restart the camera for the new page.
-            await controller.stop();
+  Widget build(BuildContext context) => PageView(
+        controller: pageController,
+        onPageChanged: (index) async {
+          // Stop the camera view for the current page,
+          // and then restart the camera for the new page.
+          await controller.stop();
 
-            // When switching pages, add a delay to the next start call.
-            // Otherwise the camera will start before the next page is displayed
-            await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
+          // When switching pages, add a delay to the next start call.
+          // Otherwise the camera will start before the next page is displayed
+          await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
 
-            if (!mounted) {
-              return;
-            }
+          if (!mounted) {
+            return;
+          }
 
-            unawaited(controller.start());
-          },
-          children: [_BarcodeScannerPage(controller: controller)],
-        ),
+          unawaited(controller.start());
+        },
+        children: [
+          MobileScanner(controller: controller, onDetect: onDetectCallback)
+        ],
       );
 
   @override
@@ -92,35 +96,4 @@ class _BarcodeScannerPageViewState extends State<BarcodeScannerPageView> {
     super.dispose();
     controller.dispose();
   }
-}
-
-class _BarcodeScannerPage extends StatelessWidget {
-  const _BarcodeScannerPage({required this.controller});
-
-  final MobileScannerController controller;
-
-  @override
-  Widget build(BuildContext context) => BlocProvider(
-      create: (context) => CoagContactCubit(context.read<ContactsRepository>()),
-      child: BlocConsumer<CoagContactCubit, CoagContactState>(
-        listener: (context, state) => {},
-        builder: (context, state) => MobileScanner(
-            controller: controller,
-            onDetect: (capture) {
-              for (final barcode in capture.barcodes) {
-                if (barcode.rawValue != null &&
-                    (barcode.rawValue!.startsWith('https://coagulate.social') ||
-                        barcode.rawValue!.startsWith('coag://') ||
-                        barcode.rawValue!.startsWith('coagulate://'))) {
-                  unawaited(context
-                      .read<CoagContactCubit>()
-                      .handleCoagulationURI(barcode.rawValue!));
-                  // TODO(LGro): Instead of closing everything, display waiting spinner until successful or failed dht fetch and details
-                  controller.dispose();
-                  Navigator.of(context).pop();
-                  return;
-                }
-              }
-            }),
-      ));
 }

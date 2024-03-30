@@ -5,10 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
 import '../../cubit/contacts_cubit.dart';
-import '../../data/repositories/contacts.dart';
 import '../../data/models/coag_contact.dart';
-import '../widgets/scan_qr_code.dart';
+import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
+import '../widgets/scan_qr_code.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -33,16 +33,16 @@ class _ContactListPageState extends State<ContactListPage> {
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: const Text('Contacts'),
-        actions: [
-          IconButton(
-              icon: const Icon(Icons.qr_code_scanner),
-              onPressed: () async {
-                await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const BarcodeScannerPageView()));
-              }),
-        ],
+        // actions: [
+        //   IconButton(
+        //       icon: const Icon(Icons.qr_code_scanner),
+        //       onPressed: () async {
+        //         await Navigator.push(
+        //             context,
+        //             MaterialPageRoute(
+        //                 builder: (_) => const BarcodeScannerPageView()));
+        //       }),
+        // ],
       ),
       body: BlocProvider(
           create: (context) =>
@@ -74,7 +74,7 @@ class _ContactListPageState extends State<ContactListPage> {
         return ListTile(
             leading: avatar(contact.details!, 18),
             title: Text(contact.details!.displayName),
-            trailing: Text(contact.dhtSettings == null ? '?' : 'C'),
+            trailing: Text(contact.dhtSettingsForSharing == null ? '?' : 'C'),
             onTap: () => Navigator.of(context)
                 .push(ContactPage.route(contact.coagContactId)));
       });

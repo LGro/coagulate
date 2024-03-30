@@ -65,19 +65,6 @@ Future<void> updatePasswordEncryptedDHTRecord(
   await record.close();
 }
 
-/// Delete DHT record for given key that is writable by recordWriter
-// Future<void> deleteDHTRecord(
-//     {required String recordKey, required String recordWriter}) async {
-//   final pool = DHTRecordPool.instance;
-//   final record = await pool.openWrite(
-//       Typed<FixedEncodedString43>.fromString(recordKey),
-//       KeyPair.fromString(recordWriter),
-//       crypto: const DHTRecordCryptoPublic());
-//   await record.delete();
-//   // TODO: Do we need to await close after delete?
-//   // await record.close();
-// }
-
 // TODO: Can we just liberally call this also when not necessary
 //       or is there a risk for an update to slip through
 //       the interval between unwatch and watch?
@@ -89,24 +76,38 @@ Future<void> watchDHTRecord(String key) async {
 }
 
 Future<CoagContact> updateContactDHT(CoagContact contact) async {
-  if (contact.dhtSettings == null || contact.dhtSettings!.writer == null) {
+  if (contact.dhtSettingsForSharing == null ||
+      contact.dhtSettingsForSharing!.writer == null) {
     final (key, writer) = await createDHTRecord();
     contact = contact.copyWith(
-        dhtSettings: ContactDHTSettings(key: key, writer: writer));
+        dhtSettingsForSharing: ContactDHTSettings(key: key, writer: writer));
   }
 
-  if (contact.dhtSettings!.psk == null) {
+  if (contact.dhtSettingsForSharing!.psk == null) {
     contact = contact.copyWith(
-        dhtSettings: contact.dhtSettings!.copyWith(psk: _getRandomString(16)));
+        dhtSettingsForSharing:
+            contact.dhtSettingsForSharing!.copyWith(psk: _getRandomString(16)));
   }
 
   if (contact.sharedProfile != null) {
     await updatePasswordEncryptedDHTRecord(
-        recordKey: contact.dhtSettings!.key,
-        recordWriter: contact.dhtSettings!.writer!,
-        secret: contact.dhtSettings!.psk!,
+        recordKey: contact.dhtSettingsForSharing!.key,
+        recordWriter: contact.dhtSettingsForSharing!.writer!,
+        secret: contact.dhtSettingsForSharing!.psk!,
         content: contact.sharedProfile!);
   }
 
   return contact;
+}
+
+Future<CoagContact> updateContactFromDHT(CoagContact contact) async {
+  if (contact.dhtSettingsForSharing == null ||
+      contact.dhtSettingsForSharing?.psk == null) {
+    return contact;
+  }
+  final contactJson = readPasswordEncryptedDHTRecord(
+      recordKey: contact.dhtSettingsForSharing!.key,
+      secret: contact.dhtSettingsForSharing!.psk!);
+  // TODO: Add deserialized and updated contact bits
+  return contact.copyWith();
 }

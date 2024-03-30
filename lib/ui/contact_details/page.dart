@@ -150,31 +150,14 @@ class ContactPage extends StatelessWidget {
           //     ],
           //   onChanged: (v) => context.read<CoagContactCubit>().updateContact(
           //     c.contact.id as String, v! as String))]),
-          // if (contact.myRecord == null &&
-          //     contact.peerRecord != null &&
-          //     contact.sharingProfile != null &&
-          //     contact.sharingProfile != 'dont')
-          //   // const Text('They shared; share back dialog'),
-          //   _makeCard(
-          //     'Connect via QR Code',
-          //     [contact],
-          //     (x) => [
-          //       Center(
-          //           child: QrImageView(
-          //         data: 'coag://locationKeyDHT-sharedSecret',
-          //         version: QrVersions.auto,
-          //         size: 200.0,
-          //       ))
-          //     ],
-          //   ),
-          if (contact.dhtSettings != null &&
-              contact.dhtSettings!.writer != null &&
-              contact.dhtSettings!.psk != null &&
+          if (contact.dhtSettingsForSharing != null &&
+              contact.dhtSettingsForSharing!.writer != null &&
+              contact.dhtSettingsForSharing!.psk != null &&
               contact.sharedProfile != null)
             const Text('Full on coagulation; success!'),
-          if (contact.dhtSettings != null &&
-              contact.dhtSettings!.writer != null &&
-              contact.dhtSettings!.psk != null) ...[
+          if (contact.dhtSettingsForSharing != null &&
+              contact.dhtSettingsForSharing!.writer != null &&
+              contact.dhtSettingsForSharing!.psk != null) ...[
             Card(
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,18 +166,18 @@ class ContactPage extends StatelessWidget {
                     child: const Text(
                         'I am sharing; stop or change sharing dialog'),
                     onTap: () async =>
-                        launchUrl(_shareURL(contact.dhtSettings!)),
+                        launchUrl(_shareURL(contact.dhtSettingsForSharing!)),
                   ),
-                  Text(_shareURL(contact.dhtSettings!).toString()),
+                  Text(_shareURL(contact.dhtSettingsForSharing!).toString()),
                   Center(
                       child: QrImageView(
-                    data: _shareURL(contact.dhtSettings!).toString(),
+                    data: _shareURL(contact.dhtSettingsForSharing!).toString(),
                     version: QrVersions.auto,
                     size: 200,
                   ))
                 ])),
           ],
-          //TODO: Add option to connect via NFC
+          //TODO: Add option to connect via NFC using nfc_manager
         ],
       ),
     );

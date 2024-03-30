@@ -35,6 +35,8 @@ class ContactsRepository {
   late final HivePersistentStorage _persistentStorage =
       HivePersistentStorage(_persistentStoragePath);
 
+  String? profileContactId = null;
+
   Map<String, CoagContact> coagContacts = {};
 
   final _updateStatusStreamController =
@@ -44,6 +46,9 @@ class ContactsRepository {
       BehaviorSubject<bool>.seeded(false);
 
   Future<void> _init() async {
+    // Load profile contact ID from persistent storage
+    profileContactId = await _persistentStorage.getProfileContactId();
+
     // Load coagulate contacts from persistent storage
     coagContacts = await _persistentStorage.getAllContacts();
 
@@ -59,6 +64,21 @@ class ContactsRepository {
     //   continue;
     //   //add watches for each dht record
     // }
+  }
+
+  // FIXME: Finish implementation
+  Future<void> _updateFromDHT() async {
+    for (final contact in coagContacts.values) {
+      if (contact.dhtSettingsForSharing == null ||
+          contact.dhtSettingsForSharing?.psk == null) {
+        continue;
+      }
+
+      final updatedContact = await updateContactFromDHT(contact);
+      if (updatedContact != contact) {
+        updateContact(updatedContact);
+      }
+    }
   }
 
   /// Update all system contacts in case they changed and add missing ones
@@ -139,7 +159,8 @@ class ContactsRepository {
     // TODO: Move this to an unawaitable one since these changes don't need to block the stream update
     if (contact.sharedProfile != null) {
       final updatedContact = await updateContactDHT(contact);
-      if (updatedContact.dhtSettings != contact.dhtSettings) {
+      if (updatedContact.dhtSettingsForSharing !=
+          contact.dhtSettingsForSharing) {
         contact = updatedContact;
       }
     }
@@ -147,5 +168,11 @@ class ContactsRepository {
     coagContacts[contact.coagContactId] = contact;
     _updateStatusStreamController
         .add('UPDATE-AVAILABLE:${contact.coagContactId}');
+  }
+
+  Future<void> setProfileContactId(String id) async {
+    profileContactId = id;
+    await _persistentStorage.setProfileContactId(id);
+    // TODO: Notify about update
   }
 }

@@ -9,6 +9,7 @@ import '../contact_list/page.dart';
 import '../map/page.dart';
 import 'profile.dart';
 import 'updates.dart';
+import '../recieve_request/page.dart';
 
 class CoagulateApp extends StatelessWidget {
   const CoagulateApp({required this.contactsRepository, super.key});
@@ -47,6 +48,7 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
   Widget build(BuildContext context) => Scaffold(
         body: [
           const ProfilePage(),
+          RecieveRequestPage(),
           UpdatesPage(),
           ContactListPage(),
           MapPage(),
@@ -57,6 +59,10 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
             BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Profile',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add),
+              label: 'Add',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.update),

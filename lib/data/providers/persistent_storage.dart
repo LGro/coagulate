@@ -65,4 +65,13 @@ class HivePersistentStorage {
   Future<void> updateContact(CoagContact contact) async =>
       (await _lazyGetContactsBox())
           .put(contact.coagContactId, _recordFromContact(contact));
+
+  Future<Box<String>> _lazyGetSettingsBox() async =>
+      Hive.openBox('hive_coag_settings_box');
+
+  Future<void> setProfileContactId(String profileContactId) async =>
+      (await _lazyGetSettingsBox()).put('profile_contact_id', profileContactId);
+
+  Future<String?> getProfileContactId() async =>
+      (await _lazyGetSettingsBox()).get('profile_contact_id');
 }

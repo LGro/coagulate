@@ -60,7 +60,7 @@ Widget phones(List<Phone> phones) => Card(
             ]))));
 
 String _commaToNewline(String s) =>
-    s.replaceAll(', ', ',').replaceAll(',', "\n");
+    s.replaceAll(', ', ',').replaceAll(',', '\n');
 
 Widget addresses(BuildContext context, List<Address> addresses,
         Map<String, (num, num)>? locationCoordinates) =>

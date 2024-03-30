@@ -11,37 +11,36 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
-class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
-  ContactDetailsCubit(this.contactsRepository, String coagContactId)
-      : super(
-            ContactDetailsState(coagContactId, ContactDetailsStatus.initial)) {
+class ContactListCubit extends HydratedCubit<ContactListState> {
+  ContactListCubit(this.contactsRepository, String coagContactId)
+      : super(ContactListState(coagContactId, ContactListStatus.initial)) {
     // TODO: Is there an emit.forEach in Cubits like with Blocs?
     contactsRepository.getUpdateStatus().listen((event) {
       if (event.contains(coagContactId)) {
-        emit(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
+        emit(ContactListState(coagContactId, ContactListStatus.success,
             contact: contactsRepository.coagContacts[coagContactId]));
       }
     });
 
-    emit(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
+    emit(ContactListState(coagContactId, ContactListStatus.success,
         contact: contactsRepository.coagContacts[coagContactId]));
   }
 
   final ContactsRepository contactsRepository;
 
   @override
-  ContactDetailsState fromJson(Map<String, dynamic> json) =>
-      ContactDetailsState.fromJson(json);
+  ContactListState fromJson(Map<String, dynamic> json) =>
+      ContactListState.fromJson(json);
 
   @override
-  Map<String, dynamic> toJson(ContactDetailsState state) => state.toJson();
+  Map<String, dynamic> toJson(ContactListState state) => state.toJson();
 
-  Future<void> shareWith(String coagContactId, String? sharedProfile) async {
+  Future<void> shareWith(String coagContactId, String sharedProfile) async {
     final updatedContact =
         state.contact!.copyWith(sharedProfile: sharedProfile);
 
     // Already emit before update trickles down via repository?
-    // emit(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
+    // emit(ContactListState(coagContactId, ContactListStatus.success,
     //     contact: updatedContact));
 
     // TODO: Do we really need to await here?
@@ -49,5 +48,5 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
   }
 
   Future<void> unshareWith(String coagContactId) async =>
-      shareWith(coagContactId, null);
+      shareWith(coagContactId, '');
 }

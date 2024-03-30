@@ -3,11 +3,13 @@
 
 part of 'cubit.dart';
 
-enum ContactDetailsStatus { initial, success, denied }
+enum ContactDetailsStatus { initial, success, denied, coagulationChangePending }
 
 extension ContactDetailsStatusX on ContactDetailsStatus {
   bool get isInitial => this == ContactDetailsStatus.initial;
   bool get isSuccess => this == ContactDetailsStatus.success;
+  bool get isCoagulationChangePending =>
+      this == ContactDetailsStatus.coagulationChangePending;
   bool get isDenied => this == ContactDetailsStatus.denied;
 }
 
