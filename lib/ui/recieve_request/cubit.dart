@@ -2,23 +2,22 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:mobile_scanner/src/objects/barcode_capture.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:uuid/uuid.dart';
 
+import '../../data/models/coag_contact.dart';
 import '../../data/providers/dht.dart';
 import '../../data/repositories/contacts.dart';
-import '../../data/models/coag_contact.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
 
 class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
   RecieveRequestCubit(this.contactsRepository)
-      : super(const RecieveRequestState(RecieveRequestStatus.pickMode)) {
-    // TODO: Subscribe to
-    // contactsRepository.getUpdateStatus()
-  }
+      : super(const RecieveRequestState(RecieveRequestStatus.qrcode));
 
   final ContactsRepository contactsRepository;
 
@@ -31,12 +30,6 @@ class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
 
   void scanQrCode() =>
       emit(const RecieveRequestState(RecieveRequestStatus.qrcode));
-
-  void readNfcTag() =>
-      emit(const RecieveRequestState(RecieveRequestStatus.nfc));
-
-  void pickMode() =>
-      emit(const RecieveRequestState(RecieveRequestStatus.pickMode));
 
   Future<void> qrCodeCaptured(BarcodeCapture capture) async {
     emit(RecieveRequestState(RecieveRequestStatus.processing));
@@ -78,5 +71,22 @@ class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
         }
       }
     }
+  }
+
+  // TODO: Replace with proper type instead of string
+  void linkExistingContact() {}
+
+  // TODO: Replace with proper type instead of string
+  Future<void> createNewContact() async {
+    await contactsRepository.updateContact(CoagContact(
+        coagContactId: Uuid().v4().toString(),
+        // TODO: Allow creation of linked system contact
+        details: Contact(
+            id: 'UNLINKED',
+            name: Name(
+                first: state.profile!.split('|')[0],
+                last: state.profile!.split('|')[1]))));
+    emit(const RecieveRequestState(RecieveRequestStatus.qrcode));
+    // TODO: Forward instead to contact details page to share back etc.
   }
 }

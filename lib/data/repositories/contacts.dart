@@ -90,7 +90,8 @@ class ContactsRepository {
       _systemContactAccessGrantedStreamController.add(true);
       for (final coagContact in coagContacts.values) {
         // Skip coagulate contacts that are not associated with a system contact
-        if (coagContact.details == null) {
+        if (coagContact.details == null ||
+            coagContact.details!.id == 'UNLINKED') {
           continue;
         }
         // Remove contacts that did not change
@@ -144,6 +145,7 @@ class ContactsRepository {
     // Update persistent storage
     unawaited(_persistentStorage.updateContact(contact));
 
+    // TODO: Allow creation of a new system contact via update contact as well; might require custom contact details schema
     // Update system contact if linked and contact details changed
     if (contact.details != null &&
         contact.details!.id != 'UNLINKED' &&

@@ -4,11 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
-import '../../cubit/contacts_cubit.dart';
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
-import '../widgets/scan_qr_code.dart';
+import 'cubit.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {
@@ -46,21 +45,20 @@ class _ContactListPageState extends State<ContactListPage> {
       ),
       body: BlocProvider(
           create: (context) =>
-              CoagContactCubit(context.read<ContactsRepository>()),
-          child: BlocConsumer<CoagContactCubit, CoagContactState>(
+              ContactListCubit(context.read<ContactsRepository>()),
+          child: BlocConsumer<ContactListCubit, ContactListState>(
               listener: (context, state) async {},
               builder: (context, state) {
                 switch (state.status) {
-                  case CoagContactStatus.initial:
+                  case ContactListStatus.initial:
                     return const Center(child: CircularProgressIndicator());
-                  case CoagContactStatus.denied:
+                  case ContactListStatus.denied:
                     return const Center(
                         child: TextButton(
                             onPressed: FlutterContacts.requestPermission,
                             child: Text('Grant access to contacts')));
-                  case CoagContactStatus.success:
-                    // TODO: Figure out sorting
-                    return _body(state.contacts.values
+                  case ContactListStatus.success:
+                    return _body(state.contacts
                         .where((cc) => cc.details != null)
                         .toList());
                 }

@@ -11,19 +11,19 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
+// TODO: Figure out sorting of the contacts
 class ContactListCubit extends HydratedCubit<ContactListState> {
-  ContactListCubit(this.contactsRepository, String coagContactId)
-      : super(ContactListState(coagContactId, ContactListStatus.initial)) {
+  ContactListCubit(this.contactsRepository)
+      : super(const ContactListState(ContactListStatus.initial)) {
     // TODO: Is there an emit.forEach in Cubits like with Blocs?
     contactsRepository.getUpdateStatus().listen((event) {
-      if (event.contains(coagContactId)) {
-        emit(ContactListState(coagContactId, ContactListStatus.success,
-            contact: contactsRepository.coagContacts[coagContactId]));
-      }
+      // TODO: Is there something smarter than always replacing the full state?
+      emit(ContactListState(ContactListStatus.success,
+          contacts: contactsRepository.coagContacts.values));
     });
 
-    emit(ContactListState(coagContactId, ContactListStatus.success,
-        contact: contactsRepository.coagContacts[coagContactId]));
+    emit(ContactListState(ContactListStatus.success,
+        contacts: contactsRepository.coagContacts.values));
   }
 
   final ContactsRepository contactsRepository;
@@ -34,19 +34,4 @@ class ContactListCubit extends HydratedCubit<ContactListState> {
 
   @override
   Map<String, dynamic> toJson(ContactListState state) => state.toJson();
-
-  Future<void> shareWith(String coagContactId, String sharedProfile) async {
-    final updatedContact =
-        state.contact!.copyWith(sharedProfile: sharedProfile);
-
-    // Already emit before update trickles down via repository?
-    // emit(ContactListState(coagContactId, ContactListStatus.success,
-    //     contact: updatedContact));
-
-    // TODO: Do we really need to await here?
-    await contactsRepository.updateContact(updatedContact);
-  }
-
-  Future<void> unshareWith(String coagContactId) async =>
-      shareWith(coagContactId, '');
 }

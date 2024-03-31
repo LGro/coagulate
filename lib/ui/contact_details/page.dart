@@ -6,10 +6,9 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../cubit/contacts_cubit.dart';
 import '../../cubit/profile_cubit.dart';
-import '../../data/repositories/contacts.dart';
 import '../../data/models/coag_contact.dart';
+import '../../data/repositories/contacts.dart';
 import '../screens/profile.dart';
 import 'cubit.dart';
 
@@ -148,7 +147,7 @@ class ContactPage extends StatelessWidget {
           //     DropdownMenuItem<String>(child: Text("Friends"), value: "friends"),
           //     DropdownMenuItem<String>(child: Text("Work"), value: "work"),
           //     ],
-          //   onChanged: (v) => context.read<CoagContactCubit>().updateContact(
+          //   onChanged: (v) => context.read<>().updateContact(
           //     c.contact.id as String, v! as String))]),
           if (contact.dhtSettingsForSharing != null &&
               contact.dhtSettingsForSharing!.writer != null &&

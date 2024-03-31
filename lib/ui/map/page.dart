@@ -1,6 +1,5 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,10 +8,7 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../cubit/contacts_cubit.dart';
 import '../../data/repositories/contacts.dart';
-import '../contact_details/page.dart';
-import '../../data/models/coag_contact.dart';
 import 'cubit.dart';
 
 class SliderExample extends StatefulWidget {

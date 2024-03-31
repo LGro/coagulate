@@ -8,17 +8,15 @@ part of 'cubit.dart';
 
 ContactListState _$ContactListStateFromJson(Map<String, dynamic> json) =>
     ContactListState(
-      json['coag_contact_id'] as String,
       $enumDecode(_$ContactListStatusEnumMap, json['status']),
-      contact: json['contact'] == null
-          ? null
-          : CoagContact.fromJson(json['contact'] as Map<String, dynamic>),
+      contacts: (json['contacts'] as List<dynamic>?)
+              ?.map((e) => CoagContact.fromJson(e as Map<String, dynamic>)) ??
+          const [],
     );
 
 Map<String, dynamic> _$ContactListStateToJson(ContactListState instance) =>
     <String, dynamic>{
-      'coag_contact_id': instance.coagContactId,
-      'contact': instance.contact?.toJson(),
+      'contacts': instance.contacts.map((e) => e.toJson()).toList(),
       'status': _$ContactListStatusEnumMap[instance.status]!,
     };
 

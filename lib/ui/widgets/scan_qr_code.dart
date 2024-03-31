@@ -37,11 +37,7 @@ For the changes (mainly in onDetect): Copyright 2024 Lukas Grossberger
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-
-import '../../cubit/contacts_cubit.dart';
-import '../../data/repositories/contacts.dart';
 
 class BarcodeScannerPageView extends StatefulWidget {
   const BarcodeScannerPageView({super.key, required this.onDetectCallback});

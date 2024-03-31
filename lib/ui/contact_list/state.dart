@@ -13,17 +13,16 @@ extension ContactListStatusX on ContactListStatus {
 
 @JsonSerializable()
 final class ContactListState extends Equatable {
-  const ContactListState(this.coagContactId, this.status, {this.contact});
+  const ContactListState(this.status, {this.contacts = const []});
 
   factory ContactListState.fromJson(Map<String, dynamic> json) =>
       _$ContactListStateFromJson(json);
 
-  final String coagContactId;
-  final CoagContact? contact;
+  final Iterable<CoagContact> contacts;
   final ContactListStatus status;
 
   Map<String, dynamic> toJson() => _$ContactListStateToJson(this);
 
   @override
-  List<Object?> get props => [coagContactId, contact, status];
+  List<Object?> get props => [contacts, status];
 }

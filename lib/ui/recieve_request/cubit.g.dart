@@ -20,10 +20,7 @@ Map<String, dynamic> _$RecieveRequestStateToJson(
     };
 
 const _$RecieveRequestStatusEnumMap = {
-  RecieveRequestStatus.pickMode: 'pickMode',
-  RecieveRequestStatus.processing: 'processing',
-  RecieveRequestStatus.nfc: 'nfc',
   RecieveRequestStatus.qrcode: 'qrcode',
-  RecieveRequestStatus.paste: 'paste',
+  RecieveRequestStatus.processing: 'processing',
   RecieveRequestStatus.recieved: 'recieved',
 };

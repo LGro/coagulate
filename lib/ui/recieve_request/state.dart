@@ -3,13 +3,10 @@
 
 part of 'cubit.dart';
 
-enum RecieveRequestStatus { pickMode, processing, nfc, qrcode, paste, recieved }
+enum RecieveRequestStatus { qrcode, processing, recieved }
 
 extension RecieveRequestStatusX on RecieveRequestStatus {
-  bool get isPickMode => this == RecieveRequestStatus.pickMode;
-  bool get isNfc => this == RecieveRequestStatus.nfc;
   bool get isQrcode => this == RecieveRequestStatus.qrcode;
-  bool get isPaste => this == RecieveRequestStatus.paste;
   bool get isProcessing => this == RecieveRequestStatus.processing;
   bool get isRecieved => this == RecieveRequestStatus.recieved;
 }
