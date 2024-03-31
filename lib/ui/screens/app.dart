@@ -48,10 +48,9 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
   Widget build(BuildContext context) => Scaffold(
         body: [
           const ProfilePage(),
-          RecieveRequestPage(),
-          UpdatesPage(),
-          ContactListPage(),
-          MapPage(),
+          const UpdatesPage(),
+          const ContactListPage(),
+          const MapPage(),
         ].elementAt(_selectedIndex),
         bottomNavigationBar: BottomNavigationBar(
           items: const [
@@ -59,10 +58,6 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
             BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Profile',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.add),
-              label: 'Add',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.update),
@@ -80,6 +75,7 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
           currentIndex: _selectedIndex,
           unselectedItemColor: Colors.black,
           selectedItemColor: Colors.deepPurpleAccent,
+          showUnselectedLabels: true,
           onTap: _onItemTapped,
         ),
       );

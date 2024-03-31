@@ -7,6 +7,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
+import '../recieve_request/page.dart';
 import 'cubit.dart';
 
 Widget avatar(Contact contact,
@@ -32,16 +33,16 @@ class _ContactListPageState extends State<ContactListPage> {
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
         title: const Text('Contacts'),
-        // actions: [
-        //   IconButton(
-        //       icon: const Icon(Icons.qr_code_scanner),
-        //       onPressed: () async {
-        //         await Navigator.push(
-        //             context,
-        //             MaterialPageRoute(
-        //                 builder: (_) => const BarcodeScannerPageView()));
-        //       }),
-        // ],
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.qr_code_scanner),
+              onPressed: () async {
+                await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const RecieveRequestPage()));
+              }),
+        ],
       ),
       body: BlocProvider(
           create: (context) =>
