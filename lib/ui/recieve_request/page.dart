@@ -4,26 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/repositories/contacts.dart';
+import '../profile/page.dart';
 import '../widgets/scan_qr_code.dart';
 import 'cubit.dart';
 
-class RecieveRequestPage extends StatelessWidget {
-  const RecieveRequestPage({super.key});
+class ReceiveRequestPage extends StatelessWidget {
+  const ReceiveRequestPage({super.key});
 
   // TODO: Use initial status when provided
-  static Route<void> route(RecieveRequestStatus? initialStatus) =>
+  static Route<void> route(ReceiveRequestStatus? initialStatus) =>
       MaterialPageRoute(
-          fullscreenDialog: true, builder: (_) => RecieveRequestPage());
+          fullscreenDialog: true, builder: (_) => const ReceiveRequestPage());
 
   @override
   Widget build(BuildContext _) => BlocProvider(
       create: (context) =>
-          RecieveRequestCubit(context.read<ContactsRepository>()),
-      child: BlocConsumer<RecieveRequestCubit, RecieveRequestState>(
+          ReceiveRequestCubit(context.read<ContactsRepository>()),
+      child: BlocConsumer<ReceiveRequestCubit, ReceiveRequestState>(
           listener: (context, state) async {},
           builder: (context, state) {
             switch (state.status) {
-              case RecieveRequestStatus.processing:
+              case ReceiveRequestStatus.processing:
                 return Scaffold(
                     appBar: AppBar(
                       title: const Text('Processing...'),
@@ -33,22 +34,22 @@ class RecieveRequestPage extends StatelessWidget {
                       children: [CircularProgressIndicator()],
                     )));
 
-              case RecieveRequestStatus.qrcode:
+              case ReceiveRequestStatus.qrcode:
                 return Scaffold(
                     appBar: AppBar(title: const Text('Scan QR Code')),
                     body: BarcodeScannerPageView(
                         onDetectCallback: context
-                            .read<RecieveRequestCubit>()
+                            .read<ReceiveRequestCubit>()
                             .qrCodeCaptured));
 
-              case RecieveRequestStatus.received:
+              case ReceiveRequestStatus.received:
                 return Scaffold(
                     appBar: AppBar(
                       title: const Text('Received Contact'),
                       actions: [
                         TextButton(
                             onPressed:
-                                context.read<RecieveRequestCubit>().scanQrCode,
+                                context.read<ReceiveRequestCubit>().scanQrCode,
                             child: const Text('Cancel'))
                       ],
                     ),
@@ -58,15 +59,20 @@ class RecieveRequestPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         // TODO: Propose matching contact
+                        // TODO: Display proper profile
                         Text('Received:\n${state.profile!}'),
+                        if (state.profile!.details!.phones.isNotEmpty)
+                          phones(state.profile!.details!.phones),
+                        if (state.profile!.details!.emails.isNotEmpty)
+                          emails(state.profile!.details!.emails),
                         TextButton(
                             onPressed: context
-                                .read<RecieveRequestCubit>()
+                                .read<ReceiveRequestCubit>()
                                 .linkExistingContact,
                             child: const Text('Link existing contact')),
                         TextButton(
                             onPressed: context
-                                .read<RecieveRequestCubit>()
+                                .read<ReceiveRequestCubit>()
                                 .createNewContact,
                             child: const Text('Create new contact')),
                       ],

@@ -17,24 +17,24 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
-class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
-  RecieveRequestCubit(this.contactsRepository)
-      : super(const RecieveRequestState(RecieveRequestStatus.qrcode));
+class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
+  ReceiveRequestCubit(this.contactsRepository)
+      : super(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
 
   final ContactsRepository contactsRepository;
 
   @override
-  RecieveRequestState fromJson(Map<String, dynamic> json) =>
-      RecieveRequestState.fromJson(json);
+  ReceiveRequestState fromJson(Map<String, dynamic> json) =>
+      ReceiveRequestState.fromJson(json);
 
   @override
-  Map<String, dynamic> toJson(RecieveRequestState state) => state.toJson();
+  Map<String, dynamic> toJson(ReceiveRequestState state) => state.toJson();
 
   void scanQrCode() =>
-      emit(const RecieveRequestState(RecieveRequestStatus.qrcode));
+      emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
 
   Future<void> qrCodeCaptured(BarcodeCapture capture) async {
-    emit(RecieveRequestState(RecieveRequestStatus.processing));
+    emit(ReceiveRequestState(ReceiveRequestStatus.processing));
     for (final barcode in capture.barcodes) {
       if (barcode.rawValue != null &&
           barcode.rawValue!.startsWith('https://coagulate.social')) {
@@ -46,7 +46,7 @@ class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
         if (fragment.isEmpty) {
           // TODO: Log / feedback?
           print('Payload is empty');
-          emit(const RecieveRequestState(RecieveRequestStatus.qrcode));
+          emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
           return;
         }
 
@@ -54,7 +54,7 @@ class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
         if (components.length != 3) {
           // TODO: Log / feedback?
           print('Payload malformed, not three long, but $fragment');
-          emit(const RecieveRequestState(RecieveRequestStatus.qrcode));
+          emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
           return;
         }
 
@@ -67,13 +67,13 @@ class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
           // TODO: Error handling
           final details =
               ContactDetails.fromJson(json.decode(raw) as Map<String, dynamic>);
-          emit(RecieveRequestState(RecieveRequestStatus.received,
+          emit(ReceiveRequestState(ReceiveRequestStatus.received,
               profile: CoagContact(
                   coagContactId: const Uuid().v4(), details: details)));
         } on Exception catch (e) {
           // TODO: Log properly / feedback?
           print('Error fetching DHT UPDATE: ${e}');
-          emit(const RecieveRequestState(RecieveRequestStatus.qrcode));
+          emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
         }
       }
     }
@@ -94,7 +94,7 @@ class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
   Future<void> createNewContact() async {
     // TODO: Allow creation of linked system contact
     await contactsRepository.updateContact(state.profile!);
-    emit(const RecieveRequestState(RecieveRequestStatus.qrcode));
+    emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
     // TODO: Forward instead to contact details page to share back etc.
   }
 }

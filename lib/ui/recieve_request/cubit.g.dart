@@ -6,23 +6,23 @@ part of 'cubit.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-RecieveRequestState _$RecieveRequestStateFromJson(Map<String, dynamic> json) =>
-    RecieveRequestState(
-      $enumDecode(_$RecieveRequestStatusEnumMap, json['status']),
+ReceiveRequestState _$ReceiveRequestStateFromJson(Map<String, dynamic> json) =>
+    ReceiveRequestState(
+      $enumDecode(_$ReceiveRequestStatusEnumMap, json['status']),
       profile: json['profile'] == null
           ? null
           : CoagContact.fromJson(json['profile'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$RecieveRequestStateToJson(
-        RecieveRequestState instance) =>
+Map<String, dynamic> _$ReceiveRequestStateToJson(
+        ReceiveRequestState instance) =>
     <String, dynamic>{
-      'status': _$RecieveRequestStatusEnumMap[instance.status]!,
+      'status': _$ReceiveRequestStatusEnumMap[instance.status]!,
       'profile': instance.profile?.toJson(),
     };
 
-const _$RecieveRequestStatusEnumMap = {
-  RecieveRequestStatus.qrcode: 'qrcode',
-  RecieveRequestStatus.processing: 'processing',
-  RecieveRequestStatus.received: 'received',
+const _$ReceiveRequestStatusEnumMap = {
+  ReceiveRequestStatus.qrcode: 'qrcode',
+  ReceiveRequestStatus.processing: 'processing',
+  ReceiveRequestStatus.received: 'received',
 };
