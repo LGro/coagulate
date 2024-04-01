@@ -93,7 +93,7 @@ extension IdentityMasterExtension on IdentityMaster {
   /// Deletes a master identity and the identity record under it
   Future<void> delete() async {
     final pool = DHTRecordPool.instance;
-    await (await pool.openRead(masterRecordKey)).delete();
+    await pool.delete(masterRecordKey);
   }
 
   Future<VeilidCryptoSystem> get identityCrypto =>

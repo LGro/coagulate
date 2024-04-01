@@ -24,7 +24,8 @@ class SingleStatelessProcessor {
     });
   }
 
-  // Like update, but with a busy wrapper that clears once the updating is finished
+  // Like update, but with a busy wrapper that
+  // clears once the updating is finished
   void busyUpdate<T, S>(
       Future<void> Function(Future<void> Function(void Function(S))) busy,
       Future<void> Function(void Function(S)) closure) {

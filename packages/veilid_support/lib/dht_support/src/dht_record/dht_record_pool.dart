@@ -73,6 +73,7 @@ class SharedDHTRecordData {
   VeilidRoutingContext defaultRoutingContext;
   Map<int, int> subkeySeqCache = {};
   bool needsWatchStateUpdate = false;
+  bool deleteOnClose = false;
 }
 
 // Per opened record data
@@ -182,7 +183,7 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
 
     // If we are opening a key that already exists
     // make sure we are using the same parent if one was specified
-    _validateParent(parent, recordKey);
+    _validateParentInner(parent, recordKey);
 
     // See if this has been opened yet
     final openedRecordInfo = _opened[recordKey];
@@ -232,54 +233,58 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
       }
       if (openedRecordInfo.records.isEmpty) {
         await _routingContext.closeDHTRecord(key);
+        if (openedRecordInfo.shared.deleteOnClose) {
+          await _deleteInner(key);
+        }
         _opened.remove(key);
       }
     });
   }
 
-  Future<void> delete(TypedKey recordKey) async {
-    final allDeletedRecords = <DHTRecord>{};
-    final allDeletedRecordKeys = <TypedKey>[];
+  // Collect all dependencies (including the record itself)
+  // in reverse (bottom-up/delete order)
+  List<TypedKey> _collectChildrenInner(TypedKey recordKey) {
+    assert(_mutex.isLocked, 'should be locked here');
 
-    await _mutex.protect(() async {
-      // Collect all dependencies (including the record itself)
-      final allDeps = <TypedKey>[];
-      final currentDeps = [recordKey];
-      while (currentDeps.isNotEmpty) {
-        final nextDep = currentDeps.removeLast();
+    final allDeps = <TypedKey>[];
+    final currentDeps = [recordKey];
+    while (currentDeps.isNotEmpty) {
+      final nextDep = currentDeps.removeLast();
 
-        // Remove this child from its parent
-        await _removeDependencyInner(nextDep);
-
-        allDeps.add(nextDep);
-        final childDeps =
-            _state.childrenByParent[nextDep.toJson()]?.toList() ?? [];
-        currentDeps.addAll(childDeps);
-      }
-
-      // Delete all dependent records in parallel (including the record itself)
-      for (final dep in allDeps) {
-        // If record is opened, close it first
-        final openinfo = _opened[dep];
-        if (openinfo != null) {
-          for (final rec in openinfo.records) {
-            allDeletedRecords.add(rec);
-          }
-        }
-        // Then delete
-        allDeletedRecordKeys.add(dep);
-      }
-    });
-
-    await Future.wait(allDeletedRecords.map((r) => r.close()));
-    for (final deletedRecord in allDeletedRecords) {
-      deletedRecord._markDeleted();
+      allDeps.add(nextDep);
+      final childDeps =
+          _state.childrenByParent[nextDep.toJson()]?.toList() ?? [];
+      currentDeps.addAll(childDeps);
     }
-    await Future.wait(
-        allDeletedRecordKeys.map(_routingContext.deleteDHTRecord));
+    return allDeps.reversedView;
   }
 
-  void _validateParent(TypedKey? parent, TypedKey child) {
+  Future<void> _deleteInner(TypedKey recordKey) async {
+    // Remove this child from parents
+    await _removeDependenciesInner([recordKey]);
+    await _routingContext.deleteDHTRecord(recordKey);
+  }
+
+  Future<void> delete(TypedKey recordKey) async {
+    await _mutex.protect(() async {
+      final allDeps = _collectChildrenInner(recordKey);
+
+      assert(allDeps.singleOrNull == recordKey, 'must delete children first');
+
+      final ori = _opened[recordKey];
+      if (ori != null) {
+        // delete after close
+        ori.shared.deleteOnClose = true;
+      } else {
+        // delete now
+        await _deleteInner(recordKey);
+      }
+    });
+  }
+
+  void _validateParentInner(TypedKey? parent, TypedKey child) {
+    assert(_mutex.isLocked, 'should be locked here');
+
     final childJson = child.toJson();
     final existingParent = _state.parentByChild[childJson];
     if (parent == null) {
@@ -319,29 +324,35 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
     }
   }
 
-  Future<void> _removeDependencyInner(TypedKey child) async {
+  Future<void> _removeDependenciesInner(List<TypedKey> childList) async {
     assert(_mutex.isLocked, 'should be locked here');
-    if (_state.rootRecords.contains(child)) {
-      _state = await store(
-          _state.copyWith(rootRecords: _state.rootRecords.remove(child)));
-    } else {
-      final parent = _state.parentByChild[child.toJson()];
-      if (parent == null) {
-        return;
-      }
-      final children = _state.childrenByParent[parent.toJson()]!.remove(child);
-      late final DHTRecordPoolAllocations newState;
-      if (children.isEmpty) {
-        newState = _state.copyWith(
-            childrenByParent: _state.childrenByParent.remove(parent.toJson()),
-            parentByChild: _state.parentByChild.remove(child.toJson()));
+
+    var state = _state;
+
+    for (final child in childList) {
+      if (_state.rootRecords.contains(child)) {
+        state = state.copyWith(rootRecords: state.rootRecords.remove(child));
       } else {
-        newState = _state.copyWith(
-            childrenByParent:
-                _state.childrenByParent.add(parent.toJson(), children),
-            parentByChild: _state.parentByChild.remove(child.toJson()));
+        final parent = state.parentByChild[child.toJson()];
+        if (parent == null) {
+          continue;
+        }
+        final children = state.childrenByParent[parent.toJson()]!.remove(child);
+        if (children.isEmpty) {
+          state = state.copyWith(
+              childrenByParent: state.childrenByParent.remove(parent.toJson()),
+              parentByChild: state.parentByChild.remove(child.toJson()));
+        } else {
+          state = state.copyWith(
+              childrenByParent:
+                  state.childrenByParent.add(parent.toJson(), children),
+              parentByChild: state.parentByChild.remove(child.toJson()));
+        }
       }
-      _state = await store(newState);
+    }
+
+    if (state != _state) {
+      _state = await store(state);
     }
   }
 
@@ -595,10 +606,10 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
     _tickCount = 0;
 
     try {
-      // See if any opened records need watch state changes
-      final unord = <Future<bool> Function()>[];
+      final allSuccess = await _mutex.protect(() async {
+        // See if any opened records need watch state changes
+        final unord = <Future<bool> Function()>[];
 
-      await _mutex.protect(() async {
         for (final kv in _opened.entries) {
           final openedRecordKey = kv.key;
           final openedRecordInfo = kv.value;
@@ -647,13 +658,15 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
             }
           }
         }
+
+        // Process all watch changes
+        return unord.isEmpty ||
+            (await unord.map((f) => f()).wait).reduce((a, b) => a && b);
       });
 
-      // Process all watch changes
       // If any watched did not success, back off the attempts to
       // update the watches for a bit
-      final allSuccess = unord.isEmpty ||
-          (await unord.map((f) => f()).wait).reduce((a, b) => a && b);
+
       if (!allSuccess) {
         _watchBackoffTimer *= watchBackoffMultiplier;
         _watchBackoffTimer = min(_watchBackoffTimer, watchBackoffMax);

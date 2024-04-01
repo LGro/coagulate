@@ -27,7 +27,6 @@ class DHTRecord {
         _defaultSubkey = defaultSubkey,
         _writer = writer,
         _open = true,
-        _valid = true,
         _sharedDHTRecordData = sharedDHTRecordData;
 
   final SharedDHTRecordData _sharedDHTRecordData;
@@ -37,7 +36,6 @@ class DHTRecord {
   final DHTRecordCrypto _crypto;
 
   bool _open;
-  bool _valid;
   @internal
   StreamController<DHTRecordWatchChange>? watchController;
   @internal
@@ -59,9 +57,6 @@ class DHTRecord {
       OwnedDHTRecordPointer(recordKey: key, owner: ownerKeyPair!);
 
   Future<void> close() async {
-    if (!_valid) {
-      throw StateError('already deleted');
-    }
     if (!_open) {
       return;
     }
@@ -70,33 +65,26 @@ class DHTRecord {
     _open = false;
   }
 
-  void _markDeleted() {
-    _valid = false;
-  }
-
-  Future<void> delete() => DHTRecordPool.instance.delete(key);
-
   Future<T> scope<T>(Future<T> Function(DHTRecord) scopeFunction) async {
     try {
       return await scopeFunction(this);
     } finally {
-      if (_valid) {
-        await close();
-      }
+      await close();
     }
   }
 
   Future<T> deleteScope<T>(Future<T> Function(DHTRecord) scopeFunction) async {
     try {
       final out = await scopeFunction(this);
-      if (_valid && _open) {
+      if (_open) {
         await close();
       }
       return out;
     } on Exception catch (_) {
-      if (_valid) {
-        await delete();
+      if (_open) {
+        await close();
       }
+      await DHTRecordPool.instance.delete(key);
       rethrow;
     }
   }
@@ -354,7 +342,7 @@ class DHTRecord {
 
   void _addValueChange(
       {required bool local,
-      required Uint8List data,
+      required Uint8List? data,
       required List<ValueSubkeyRange> subkeys}) {
     final ws = watchState;
     if (ws != null) {
@@ -390,6 +378,6 @@ class DHTRecord {
 
   void _addRemoteValueChange(VeilidUpdateValueChange update) {
     _addValueChange(
-        local: false, data: update.value.data, subkeys: update.subkeys);
+        local: false, data: update.value?.data, subkeys: update.subkeys);
   }
 }

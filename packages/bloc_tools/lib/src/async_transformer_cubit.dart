@@ -3,6 +3,11 @@ import 'dart:async';
 import 'package:async_tools/async_tools.dart';
 import 'package:bloc/bloc.dart';
 
+// A cubit with state T that wraps another input cubit of state S and
+// produces T fro S via an asynchronous transform closure
+// The input cubit becomes 'owned' by the AsyncTransformerCubit and will
+// be closed when the AsyncTransformerCubit closes.
+
 class AsyncTransformerCubit<T, S> extends Cubit<AsyncValue<T>> {
   AsyncTransformerCubit(this.input, {required this.transform})
       : super(const AsyncValue.loading()) {
