@@ -1,6 +1,7 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
-part of 'profile_cubit.dart';
+
+part of 'cubit.dart';
 
 enum ProfileStatus { initial, success, create, pick }
 
@@ -13,7 +14,7 @@ extension ProfileStatusX on ProfileStatus {
 
 @JsonSerializable()
 final class ProfileState extends Equatable {
-  ProfileState({
+  const ProfileState({
     this.status = ProfileStatus.initial,
     this.profileContact,
     this.locationCoordinates,

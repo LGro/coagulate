@@ -1,12 +1,13 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
-import '../../cubit/profile_cubit.dart';
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
+import '../../ui/profile/cubit.dart';
 import '../contact_details/page.dart';
 import '../recieve_request/page.dart';
 import 'cubit.dart';

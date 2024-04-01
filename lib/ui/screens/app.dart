@@ -7,7 +7,7 @@ import '../../data/repositories/contacts.dart';
 import '../../tick.dart';
 import '../contact_list/page.dart';
 import '../map/page.dart';
-import 'profile.dart';
+import '../profile/page.dart';
 import 'updates.dart';
 import '../recieve_request/page.dart';
 

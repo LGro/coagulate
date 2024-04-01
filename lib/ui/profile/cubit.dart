@@ -1,13 +1,14 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'profile_cubit.g.dart';
-part 'profile_state.dart';
+part 'cubit.g.dart';
+part 'state.dart';
 
 // TODO: Add contact refresh as listener via
 //       FlutterContacts.addListener(() => print('Contact DB changed'));
