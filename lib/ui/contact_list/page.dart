@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
+import '../../cubit/profile_cubit.dart';
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
@@ -39,14 +40,18 @@ class _ContactListPageState extends State<ContactListPage> {
               onPressed: () async {
                 await Navigator.push(
                     context,
-                    MaterialPageRoute(
+                    MaterialPageRoute<RecieveRequestPage>(
                         builder: (_) => const RecieveRequestPage()));
               }),
         ],
       ),
-      body: BlocProvider(
-          create: (context) =>
-              ContactListCubit(context.read<ContactsRepository>()),
+      body: MultiBlocProvider(
+          providers: [
+            BlocProvider(
+                create: (context) =>
+                    ContactListCubit(context.read<ContactsRepository>())),
+            BlocProvider(create: (context) => ProfileCubit()),
+          ],
           child: BlocConsumer<ContactListCubit, ContactListState>(
               listener: (context, state) async {},
               builder: (context, state) {
@@ -59,9 +64,15 @@ class _ContactListPageState extends State<ContactListPage> {
                             onPressed: FlutterContacts.requestPermission,
                             child: Text('Grant access to contacts')));
                   case ContactListStatus.success:
-                    return _body(state.contacts
-                        .where((cc) => cc.details != null)
-                        .toList());
+                    return BlocConsumer<ProfileCubit, ProfileState>(
+                        listener: (_, __) async {},
+                        builder: (_, profileContactState) => _body(state
+                            .contacts
+                            .where((cc) =>
+                                cc.details != null &&
+                                cc.details!.id !=
+                                    profileContactState.profileContact?.id)
+                            .toList()));
                 }
               })));
 
