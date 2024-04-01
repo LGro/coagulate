@@ -3,13 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/repositories/contacts.dart';
-import '../../tick.dart';
-import '../contact_list/page.dart';
-import '../map/page.dart';
-import '../profile/page.dart';
-import 'updates.dart';
-import '../recieve_request/page.dart';
+import '../data/repositories/contacts.dart';
+import '../tick.dart';
+import 'contact_list/page.dart';
+import 'map/page.dart';
+import 'profile/page.dart';
+import 'screens/updates.dart';
 
 class CoagulateApp extends StatelessWidget {
   const CoagulateApp({required this.contactsRepository, super.key});

@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'bloc_observer.dart';
 import 'data/repositories/contacts.dart';
 import 'tools/loggy.dart';
-import 'ui/screens/app.dart';
+import 'ui/app.dart';
 import 'veilid_init.dart';
 
 void main() async {

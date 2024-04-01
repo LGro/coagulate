@@ -26,11 +26,19 @@ Iterable<Location> _contactToLocations(CoagContact contact) =>
 class MapCubit extends HydratedCubit<MapState> {
   MapCubit(this.contactsRepository)
       : super(const MapState({}, MapStatus.initial)) {
-    // TODO: Subscribe to
-    // contactsRepository.getUpdateStatus()
+    contactsRepository.getUpdateStatus().listen((event) {
+      // TODO: Is there something smarter than always replacing the full state?
+      emit(MapState(
+          contactsRepository.coagContacts.values
+              .expand(_contactToLocations)
+              .toList(),
+          MapStatus.success,
+          mapboxApiToken:
+              String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN')));
+    });
     emit(MapState(
         contactsRepository.coagContacts.values
-            .expand((c) => _contactToLocations(c))
+            .expand(_contactToLocations)
             .toList(),
         MapStatus.success,
         mapboxApiToken:
