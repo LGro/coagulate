@@ -3,12 +3,12 @@
 
 part of 'cubit.dart';
 
-enum RecieveRequestStatus { qrcode, processing, recieved }
+enum RecieveRequestStatus { qrcode, processing, received }
 
 extension RecieveRequestStatusX on RecieveRequestStatus {
   bool get isQrcode => this == RecieveRequestStatus.qrcode;
   bool get isProcessing => this == RecieveRequestStatus.processing;
-  bool get isRecieved => this == RecieveRequestStatus.recieved;
+  bool get isreceived => this == RecieveRequestStatus.received;
 }
 
 @JsonSerializable()
@@ -19,7 +19,7 @@ final class RecieveRequestState extends Equatable {
       _$RecieveRequestStateFromJson(json);
 
   final RecieveRequestStatus status;
-  final String? profile;
+  final CoagContact? profile;
 
   Map<String, dynamic> toJson() => _$RecieveRequestStateToJson(this);
 

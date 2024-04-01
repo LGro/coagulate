@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -63,16 +65,15 @@ Uri _shareURL(ContactDHTSettings settings) {
 
 Widget _coagulateButton(
     BuildContext context, CoagContact contact, Contact profile) {
-  // if (peer.dhtUpdateStatus == DhtUpdateStatus.progress) {
-  //   return const TextButton(onPressed: null, child: Text('Preparing...'));
-  // } else
   if (contact.sharedProfile == null || contact.sharedProfile!.isEmpty) {
     return TextButton(
         onPressed: () async => {
               context.read<ContactDetailsCubit>().shareWith(
                   contact.coagContactId,
-                  // TODO: Replace with actual contact profile
-                  'SECRET-COAGULATE-PROFILE|${DateTime.now().toIso8601String()}')
+                  // TODO: Filter to apply sharing preferences
+                  // TODO: Move to json and string encoding into shareWith()?
+                  json.encode(
+                      ContactDetails.fromSystemContact(profile).toJson()))
             },
         child: const Text('Coagulate'));
   } else {

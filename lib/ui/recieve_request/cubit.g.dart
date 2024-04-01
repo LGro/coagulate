@@ -9,18 +9,20 @@ part of 'cubit.dart';
 RecieveRequestState _$RecieveRequestStateFromJson(Map<String, dynamic> json) =>
     RecieveRequestState(
       $enumDecode(_$RecieveRequestStatusEnumMap, json['status']),
-      profile: json['profile'] as String?,
+      profile: json['profile'] == null
+          ? null
+          : CoagContact.fromJson(json['profile'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$RecieveRequestStateToJson(
         RecieveRequestState instance) =>
     <String, dynamic>{
       'status': _$RecieveRequestStatusEnumMap[instance.status]!,
-      'profile': instance.profile,
+      'profile': instance.profile?.toJson(),
     };
 
 const _$RecieveRequestStatusEnumMap = {
   RecieveRequestStatus.qrcode: 'qrcode',
   RecieveRequestStatus.processing: 'processing',
-  RecieveRequestStatus.recieved: 'recieved',
+  RecieveRequestStatus.received: 'received',
 };

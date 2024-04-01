@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
-import 'cubit.dart';
 import '../widgets/address_coordinates_form.dart';
+import 'cubit.dart';
 
 Widget avatar(Contact contact,
     [double radius = 48.0, IconData defaultIcon = Icons.person]) {

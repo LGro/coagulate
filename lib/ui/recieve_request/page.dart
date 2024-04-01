@@ -41,7 +41,7 @@ class RecieveRequestPage extends StatelessWidget {
                             .read<RecieveRequestCubit>()
                             .qrCodeCaptured));
 
-              case RecieveRequestStatus.recieved:
+              case RecieveRequestStatus.received:
                 return Scaffold(
                     appBar: AppBar(
                       title: const Text('Received Contact'),

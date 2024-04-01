@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -62,8 +64,12 @@ class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
           final raw =
               await readPasswordEncryptedDHTRecord(recordKey: key, secret: psk);
           print("Retrieved from DHT Record $key:\n$raw");
-          emit(
-              RecieveRequestState(RecieveRequestStatus.recieved, profile: raw));
+          // TODO: Error handling
+          final details =
+              ContactDetails.fromJson(json.decode(raw) as Map<String, dynamic>);
+          emit(RecieveRequestState(RecieveRequestStatus.received,
+              profile: CoagContact(
+                  coagContactId: const Uuid().v4(), details: details)));
         } on Exception catch (e) {
           // TODO: Log properly / feedback?
           print('Error fetching DHT UPDATE: ${e}');
@@ -76,24 +82,18 @@ class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
   // TODO: Replace with proper type instead of string
   void linkExistingContact() {
     // TODO: Replace with proper deserialized profile
-    final nameFromDHT = state.profile;
-    final potentialMatches = contactsRepository.coagContacts.values.firstWhere(
-        (c) =>
-            c.systemContact?.name == nameFromDHT ||
-            c.details?.name == nameFromDHT);
+    // final nameFromDHT = state.profile;
+    // final potentialMatches = contactsRepository.coagContacts.values.firstWhere(
+    //     (c) =>
+    //         c.systemContact?.name == nameFromDHT ||
+    //         c.details?.name == nameFromDHT);
     // TODO: Propose potential matches; compute earlier, move to state
   }
 
   // TODO: Replace with proper type instead of string
   Future<void> createNewContact() async {
-    await contactsRepository.updateContact(CoagContact(
-        coagContactId: Uuid().v4().toString(),
-        // TODO: Allow creation of linked system contact
-        details: ContactDetails(
-            displayName: state.profile!,
-            name: Name(
-                first: state.profile!.split('|')[0],
-                last: state.profile!.split('|')[1]))));
+    // TODO: Allow creation of linked system contact
+    await contactsRepository.updateContact(state.profile!);
     emit(const RecieveRequestState(RecieveRequestStatus.qrcode));
     // TODO: Forward instead to contact details page to share back etc.
   }
