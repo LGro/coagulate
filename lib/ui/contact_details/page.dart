@@ -116,7 +116,7 @@ class ContactPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 40),
-          Center(child: avatar(contact!.details!)),
+          Center(child: avatar(contact!.systemContact!)),
           BlocConsumer<ProfileCubit, ProfileState>(
               listener: (context, state) async {},
               builder: (context, state) {
@@ -132,10 +132,22 @@ class ContactPage extends StatelessWidget {
                 }
               }),
           // TODO: Display name(s)
+
+          // TODO: Display merged view of contact details, where
+          //  - an indicator shows which info is managed by dht
+          //  - if managed, shows when system contact is different
+          if (contact.systemContact!.phones.isNotEmpty)
+            phones(contact.systemContact!.phones),
           if (contact.details!.phones.isNotEmpty)
             phones(contact.details!.phones),
+
+          if (contact.systemContact!.emails.isNotEmpty)
+            emails(contact.systemContact!.emails),
           if (contact.details!.emails.isNotEmpty)
             emails(contact.details!.emails),
+
+          if (contact.systemContact!.addresses.isNotEmpty)
+            addresses(context, contact.systemContact!.addresses, null),
           if (contact.details!.addresses.isNotEmpty)
             addresses(context, contact.details!.addresses, null),
           // TODO: Switch to drop down selection when profiles are ready

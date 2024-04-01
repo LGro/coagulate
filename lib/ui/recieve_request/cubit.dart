@@ -74,15 +74,23 @@ class RecieveRequestCubit extends HydratedCubit<RecieveRequestState> {
   }
 
   // TODO: Replace with proper type instead of string
-  void linkExistingContact() {}
+  void linkExistingContact() {
+    // TODO: Replace with proper deserialized profile
+    final nameFromDHT = state.profile;
+    final potentialMatches = contactsRepository.coagContacts.values.firstWhere(
+        (c) =>
+            c.systemContact?.name == nameFromDHT ||
+            c.details?.name == nameFromDHT);
+    // TODO: Propose potential matches; compute earlier, move to state
+  }
 
   // TODO: Replace with proper type instead of string
   Future<void> createNewContact() async {
     await contactsRepository.updateContact(CoagContact(
         coagContactId: Uuid().v4().toString(),
         // TODO: Allow creation of linked system contact
-        details: Contact(
-            id: 'UNLINKED',
+        details: ContactDetails(
+            displayName: state.profile!,
             name: Name(
                 first: state.profile!.split('|')[0],
                 last: state.profile!.split('|')[1]))));

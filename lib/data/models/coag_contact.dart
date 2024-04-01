@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -38,17 +40,111 @@ class ContactDHTSettings {
 }
 
 @JsonSerializable()
+class ContactDetails extends Equatable {
+  const ContactDetails({
+    required this.displayName,
+    required this.name,
+    this.phones = const [],
+    this.emails = const [],
+    this.addresses = const [],
+    this.organizations = const [],
+    this.websites = const [],
+    this.socialMedias = const [],
+    this.events = const [],
+  });
+
+  ContactDetails.fromSystemContact(Contact c)
+      : displayName = c.displayName,
+        name = c.name,
+        phones = c.phones,
+        emails = c.emails,
+        addresses = c.addresses,
+        organizations = c.organizations,
+        websites = c.websites,
+        socialMedias = c.socialMedias,
+        events = c.events;
+
+  factory ContactDetails.fromJson(Map<String, dynamic> json) =>
+      _$ContactDetailsFromJson(json);
+
+  final String displayName;
+
+  /// Structured name.
+  final Name name;
+
+  /// Phone numbers.
+  final List<Phone> phones;
+
+  /// Email addresses.
+  final List<Email> emails;
+
+  /// Postal addresses.
+  final List<Address> addresses;
+
+  /// Organizations / jobs.
+  final List<Organization> organizations;
+
+  /// Websites.
+  final List<Website> websites;
+
+  /// Social media / instant messaging profiles.
+  final List<SocialMedia> socialMedias;
+
+  /// Events / birthdays.
+  final List<Event> events;
+
+  Map<String, dynamic> toJson() => _$ContactDetailsToJson(this);
+
+  ContactDetails copyWith(
+          {String? displayName,
+          Name? name,
+          List<Phone>? phones,
+          List<Email>? emails,
+          List<Address>? addresses,
+          List<Organization>? organizations,
+          List<Website>? websites,
+          List<SocialMedia>? socialMedias,
+          List<Event>? events}) =>
+      ContactDetails(
+        displayName: displayName ?? this.displayName,
+        name: name ?? this.name,
+        phones: phones ?? this.phones,
+        emails: emails ?? this.emails,
+        addresses: addresses ?? this.addresses,
+        organizations: organizations ?? this.organizations,
+        websites: websites ?? this.websites,
+        socialMedias: socialMedias ?? this.socialMedias,
+        events: events ?? this.events,
+      );
+
+  @override
+  List<Object?> get props => [
+        displayName,
+        name,
+        phones,
+        emails,
+        addresses,
+        organizations,
+        websites,
+        socialMedias,
+        events,
+      ];
+}
+
+@JsonSerializable()
 class CoagContact extends Equatable {
   CoagContact(
       {required this.coagContactId,
       this.details,
+      this.systemContact,
       this.locations = const [],
       this.dhtSettingsForSharing,
       this.dhtSettingsForReceiving,
       this.sharedProfile});
 
   final String coagContactId;
-  final Contact? details;
+  final Contact? systemContact;
+  final ContactDetails? details;
   final List<ContactLocation> locations;
   final ContactDHTSettings? dhtSettingsForSharing;
   final ContactDHTSettings? dhtSettingsForReceiving;
@@ -61,7 +157,8 @@ class CoagContact extends Equatable {
   Map<String, dynamic> toJson() => _$CoagContactToJson(this);
 
   CoagContact copyWith(
-          {Contact? details,
+          {Contact? systemContact,
+          ContactDetails? details,
           List<ContactLocation>? locations,
           ContactDHTSettings? dhtSettingsForSharing,
           ContactDHTSettings? dhtSettingsForReceiving,
@@ -69,6 +166,7 @@ class CoagContact extends Equatable {
       CoagContact(
           coagContactId: this.coagContactId,
           details: details ?? this.details,
+          systemContact: systemContact ?? this.systemContact,
           locations: locations ?? this.locations,
           dhtSettingsForSharing:
               dhtSettingsForSharing ?? this.dhtSettingsForSharing,
@@ -80,6 +178,7 @@ class CoagContact extends Equatable {
   List<Object?> get props => [
         coagContactId,
         details,
+        systemContact,
         dhtSettingsForSharing,
         dhtSettingsForReceiving,
         sharedProfile

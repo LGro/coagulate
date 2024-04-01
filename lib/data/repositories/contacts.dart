@@ -45,6 +45,11 @@ class ContactsRepository {
   final _systemContactAccessGrantedStreamController =
       BehaviorSubject<bool>.seeded(false);
 
+  // TODO: Ensure that:
+  //  persistent storage is loaded,
+  //  new changes from system contacts come in,
+  //  new changes from dht come in
+  //  changes in profile contact go out via dht
   Future<void> _init() async {
     // Load profile contact ID from persistent storage
     profileContactId = await _persistentStorage.getProfileContactId();
@@ -59,25 +64,23 @@ class ContactsRepository {
     unawaited(_updateFromSystemContacts());
 
     // Update the contacts wrt the DHT
-    // for (final coagContact in coagContacts.values) {
-    //   // TODO: Implement dht infos for contact
-    //   continue;
-    //   //add watches for each dht record
-    // }
+    unawaited(_updateAndWatchFromDHT());
   }
 
   // FIXME: Finish implementation
-  Future<void> _updateFromDHT() async {
+  Future<void> _updateAndWatchFromDHT() async {
     for (final contact in coagContacts.values) {
-      if (contact.dhtSettingsForSharing == null ||
-          contact.dhtSettingsForSharing?.psk == null) {
-        continue;
+      // Check for incoming updates
+      if (contact.dhtSettingsForReceiving != null) {
+        final updatedContact = await updateContactFromDHT(contact);
+        if (updatedContact != contact) {
+          await updateContact(updatedContact);
+        }
+        // TODO: Check how long this takes and what could go wrong with not awaiting insteadß
+        await watchDHTRecord(contact.dhtSettingsForReceiving!.key);
       }
 
-      final updatedContact = await updateContactFromDHT(contact);
-      if (updatedContact != contact) {
-        updateContact(updatedContact);
-      }
+      // TODO: Check for outgoing updates
     }
   }
 
@@ -90,8 +93,7 @@ class ContactsRepository {
       _systemContactAccessGrantedStreamController.add(true);
       for (final coagContact in coagContacts.values) {
         // Skip coagulate contacts that are not associated with a system contact
-        if (coagContact.details == null ||
-            coagContact.details!.id == 'UNLINKED') {
+        if (coagContact.systemContact == null) {
           continue;
         }
         // Remove contacts that did not change
@@ -99,19 +101,23 @@ class ContactsRepository {
           continue;
         }
         // The remaining matches based on system contact ID need to be updated
-        final iChangedContact = systemContacts.indexWhere(
-            (systemContact) => systemContact.id == coagContact.details!.id);
-        coagContacts[coagContact.coagContactId] =
-            coagContact.copyWith(details: systemContacts[iChangedContact]);
+        final iChangedContact = systemContacts.indexWhere((systemContact) =>
+            systemContact.id == coagContact.systemContact!.id);
+        coagContacts[coagContact.coagContactId] = coagContact.copyWith(
+            systemContact: systemContacts[iChangedContact]);
         // TODO: Signal update of coagContactId
         systemContacts.removeAt(iChangedContact);
       }
       // The remaining system contacts are new
       for (final systemContact in systemContacts) {
         final coagContact = _populateWithDummyLocations(CoagContact(
-            coagContactId: Uuid().v4().toString(), details: systemContact));
+            coagContactId: Uuid().v4().toString(),
+            systemContact: systemContact,
+            details: ContactDetails.fromSystemContact(systemContact)));
         coagContacts[coagContact.coagContactId] = coagContact;
-        // TODO: Signal update of coagContactId; and that it's a new one
+        // TODO: Also signal that it's a new one?
+        _updateStatusStreamController
+            .add('UPDATE-AVAILABLE:${coagContact.coagContactId}');
       }
     } on MissingSystemContactsPermissionError {
       _systemContactAccessGrantedStreamController.add(false);
@@ -147,12 +153,12 @@ class ContactsRepository {
 
     // TODO: Allow creation of a new system contact via update contact as well; might require custom contact details schema
     // Update system contact if linked and contact details changed
-    if (contact.details != null &&
-        contact.details!.id != 'UNLINKED' &&
-        coagContacts[contact.coagContactId]!.details != contact.details) {
+    if (contact.systemContact != null &&
+        coagContacts[contact.coagContactId]!.systemContact !=
+            contact.systemContact) {
       // TODO: How to reconsile system contacts if permission was removed intermittently and is then granted again?
       try {
-        unawaited(updateSystemContact(contact.details!));
+        unawaited(updateSystemContact(contact.systemContact!));
       } on MissingSystemContactsPermissionError {
         _systemContactAccessGrantedStreamController.add(false);
       }

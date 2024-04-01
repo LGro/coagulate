@@ -49,7 +49,7 @@ class ProcessorRepository {
     }
 
     final updateStream = await Veilid.instance
-        .startupVeilidCore(await getVeilidConfig(false, 'Coagulate'));
+        .startupVeilidCore(await getVeilidConfig(kIsWeb, 'Coagulate'));
     _updateSubscription = updateStream.listen((update) {
       if (update is VeilidLog) {
         processLog(update);
@@ -119,8 +119,6 @@ class ProcessorRepository {
 
   void processUpdateValueChange(VeilidUpdateValueChange updateValueChange) {
     log.debug('UpdateValueChange: ${updateValueChange.toJson()}');
-
-    // TODO: Get in here to notify the contacts repo to re fetch if it's a known key
 
     // Send value updates to DHTRecordPool
     DHTRecordPool.instance.processRemoteValueChange(updateValueChange);

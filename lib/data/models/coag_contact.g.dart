@@ -22,11 +22,61 @@ Map<String, dynamic> _$ContactDHTSettingsToJson(ContactDHTSettings instance) =>
       'pub_key': instance.pubKey,
     };
 
+ContactDetails _$ContactDetailsFromJson(Map<String, dynamic> json) =>
+    ContactDetails(
+      displayName: json['display_name'] as String,
+      name: Name.fromJson(json['name'] as Map<String, dynamic>),
+      phones: (json['phones'] as List<dynamic>?)
+              ?.map((e) => Phone.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      emails: (json['emails'] as List<dynamic>?)
+              ?.map((e) => Email.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      addresses: (json['addresses'] as List<dynamic>?)
+              ?.map((e) => Address.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      organizations: (json['organizations'] as List<dynamic>?)
+              ?.map((e) => Organization.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      websites: (json['websites'] as List<dynamic>?)
+              ?.map((e) => Website.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      socialMedias: (json['social_medias'] as List<dynamic>?)
+              ?.map((e) => SocialMedia.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      events: (json['events'] as List<dynamic>?)
+              ?.map((e) => Event.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$ContactDetailsToJson(ContactDetails instance) =>
+    <String, dynamic>{
+      'display_name': instance.displayName,
+      'name': instance.name.toJson(),
+      'phones': instance.phones.map((e) => e.toJson()).toList(),
+      'emails': instance.emails.map((e) => e.toJson()).toList(),
+      'addresses': instance.addresses.map((e) => e.toJson()).toList(),
+      'organizations': instance.organizations.map((e) => e.toJson()).toList(),
+      'websites': instance.websites.map((e) => e.toJson()).toList(),
+      'social_medias': instance.socialMedias.map((e) => e.toJson()).toList(),
+      'events': instance.events.map((e) => e.toJson()).toList(),
+    };
+
 CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
       coagContactId: json['coag_contact_id'] as String,
       details: json['details'] == null
           ? null
-          : Contact.fromJson(json['details'] as Map<String, dynamic>),
+          : ContactDetails.fromJson(json['details'] as Map<String, dynamic>),
+      systemContact: json['system_contact'] == null
+          ? null
+          : Contact.fromJson(json['system_contact'] as Map<String, dynamic>),
       locations: (json['locations'] as List<dynamic>?)
               ?.map((e) => ContactLocation.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -45,6 +95,7 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
 Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
     <String, dynamic>{
       'coag_contact_id': instance.coagContactId,
+      'system_contact': instance.systemContact?.toJson(),
       'details': instance.details?.toJson(),
       'locations': instance.locations.map((e) => e.toJson()).toList(),
       'dht_settings_for_sharing': instance.dhtSettingsForSharing?.toJson(),

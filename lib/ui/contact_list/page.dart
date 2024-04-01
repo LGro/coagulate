@@ -71,8 +71,10 @@ class _ContactListPageState extends State<ContactListPage> {
                             .contacts
                             .where((cc) =>
                                 cc.details != null &&
-                                cc.details!.id !=
-                                    profileContactState.profileContact?.id)
+                                // TODO: Switch to using a coag contact id for system contact
+                                (cc.systemContact == null ||
+                                    cc.systemContact!.id !=
+                                        profileContactState.profileContact?.id))
                             .toList()));
                 }
               })));
@@ -83,10 +85,24 @@ class _ContactListPageState extends State<ContactListPage> {
       itemBuilder: (context, i) {
         final contact = contacts[i];
         return ListTile(
-            leading: avatar(contact.details!, 18),
+            leading: avatar(contact.systemContact!, 18),
             title: Text(contact.details!.displayName),
-            trailing: Text(contact.dhtSettingsForSharing == null ? '?' : 'C'),
+            trailing: Text(_contactSyncStatus(contact)),
             onTap: () => Navigator.of(context)
                 .push(ContactPage.route(contact.coagContactId)));
       });
+}
+
+String _contactSyncStatus(CoagContact contact) {
+  String status = '';
+  if (contact.dhtSettingsForSharing != null) {
+    status = 'S';
+  }
+  if (contact.dhtSettingsForReceiving != null) {
+    status = 'R$status';
+  }
+  if (status.isEmpty) {
+    status = '?';
+  }
+  return status;
 }

@@ -50,7 +50,7 @@ class HivePersistentStorage {
       Hive.openBox('hive_coag_contacts_box');
 
   Future<Map<String, CoagContact>> getAllContacts() async =>
-      ((await _lazyGetContactsBox()).toMap()).map((key, value) =>
+      (await _lazyGetContactsBox()).toMap().map((key, value) =>
           MapEntry(key.toString(), _deserializeAndMigrateIfNecessary(value)));
 
   Future<CoagContact> getContact(String coagContactId) async {
