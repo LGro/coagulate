@@ -102,3 +102,26 @@ Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
       'dht_settings_for_receiving': instance.dhtSettingsForReceiving?.toJson(),
       'shared_profile': instance.sharedProfile,
     };
+
+CoagContactDHTSchemaV1 _$CoagContactDHTSchemaV1FromJson(
+        Map<String, dynamic> json) =>
+    CoagContactDHTSchemaV1(
+      coagContactId: json['coag_contact_id'] as String,
+      details: ContactDetails.fromJson(json['details'] as Map<String, dynamic>),
+      shareBackDHTKey: json['share_back_d_h_t_key'] as String,
+      shareBackPubKey: json['share_back_pub_key'] as String,
+      locations: (json['locations'] as List<dynamic>?)
+              ?.map((e) => ContactLocation.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$CoagContactDHTSchemaV1ToJson(
+        CoagContactDHTSchemaV1 instance) =>
+    <String, dynamic>{
+      'coag_contact_id': instance.coagContactId,
+      'details': instance.details.toJson(),
+      'locations': instance.locations.map((e) => e.toJson()).toList(),
+      'share_back_d_h_t_key': instance.shareBackDHTKey,
+      'share_back_pub_key': instance.shareBackPubKey,
+    };

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/repositories/contacts.dart';
+import '../contact_details/page.dart';
 import '../profile/page.dart';
 import '../widgets/scan_qr_code.dart';
 import 'cubit.dart';
@@ -29,12 +30,23 @@ class ReceiveRequestPage extends StatelessWidget {
                     appBar: AppBar(
                       title: const Text('Processing...'),
                     ),
-                    body: const Center(
+                    body: Center(
                         child: Column(
-                      children: [CircularProgressIndicator()],
+                      children: [
+                        const CircularProgressIndicator(),
+                        TextButton(
+                            onPressed:
+                                context.read<ReceiveRequestCubit>().scanQrCode,
+                            child: const Text('Cancel'))
+                      ],
                     )));
 
               case ReceiveRequestStatus.qrcode:
+                if (state.profile != null) {
+                  Navigator.of(context).pop();
+                  Navigator.of(context)
+                      .push(ContactPage.route(state.profile!.coagContactId));
+                }
                 return Scaffold(
                     appBar: AppBar(title: const Text('Scan QR Code')),
                     body: BarcodeScannerPageView(

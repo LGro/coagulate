@@ -41,8 +41,8 @@ class _ContactListPageState extends State<ContactListPage> {
               onPressed: () async {
                 await Navigator.push(
                     context,
-                    MaterialPageRoute<RecieveRequestPage>(
-                        builder: (_) => const RecieveRequestPage()));
+                    MaterialPageRoute<ReceiveRequestPage>(
+                        builder: (_) => const ReceiveRequestPage()));
               }),
         ],
       ),

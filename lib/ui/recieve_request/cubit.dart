@@ -65,11 +65,17 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
               await readPasswordEncryptedDHTRecord(recordKey: key, secret: psk);
           print("Retrieved from DHT Record $key:\n$raw");
           // TODO: Error handling
-          final details =
-              ContactDetails.fromJson(json.decode(raw) as Map<String, dynamic>);
+          final contact = CoagContactDHTSchemaV1.fromJson(
+              json.decode(raw) as Map<String, dynamic>);
           emit(ReceiveRequestState(ReceiveRequestStatus.received,
               profile: CoagContact(
-                  coagContactId: const Uuid().v4(), details: details)));
+                  coagContactId: const Uuid().v4(),
+                  details: contact.details,
+                  locations: contact.locations,
+                  dhtSettingsForSharing: ContactDHTSettings(
+                      key: contact.shareBackDHTKey!,
+                      pubKey: contact.shareBackPubKey,
+                      writer: contact.shareBackDHTWriter))));
         } on Exception catch (e) {
           // TODO: Log properly / feedback?
           print('Error fetching DHT UPDATE: ${e}');

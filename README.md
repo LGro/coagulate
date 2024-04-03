@@ -26,7 +26,7 @@ In case you prefer MapBox over OpenStreetMap as a map provider, specify an API t
 
 To (re-)generate all code from templates, run
 ```
-flutter packages pub run build_runner build
+dart run build_runner build
 ```
 
 ### Fastlane

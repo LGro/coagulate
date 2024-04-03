@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
@@ -64,25 +65,15 @@ Uri _shareURL(ContactDHTSettings settings) {
 }
 
 Widget _coagulateButton(
-    BuildContext context, CoagContact contact, Contact profile) {
+    BuildContext context, CoagContact contact, CoagContact myProfile) {
   if (contact.sharedProfile == null || contact.sharedProfile!.isEmpty) {
     return TextButton(
-        onPressed: () async => {
-              context.read<ContactDetailsCubit>().shareWith(
-                  contact.coagContactId,
-                  // TODO: Filter to apply sharing preferences
-                  // TODO: Move to json and string encoding into shareWith()?
-                  json.encode(
-                      ContactDetails.fromSystemContact(profile).toJson()))
-            },
+        onPressed: () async =>
+            {context.read<ContactDetailsCubit>().share(myProfile)},
         child: const Text('Coagulate'));
   } else {
     return TextButton(
-        onPressed: () async => {
-              context
-                  .read<ContactDetailsCubit>()
-                  .unshareWith(contact.coagContactId)
-            },
+        onPressed: context.read<ContactDetailsCubit>().unshare,
         child: const Text('Dissolve'));
   }
 }
@@ -106,7 +97,11 @@ class ContactPage extends StatelessWidget {
   Widget build(BuildContext context) =>
       BlocConsumer<ContactDetailsCubit, ContactDetailsState>(
           listener: (context, state) async {},
-          builder: (context, state) => _body(context, state.contact));
+          builder: (context, state) => Scaffold(
+              appBar: AppBar(
+                title: Text(state.contact!.details!.displayName),
+              ),
+              body: _body(context, state.contact)));
 
   Widget _body(BuildContext context, CoagContact? contact) {
     if (contact?.details?.name == null) {
@@ -129,7 +124,13 @@ class ContactPage extends StatelessWidget {
                   return Card(
                       child: Center(
                           child: _coagulateButton(
-                              context, contact, state.profileContact!)));
+                              context,
+                              contact,
+                              // TODO: Make my profile a first class citizen coag contact?
+                              CoagContact(
+                                  coagContactId: Uuid().v4(),
+                                  details: ContactDetails.fromSystemContact(
+                                      state.profileContact!)))));
                 }
               }),
           // TODO: Display name(s)

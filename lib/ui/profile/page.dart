@@ -160,6 +160,7 @@ class ProfileViewState extends State<ProfileView> {
       Scaffold(
           appBar: AppBar(
             title: const Text('My Profile'),
+            // TODO: Add generate QR code for sharing with someone who I haven't as a contact yet
             // TODO: Add update action; use system update view
             actions: [
               IconButton(

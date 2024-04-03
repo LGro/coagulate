@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -10,6 +12,23 @@ import '../../data/repositories/contacts.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
+
+// TODO: Add sharing profile and filter
+CoagContactDHTSchemaV1 _filterAccordingToSharingProfile(CoagContact contact) =>
+    CoagContactDHTSchemaV1(
+      coagContactId: contact.coagContactId,
+      details: contact.details!,
+      locations: contact.locations,
+      // TODO: Ensure these are populated by the time this is called
+      shareBackDHTKey: contact.dhtSettingsForReceiving?.key,
+      shareBackDHTWriter: contact.dhtSettingsForReceiving?.writer,
+      shareBackPubKey: contact.dhtSettingsForReceiving?.pubKey,
+    );
+
+Map<String, dynamic> _removeNullOrEmptyValues(Map<String, dynamic> json) {
+  // TODO: implement me; or implement custom schema for sharing payload
+  return json;
+}
 
 class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
   ContactDetailsCubit(this.contactsRepository, String coagContactId)
@@ -36,18 +55,17 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
   @override
   Map<String, dynamic> toJson(ContactDetailsState state) => state.toJson();
 
-  Future<void> shareWith(String coagContactId, String? sharedProfile) async {
+  Future<void> share(CoagContact profileToShare) async {
+    final sharedProfile = json.encode(_removeNullOrEmptyValues(
+        _filterAccordingToSharingProfile(profileToShare).toJson()));
     final updatedContact =
         state.contact!.copyWith(sharedProfile: sharedProfile);
-
-    // Already emit before update trickles down via repository?
-    // emit(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
-    //     contact: updatedContact));
 
     // TODO: Do we really need to await here?
     await contactsRepository.updateContact(updatedContact);
   }
 
-  Future<void> unshareWith(String coagContactId) async =>
-      shareWith(coagContactId, null);
+  // FIXME: Passing null to copyWith won't override the sharedProfile with null
+  Future<void> unshare() async => contactsRepository
+      .updateContact(state.contact!.copyWith(sharedProfile: null));
 }

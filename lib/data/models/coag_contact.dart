@@ -1,8 +1,6 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
-import 'dart:typed_data';
-
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -181,6 +179,59 @@ class CoagContact extends Equatable {
         systemContact,
         dhtSettingsForSharing,
         dhtSettingsForReceiving,
-        sharedProfile
+        sharedProfile,
+        locations,
+      ];
+}
+
+@JsonSerializable()
+class CoagContactDHTSchemaV1 extends Equatable {
+  const CoagContactDHTSchemaV1(
+      {required this.coagContactId,
+      required this.details,
+      this.shareBackDHTKey,
+      this.shareBackPubKey,
+      this.shareBackDHTWriter,
+      this.locations = const []});
+
+  final int schemaVersion = 1;
+  // TODO: Consider removing this one again if we just try all available private keys on the receiving side
+  final String coagContactId;
+  final ContactDetails details;
+  final List<ContactLocation> locations;
+  final String? shareBackDHTKey;
+  final String? shareBackDHTWriter;
+  final String? shareBackPubKey;
+
+  factory CoagContactDHTSchemaV1.fromJson(Map<String, dynamic> json) =>
+      _$CoagContactDHTSchemaV1FromJson(json);
+
+  Map<String, dynamic> toJson() => _$CoagContactDHTSchemaV1ToJson(this);
+
+  CoagContactDHTSchemaV1 copyWith({
+    ContactDetails? details,
+    String? shareBackDHTKey,
+    String? shareBackPubKey,
+    String? shareBackDHTWriter,
+    List<ContactLocation>? locations,
+  }) =>
+      CoagContactDHTSchemaV1(
+        coagContactId: this.coagContactId,
+        details: details ?? this.details,
+        shareBackDHTKey: shareBackDHTKey ?? this.shareBackDHTKey,
+        shareBackPubKey: shareBackPubKey ?? this.shareBackPubKey,
+        shareBackDHTWriter: shareBackDHTWriter ?? this.shareBackDHTWriter,
+        locations: locations ?? this.locations,
+      );
+
+  @override
+  List<Object?> get props => [
+        schemaVersion,
+        coagContactId,
+        details,
+        shareBackDHTKey,
+        shareBackPubKey,
+        shareBackDHTWriter,
+        locations
       ];
 }
