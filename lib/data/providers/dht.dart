@@ -2,19 +2,11 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:convert';
-import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:veilid_support/veilid_support.dart';
 
 import '../models/coag_contact.dart';
-
-String _getRandomString(int length) {
-  const _chars =
-      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-  final _rnd = Random.secure();
-  return String.fromCharCodes(Iterable.generate(
-      length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
-}
 
 /// Create an empty DHT record, return key and writer in string representation
 Future<(String, String)> createDHTRecord() async {
@@ -34,10 +26,13 @@ Future<String> readPasswordEncryptedDHTRecord(
       crypto: const DHTRecordCryptoPublic());
   final raw = await record.get();
 
-  final cs = await pool.veilid.bestCryptoSystem();
   // TODO: Detect if secret is pubkey and use asymmetric encryption here?
   // TODO: Error handling
-  final decrypted = await cs.decryptAeadWithPassword(raw!, secret);
+  final cs = await pool.veilid.bestCryptoSystem();
+  final bodyBytes = raw!.sublist(0, raw.length - Nonce.decodedLength());
+  final saltBytes = raw.sublist(raw.length - Nonce.decodedLength());
+  final decrypted = await cs.decryptAead(bodyBytes, Nonce.fromBytes(saltBytes),
+      SharedSecret.fromString(secret), null);
 
   await record.close();
 
@@ -56,12 +51,15 @@ Future<void> updatePasswordEncryptedDHTRecord(
       KeyPair.fromString(recordWriter),
       crypto: const DHTRecordCryptoPublic());
 
-  final cs = await pool.veilid.bestCryptoSystem();
   // TODO: Detect if secret is pubkey and use asymmetric encryption here?
-  final encryptedProfile =
-      await cs.encryptAeadWithPassword(utf8.encode(content), secret);
+  final cs = await pool.veilid.bestCryptoSystem();
+  final nonce = await cs.randomNonce();
+  final saltBytes = nonce.decode();
+  final encrypted = Uint8List.fromList((await cs.encryptAead(
+          utf8.encode(content), nonce, SharedSecret.fromString(secret), null)) +
+      saltBytes);
 
-  await record.tryWriteBytes(encryptedProfile);
+  await record.tryWriteBytes(encrypted);
   await record.close();
 }
 
@@ -84,9 +82,11 @@ Future<CoagContact> updateContactDHT(CoagContact contact) async {
   }
 
   if (contact.dhtSettingsForSharing!.psk == null) {
+    final cs = await DHTRecordPool.instance.veilid.bestCryptoSystem();
+    final sharedSecret = await cs.randomSharedSecret();
     contact = contact.copyWith(
-        dhtSettingsForSharing:
-            contact.dhtSettingsForSharing!.copyWith(psk: _getRandomString(16)));
+        dhtSettingsForSharing: contact.dhtSettingsForSharing!
+            .copyWith(psk: sharedSecret.toString()));
   }
 
   if (contact.sharedProfile != null) {
