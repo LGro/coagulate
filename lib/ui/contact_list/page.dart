@@ -109,7 +109,7 @@ class _ContactListPageState extends State<ContactListPage> {
 }
 
 String _contactSyncStatus(CoagContact contact) {
-  String status = '';
+  var status = '';
   if (contact.dhtSettingsForSharing != null) {
     status = 'S';
   }
