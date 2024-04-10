@@ -65,7 +65,14 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
     await contactsRepository.updateContact(updatedContact);
   }
 
-  // FIXME: Passing null to copyWith won't override the sharedProfile with null
-  Future<void> unshare() async => contactsRepository
-      .updateContact(state.contact!.copyWith(sharedProfile: null));
+  // TODO: Figure out better way to set the shareprofile to null again
+  // The solution is probably adding profile sharing filters and then switching this to a filter that doesn't let anything through?
+  Future<void> unshare() async => contactsRepository.updateContact(CoagContact(
+        coagContactId: state.contact!.coagContactId,
+        details: state.contact!.details,
+        systemContact: state.contact!.systemContact,
+        locations: state.contact!.locations,
+        dhtSettingsForReceiving: state.contact!.dhtSettingsForReceiving,
+        dhtSettingsForSharing: state.contact!.dhtSettingsForSharing,
+      ));
 }

@@ -40,8 +40,6 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
           barcode.rawValue!.startsWith('https://coagulate.social')) {
         final uri = barcode.rawValue!;
 
-        print('Parsing: $uri');
-        String? payload;
         final fragment = Uri.parse(uri).fragment;
         if (fragment.isEmpty) {
           // TODO: Log / feedback?
@@ -61,6 +59,7 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
         try {
           final key = '${components[0]}:${components[1]}';
           final psk = components[2];
+          // TODO: Refactor updateContactFromDHT to use here as well?
           final raw =
               await readPasswordEncryptedDHTRecord(recordKey: key, secret: psk);
           print("Retrieved from DHT Record $key:\n$raw");
@@ -72,10 +71,12 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
                   coagContactId: const Uuid().v4(),
                   details: contact.details,
                   locations: contact.locations,
-                  dhtSettingsForSharing: ContactDHTSettings(
-                      key: contact.shareBackDHTKey!,
-                      pubKey: contact.shareBackPubKey,
-                      writer: contact.shareBackDHTWriter))));
+                  dhtSettingsForSharing: (contact.shareBackDHTKey == null)
+                      ? null
+                      : ContactDHTSettings(
+                          key: contact.shareBackDHTKey!,
+                          pubKey: contact.shareBackPubKey,
+                          writer: contact.shareBackDHTWriter))));
         } on Exception catch (e) {
           // TODO: Log properly / feedback?
           print('Error fetching DHT UPDATE: ${e}');

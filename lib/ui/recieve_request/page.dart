@@ -72,7 +72,7 @@ class ReceiveRequestPage extends StatelessWidget {
                       children: [
                         // TODO: Propose matching contact
                         // TODO: Display proper profile
-                        Text('Received:\n${state.profile!}'),
+                        Text(state.profile!.details!.displayName),
                         if (state.profile!.details!.phones.isNotEmpty)
                           phones(state.profile!.details!.phones),
                         if (state.profile!.details!.emails.isNotEmpty)

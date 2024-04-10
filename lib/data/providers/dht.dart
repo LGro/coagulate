@@ -81,6 +81,13 @@ Future<CoagContact> updateContactDHT(CoagContact contact) async {
         dhtSettingsForSharing: ContactDHTSettings(key: key, writer: writer));
   }
 
+  if (contact.dhtSettingsForReceiving == null ||
+      contact.dhtSettingsForReceiving!.writer == null) {
+    final (key, writer) = await createDHTRecord();
+    contact = contact.copyWith(
+        dhtSettingsForReceiving: ContactDHTSettings(key: key, writer: writer));
+  }
+
   if (contact.dhtSettingsForSharing!.psk == null) {
     final cs = await DHTRecordPool.instance.veilid.bestCryptoSystem();
     final sharedSecret = await cs.randomSharedSecret();
@@ -100,14 +107,25 @@ Future<CoagContact> updateContactDHT(CoagContact contact) async {
   return contact;
 }
 
+// TODO: Schema version check and migration for backwards compatibility
 Future<CoagContact> updateContactFromDHT(CoagContact contact) async {
   if (contact.dhtSettingsForSharing == null ||
       contact.dhtSettingsForSharing?.psk == null) {
     return contact;
   }
-  final contactJson = readPasswordEncryptedDHTRecord(
+  final contactJson = await readPasswordEncryptedDHTRecord(
       recordKey: contact.dhtSettingsForSharing!.key,
       secret: contact.dhtSettingsForSharing!.psk!);
-  // TODO: Add deserialized and updated contact bits
-  return contact.copyWith();
+  final dhtContact = CoagContactDHTSchemaV1.fromJson(
+      json.decode(contactJson) as Map<String, dynamic>);
+  return contact.copyWith(
+      details: dhtContact.details,
+      locations: dhtContact.locations,
+      dhtSettingsForSharing: (dhtContact.shareBackDHTKey == null)
+          ? null
+          : ContactDHTSettings(
+              key: dhtContact.shareBackDHTKey!,
+              writer: dhtContact.shareBackDHTWriter,
+              // TODO: Switch to symmetric crypto as well?
+              pubKey: dhtContact.shareBackPubKey));
 }

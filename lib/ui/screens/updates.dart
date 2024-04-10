@@ -40,12 +40,12 @@ class UpdatesPage extends StatelessWidget {
         TextButton(
           child: const Text('Fetch'),
           onPressed: () async {
-            final info = await Veilid.instance.debug('peerinfo');
-            print('Peerinfo: $info');
-            final res = await readPasswordEncryptedDHTRecord(
-                recordKey: 'VLD0:GstDDrJ3twac6AWVrSA_OECNBhtef9p0TUUULyi5EGM',
-                secret: 'OIk3Zso4hWWKRGuK');
-            print('Found: ${res}');
+            // final info = await Veilid.instance.debug('peerinfo');
+            // print('Peerinfo: $info');
+            // final res = await readPasswordEncryptedDHTRecord(
+            //     recordKey: 'VLD0:GstDDrJ3twac6AWVrSA_OECNBhtef9p0TUUULyi5EGM',
+            //     secret: 'OIk3Zso4hWWKRGuK');
+            // print('Found: ${res}');
             // final pool = DHTRecordPool.instance;
             // final record = await pool.openRead(
             //     Typed<FixedEncodedString43>.fromString(
