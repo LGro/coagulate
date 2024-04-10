@@ -9,7 +9,7 @@ import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
 import '../contact_details/page.dart';
-import '../recieve_request/page.dart';
+import '../receive_request/page.dart';
 import 'cubit.dart';
 
 Widget avatar(Contact contact,
