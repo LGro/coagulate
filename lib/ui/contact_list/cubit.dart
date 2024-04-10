@@ -28,6 +28,20 @@ class ContactListCubit extends HydratedCubit<ContactListState> {
 
   final ContactsRepository contactsRepository;
 
+  void filter(String filter) {
+    print(filter);
+    emit(ContactListState(ContactListStatus.success,
+        contacts: contactsRepository.coagContacts.values.where((c) =>
+            (c.details != null &&
+                c.details!.displayName
+                    .toLowerCase()
+                    .contains(filter.toLowerCase())) ||
+            (c.systemContact != null &&
+                c.systemContact!.displayName
+                    .toLowerCase()
+                    .contains(filter.toLowerCase())))));
+  }
+
   @override
   ContactListState fromJson(Map<String, dynamic> json) =>
       ContactListState.fromJson(json);

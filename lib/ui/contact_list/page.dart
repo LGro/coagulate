@@ -67,15 +67,30 @@ class _ContactListPageState extends State<ContactListPage> {
                   case ContactListStatus.success:
                     return BlocConsumer<ProfileCubit, ProfileState>(
                         listener: (_, __) async {},
-                        builder: (_, profileContactState) => _body(state
-                            .contacts
-                            .where((cc) =>
-                                cc.details != null &&
-                                // TODO: Switch to using a coag contact id for system contact
-                                (cc.systemContact == null ||
-                                    cc.systemContact!.id !=
-                                        profileContactState.profileContact?.id))
-                            .toList()));
+                        builder: (_, profileContactState) => Container(
+                            padding: EdgeInsets.all(10.0),
+                            child: Column(children: <Widget>[
+                              TextField(
+                                onChanged:
+                                    context.read<ContactListCubit>().filter,
+                                autocorrect: false,
+                                decoration: const InputDecoration(
+                                    labelText: 'Search',
+                                    prefixIcon: Icon(Icons.search),
+                                    border: OutlineInputBorder()),
+                              ),
+                              SizedBox(height: 10),
+                              Expanded(
+                                  child: _body(state.contacts
+                                      .where((cc) =>
+                                          cc.details != null &&
+                                          // TODO: Switch to using a coag contact id for system contact
+                                          (cc.systemContact == null ||
+                                              cc.systemContact!.id !=
+                                                  profileContactState
+                                                      .profileContact?.id))
+                                      .toList()))
+                            ])));
                 }
               })));
 
