@@ -68,7 +68,7 @@ class _ContactListPageState extends State<ContactListPage> {
                     return BlocConsumer<ProfileCubit, ProfileState>(
                         listener: (_, __) async {},
                         builder: (_, profileContactState) => Container(
-                            padding: EdgeInsets.all(10.0),
+                            padding: const EdgeInsets.all(10),
                             child: Column(children: <Widget>[
                               TextField(
                                 onChanged:
@@ -79,7 +79,7 @@ class _ContactListPageState extends State<ContactListPage> {
                                     prefixIcon: Icon(Icons.search),
                                     border: OutlineInputBorder()),
                               ),
-                              SizedBox(height: 10),
+                              const SizedBox(height: 10),
                               Expanded(
                                   child: _body(state.contacts
                                       .where((cc) =>

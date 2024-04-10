@@ -33,11 +33,13 @@ class ContactListCubit extends HydratedCubit<ContactListState> {
     emit(ContactListState(ContactListStatus.success,
         contacts: contactsRepository.coagContacts.values.where((c) =>
             (c.details != null &&
-                c.details!.displayName
+                c.details!
+                    .toString()
                     .toLowerCase()
                     .contains(filter.toLowerCase())) ||
             (c.systemContact != null &&
-                c.systemContact!.displayName
+                c.systemContact!
+                    .toString()
                     .toLowerCase()
                     .contains(filter.toLowerCase())))));
   }
