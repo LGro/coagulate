@@ -1,5 +1,6 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -19,7 +20,8 @@ void main() async {
     initLoggy();
 
     // Start up Veilid and Veilid processor in the background
-    unawaited(initializeVeilidChat());
+    // TODO: Allow setting custon bootstrap and network config here #27
+    unawaited(initializeVeilid());
 
     // // Make localization delegate
     // final localizationDelegate = await LocalizationDelegate.create(

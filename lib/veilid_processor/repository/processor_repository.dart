@@ -1,6 +1,8 @@
+// Copyright 2024 The Veilid Chat Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
+
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:veilid_support/veilid_support.dart';
 
 import '../../tools/tools.dart';
@@ -49,7 +51,7 @@ class ProcessorRepository {
     }
 
     final updateStream = await Veilid.instance
-        .startupVeilidCore(await getVeilidConfig(kIsWeb, 'Coagulate'));
+        .startupVeilidCore(await getVeilidConfig('Coagulate'));
     _updateSubscription = updateStream.listen((update) {
       if (update is VeilidLog) {
         processLog(update);

@@ -8,7 +8,7 @@ import '../tick.dart';
 import 'contact_list/page.dart';
 import 'map/page.dart';
 import 'profile/page.dart';
-import 'screens/updates.dart';
+import 'updates/page.dart';
 
 class CoagulateApp extends StatelessWidget {
   const CoagulateApp({required this.contactsRepository, super.key});

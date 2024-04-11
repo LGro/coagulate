@@ -1,5 +1,6 @@
 // Copyright 2023 The Veilid Chat Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,8 @@ final Completer<void> eventualInitialized = Completer<void>();
 
 // Initialize Veilid
 Future<void> initializeVeilid() async {
+  log.info('Initializing Veilid');
+
   // Init Veilid
   Veilid.instance
       .initializeVeilidCore(getDefaultVeilidPlatformConfig(false, 'Coagulate'));
@@ -24,11 +27,6 @@ Future<void> initializeVeilid() async {
 
   // DHT Record Pool
   await DHTRecordPool.init();
-}
-
-Future<void> initializeVeilidChat() async {
-  log.info('Initializing Veilid');
-  await initializeVeilid();
 
   eventualInitialized.complete();
 }

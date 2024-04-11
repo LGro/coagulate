@@ -1,5 +1,9 @@
-import 'package:veilid/veilid.dart';
+// Copyright 2024 The Veilid Chat Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
+
 import 'dart:io' show Platform;
+
+import 'package:veilid/veilid.dart';
 
 Map<String, dynamic> getDefaultVeilidPlatformConfig(
     bool isWeb, String appName) {
@@ -10,21 +14,6 @@ Map<String, dynamic> getDefaultVeilidPlatformConfig(
       ? <String>[]
       : ignoreLogTargetsStr.split(',').map((e) => e.trim()).toList();
 
-  if (isWeb) {
-    return VeilidWASMConfig(
-            logging: VeilidWASMConfigLogging(
-                performance: VeilidWASMConfigLoggingPerformance(
-                    enabled: true,
-                    level: VeilidConfigLogLevel.debug,
-                    logsInTimings: true,
-                    logsInConsole: false,
-                    ignoreLogTargets: ignoreLogTargets),
-                api: VeilidWASMConfigLoggingApi(
-                    enabled: true,
-                    level: VeilidConfigLogLevel.info,
-                    ignoreLogTargets: ignoreLogTargets)))
-        .toJson();
-  }
   return VeilidFFIConfig(
           logging: VeilidFFIConfigLogging(
               terminal: VeilidFFIConfigLoggingTerminal(
@@ -44,9 +33,9 @@ Map<String, dynamic> getDefaultVeilidPlatformConfig(
       .toJson();
 }
 
-Future<VeilidConfig> getVeilidConfig(bool isWeb, String programName) async {
+Future<VeilidConfig> getVeilidConfig(String programName) async {
   var config = await getDefaultVeilidConfig(
-    isWeb: isWeb,
+    isWeb: false,
     programName: programName,
     // ignore: avoid_redundant_argument_values, do_not_use_environment
     namespace: const String.fromEnvironment('NAMESPACE'),
@@ -75,9 +64,7 @@ Future<VeilidConfig> getVeilidConfig(bool isWeb, String programName) async {
   // ignore: do_not_use_environment
   const envNetwork = String.fromEnvironment('NETWORK');
   if (envNetwork.isNotEmpty) {
-    final bootstrap = isWeb
-        ? ['ws://bootstrap.$envNetwork.veilid.net:5150/ws']
-        : ['bootstrap.$envNetwork.veilid.net'];
+    final bootstrap = ['ws://bootstrap.$envNetwork.veilid.net:5150/ws'];
     config = config.copyWith(
         network: config.network.copyWith(
             routingTable:
