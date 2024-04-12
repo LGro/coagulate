@@ -53,7 +53,8 @@ Card _makeCard(
 Uri _shareURL(ContactDHTSettings settings) => Uri(
     scheme: 'https',
     host: 'coagulate.social',
-    path: 'c',
+    // TODO: Make language dependent on local language setting?
+    path: 'en/c',
     fragment: '${settings.key}:${settings.psk}');
 
 Widget _coagulateButton(
@@ -80,7 +81,9 @@ class ContactPage extends StatelessWidget {
               BlocProvider(
                   create: (context) => ContactDetailsCubit(
                       context.read<ContactsRepository>(), coagContactId)),
-              BlocProvider(create: (context) => ProfileCubit()),
+              BlocProvider(
+                  create: (context) =>
+                      ProfileCubit(context.read<ContactsRepository>())),
             ],
             child: const ContactPage(),
           ));
@@ -103,7 +106,8 @@ class ContactPage extends StatelessWidget {
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       const SizedBox(height: 40),
-      Center(child: avatar(contact!.systemContact!)),
+      if (contact!.systemContact != null)
+        Center(child: avatar(contact.systemContact!)),
       BlocConsumer<ProfileCubit, ProfileState>(
           listener: (context, state) async {},
           builder: (context, state) {
@@ -120,10 +124,10 @@ class ContactPage extends StatelessWidget {
                           // TODO: Make my profile a first class citizen coag contact?
                           CoagContact(
                               coagContactId: Uuid().v4(),
-                              details: ContactDetails.fromSystemContact(
-                                  state.profileContact!)))));
+                              systemContact: state.profileContact))));
             }
           }),
+
       // TODO: Display name(s)
       // TODO: Display merged view of contact details, where
       // if a matching name with the same value is present
@@ -134,15 +138,18 @@ class ContactPage extends StatelessWidget {
       // if no matching name and value is present
       //   - add as new entry to system contact, mark managed
       // if no matching name but matching value is present, think about displaying them next to each other still
-      if (contact.systemContact!.phones.isNotEmpty)
+      if (contact.systemContact != null &&
+          contact.systemContact!.phones.isNotEmpty)
         phones(contact.systemContact!.phones),
       if (contact.details!.phones.isNotEmpty) phones(contact.details!.phones),
 
-      if (contact.systemContact!.emails.isNotEmpty)
+      if (contact.systemContact != null &&
+          contact.systemContact!.emails.isNotEmpty)
         emails(contact.systemContact!.emails),
       if (contact.details!.emails.isNotEmpty) emails(contact.details!.emails),
 
-      if (contact.systemContact!.addresses.isNotEmpty)
+      if (contact.systemContact != null &&
+          contact.systemContact!.addresses.isNotEmpty)
         addresses(context, contact.systemContact!.addresses, null),
       if (contact.details!.addresses.isNotEmpty)
         addresses(context, contact.details!.addresses, null),
@@ -182,7 +189,19 @@ class ContactPage extends StatelessWidget {
             size: 200,
           ))
         ])),
-      ]
+      ],
+      Center(
+          child: TextButton(
+              onPressed: () => context
+                  .read<ContactDetailsCubit>()
+                  .delete(contact.coagContactId),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+              ),
+              child: const Text(
+                'DELETE',
+                style: TextStyle(color: Colors.black),
+              ))),
     ]));
   }
 }

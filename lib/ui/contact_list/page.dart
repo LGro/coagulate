@@ -51,7 +51,9 @@ class _ContactListPageState extends State<ContactListPage> {
             BlocProvider(
                 create: (context) =>
                     ContactListCubit(context.read<ContactsRepository>())),
-            BlocProvider(create: (context) => ProfileCubit()),
+            BlocProvider(
+                create: (context) =>
+                    ProfileCubit(context.read<ContactsRepository>())),
           ],
           child: BlocConsumer<ContactListCubit, ContactListState>(
               listener: (context, state) async {},
@@ -100,7 +102,10 @@ class _ContactListPageState extends State<ContactListPage> {
       itemBuilder: (context, i) {
         final contact = contacts[i];
         return ListTile(
-            leading: avatar(contact.systemContact!, 18),
+            leading: (contact.systemContact == null)
+                // TODO: Show default avatar
+                ? null
+                : avatar(contact.systemContact!, 18),
             title: Text(contact.details!.displayName),
             trailing: Text(_contactSyncStatus(contact)),
             onTap: () => Navigator.of(context)

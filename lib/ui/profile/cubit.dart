@@ -7,6 +7,8 @@ import 'package:geocoding/geocoding.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../data/repositories/contacts.dart';
+
 part 'cubit.g.dart';
 part 'state.dart';
 
@@ -14,7 +16,9 @@ part 'state.dart';
 //       FlutterContacts.addListener(() => print('Contact DB changed'));
 
 class ProfileCubit extends HydratedCubit<ProfileState> {
-  ProfileCubit() : super(ProfileState());
+  ProfileCubit(this.contactsRepository) : super(ProfileState());
+
+  final ContactsRepository contactsRepository;
 
   void promptCreate() {
     emit(state.copyWith(status: ProfileStatus.create));
@@ -33,7 +37,13 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
 
   Future<void> updateContact() async {
     if (state.profileContact != null) {
-      setContact(await FlutterContacts.getContact(state.profileContact!.id));
+      final contact =
+          await FlutterContacts.getContact(state.profileContact!.id);
+      setContact(contact);
+      // TODO: add more details, locations etc.
+      await contactsRepository.updateProfileContact(
+          // TODO: Switch to full blown CoagContact for profile contact and get rid of this hack
+          contactsRepository.getCoagContactIdForSystemContactId(contact!.id)!);
     }
   }
 

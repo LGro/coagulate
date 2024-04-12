@@ -12,12 +12,17 @@ import 'veilid_processor/veilid_processor.dart';
 final Completer<void> eventualInitialized = Completer<void>();
 
 // Initialize Veilid
-Future<void> initializeVeilid() async {
+Future<void> initializeVeilid({required List<String> bootstrap}) async {
   log.info('Initializing Veilid');
 
+  var config = getDefaultVeilidPlatformConfig(false, 'Coagulate');
+  // TODO: Make sure this doesn't accidentally override any other network config coming from default
+  config['network'] = {
+    'routing_table': {'bootstrap': bootstrap}
+  };
+
   // Init Veilid
-  Veilid.instance
-      .initializeVeilidCore(getDefaultVeilidPlatformConfig(false, 'Coagulate'));
+  Veilid.instance.initializeVeilidCore(config);
 
   // Veilid logging
   initVeilidLog(kDebugMode);

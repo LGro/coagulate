@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
+
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -9,6 +11,7 @@ import 'package:uuid/uuid.dart';
 
 import '../models/coag_contact.dart';
 import '../models/contact_location.dart';
+import '../models/contact_update.dart';
 import '../providers/dht.dart';
 import '../providers/persistent_storage.dart';
 import '../providers/system_contacts.dart';
@@ -24,6 +27,23 @@ CoagContact _populateWithDummyLocations(CoagContact contact) =>
                 name: a.label.name))
             .toList());
 
+// TODO: Add sharing profile and filter
+CoagContactDHTSchemaV1 filterAccordingToSharingProfile(CoagContact contact) =>
+    CoagContactDHTSchemaV1(
+      coagContactId: contact.coagContactId,
+      details: ContactDetails.fromSystemContact(contact.systemContact!),
+      locations: contact.locations,
+      // TODO: Ensure these are populated by the time this is called
+      shareBackDHTKey: contact.dhtSettingsForReceiving?.key,
+      shareBackDHTWriter: contact.dhtSettingsForReceiving?.writer,
+      shareBackPubKey: contact.dhtSettingsForReceiving?.pubKey,
+    );
+
+Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
+  // TODO: implement me; or implement custom schema for sharing payload
+  return json;
+}
+
 /// Entrypoint for application layer when it comes to [CoagContact]
 class ContactsRepository {
   ContactsRepository(this._persistentStoragePath) {
@@ -38,6 +58,9 @@ class ContactsRepository {
   String? profileContactId = null;
 
   Map<String, CoagContact> coagContacts = {};
+  // TODO: Persist; maybe just proxy read and writes to
+  // persistent storage directly instead of having additional state here
+  List<ContactUpdate> updates = [];
 
   final _updateStatusStreamController =
       BehaviorSubject<String>.seeded('NO-UPDATES');
@@ -64,23 +87,26 @@ class ContactsRepository {
     unawaited(_updateFromSystemContacts());
 
     // Update the contacts wrt the DHT
-    unawaited(_updateAndWatchFromDHT());
+    unawaited(updateAndWatchReceivingDHT());
   }
 
-  // FIXME: Finish implementation
-  Future<void> _updateAndWatchFromDHT() async {
+  Future<void> updateAndWatchReceivingDHT() async {
     for (final contact in coagContacts.values) {
       // Check for incoming updates
       if (contact.dhtSettingsForReceiving != null) {
-        final updatedContact = await updateContactFromDHT(contact);
+        print('checking ${contact.coagContactId}');
+        final updatedContact = await updateContactReceivingDHT(contact);
         if (updatedContact != contact) {
+          // TODO: Use update time from when the update was sent not received
+          updates.add(ContactUpdate(
+              message: 'News from ${contact.details?.displayName}',
+              timestamp: DateTime.now()));
           await updateContact(updatedContact);
         }
-        // TODO: Check how long this takes and what could go wrong with not awaiting insteadß
-        await watchDHTRecord(contact.dhtSettingsForReceiving!.key);
+        // TODO: Check how long this takes and what could go wrong with not awaiting instead
+        // FIXME: actually start to watch, but canceling watch seems to require opening the record?
+        // await watchDHTRecord(contact.dhtSettingsForReceiving!.key);
       }
-
-      // TODO: Check for outgoing updates
     }
   }
 
@@ -105,8 +131,9 @@ class ContactsRepository {
             systemContact.id == coagContact.systemContact!.id);
         coagContacts[coagContact.coagContactId] = coagContact.copyWith(
             systemContact: systemContacts[iChangedContact]);
-        // TODO: Signal update of coagContactId
         systemContacts.removeAt(iChangedContact);
+        _updateStatusStreamController
+            .add('UPDATE-AVAILABLE:${coagContact.coagContactId}');
       }
       // The remaining system contacts are new
       for (final systemContact in systemContacts) {
@@ -166,7 +193,7 @@ class ContactsRepository {
 
     // TODO: Move this to an unawaitable one since these changes don't need to block the stream update
     if (contact.sharedProfile != null) {
-      final updatedContact = await updateContactDHT(contact);
+      final updatedContact = await updateContactSharingDHT(contact);
       if (updatedContact.dhtSettingsForSharing !=
           contact.dhtSettingsForSharing) {
         contact = updatedContact;
@@ -178,9 +205,37 @@ class ContactsRepository {
         .add('UPDATE-AVAILABLE:${contact.coagContactId}');
   }
 
+  // TODO: This seems unused, remove?
   Future<void> setProfileContactId(String id) async {
     profileContactId = id;
     await _persistentStorage.setProfileContactId(id);
     // TODO: Notify about update
   }
+
+  Future<void> updateProfileContact(String coagContactId) async {
+    if (!coagContacts.containsKey(coagContactId)) {
+      // TODO: Log / raise error
+      return;
+    }
+
+    // Ensure all system contacts changes are in
+    await updateContact(coagContacts[coagContactId]!);
+    // TODO: Ensure that the
+
+    for (final contact in coagContacts.values) {
+      if (contact.dhtSettingsForSharing?.psk == null) {
+        continue;
+      }
+      await updateContact(contact.copyWith(
+          sharedProfile: json.encode(removeNullOrEmptyValues(
+              filterAccordingToSharingProfile(coagContacts[coagContactId]!)
+                  .toJson()))));
+    }
+  }
+
+  String? getCoagContactIdForSystemContactId(String systemContactId) =>
+      coagContacts.values
+          .firstWhere((c) =>
+              c.systemContact != null && c.systemContact!.id == systemContactId)
+          .coagContactId;
 }

@@ -32,7 +32,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-For the changes (mainly in onDetect): Copyright 2024 Lukas Grossberger
+For the changes: Copyright 2024 by the Coagulate authors
 */
 import 'dart:async';
 

@@ -70,6 +70,8 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
                   coagContactId: const Uuid().v4(),
                   details: contact.details,
                   locations: contact.locations,
+                  dhtSettingsForReceiving:
+                      ContactDHTSettings(key: key, psk: psk),
                   dhtSettingsForSharing: (contact.shareBackDHTKey == null)
                       ? null
                       : ContactDHTSettings(

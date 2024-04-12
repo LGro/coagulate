@@ -12,27 +12,13 @@ extension UpdatesStatusX on UpdatesStatus {
 }
 
 @JsonSerializable()
-class Update {
-  Update({required this.message, required this.timestamp});
-
-  factory Update.fromJson(Map<String, dynamic> json) => _$UpdateFromJson(json);
-  final String message;
-  final DateTime timestamp;
-
-  Map<String, dynamic> toJson() => _$UpdateToJson(this);
-
-  @override
-  List<Object?> get props => [message, timestamp];
-}
-
-@JsonSerializable()
 final class UpdatesState extends Equatable {
   const UpdatesState(this.status, {this.updates = const []});
 
   factory UpdatesState.fromJson(Map<String, dynamic> json) =>
       _$UpdatesStateFromJson(json);
 
-  final Iterable<Update> updates;
+  final Iterable<ContactUpdate> updates;
   final UpdatesStatus status;
 
   Map<String, dynamic> toJson() => _$UpdatesStateToJson(this);

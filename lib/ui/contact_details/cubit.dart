@@ -13,23 +13,6 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
-// TODO: Add sharing profile and filter
-CoagContactDHTSchemaV1 _filterAccordingToSharingProfile(CoagContact contact) =>
-    CoagContactDHTSchemaV1(
-      coagContactId: contact.coagContactId,
-      details: contact.details!,
-      locations: contact.locations,
-      // TODO: Ensure these are populated by the time this is called
-      shareBackDHTKey: contact.dhtSettingsForReceiving?.key,
-      shareBackDHTWriter: contact.dhtSettingsForReceiving?.writer,
-      shareBackPubKey: contact.dhtSettingsForReceiving?.pubKey,
-    );
-
-Map<String, dynamic> _removeNullOrEmptyValues(Map<String, dynamic> json) {
-  // TODO: implement me; or implement custom schema for sharing payload
-  return json;
-}
-
 class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
   ContactDetailsCubit(this.contactsRepository, String coagContactId)
       : super(
@@ -55,9 +38,10 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
   @override
   Map<String, dynamic> toJson(ContactDetailsState state) => state.toJson();
 
+  // TODO: Use a method from repo level instead
   Future<void> share(CoagContact profileToShare) async {
-    final sharedProfile = json.encode(_removeNullOrEmptyValues(
-        _filterAccordingToSharingProfile(profileToShare).toJson()));
+    final sharedProfile = json.encode(removeNullOrEmptyValues(
+        filterAccordingToSharingProfile(profileToShare).toJson()));
     final updatedContact =
         state.contact!.copyWith(sharedProfile: sharedProfile);
 
@@ -67,12 +51,11 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
 
   // TODO: Figure out better way to set the shareprofile to null again
   // The solution is probably adding profile sharing filters and then switching this to a filter that doesn't let anything through?
-  Future<void> unshare() async => contactsRepository.updateContact(CoagContact(
-        coagContactId: state.contact!.coagContactId,
-        details: state.contact!.details,
-        systemContact: state.contact!.systemContact,
-        locations: state.contact!.locations,
-        dhtSettingsForReceiving: state.contact!.dhtSettingsForReceiving,
-        dhtSettingsForSharing: state.contact!.dhtSettingsForSharing,
-      ));
+  Future<void> unshare() async => contactsRepository
+      .updateContact(state.contact!.copyWith(sharedProfile: ''));
+
+  void delete(String coagContactId) {
+    // FIXME: This is hacky and should be in the repo
+    contactsRepository.coagContacts.remove(coagContactId);
+  }
 }

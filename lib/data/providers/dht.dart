@@ -73,7 +73,19 @@ Future<void> watchDHTRecord(String key) async {
   await rc.watchDHTValues(_key);
 }
 
-Future<CoagContact> updateContactDHT(CoagContact contact) async {
+Future<bool> isUpToDateSharingDHT(CoagContact contact) async {
+  if (contact.dhtSettingsForSharing?.psk == null ||
+      contact.sharedProfile == null) {
+    return true;
+  }
+
+  final record = await readPasswordEncryptedDHTRecord(
+      recordKey: contact.dhtSettingsForSharing!.key,
+      secret: contact.dhtSettingsForSharing!.psk!);
+  return record != contact.sharedProfile;
+}
+
+Future<CoagContact> updateContactSharingDHT(CoagContact contact) async {
   if (contact.dhtSettingsForSharing == null ||
       contact.dhtSettingsForSharing!.writer == null) {
     final (key, writer) = await createDHTRecord();
@@ -108,14 +120,16 @@ Future<CoagContact> updateContactDHT(CoagContact contact) async {
 }
 
 // TODO: Schema version check and migration for backwards compatibility
-Future<CoagContact> updateContactFromDHT(CoagContact contact) async {
-  if (contact.dhtSettingsForSharing == null ||
-      contact.dhtSettingsForSharing?.psk == null) {
+Future<CoagContact> updateContactReceivingDHT(CoagContact contact) async {
+  if (contact.dhtSettingsForReceiving?.psk == null) {
     return contact;
   }
   final contactJson = await readPasswordEncryptedDHTRecord(
-      recordKey: contact.dhtSettingsForSharing!.key,
-      secret: contact.dhtSettingsForSharing!.psk!);
+      recordKey: contact.dhtSettingsForReceiving!.key,
+      secret: contact.dhtSettingsForReceiving!.psk!);
+  if (contactJson.isEmpty) {
+    return contact;
+  }
   final dhtContact = CoagContactDHTSchemaV1.fromJson(
       json.decode(contactJson) as Map<String, dynamic>);
   return contact.copyWith(

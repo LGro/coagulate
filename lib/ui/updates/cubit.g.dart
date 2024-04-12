@@ -6,22 +6,16 @@ part of 'cubit.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Update _$UpdateFromJson(Map<String, dynamic> json) => Update(
-      message: json['message'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-    );
-
-Map<String, dynamic> _$UpdateToJson(Update instance) => <String, dynamic>{
-      'message': instance.message,
-      'timestamp': instance.timestamp.toIso8601String(),
-    };
-
 UpdatesState _$UpdatesStateFromJson(Map<String, dynamic> json) => UpdatesState(
       $enumDecode(_$UpdatesStatusEnumMap, json['status']),
+      updates: (json['updates'] as List<dynamic>?)
+              ?.map((e) => ContactUpdate.fromJson(e as Map<String, dynamic>)) ??
+          const [],
     );
 
 Map<String, dynamic> _$UpdatesStateToJson(UpdatesState instance) =>
     <String, dynamic>{
+      'updates': instance.updates.map((e) => e.toJson()).toList(),
       'status': _$UpdatesStatusEnumMap[instance.status]!,
     };
 

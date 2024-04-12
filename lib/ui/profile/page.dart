@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
+import '../../data/repositories/contacts.dart';
 import '../widgets/address_coordinates_form.dart';
 import 'cubit.dart';
 
@@ -124,7 +125,7 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-        create: (context) => ProfileCubit(),
+        create: (context) => ProfileCubit(context.read<ContactsRepository>()),
         child: ProfileView(),
       );
 }
@@ -138,19 +139,23 @@ class ProfileView extends StatefulWidget {
 
 Widget buildProfileScrollView(BuildContext context, Contact contact,
         Map<String, (num, num)>? locationCoordinates) =>
-    CustomScrollView(slivers: [
-      SliverFillRemaining(
-          hasScrollBody: false,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            header(contact),
-            if (contact.phones.isNotEmpty) phones(contact.phones),
-            if (contact.emails.isNotEmpty) emails(contact.emails),
-            if (contact.addresses.isNotEmpty)
-              addresses(context, contact.addresses, locationCoordinates),
-            // if (contact.websites.isNotEmpty) websites(contact.websites), #2
-          ]))
-    ]);
+    RefreshIndicator(
+        onRefresh: context.read<ProfileCubit>().updateContact,
+        child: CustomScrollView(slivers: [
+          SliverFillRemaining(
+              hasScrollBody: false,
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    header(contact),
+                    if (contact.phones.isNotEmpty) phones(contact.phones),
+                    if (contact.emails.isNotEmpty) emails(contact.emails),
+                    if (contact.addresses.isNotEmpty)
+                      addresses(
+                          context, contact.addresses, locationCoordinates),
+                    // if (contact.websites.isNotEmpty) websites(contact.websites), #2
+                  ]))
+        ]));
 
 class ProfileViewState extends State<ProfileView> {
   @override

@@ -61,16 +61,6 @@ Future<VeilidConfig> getVeilidConfig(String programName) async {
         config.copyWith(blockStore: config.blockStore.copyWith(delete: true));
   }
 
-  // ignore: do_not_use_environment
-  const envNetwork = String.fromEnvironment('NETWORK');
-  if (envNetwork.isNotEmpty) {
-    final bootstrap = ['ws://bootstrap.$envNetwork.veilid.net:5150/ws'];
-    config = config.copyWith(
-        network: config.network.copyWith(
-            routingTable:
-                config.network.routingTable.copyWith(bootstrap: bootstrap)));
-  }
-
   return config.copyWith(
     capabilities:
         // XXX: Remove DHTV and DHTW when we get background sync implemented
