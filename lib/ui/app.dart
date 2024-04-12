@@ -8,6 +8,7 @@ import '../tick.dart';
 import 'contact_list/page.dart';
 import 'map/page.dart';
 import 'profile/page.dart';
+import 'settings/page.dart';
 import 'updates/page.dart';
 
 class CoagulateApp extends StatelessWidget {
@@ -50,6 +51,7 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
           const UpdatesPage(),
           const ContactListPage(),
           const MapPage(),
+          const SettingsPage(),
         ].elementAt(_selectedIndex),
         bottomNavigationBar: BottomNavigationBar(
           items: const [
@@ -69,6 +71,10 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
             BottomNavigationBarItem(
               icon: Icon(Icons.map),
               label: 'Map',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings),
+              label: 'Settings',
             ),
           ],
           currentIndex: _selectedIndex,
