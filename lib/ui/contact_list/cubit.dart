@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -16,7 +18,8 @@ part 'state.dart';
 class ContactListCubit extends HydratedCubit<ContactListState> {
   ContactListCubit(this.contactsRepository)
       : super(const ContactListState(ContactListStatus.initial)) {
-    contactsRepository.getUpdateStatus().listen((event) {
+    _contactUpdatesSubscription =
+        contactsRepository.getUpdateStatus().listen((event) {
       // TODO: Is there something smarter than always replacing the full state?
       if (!isClosed) {
         filter('');
@@ -29,6 +32,7 @@ class ContactListCubit extends HydratedCubit<ContactListState> {
   }
 
   final ContactsRepository contactsRepository;
+  late final StreamSubscription<String> _contactUpdatesSubscription;
 
   // TODO: Refine filtering by only searching through all values (not like now, also the field names)
   void filter(String filter) => emit(ContactListState(ContactListStatus.success,
@@ -54,4 +58,10 @@ class ContactListCubit extends HydratedCubit<ContactListState> {
 
   @override
   Map<String, dynamic> toJson(ContactListState state) => state.toJson();
+
+  @override
+  Future<void> close() {
+    _contactUpdatesSubscription.cancel();
+    return super.close();
+  }
 }

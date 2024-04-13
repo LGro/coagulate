@@ -9,12 +9,15 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../veilid_processor/repository/processor_repository.dart';
 import '../models/coag_contact.dart';
 import '../models/contact_location.dart';
 import '../models/contact_update.dart';
 import '../providers/dht.dart';
 import '../providers/persistent_storage.dart';
 import '../providers/system_contacts.dart';
+
+// TODO: Persist all changes to any contact by never accessing coagContacts directly, only via getter and setter
 
 // Just for testing purposes while no contacts share their locations
 CoagContact _populateWithDummyLocations(CoagContact contact) =>
@@ -87,10 +90,16 @@ class ContactsRepository {
     unawaited(_updateFromSystemContacts());
 
     // Update the contacts wrt the DHT
+    // TODO: Only do this when online
     unawaited(updateAndWatchReceivingDHT());
   }
 
   Future<void> updateAndWatchReceivingDHT() async {
+    // TODO: Only do this when online; FIXME: This is a hack
+    if (!ProcessorRepository
+        .instance.processorConnectionState.attachment.publicInternetReady) {
+      return;
+    }
     for (final contact in coagContacts.values) {
       // Check for incoming updates
       if (contact.dhtSettingsForReceiving != null) {
@@ -107,6 +116,25 @@ class ContactsRepository {
         // FIXME: actually start to watch, but canceling watch seems to require opening the record?
         // await watchDHTRecord(contact.dhtSettingsForReceiving!.key);
       }
+    }
+  }
+
+  Future<void> _updateFromSystemContact(CoagContact contact) async {
+    if (contact.systemContact == null) {
+      // TODO: Log
+      return;
+    }
+    // Try if permissions are granted
+    try {
+      final systemContact = await getSystemContact(contact.systemContact!.id);
+      if (systemContact != contact.systemContact!) {
+        coagContacts[contact.coagContactId] =
+            contact.copyWith(systemContact: systemContact);
+        _updateStatusStreamController
+            .add('UPDATE-AVAILABLE:${contact.coagContactId}');
+      }
+    } on MissingSystemContactsPermissionError {
+      _systemContactAccessGrantedStreamController.add(false);
     }
   }
 
@@ -219,8 +247,7 @@ class ContactsRepository {
     }
 
     // Ensure all system contacts changes are in
-    await updateContact(coagContacts[coagContactId]!);
-    // TODO: Ensure that the
+    await _updateFromSystemContact(coagContacts[coagContactId]!);
 
     for (final contact in coagContacts.values) {
       if (contact.dhtSettingsForSharing?.psk == null) {

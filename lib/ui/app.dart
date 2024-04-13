@@ -68,9 +68,9 @@ class _SplashState extends State<Splash> {
 }
 
 class CoagulateApp extends StatelessWidget {
-  const CoagulateApp({required this.contactsRepository, super.key});
+  const CoagulateApp({required this.contactsRepositoryPath, super.key});
 
-  final ContactsRepository contactsRepository;
+  final String contactsRepositoryPath;
 
   @override
   Widget build(BuildContext context) => FutureProvider<VeilidChatGlobalInit?>(
@@ -86,23 +86,22 @@ class CoagulateApp extends StatelessWidget {
         final localizationDelegate = LocalizedApp.of(context).delegate;
 
         // TODO: Add again:
-        //LocalizationProvider(
-        //  state: LocalizationProvider.of(context).state,
-        //child: BackgroundTicker(
-        //  child:
-        return RepositoryProvider.value(
-          value: contactsRepository,
-          child: MaterialApp(
-            title: 'Coagulate',
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-            ),
-            home: CoagulateAppView(),
-            localizationsDelegates: [localizationDelegate],
-            supportedLocales: localizationDelegate.supportedLocales,
-            locale: localizationDelegate.currentLocale,
-          ),
-        );
+        return LocalizationProvider(
+            state: LocalizationProvider.of(context).state,
+            child: BackgroundTicker(
+                child: RepositoryProvider.value(
+              value: ContactsRepository(contactsRepositoryPath),
+              child: MaterialApp(
+                title: 'Coagulate',
+                theme: ThemeData(
+                  primarySwatch: Colors.blue,
+                ),
+                home: CoagulateAppView(),
+                localizationsDelegates: [localizationDelegate],
+                supportedLocales: localizationDelegate.supportedLocales,
+                locale: localizationDelegate.currentLocale,
+              ),
+            )));
       });
 }
 

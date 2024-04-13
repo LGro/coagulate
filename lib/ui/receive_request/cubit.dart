@@ -43,7 +43,9 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
         if (fragment.isEmpty) {
           // TODO: Log / feedback?
           print('Payload is empty');
-          emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+          if (!isClosed) {
+            emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+          }
           return;
         }
 
@@ -51,7 +53,9 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
         if (components.length != 3) {
           // TODO: Log / feedback?
           print('Payload malformed, not three long, but $fragment');
-          emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+          if (!isClosed) {
+            emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+          }
           return;
         }
 
@@ -65,23 +69,27 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
           // TODO: Error handling
           final contact = CoagContactDHTSchemaV1.fromJson(
               json.decode(raw) as Map<String, dynamic>);
-          emit(ReceiveRequestState(ReceiveRequestStatus.received,
-              profile: CoagContact(
-                  coagContactId: const Uuid().v4(),
-                  details: contact.details,
-                  locations: contact.locations,
-                  dhtSettingsForReceiving:
-                      ContactDHTSettings(key: key, psk: psk),
-                  dhtSettingsForSharing: (contact.shareBackDHTKey == null)
-                      ? null
-                      : ContactDHTSettings(
-                          key: contact.shareBackDHTKey!,
-                          pubKey: contact.shareBackPubKey,
-                          writer: contact.shareBackDHTWriter))));
+          if (!isClosed) {
+            emit(ReceiveRequestState(ReceiveRequestStatus.received,
+                profile: CoagContact(
+                    coagContactId: const Uuid().v4(),
+                    details: contact.details,
+                    locations: contact.locations,
+                    dhtSettingsForReceiving:
+                        ContactDHTSettings(key: key, psk: psk),
+                    dhtSettingsForSharing: (contact.shareBackDHTKey == null)
+                        ? null
+                        : ContactDHTSettings(
+                            key: contact.shareBackDHTKey!,
+                            pubKey: contact.shareBackPubKey,
+                            writer: contact.shareBackDHTWriter))));
+          }
         } on Exception catch (e) {
           // TODO: Log properly / feedback?
           print('Error fetching DHT UPDATE: ${e}');
-          emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+          if (!isClosed) {
+            emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+          }
         }
       }
     }
@@ -102,7 +110,9 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
   Future<void> createNewContact() async {
     // TODO: Allow creation of linked system contact
     await contactsRepository.updateContact(state.profile!);
-    emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+    if (!isClosed) {
+      emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+    }
     // TODO: Forward instead to contact details page to share back etc.
   }
 }

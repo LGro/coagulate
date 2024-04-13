@@ -40,7 +40,7 @@ void main() async {
     // Let's coagulate :)
     // Hot reloads should only restart this part, not Veilid
     runApp(LocalizedApp(localizationDelegate,
-        CoagulateApp(contactsRepository: ContactsRepository(appStorage.path))));
+        CoagulateApp(contactsRepositoryPath: appStorage.path)));
   }
 
   if (kDebugMode) {

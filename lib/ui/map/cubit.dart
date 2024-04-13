@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -26,7 +28,8 @@ Iterable<Location> _contactToLocations(CoagContact contact) =>
 class MapCubit extends HydratedCubit<MapState> {
   MapCubit(this.contactsRepository)
       : super(const MapState({}, MapStatus.initial)) {
-    contactsRepository.getUpdateStatus().listen((event) {
+    _contactUpdatesSubscription =
+        contactsRepository.getUpdateStatus().listen((event) {
       // TODO: Is there something smarter than always replacing the full state?
       emit(MapState(
           contactsRepository.coagContacts.values
@@ -46,10 +49,17 @@ class MapCubit extends HydratedCubit<MapState> {
   }
 
   final ContactsRepository contactsRepository;
+  late final StreamSubscription<String> _contactUpdatesSubscription;
 
   @override
   MapState fromJson(Map<String, dynamic> json) => MapState.fromJson(json);
 
   @override
   Map<String, dynamic> toJson(MapState state) => state.toJson();
+
+  @override
+  Future<void> close() {
+    _contactUpdatesSubscription.cancel();
+    return super.close();
+  }
 }

@@ -122,6 +122,17 @@ Future<CoagContact> updateContactSharingDHT(CoagContact contact) async {
   return contact;
 }
 
+Future<bool> _isAvailableAndWritable(
+    ContactDHTSettings? dhtSettingsForSharing) async {
+  try {
+    // TODO: Try to open in write mode
+    return true;
+    // TODO: Which other exceptions are relevant?
+  } on VeilidAPIExceptionKeyNotFound {
+    return false;
+  }
+}
+
 // TODO: Schema version check and migration for backwards compatibility
 Future<CoagContact> updateContactReceivingDHT(CoagContact contact) async {
   if (contact.dhtSettingsForReceiving?.psk == null) {

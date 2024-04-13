@@ -1,6 +1,7 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
@@ -18,7 +19,8 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
       : super(
             ContactDetailsState(coagContactId, ContactDetailsStatus.initial)) {
     // TODO: Is there an emit.forEach in Cubits like with Blocs?
-    contactsRepository.getUpdateStatus().listen((event) {
+    _contactUpdatesSubscription =
+        contactsRepository.getUpdateStatus().listen((event) {
       if (event.contains(coagContactId)) {
         emit(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
             contact: contactsRepository.coagContacts[coagContactId]));
@@ -30,6 +32,7 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
   }
 
   final ContactsRepository contactsRepository;
+  late final StreamSubscription<String> _contactUpdatesSubscription;
 
   @override
   ContactDetailsState fromJson(Map<String, dynamic> json) =>
@@ -57,5 +60,11 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
   void delete(String coagContactId) {
     // FIXME: This is hacky and should be in the repo
     contactsRepository.coagContacts.remove(coagContactId);
+  }
+
+  @override
+  Future<void> close() {
+    _contactUpdatesSubscription.cancel();
+    return super.close();
   }
 }
