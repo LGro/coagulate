@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:async_tools/async_tools.dart';
 import 'package:bloc/bloc.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:meta/meta.dart';
+
+import 'state_map_follower.dart';
 
 typedef BlocMapState<K, S> = IMap<K, S>;
 
@@ -18,20 +21,28 @@ class _ItemEntry<S, B> {
 // cubits.
 //
 // K = Key type for the bloc map, used to look up some mapped cubit
-// S = State type for the value, keys will look up values of this type
+// V = State type for the value, keys will look up values of this type
 // B = Bloc/cubit type for the value, output states of type S
-abstract class BlocMapCubit<K, S, B extends BlocBase<S>>
-    extends Cubit<BlocMapState<K, S>> {
+abstract class BlocMapCubit<K, V, B extends BlocBase<V>>
+    extends Cubit<BlocMapState<K, V>>
+    with StateMapFollowable<BlocMapState<K, V>, K, V> {
   BlocMapCubit()
       : _entries = {},
         _tagLock = AsyncTagLock(),
-        super(IMap<K, S>());
+        super(IMap<K, V>());
 
   @override
   Future<void> close() async {
     await _entries.values.map((e) => e.subscription.cancel()).wait;
     await _entries.values.map((e) => e.bloc.close()).wait;
     await super.close();
+  }
+
+  @protected
+  @override
+  // ignore: unnecessary_overrides
+  void emit(BlocMapState<K, V> state) {
+    super.emit(state);
   }
 
   Future<void> add(MapEntry<K, B> Function() create) {
@@ -56,7 +67,7 @@ abstract class BlocMapCubit<K, S, B extends BlocBase<S>>
     });
   }
 
-  Future<void> addState(K key, S value) =>
+  Future<void> addState(K key, V value) =>
       _tagLock.protect(key, closure: () async {
         // Remove entry with the same key if it exists
         await _internalRemove(key);
@@ -107,6 +118,10 @@ abstract class BlocMapCubit<K, S, B extends BlocBase<S>>
         return closure(entry.bloc);
       });
 
-  final Map<K, _ItemEntry<S, B>> _entries;
+  /// StateMapFollowable /////////////////////////
+  @override
+  IMap<K, V> getStateMap(BlocMapState<K, V> s) => s;
+
+  final Map<K, _ItemEntry<V, B>> _entries;
   final AsyncTagLock<K> _tagLock;
 }

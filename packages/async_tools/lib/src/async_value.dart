@@ -35,7 +35,7 @@ part 'async_value.freezed.dart';
 /// ```
 ///
 /// If a consumer of an [AsyncValue] does not care about the loading/error
-/// state, consider using [data] to read the state:
+/// state, consider using [asData] to read the state:
 ///
 /// ```dart
 /// Widget build(BuildContext context, ScopedReader watch) {
@@ -127,7 +127,7 @@ abstract class AsyncValue<T> with _$AsyncValue<T> {
   /// The current data, or null if in loading/error.
   ///
   /// This is safe to use, as Dart (will) have non-nullable types.
-  /// As such reading [data] still forces to handle the loading/error cases
+  /// As such reading [asData] still forces to handle the loading/error cases
   /// by having to check `data != null`.
   ///
   /// ## Why does [AsyncValue<T>.data] return [AsyncData<T>] instead of [T]?
@@ -151,11 +151,31 @@ abstract class AsyncValue<T> with _$AsyncValue<T> {
   ///   print(configs.data); // null, currently loading
   ///   print(configs.data.value); // throws null exception
   ///   ```
-  AsyncData<T>? get data => map(
+  AsyncData<T>? get asData => map(
         data: (data) => data,
         loading: (_) => null,
         error: (_) => null,
       );
+
+  bool get isData => asData != null;
+
+  /// Check if this is loading
+  AsyncLoading<T>? get asLoading => map(
+        data: (_) => null,
+        loading: (loading) => loading,
+        error: (_) => null,
+      );
+
+  bool get isLoading => asLoading != null;
+
+  /// Check if this is an error
+  AsyncError<T>? get asError => map(
+        data: (_) => null,
+        loading: (_) => null,
+        error: (e) => e,
+      );
+
+  bool get isError => asError != null;
 
   /// Shorthand for [when] to handle only the `data` case.
   AsyncValue<R> whenData<R>(R Function(T value) cb) => when(

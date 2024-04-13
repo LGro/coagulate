@@ -11,7 +11,8 @@ import '../models/coag_contact.dart';
 /// Create an empty DHT record, return key and writer in string representation
 Future<(String, String)> createDHTRecord() async {
   final pool = DHTRecordPool.instance;
-  final record = await pool.create(crypto: const DHTRecordCryptoPublic());
+  final record = await pool.create(
+      debugName: 'coag::create', crypto: const DHTRecordCryptoPublic());
   await record.close();
   return (record.key.toString(), record.writer!.toString());
 }
@@ -22,6 +23,7 @@ Future<String> readPasswordEncryptedDHTRecord(
   final pool = DHTRecordPool.instance;
   // TODO: Handle VeilidAPIExceptionKeyNotFound, VeilidAPIExceptionTryAgain
   final record = await pool.openRead(
+      debugName: 'coag::read',
       Typed<FixedEncodedString43>.fromString(recordKey),
       crypto: const DHTRecordCryptoPublic());
   final raw = await record.get();
@@ -47,6 +49,7 @@ Future<void> updatePasswordEncryptedDHTRecord(
     required String content}) async {
   final pool = DHTRecordPool.instance;
   final record = await pool.openWrite(
+      debugName: 'coag::update',
       Typed<FixedEncodedString43>.fromString(recordKey),
       KeyPair.fromString(recordWriter),
       crypto: const DHTRecordCryptoPublic());

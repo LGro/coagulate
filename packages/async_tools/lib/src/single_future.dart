@@ -4,14 +4,14 @@ import 'async_tag_lock.dart';
 
 AsyncTagLock<Object> _keys = AsyncTagLock();
 
-// Process a single future at a time per tag
-//
-// The closure function is called to produce the future that is to be executed.
-// If a future with a particular tag is still executing, the onBusy callback
-// is called.
-// When a tagged singleFuture finishes executing, the onDone callback is called.
-// If an unhandled exception happens in the closure future, the onError callback
-// is called.
+/// Process a single future at a time per tag
+///
+/// The closure function is called to produce the future that is to be executed.
+/// If a future with a particular tag is still executing, the onBusy callback
+/// is called.
+/// When a tagged singleFuture finishes executing, the onDone callback is called.
+/// If an unhandled exception happens in the closure future, the onError callback
+/// is called.
 void singleFuture<T>(Object tag, Future<T> Function() closure,
     {void Function()? onBusy,
     void Function(T)? onDone,
@@ -40,3 +40,6 @@ void singleFuture<T>(Object tag, Future<T> Function() closure,
     }
   }());
 }
+
+Future<void> singleFuturePause(Object tag) async => _keys.lockTag(tag);
+void singleFutureResume(Object tag) => _keys.unlockTag(tag);

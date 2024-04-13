@@ -22,15 +22,19 @@ class SingleStateProcessor<State> {
 
     singleFuture(this, () async {
       var newState = newInputState;
+      var newClosure = closure;
       var done = false;
       while (!done) {
-        await closure(newState);
+        await newClosure(newState);
 
         // See if there's another state change to process
-        final next = _nextState;
+        final nextState = _nextState;
+        final nextClosure = _nextClosure;
         _nextState = null;
-        if (next != null) {
-          newState = next;
+        _nextClosure = null;
+        if (nextState != null) {
+          newState = nextState;
+          newClosure = nextClosure!;
         } else {
           done = true;
         }
@@ -38,8 +42,26 @@ class SingleStateProcessor<State> {
     }, onBusy: () {
       // Keep this state until we process again
       _nextState = newInputState;
+      _nextClosure = closure;
     });
   }
 
+  Future<void> pause() => singleFuturePause(this);
+  Future<void> resume() async {
+    // Process any next state before resuming the singlefuture
+    try {
+      final nextState = _nextState;
+      final nextClosure = _nextClosure;
+      _nextState = null;
+      _nextClosure = null;
+      if (nextState != null) {
+        await nextClosure!(nextState);
+      }
+    } finally {
+      singleFutureResume(this);
+    }
+  }
+
   State? _nextState;
+  Future<void> Function(State)? _nextClosure;
 }

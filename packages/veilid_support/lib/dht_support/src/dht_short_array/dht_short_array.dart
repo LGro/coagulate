@@ -28,7 +28,8 @@ class DHTShortArray {
   // if smplWriter is specified, uses a SMPL schema with a single writer
   // rather than the key owner
   static Future<DHTShortArray> create(
-      {int stride = maxElements,
+      {required String debugName,
+      int stride = maxElements,
       VeilidRoutingContext? routingContext,
       TypedKey? parent,
       DHTRecordCrypto? crypto,
@@ -42,6 +43,7 @@ class DHTShortArray {
           oCnt: 0,
           members: [DHTSchemaMember(mKey: smplWriter.key, mCnt: stride + 1)]);
       dhtRecord = await pool.create(
+          debugName: debugName,
           parent: parent,
           routingContext: routingContext,
           schema: schema,
@@ -50,6 +52,7 @@ class DHTShortArray {
     } else {
       final schema = DHTSchema.dflt(oCnt: stride + 1);
       dhtRecord = await pool.create(
+          debugName: debugName,
           parent: parent,
           routingContext: routingContext,
           schema: schema,
@@ -72,11 +75,15 @@ class DHTShortArray {
   }
 
   static Future<DHTShortArray> openRead(TypedKey headRecordKey,
-      {VeilidRoutingContext? routingContext,
+      {required String debugName,
+      VeilidRoutingContext? routingContext,
       TypedKey? parent,
       DHTRecordCrypto? crypto}) async {
     final dhtRecord = await DHTRecordPool.instance.openRead(headRecordKey,
-        parent: parent, routingContext: routingContext, crypto: crypto);
+        debugName: debugName,
+        parent: parent,
+        routingContext: routingContext,
+        crypto: crypto);
     try {
       final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
       await dhtShortArray._head.operate((head) => head._loadHead());
@@ -90,13 +97,17 @@ class DHTShortArray {
   static Future<DHTShortArray> openWrite(
     TypedKey headRecordKey,
     KeyPair writer, {
+    required String debugName,
     VeilidRoutingContext? routingContext,
     TypedKey? parent,
     DHTRecordCrypto? crypto,
   }) async {
     final dhtRecord = await DHTRecordPool.instance.openWrite(
         headRecordKey, writer,
-        parent: parent, routingContext: routingContext, crypto: crypto);
+        debugName: debugName,
+        parent: parent,
+        routingContext: routingContext,
+        crypto: crypto);
     try {
       final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
       await dhtShortArray._head.operate((head) => head._loadHead());
@@ -109,6 +120,7 @@ class DHTShortArray {
 
   static Future<DHTShortArray> openOwned(
     OwnedDHTRecordPointer ownedDHTRecordPointer, {
+    required String debugName,
     required TypedKey parent,
     VeilidRoutingContext? routingContext,
     DHTRecordCrypto? crypto,
@@ -116,6 +128,7 @@ class DHTShortArray {
       openWrite(
         ownedDHTRecordPointer.recordKey,
         ownedDHTRecordPointer.owner,
+        debugName: debugName,
         routingContext: routingContext,
         parent: parent,
         crypto: crypto,

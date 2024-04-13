@@ -1,6 +1,3 @@
-// Copyright 2023 The Veilid Chat Authors. All rights reserved.
-// SPDX-License-Identifier: MPL-2.0
-
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -9,29 +6,32 @@ import 'package:veilid_support/veilid_support.dart';
 import 'tools/tools.dart';
 import 'veilid_processor/veilid_processor.dart';
 
-final Completer<void> eventualInitialized = Completer<void>();
+class VeilidChatGlobalInit {
+  VeilidChatGlobalInit._();
 
-// Initialize Veilid
-Future<void> initializeVeilid({required List<String> bootstrap}) async {
-  log.info('Initializing Veilid');
+  // Initialize Veilid
+  Future<void> _initializeVeilid() async {
+    // Init Veilid
+    Veilid.instance.initializeVeilidCore(
+        getDefaultVeilidPlatformConfig(false, 'Coagulate'));
 
-  var config = getDefaultVeilidPlatformConfig(false, 'Coagulate');
-  // TODO: Make sure this doesn't accidentally override any other network config coming from default
-  config['network'] = {
-    'routing_table': {'bootstrap': bootstrap}
-  };
+    // Veilid logging
+    initVeilidLog(kDebugMode);
 
-  // Init Veilid
-  Veilid.instance.initializeVeilidCore(config);
+    // Startup Veilid
+    await ProcessorRepository.instance.startup();
 
-  // Veilid logging
-  initVeilidLog(kDebugMode);
+    // DHT Record Pool
+    await DHTRecordPool.init(
+        logger: (message) => log.debug('DHTRecordPool: $message'));
+  }
 
-  // Startup Veilid
-  await ProcessorRepository.instance.startup();
+  static Future<VeilidChatGlobalInit> initialize() async {
+    final veilidChatGlobalInit = VeilidChatGlobalInit._();
 
-  // DHT Record Pool
-  await DHTRecordPool.init();
+    log.info('Initializing Veilid');
+    await veilidChatGlobalInit._initializeVeilid();
 
-  eventualInitialized.complete();
+    return veilidChatGlobalInit;
+  }
 }

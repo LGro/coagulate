@@ -2,28 +2,28 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_translate/flutter_translate.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'bloc_observer.dart';
 import 'data/repositories/contacts.dart';
-import 'data/repositories/settings.dart';
 import 'tools/loggy.dart';
 import 'ui/app.dart';
-import 'veilid_init.dart';
 
 void main() async {
-  // Catch errors
-  await runZonedGuarded(() async {
+  Future<void> mainFunc() async {
     // Initialize Veilid logging
     initLoggy();
 
-    // // Make localization delegate
-    // final localizationDelegate = await LocalizationDelegate.create(
-    //     fallbackLocale: 'en_US', supportedLocales: ['en_US']);
+    // Make localization delegate
+    final localizationDelegate = await LocalizationDelegate.create(
+        fallbackLocale: 'en_US', supportedLocales: ['en_US', 'de_DE']);
+    await initializeDateFormatting();
 
     // Helps ensure that getting the app docs directory works
     WidgetsFlutterBinding.ensureInitialized();
@@ -37,20 +37,19 @@ void main() async {
     HydratedBloc.storage =
         await HydratedStorage.build(storageDirectory: appStorage);
 
-    final settingsRepository = SettingsRepository(appStorage.path);
-
-    // Start up Veilid and Veilid processor in the background
-    // TODO: Allow setting custon bootstrap and network config here #27
-    await initializeVeilid(bootstrap: [settingsRepository.bootstrapServer]);
-
-    // FIXME: Instead of waiting here, make sure all DHT/Veilid operations know how to wait for the network to be available
-    sleep(Duration(seconds: 4));
-
     // Let's coagulate :)
-    // TODO: Add LocalizedApp wrapper using localizationDelegate
-    runApp(
-        CoagulateApp(contactsRepository: ContactsRepository(appStorage.path)));
-  }, (error, stackTrace) {
-    log.error('Dart Runtime: {$error}\n{$stackTrace}');
-  });
+    // Hot reloads should only restart this part, not Veilid
+    runApp(LocalizedApp(localizationDelegate,
+        CoagulateApp(contactsRepository: ContactsRepository(appStorage.path))));
+  }
+
+  if (kDebugMode) {
+    // In debug mode, run the app without catching exceptions for debugging
+    await mainFunc();
+  } else {
+    // Catch errors in production without killing the app
+    await runZonedGuarded(mainFunc, (error, stackTrace) {
+      log.error('Dart Runtime: {$error}\n{$stackTrace}');
+    });
+  }
 }

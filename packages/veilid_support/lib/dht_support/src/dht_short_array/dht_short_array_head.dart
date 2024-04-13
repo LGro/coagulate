@@ -1,5 +1,13 @@
 part of 'dht_short_array.dart';
 
+class DHTShortArrayHeadLookup {
+  DHTShortArrayHeadLookup(
+      {required this.record, required this.recordSubkey, required this.seq});
+  final DHTRecord record;
+  final int recordSubkey;
+  final int seq;
+}
+
 class _DHTShortArrayHead {
   _DHTShortArrayHead({required DHTRecord headRecord})
       : _headRecord = headRecord,
@@ -184,7 +192,7 @@ class _DHTShortArrayHead {
         final oldRecord = oldRecords[newKey];
         if (oldRecord == null) {
           // Open the new record
-          final newRecord = await _openLinkedRecord(newKey);
+          final newRecord = await _openLinkedRecord(newKey, n);
           newRecords[newKey] = newRecord;
           updatedLinkedRecords.add(newRecord);
         } else {
@@ -263,6 +271,7 @@ class _DHTShortArrayHead {
           oCnt: 0,
           members: [DHTSchemaMember(mKey: smplWriter.key, mCnt: _stride)]);
       final dhtRecord = await pool.create(
+          debugName: '${_headRecord.debugName}_linked_$recordNumber',
           parent: parent,
           routingContext: routingContext,
           schema: schema,
@@ -279,32 +288,37 @@ class _DHTShortArrayHead {
   }
 
   /// Open a linked record for reading or writing, same as the head record
-  Future<DHTRecord> _openLinkedRecord(TypedKey recordKey) async {
+  Future<DHTRecord> _openLinkedRecord(
+      TypedKey recordKey, int recordNumber) async {
     final writer = _headRecord.writer;
     return (writer != null)
         ? await DHTRecordPool.instance.openWrite(
             recordKey,
             writer,
+            debugName: '${_headRecord.debugName}_linked_$recordNumber',
             parent: _headRecord.key,
             routingContext: _headRecord.routingContext,
           )
         : await DHTRecordPool.instance.openRead(
             recordKey,
+            debugName: '${_headRecord.debugName}_linked_$recordNumber',
             parent: _headRecord.key,
             routingContext: _headRecord.routingContext,
           );
   }
 
-  Future<(DHTRecord, int)> lookupPosition(int pos) async {
+  Future<DHTShortArrayHeadLookup> lookupPosition(int pos) async {
     final idx = _index[pos];
     return lookupIndex(idx);
   }
 
-  Future<(DHTRecord, int)> lookupIndex(int idx) async {
+  Future<DHTShortArrayHeadLookup> lookupIndex(int idx) async {
+    final seq = idx < _seqs.length ? _seqs[idx] : 0xFFFFFFFF;
     final recordNumber = idx ~/ _stride;
     final record = await _getOrCreateLinkedRecord(recordNumber);
     final recordSubkey = (idx % _stride) + ((recordNumber == 0) ? 1 : 0);
-    return (record, recordSubkey);
+    return DHTShortArrayHeadLookup(
+        record: record, recordSubkey: recordSubkey, seq: seq);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -412,9 +426,9 @@ class _DHTShortArrayHead {
   /// If a write is happening, update the network copy as well.
   Future<void> updatePositionSeq(int pos, bool write) async {
     final idx = _index[pos];
-    final (record, recordSubkey) = await lookupIndex(idx);
-    final report =
-        await record.inspect(subkeys: [ValueSubkeyRange.single(recordSubkey)]);
+    final lookup = await lookupIndex(idx);
+    final report = await lookup.record
+        .inspect(subkeys: [ValueSubkeyRange.single(lookup.recordSubkey)]);
 
     while (_localSeqs.length <= idx) {
       _localSeqs.add(0xFFFFFFFF);
@@ -456,6 +470,8 @@ class _DHTShortArrayHead {
     _subscription = null;
   }
 
+  // Called when the shortarray changes online and we find out from a watch
+  // but not when we make a change locally
   Future<void> _onHeadValueChanged(
       DHTRecord record, Uint8List? data, List<ValueSubkeyRange> subkeys) async {
     // If head record subkey zero changes, then the layout

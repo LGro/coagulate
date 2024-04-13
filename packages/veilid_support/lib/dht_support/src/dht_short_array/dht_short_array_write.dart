@@ -136,6 +136,12 @@ class _DHTShortArrayWrite implements DHTShortArrayWrite {
 
   @override
   Future<bool> trySwapItem(int aPos, int bPos) async {
+    if (aPos < 0 || aPos >= _head.length) {
+      throw IndexError.withLength(aPos, _head.length);
+    }
+    if (bPos < 0 || bPos >= _head.length) {
+      throw IndexError.withLength(bPos, _head.length);
+    }
     // Swap indices
     _head.swapIndex(aPos, bPos);
 
@@ -144,8 +150,13 @@ class _DHTShortArrayWrite implements DHTShortArrayWrite {
 
   @override
   Future<Uint8List> tryRemoveItem(int pos) async {
-    final (record, recordSubkey) = await _head.lookupPosition(pos);
-    final result = await record.get(subkey: recordSubkey);
+    if (pos < 0 || pos >= _head.length) {
+      throw IndexError.withLength(pos, _head.length);
+    }
+    final lookup = await _head.lookupPosition(pos);
+    final result = lookup.seq == 0xFFFFFFFF
+        ? null
+        : await lookup.record.get(subkey: lookup.recordSubkey);
     if (result == null) {
       throw StateError('Element does not exist');
     }
@@ -164,9 +175,12 @@ class _DHTShortArrayWrite implements DHTShortArrayWrite {
     if (pos < 0 || pos >= _head.length) {
       throw IndexError.withLength(pos, _head.length);
     }
-    final (record, recordSubkey) = await _head.lookupPosition(pos);
-    final oldValue = await record.get(subkey: recordSubkey);
-    final result = await record.tryWriteBytes(newValue, subkey: recordSubkey);
+    final lookup = await _head.lookupPosition(pos);
+    final oldValue = lookup.seq == 0xFFFFFFFF
+        ? null
+        : await lookup.record.get(subkey: lookup.recordSubkey);
+    final result = await lookup.record
+        .tryWriteBytes(newValue, subkey: lookup.recordSubkey);
     if (result != null) {
       // A result coming back means the element was overwritten already
       return (result, false);

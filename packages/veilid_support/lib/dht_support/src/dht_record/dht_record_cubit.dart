@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:async_tools/async_tools.dart';
 import 'package:bloc/bloc.dart';
+import 'package:meta/meta.dart';
 
 import '../../../veilid_support.dart';
 
@@ -20,7 +21,7 @@ class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
   })  : _wantsCloseRecord = false,
         _stateFunction = stateFunction,
         super(const AsyncValue.loading()) {
-    Future.delayed(Duration.zero, () async {
+    initWait.add(() async {
       // Do record open/create
       _record = await open();
       _wantsCloseRecord = true;
@@ -73,6 +74,7 @@ class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
 
   @override
   Future<void> close() async {
+    await initWait();
     await _record.cancelWatch();
     await _subscription?.cancel();
     _subscription = null;
@@ -84,6 +86,8 @@ class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
   }
 
   Future<void> refresh(List<ValueSubkeyRange> subkeys) async {
+    await initWait();
+
     var updateSubkeys = [...subkeys];
 
     for (final skr in subkeys) {
@@ -107,69 +111,11 @@ class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
 
   DHTRecord get record => _record;
 
+  @protected
+  final WaitSet initWait = WaitSet();
+
   StreamSubscription<DHTRecordWatchChange>? _subscription;
   late DHTRecord _record;
   bool _wantsCloseRecord;
   final StateFunction<T> _stateFunction;
-}
-
-// Cubit that watches the default subkey value of a dhtrecord
-class DefaultDHTRecordCubit<T> extends DHTRecordCubit<T> {
-  DefaultDHTRecordCubit({
-    required super.open,
-    required T Function(List<int> data) decodeState,
-  }) : super(
-            initialStateFunction: _makeInitialStateFunction(decodeState),
-            stateFunction: _makeStateFunction(decodeState),
-            watchFunction: _makeWatchFunction());
-
-  // DefaultDHTRecordCubit.value({
-  //   required super.record,
-  //   required T Function(List<int> data) decodeState,
-  // }) : super.value(
-  //           initialStateFunction: _makeInitialStateFunction(decodeState),
-  //           stateFunction: _makeStateFunction(decodeState),
-  //           watchFunction: _makeWatchFunction());
-
-  static InitialStateFunction<T> _makeInitialStateFunction<T>(
-          T Function(List<int> data) decodeState) =>
-      (record) async {
-        final initialData = await record.get();
-        if (initialData == null) {
-          return null;
-        }
-        return decodeState(initialData);
-      };
-
-  static StateFunction<T> _makeStateFunction<T>(
-          T Function(List<int> data) decodeState) =>
-      (record, subkeys, updatedata) async {
-        final defaultSubkey = record.subkeyOrDefault(-1);
-        if (subkeys.containsSubkey(defaultSubkey)) {
-          final Uint8List data;
-          final firstSubkey = subkeys.firstOrNull!.low;
-          if (firstSubkey != defaultSubkey || updatedata == null) {
-            final maybeData = await record.get(forceRefresh: true);
-            if (maybeData == null) {
-              return null;
-            }
-            data = maybeData;
-          } else {
-            data = updatedata;
-          }
-          final newState = decodeState(data);
-          return newState;
-        }
-        return null;
-      };
-
-  static WatchFunction _makeWatchFunction() => (record) async {
-        final defaultSubkey = record.subkeyOrDefault(-1);
-        await record.watch(subkeys: [ValueSubkeyRange.single(defaultSubkey)]);
-      };
-
-  Future<void> refreshDefault() async {
-    final defaultSubkey = _record.subkeyOrDefault(-1);
-    await refresh([ValueSubkeyRange(low: defaultSubkey, high: defaultSubkey)]);
-  }
 }

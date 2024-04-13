@@ -16,12 +16,13 @@ class DHTRecordWatchChange extends Equatable {
 /////////////////////////////////////////////////
 
 class DHTRecord {
-  DHTRecord(
+  DHTRecord._(
       {required VeilidRoutingContext routingContext,
       required SharedDHTRecordData sharedDHTRecordData,
       required int defaultSubkey,
       required KeyPair? writer,
-      required DHTRecordCrypto crypto})
+      required DHTRecordCrypto crypto,
+      required this.debugName})
       : _crypto = crypto,
         _routingContext = routingContext,
         _defaultSubkey = defaultSubkey,
@@ -34,6 +35,7 @@ class DHTRecord {
   final int _defaultSubkey;
   final KeyPair? _writer;
   final DHTRecordCrypto _crypto;
+  final String debugName;
 
   bool _open;
   @internal
@@ -100,6 +102,7 @@ class DHTRecord {
 
   Future<Uint8List?> get(
       {int subkey = -1,
+      DHTRecordCrypto? crypto,
       bool forceRefresh = false,
       bool onlyUpdates = false}) async {
     subkey = subkeyOrDefault(subkey);
@@ -112,17 +115,21 @@ class DHTRecord {
     if (onlyUpdates && lastSeq != null && valueData.seq <= lastSeq) {
       return null;
     }
-    final out = _crypto.decrypt(valueData.data, subkey);
+    final out = (crypto ?? _crypto).decrypt(valueData.data, subkey);
     _sharedDHTRecordData.subkeySeqCache[subkey] = valueData.seq;
     return out;
   }
 
   Future<T?> getJson<T>(T Function(dynamic) fromJson,
       {int subkey = -1,
+      DHTRecordCrypto? crypto,
       bool forceRefresh = false,
       bool onlyUpdates = false}) async {
     final data = await get(
-        subkey: subkey, forceRefresh: forceRefresh, onlyUpdates: onlyUpdates);
+        subkey: subkey,
+        crypto: crypto,
+        forceRefresh: forceRefresh,
+        onlyUpdates: onlyUpdates);
     if (data == null) {
       return null;
     }
@@ -132,10 +139,14 @@ class DHTRecord {
   Future<T?> getProtobuf<T extends GeneratedMessage>(
       T Function(List<int> i) fromBuffer,
       {int subkey = -1,
+      DHTRecordCrypto? crypto,
       bool forceRefresh = false,
       bool onlyUpdates = false}) async {
     final data = await get(
-        subkey: subkey, forceRefresh: forceRefresh, onlyUpdates: onlyUpdates);
+        subkey: subkey,
+        crypto: crypto,
+        forceRefresh: forceRefresh,
+        onlyUpdates: onlyUpdates);
     if (data == null) {
       return null;
     }
@@ -143,14 +154,15 @@ class DHTRecord {
   }
 
   Future<Uint8List?> tryWriteBytes(Uint8List newValue,
-      {int subkey = -1}) async {
+      {int subkey = -1, DHTRecordCrypto? crypto, KeyPair? writer}) async {
     subkey = subkeyOrDefault(subkey);
     final lastSeq = _sharedDHTRecordData.subkeySeqCache[subkey];
-    final encryptedNewValue = await _crypto.encrypt(newValue, subkey);
+    final encryptedNewValue =
+        await (crypto ?? _crypto).encrypt(newValue, subkey);
 
     // Set the new data if possible
     var newValueData = await _routingContext
-        .setDHTValue(key, subkey, encryptedNewValue, writer: _writer);
+        .setDHTValue(key, subkey, encryptedNewValue, writer: writer ?? _writer);
     if (newValueData == null) {
       // A newer value wasn't found on the set, but
       // we may get a newer value when getting the value for the sequence number
@@ -175,7 +187,8 @@ class DHTRecord {
     }
 
     // Decrypt value to return it
-    final decryptedNewValue = await _crypto.decrypt(newValueData.data, subkey);
+    final decryptedNewValue =
+        await (crypto ?? _crypto).decrypt(newValueData.data, subkey);
     if (isUpdated) {
       DHTRecordPool.instance
           .processLocalValueChange(key, decryptedNewValue, subkey);
@@ -183,17 +196,20 @@ class DHTRecord {
     return decryptedNewValue;
   }
 
-  Future<void> eventualWriteBytes(Uint8List newValue, {int subkey = -1}) async {
+  Future<void> eventualWriteBytes(Uint8List newValue,
+      {int subkey = -1, DHTRecordCrypto? crypto, KeyPair? writer}) async {
     subkey = subkeyOrDefault(subkey);
     final lastSeq = _sharedDHTRecordData.subkeySeqCache[subkey];
-    final encryptedNewValue = await _crypto.encrypt(newValue, subkey);
+    final encryptedNewValue =
+        await (crypto ?? _crypto).encrypt(newValue, subkey);
 
     ValueData? newValueData;
     do {
       do {
         // Set the new data
-        newValueData = await _routingContext
-            .setDHTValue(key, subkey, encryptedNewValue, writer: _writer);
+        newValueData = await _routingContext.setDHTValue(
+            key, subkey, encryptedNewValue,
+            writer: writer ?? _writer);
 
         // Repeat if newer data on the network was found
       } while (newValueData != null);
@@ -221,27 +237,32 @@ class DHTRecord {
 
   Future<void> eventualUpdateBytes(
       Future<Uint8List> Function(Uint8List? oldValue) update,
-      {int subkey = -1}) async {
+      {int subkey = -1,
+      DHTRecordCrypto? crypto,
+      KeyPair? writer}) async {
     subkey = subkeyOrDefault(subkey);
 
     // Get the existing data, do not allow force refresh here
     // because if we need a refresh the setDHTValue will fail anyway
-    var oldValue = await get(subkey: subkey);
+    var oldValue = await get(subkey: subkey, crypto: crypto);
 
     do {
       // Update the data
       final updatedValue = await update(oldValue);
 
       // Try to write it back to the network
-      oldValue = await tryWriteBytes(updatedValue, subkey: subkey);
+      oldValue = await tryWriteBytes(updatedValue,
+          subkey: subkey, crypto: crypto, writer: writer);
 
       // Repeat update if newer data on the network was found
     } while (oldValue != null);
   }
 
   Future<T?> tryWriteJson<T>(T Function(dynamic) fromJson, T newValue,
-          {int subkey = -1}) =>
-      tryWriteBytes(jsonEncodeBytes(newValue), subkey: subkey).then((out) {
+          {int subkey = -1, DHTRecordCrypto? crypto, KeyPair? writer}) =>
+      tryWriteBytes(jsonEncodeBytes(newValue),
+              subkey: subkey, crypto: crypto, writer: writer)
+          .then((out) {
         if (out == null) {
           return null;
         }
@@ -250,30 +271,37 @@ class DHTRecord {
 
   Future<T?> tryWriteProtobuf<T extends GeneratedMessage>(
           T Function(List<int>) fromBuffer, T newValue,
-          {int subkey = -1}) =>
-      tryWriteBytes(newValue.writeToBuffer(), subkey: subkey).then((out) {
+          {int subkey = -1, DHTRecordCrypto? crypto, KeyPair? writer}) =>
+      tryWriteBytes(newValue.writeToBuffer(),
+              subkey: subkey, crypto: crypto, writer: writer)
+          .then((out) {
         if (out == null) {
           return null;
         }
         return fromBuffer(out);
       });
 
-  Future<void> eventualWriteJson<T>(T newValue, {int subkey = -1}) =>
-      eventualWriteBytes(jsonEncodeBytes(newValue), subkey: subkey);
+  Future<void> eventualWriteJson<T>(T newValue,
+          {int subkey = -1, DHTRecordCrypto? crypto, KeyPair? writer}) =>
+      eventualWriteBytes(jsonEncodeBytes(newValue),
+          subkey: subkey, crypto: crypto, writer: writer);
 
   Future<void> eventualWriteProtobuf<T extends GeneratedMessage>(T newValue,
-          {int subkey = -1}) =>
-      eventualWriteBytes(newValue.writeToBuffer(), subkey: subkey);
+          {int subkey = -1, DHTRecordCrypto? crypto, KeyPair? writer}) =>
+      eventualWriteBytes(newValue.writeToBuffer(),
+          subkey: subkey, crypto: crypto, writer: writer);
 
   Future<void> eventualUpdateJson<T>(
           T Function(dynamic) fromJson, Future<T> Function(T?) update,
-          {int subkey = -1}) =>
-      eventualUpdateBytes(jsonUpdate(fromJson, update), subkey: subkey);
+          {int subkey = -1, DHTRecordCrypto? crypto, KeyPair? writer}) =>
+      eventualUpdateBytes(jsonUpdate(fromJson, update),
+          subkey: subkey, crypto: crypto, writer: writer);
 
   Future<void> eventualUpdateProtobuf<T extends GeneratedMessage>(
           T Function(List<int>) fromBuffer, Future<T> Function(T?) update,
-          {int subkey = -1}) =>
-      eventualUpdateBytes(protobufUpdate(fromBuffer, update), subkey: subkey);
+          {int subkey = -1, DHTRecordCrypto? crypto, KeyPair? writer}) =>
+      eventualUpdateBytes(protobufUpdate(fromBuffer, update),
+          subkey: subkey, crypto: crypto, writer: writer);
 
   Future<void> watch(
       {List<ValueSubkeyRange>? subkeys,
@@ -289,10 +317,12 @@ class DHTRecord {
   }
 
   Future<StreamSubscription<DHTRecordWatchChange>> listen(
-      Future<void> Function(
-              DHTRecord record, Uint8List? data, List<ValueSubkeyRange> subkeys)
-          onUpdate,
-      {bool localChanges = true}) async {
+    Future<void> Function(
+            DHTRecord record, Uint8List? data, List<ValueSubkeyRange> subkeys)
+        onUpdate, {
+    bool localChanges = true,
+    DHTRecordCrypto? crypto,
+  }) async {
     // Set up watch requirements
     watchController ??=
         StreamController<DHTRecordWatchChange>.broadcast(onCancel: () {
@@ -315,7 +345,8 @@ class DHTRecord {
               final changeData = change.data;
               data = changeData == null
                   ? null
-                  : await _crypto.decrypt(changeData, change.subkeys.first.low);
+                  : await (crypto ?? _crypto)
+                      .decrypt(changeData, change.subkeys.first.low);
             }
             await onUpdate(this, data, change.subkeys);
           });
@@ -364,7 +395,7 @@ class DHTRecord {
                 overlappedFirstSubkey == updateFirstSubkey)
             ? data
             : null;
-        // Report only wathced subkeys
+        // Report only watched subkeys
         watchController?.add(DHTRecordWatchChange(
             local: local, data: updatedData, subkeys: overlappedSubkeys));
       }
