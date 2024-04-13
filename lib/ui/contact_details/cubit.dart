@@ -48,7 +48,6 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
     final updatedContact =
         state.contact!.copyWith(sharedProfile: sharedProfile);
 
-    // TODO: Do we really need to await here?
     await contactsRepository.updateContact(updatedContact);
   }
 

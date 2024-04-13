@@ -18,7 +18,7 @@ class UpdatesCubit extends HydratedCubit<UpdatesState> {
       : super(const UpdatesState(UpdatesStatus.initial)) {
     _contactUpdatesSubscription = contactsRepository.getUpdateStatus().listen(
         (event) => emit(UpdatesState(UpdatesStatus.success,
-            updates: contactsRepository.updates)));
+            updates: contactsRepository.updates.reversed)));
   }
 
   final ContactsRepository contactsRepository;

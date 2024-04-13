@@ -202,6 +202,7 @@ class ContactPage extends StatelessWidget {
                 'DELETE',
                 style: TextStyle(color: Colors.black),
               ))),
+      // TODO: Display sharedProfile when sharing
     ]));
   }
 }

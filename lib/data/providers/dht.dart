@@ -26,7 +26,8 @@ Future<String> readPasswordEncryptedDHTRecord(
       debugName: 'coag::read',
       Typed<FixedEncodedString43>.fromString(recordKey),
       crypto: const DHTRecordCryptoPublic());
-  final raw = await record.get();
+  // TODO: What is the onlyUpdates argument for?
+  final raw = await record.get(forceRefresh: true);
 
   // TODO: Detect if secret is pubkey and use asymmetric encryption here?
   // TODO: Error handling
@@ -117,6 +118,14 @@ Future<CoagContact> updateContactSharingDHT(CoagContact contact) async {
         recordWriter: contact.dhtSettingsForSharing!.writer!,
         secret: contact.dhtSettingsForSharing!.psk!,
         content: contact.sharedProfile!);
+
+    // Just to check that writing the record was successful
+    // might want to log or raise for debug purposes
+    // on sharedProfile != actuallyShareProfile
+    final actuallySharedProfile = await readPasswordEncryptedDHTRecord(
+        recordKey: contact.dhtSettingsForSharing!.key,
+        secret: contact.dhtSettingsForSharing!.psk!);
+    contact = contact.copyWith(sharedProfile: actuallySharedProfile);
   }
 
   return contact;

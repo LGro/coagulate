@@ -222,8 +222,10 @@ class ContactsRepository {
     // TODO: Move this to an unawaitable one since these changes don't need to block the stream update
     if (contact.sharedProfile != null) {
       final updatedContact = await updateContactSharingDHT(contact);
-      if (updatedContact.dhtSettingsForSharing !=
-          contact.dhtSettingsForSharing) {
+      // TODO: Is this too broad of a condition and update?
+      // i.e. should we check for specific attributes where we expect and override and then copy with them?
+      // I'm worried about race conditions
+      if (updatedContact != contact) {
         contact = updatedContact;
       }
     }

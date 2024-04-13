@@ -64,6 +64,14 @@ packages:
       relative: true
     source: path
     version: "1.0.0"
+  awesome_extensions:
+    dependency: "direct main"
+    description:
+      name: awesome_extensions
+      sha256: "7d235d64a81543a7e200a91b1149bef7d32241290fa483bae25b31be41449a7c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.13"
   basic_utils:
     dependency: "direct main"
     description:
@@ -846,7 +854,7 @@ packages:
     source: hosted
     version: "3.1.0"
   provider:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: provider
       sha256: c8a055ee5ce3fd98d6fc872478b03823ffdb448699c6ebdbbc71d59b596fd48c
@@ -885,6 +893,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  quickalert:
+    dependency: "direct main"
+    description:
+      name: quickalert
+      sha256: b5d62b1e20b08cc0ff5f40b6da519bdc7a5de6082f13d90572cf4e72eea56c5e
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
+  radix_colors:
+    dependency: "direct main"
+    description:
+      name: radix_colors
+      sha256: c56a4b2e80f6165d5386992fdb5b20aa2431410efb85a7d8a944330713b8b950
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
   rxdart:
     dependency: "direct main"
     description:
@@ -981,6 +1005,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  signal_strength_indicator:
+    dependency: "direct main"
+    description:
+      name: signal_strength_indicator
+      sha256: "076f84fbffc69694f0df3d376822d806cc0de67d379aa57ebcdab09384ab839b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.1"
   sky_engine:
     dependency: transitive
     description: flutter
