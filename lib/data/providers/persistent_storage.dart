@@ -43,7 +43,8 @@ class HivePersistentStorage {
   HivePersistentStorage(String storagePath) {
     Hive
       ..init(storagePath)
-      ..registerAdapter(ContactRecordAdapter());
+      // TODO: override is just for hot reloading; does this hurt?
+      ..registerAdapter(ContactRecordAdapter(), override: true);
   }
 
   Future<Box<ContactRecord>> _lazyGetContactsBox() async =>
