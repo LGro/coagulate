@@ -204,6 +204,7 @@ class ContactPage extends StatelessWidget {
                 style: TextStyle(color: Colors.black),
               ))),
       // TODO: Display sharedProfile when sharing
+      if (contact.sharedProfile != null) Text(contact.sharedProfile!),
     ]));
   }
 }
