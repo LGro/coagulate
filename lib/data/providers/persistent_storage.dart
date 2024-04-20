@@ -75,4 +75,7 @@ class HivePersistentStorage {
 
   Future<String?> getProfileContactId() async =>
       (await _lazyGetSettingsBox()).get('profile_contact_id');
+
+  Future<void> removeContact(String coagContactId) async =>
+      (await _lazyGetSettingsBox()).delete(coagContactId);
 }

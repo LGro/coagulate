@@ -45,10 +45,8 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   Future<void> unshare() async => contactsRepository
       .updateContact(state.contact!.copyWith(sharedProfile: ''));
 
-  void delete(String coagContactId) {
-    // FIXME: This is hacky and should be in the repo
-    // contactsRepository.coagContacts.remove(coagContactId);
-  }
+  Future<void> delete(String coagContactId) async =>
+      contactsRepository.removeContact(coagContactId);
 
   @override
   Future<void> close() {

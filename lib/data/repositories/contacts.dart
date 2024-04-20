@@ -245,4 +245,9 @@ class ContactsRepository {
           .coagContactId;
 
   Map<String, CoagContact> getContacts() => _contacts;
+
+  Future<void> removeContact(String coagContactId) async {
+    _contacts.remove(coagContactId);
+    await _persistentStorage.removeContact(coagContactId);
+  }
 }

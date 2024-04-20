@@ -198,8 +198,9 @@ class ContactPage extends StatelessWidget {
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
               ),
+              // TODO: Add subtext that this will retain the system contact in case it was linked
               child: const Text(
-                'DELETE',
+                'Delete from Coagulate',
                 style: TextStyle(color: Colors.black),
               ))),
       // TODO: Display sharedProfile when sharing
