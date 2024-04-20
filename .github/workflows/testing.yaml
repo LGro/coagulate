@@ -42,20 +42,21 @@ jobs:
         rustup target add aarch64-linux-android
         rustup target add i686-linux-android
         rustup target add x86_64-linux-android
-        flutter build appbundle --release
-        cd android
-        gem install bundler
-        bundle update
-        fastlane beta
-
-  ios:
-    runs-on: macos-latest
-    steps:
-    - name: Checkout Veilid
-      run: cd .. && git clone https://gitlab.com/veilid/veilid.git
-    - uses: actions/checkout@v3
-    - uses: subosito/flutter-action@v2
+        flutter build apk --release
+    - uses: actions/upload-artifact@v4
       with:
-        flutter-version: '3.19.1'
-    - run: flutter pub get
-    - run: flutter build ipa
+        name: coagulate.apk
+        path: build/app/outputs/flutter-apk/app-release.apk
+
+  # TODO: Set up signing certificates and re-enable
+  # ios:
+  #   runs-on: macos-latest
+  #   steps:
+  #   - name: Checkout Veilid
+  #     run: cd .. && git clone https://gitlab.com/veilid/veilid.git
+  #   - uses: actions/checkout@v3
+  #   - uses: subosito/flutter-action@v2
+  #     with:
+  #       flutter-version: '3.19.1'
+  #   - run: flutter pub get
+  #   - run: flutter build ipa
