@@ -15,24 +15,20 @@ part 'cubit.g.dart';
 part 'state.dart';
 
 class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
-  ContactDetailsCubit(this.contactsRepository, String coagContactId)
-      : super(
-            ContactDetailsState(coagContactId, ContactDetailsStatus.initial)) {
-    // TODO: Is there an emit.forEach in Cubits like with Blocs?
-    _contactUpdatesSubscription =
-        contactsRepository.getUpdateStatus().listen((event) {
-      if (event.contains(coagContactId)) {
-        emit(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
-            contact: contactsRepository.coagContacts[coagContactId]));
+  ContactDetailsCubit(this.contactsRepository, CoagContact contact)
+      : super(ContactDetailsState(
+            contact.coagContactId, ContactDetailsStatus.success,
+            contact: contact)) {
+    _contactsSuscription = contactsRepository.getContactUpdates().listen((c) {
+      if (c.coagContactId == contact.coagContactId) {
+        emit(ContactDetailsState(c.coagContactId, ContactDetailsStatus.success,
+            contact: contact));
       }
     });
-
-    emit(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
-        contact: contactsRepository.coagContacts[coagContactId]));
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<String> _contactUpdatesSubscription;
+  late final StreamSubscription<CoagContact> _contactsSuscription;
 
   @override
   ContactDetailsState fromJson(Map<String, dynamic> json) =>
@@ -58,12 +54,12 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
 
   void delete(String coagContactId) {
     // FIXME: This is hacky and should be in the repo
-    contactsRepository.coagContacts.remove(coagContactId);
+    // contactsRepository.coagContacts.remove(coagContactId);
   }
 
   @override
   Future<void> close() {
-    _contactUpdatesSubscription.cancel();
+    _contactsSuscription.cancel();
     return super.close();
   }
 }

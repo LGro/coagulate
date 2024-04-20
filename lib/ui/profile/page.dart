@@ -140,7 +140,8 @@ class ProfileView extends StatefulWidget {
 Widget buildProfileScrollView(BuildContext context, Contact contact,
         Map<String, (num, num)>? locationCoordinates) =>
     RefreshIndicator(
-        onRefresh: context.read<ProfileCubit>().updateContact,
+        onRefresh: () async =>
+            context.read<ProfileCubit>().setContact(contact.id),
         child: CustomScrollView(slivers: [
           SliverFillRemaining(
               hasScrollBody: false,
@@ -176,9 +177,8 @@ class ProfileViewState extends State<ProfileView> {
               ),
               IconButton(
                 icon: const Icon(Icons.replay_outlined),
-                onPressed: () {
-                  context.read<ProfileCubit>().setContact(null);
-                },
+                onPressed: () async =>
+                    context.read<ProfileCubit>().setContact(null),
               ),
             ],
           ),
@@ -186,9 +186,9 @@ class ProfileViewState extends State<ProfileView> {
               listener: (context, state) async {
             if (state.status.isPick) {
               if (await FlutterContacts.requestPermission()) {
-                context
+                await context
                     .read<ProfileCubit>()
-                    .setContact(await FlutterContacts.openExternalPick());
+                    .setContact((await FlutterContacts.openExternalPick())?.id);
               } else {
                 // TODO: Trigger hint about missing permission
                 return;
@@ -196,9 +196,8 @@ class ProfileViewState extends State<ProfileView> {
             } else if (state.status.isCreate) {
               if (await FlutterContacts.requestPermission()) {
                 // TODO: This doesn't seem to return the contact after creation
-                context
-                    .read<ProfileCubit>()
-                    .setContact(await FlutterContacts.openExternalInsert());
+                await context.read<ProfileCubit>().setContact(
+                    (await FlutterContacts.openExternalInsert())?.id);
               } else {
                 // TODO: Trigger hint about missing permission
                 return;

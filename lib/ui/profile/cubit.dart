@@ -1,24 +1,35 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
 
-// TODO: Add contact refresh as listener via
-//       FlutterContacts.addListener(() => print('Contact DB changed'));
-
 class ProfileCubit extends HydratedCubit<ProfileState> {
-  ProfileCubit(this.contactsRepository) : super(ProfileState());
+  ProfileCubit(this.contactsRepository) : super(const ProfileState()) {
+    _contactsSuscription =
+        contactsRepository.getContactUpdates().listen((contact) {
+      if (state.profileContact != null &&
+          contact.systemContact?.id == state.profileContact!.id) {
+        emit(ProfileState(
+            status: ProfileStatus.success,
+            profileContact: contact.systemContact));
+      }
+    });
+  }
 
   final ContactsRepository contactsRepository;
+  late final StreamSubscription<CoagContact> _contactsSuscription;
 
   void promptCreate() {
     emit(state.copyWith(status: ProfileStatus.create));
@@ -28,22 +39,21 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
     emit(state.copyWith(status: ProfileStatus.pick));
   }
 
-  void setContact(Contact? contact) {
+  Future<void> setContact(String? systemContactId) async {
+    final contact = (systemContactId == null)
+        ? null
+        : await FlutterContacts.getContact(systemContactId);
+
     emit(state.copyWith(
         status:
             (contact == null) ? ProfileStatus.initial : ProfileStatus.success,
         profileContact: contact));
-  }
 
-  Future<void> updateContact() async {
-    if (state.profileContact != null) {
-      final contact =
-          await FlutterContacts.getContact(state.profileContact!.id);
-      setContact(contact);
+    if (contact != null) {
       // TODO: add more details, locations etc.
       await contactsRepository.updateProfileContact(
           // TODO: Switch to full blown CoagContact for profile contact and get rid of this hack
-          contactsRepository.getCoagContactIdForSystemContactId(contact!.id)!);
+          contactsRepository.getCoagContactIdForSystemContactId(contact.id)!);
     }
   }
 
@@ -91,5 +101,11 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
     }
     updatedLocCoords[name] = (lng, lat);
     emit(state.copyWith(locationCoordinates: updatedLocCoords));
+  }
+
+  @override
+  Future<void> close() {
+    _contactsSuscription.cancel();
+    return super.close();
   }
 }

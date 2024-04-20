@@ -13,6 +13,10 @@ ContactDetailsState _$ContactDetailsStateFromJson(Map<String, dynamic> json) =>
       contact: json['contact'] == null
           ? null
           : CoagContact.fromJson(json['contact'] as Map<String, dynamic>),
+      sharedProfile: json['shared_profile'] == null
+          ? null
+          : CoagContact.fromJson(
+              json['shared_profile'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ContactDetailsStateToJson(
@@ -21,6 +25,7 @@ Map<String, dynamic> _$ContactDetailsStateToJson(
       'coag_contact_id': instance.coagContactId,
       'contact': instance.contact?.toJson(),
       'status': _$ContactDetailsStatusEnumMap[instance.status]!,
+      'shared_profile': instance.sharedProfile?.toJson(),
     };
 
 const _$ContactDetailsStatusEnumMap = {

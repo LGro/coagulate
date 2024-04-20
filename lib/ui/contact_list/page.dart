@@ -59,8 +59,10 @@ class _ContactListPageState extends State<ContactListPage> {
               listener: (context, state) async {},
               builder: (context, state) {
                 switch (state.status) {
+                  // TODO: This is barely ever shown, remove
                   case ContactListStatus.initial:
                     return const Center(child: CircularProgressIndicator());
+                  // TODO: This is never shown; but we want to see it at least when e.g. the contact list is empty
                   case ContactListStatus.denied:
                     return const Center(
                         child: TextButton(
@@ -108,8 +110,8 @@ class _ContactListPageState extends State<ContactListPage> {
                 : avatar(contact.systemContact!, 18),
             title: Text(contact.details!.displayName),
             trailing: Text(_contactSyncStatus(contact)),
-            onTap: () => Navigator.of(context)
-                .push(ContactPage.route(contact.coagContactId)));
+            onTap: () =>
+                Navigator.of(context).push(ContactPage.route(contact)));
       });
 }
 

@@ -21,6 +21,7 @@ final class ContactDetailsState extends Equatable {
   factory ContactDetailsState.fromJson(Map<String, dynamic> json) =>
       _$ContactDetailsStateFromJson(json);
 
+  // TODO: We only need to contact not also the id, right?
   final String coagContactId;
   final CoagContact? contact;
   final ContactDetailsStatus status;

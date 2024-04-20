@@ -44,8 +44,7 @@ class ReceiveRequestPage extends StatelessWidget {
               case ReceiveRequestStatus.qrcode:
                 if (state.profile != null) {
                   Navigator.of(context).pop();
-                  Navigator.of(context)
-                      .push(ContactPage.route(state.profile!.coagContactId));
+                  Navigator.of(context).push(ContactPage.route(state.profile!));
                 }
                 return Scaffold(
                     appBar: AppBar(title: const Text('Scan QR Code')),

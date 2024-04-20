@@ -1,13 +1,17 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:provider/provider.dart';
 import 'package:radix_colors/radix_colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 
+import '../data/providers/background.dart';
 import '../data/repositories/contacts.dart';
 import '../tick.dart';
 import '../veilid_init.dart';
@@ -16,6 +20,41 @@ import 'map/page.dart';
 import 'profile/page.dart';
 import 'settings/page.dart';
 import 'updates/page.dart';
+
+@pragma('vm:entry-point')
+void callbackDispatcher() {
+  Workmanager().executeTask(refreshProfileContactDetails);
+  Workmanager().executeTask(shareUpdatedProfileToDHT);
+  // Workmanager().executeTask(refreshContactsFromDHT);
+}
+
+Future<void> _registerDhtRefreshBackgroundTask() async {
+  await Workmanager().cancelAll();
+  await Workmanager().registerPeriodicTask(
+    refreshProfileContactTaskName,
+    refreshProfileContactTaskName,
+    initialDelay: const Duration(seconds: 20),
+    frequency: const Duration(minutes: 15),
+    existingWorkPolicy: ExistingWorkPolicy.keep,
+  );
+  await Workmanager().registerPeriodicTask(
+    shareUpdatedProfileToDhtTaskName,
+    shareUpdatedProfileToDhtTaskName,
+    initialDelay: const Duration(seconds: 40),
+    frequency: const Duration(minutes: 15),
+    constraints: Constraints(networkType: NetworkType.connected),
+    existingWorkPolicy: ExistingWorkPolicy.keep,
+  );
+
+  // For updates running longer than 30s, choose this alternative for iOS
+  // if (Platform.isIOS) {
+  //   await Workmanager().registerProcessingTask(
+  //     dhtRefreshBackgroundTaskName,
+  //     dhtRefreshBackgroundTaskName,
+  //     initialDelay: const Duration(seconds: 20),
+  //   );
+  // }
+}
 
 class Splash extends StatefulWidget {
   const Splash({super.key});
@@ -75,21 +114,26 @@ class CoagulateApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FutureProvider<VeilidChatGlobalInit?>(
       initialData: null,
-      create: (context) async => VeilidChatGlobalInit.initialize(),
+      create: (context) async {
+        // TODO: Is this the right place to initialize the workmanager?
+        await Workmanager()
+            .initialize(callbackDispatcher, isInDebugMode: kDebugMode);
+        await _registerDhtRefreshBackgroundTask();
+        return VeilidChatGlobalInit.initialize();
+      },
       builder: (context, child) {
         final globalInit = context.watch<VeilidChatGlobalInit?>();
+        // Splash screen until we're done with init
         if (globalInit == null) {
-          // Splash screen until we're done with init
-          return Splash();
+          return const Splash();
         }
         // Once init is done, we proceed with the app
         final localizationDelegate = LocalizedApp.of(context).delegate;
-
-        // TODO: Add again:
         return LocalizationProvider(
             state: LocalizationProvider.of(context).state,
             child: BackgroundTicker(
                 child: RepositoryProvider.value(
+              // TODO: Where to async initialize instead?
               value: ContactsRepository(contactsRepositoryPath),
               child: MaterialApp(
                 title: 'Coagulate',

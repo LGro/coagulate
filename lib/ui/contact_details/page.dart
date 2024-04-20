@@ -74,13 +74,13 @@ Widget _coagulateButton(
 class ContactPage extends StatelessWidget {
   const ContactPage({super.key});
 
-  static Route<void> route(String coagContactId) => MaterialPageRoute(
+  static Route<void> route(CoagContact contact) => MaterialPageRoute(
       fullscreenDialog: true,
       builder: (context) => MultiBlocProvider(
             providers: [
               BlocProvider(
                   create: (context) => ContactDetailsCubit(
-                      context.read<ContactsRepository>(), coagContactId)),
+                      context.read<ContactsRepository>(), contact)),
               BlocProvider(
                   create: (context) =>
                       ProfileCubit(context.read<ContactsRepository>())),
