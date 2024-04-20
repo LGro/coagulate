@@ -14,13 +14,13 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
-class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
+class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   ContactDetailsCubit(this.contactsRepository, CoagContact contact)
       : super(ContactDetailsState(
             contact.coagContactId, ContactDetailsStatus.success,
             contact: contact)) {
     _contactsSuscription = contactsRepository.getContactUpdates().listen((c) {
-      if (c.coagContactId == contact.coagContactId) {
+      if (c.coagContactId == state.contact?.coagContactId) {
         emit(ContactDetailsState(c.coagContactId, ContactDetailsStatus.success,
             contact: contact));
       }
@@ -29,13 +29,6 @@ class ContactDetailsCubit extends HydratedCubit<ContactDetailsState> {
 
   final ContactsRepository contactsRepository;
   late final StreamSubscription<CoagContact> _contactsSuscription;
-
-  @override
-  ContactDetailsState fromJson(Map<String, dynamic> json) =>
-      ContactDetailsState.fromJson(json);
-
-  @override
-  Map<String, dynamic> toJson(ContactDetailsState state) => state.toJson();
 
   // TODO: Use a method from repo level instead
   Future<void> share(CoagContact profileToShare) async {
