@@ -14,27 +14,35 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
-// TODO: Refine filtering by only searching through all values (not like now, also the field names)
+String extractAllValuesToString(dynamic value) {
+  if (value is Map) {
+    return value.values.map(extractAllValuesToString).join('|');
+  } else if (value is List) {
+    return value.map(extractAllValuesToString).join('|');
+  } else {
+    return value.toString();
+  }
+}
+
 Iterable<CoagContact> _filterAndSort(Iterable<CoagContact> contacts,
         {String filter = ''}) =>
-    contacts
-        .where((c) =>
-            (c.details != null &&
-                c.details!
-                    .toString()
-                    .toLowerCase()
-                    .contains(filter.toLowerCase())) ||
-            (c.systemContact != null &&
-                c.systemContact!
-                    .toString()
-                    .toLowerCase()
-                    .contains(filter.toLowerCase())))
+    ((filter.isEmpty)
+            ? contacts
+            : contacts.where((c) =>
+                (c.details != null &&
+                    extractAllValuesToString(c.details!.toJson())
+                        .toLowerCase()
+                        .contains(filter.toLowerCase())) ||
+                (c.systemContact != null &&
+                    extractAllValuesToString(c.systemContact!.toJson())
+                        .toLowerCase()
+                        .contains(filter.toLowerCase()))))
         .toList()
       ..sort((a, b) =>
           compareNatural(a.details!.displayName, b.details!.displayName));
 
 // TODO: Figure out sorting of the contacts
-class ContactListCubit extends HydratedCubit<ContactListState> {
+class ContactListCubit extends Cubit<ContactListState> {
   ContactListCubit(this.contactsRepository)
       : super(const ContactListState(ContactListStatus.initial)) {
     _contactsSuscription =
@@ -56,14 +64,8 @@ class ContactListCubit extends HydratedCubit<ContactListState> {
   late final StreamSubscription<CoagContact> _contactsSuscription;
 
   void filter(String filter) => emit(ContactListState(ContactListStatus.success,
-      contacts: _filterAndSort(state.contacts, filter: filter)));
-
-  @override
-  ContactListState fromJson(Map<String, dynamic> json) =>
-      ContactListState.fromJson(json);
-
-  @override
-  Map<String, dynamic> toJson(ContactListState state) => state.toJson();
+      contacts: _filterAndSort(contactsRepository.getContacts().values,
+          filter: filter)));
 
   @override
   Future<void> close() {
