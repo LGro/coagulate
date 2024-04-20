@@ -8,7 +8,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:provider/provider.dart';
 import 'package:radix_colors/radix_colors.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../data/providers/background.dart';
@@ -25,7 +24,7 @@ import 'updates/page.dart';
 void callbackDispatcher() {
   Workmanager().executeTask(refreshProfileContactDetails);
   Workmanager().executeTask(shareUpdatedProfileToDHT);
-  // Workmanager().executeTask(refreshContactsFromDHT);
+  Workmanager().executeTask(refreshContactsFromDHT);
 }
 
 Future<void> _registerDhtRefreshBackgroundTask() async {
@@ -45,34 +44,18 @@ Future<void> _registerDhtRefreshBackgroundTask() async {
     constraints: Constraints(networkType: NetworkType.connected),
     existingWorkPolicy: ExistingWorkPolicy.keep,
   );
-
-  // For updates running longer than 30s, choose this alternative for iOS
-  // if (Platform.isIOS) {
-  //   await Workmanager().registerProcessingTask(
-  //     dhtRefreshBackgroundTaskName,
-  //     dhtRefreshBackgroundTaskName,
-  //     initialDelay: const Duration(seconds: 20),
-  //   );
-  // }
+  await Workmanager().registerPeriodicTask(
+    refreshContactsFromDhtTaskName,
+    refreshContactsFromDhtTaskName,
+    initialDelay: const Duration(seconds: 40),
+    frequency: const Duration(minutes: 15),
+    constraints: Constraints(networkType: NetworkType.connected),
+    existingWorkPolicy: ExistingWorkPolicy.keep,
+  );
 }
 
-class Splash extends StatefulWidget {
+class Splash extends StatelessWidget {
   const Splash({super.key});
-
-  @override
-  State<Splash> createState() => _SplashState();
-}
-
-class _SplashState extends State<Splash> {
-  @override
-  void initState() {
-    super.initState();
-
-    // WidgetsBinding.instance.addPostFrameCallback((_) async {
-    //   await changeWindowSetup(
-    //       TitleBarStyle.hidden, OrientationCapability.normal);
-    // });
-  }
 
   @override
   Widget build(BuildContext context) => PopScope(

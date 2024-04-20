@@ -15,7 +15,7 @@ import '../providers/persistent_storage.dart';
 import '../providers/system_contacts.dart';
 import '../repositories/contacts.dart';
 
-const String dhtRefreshBackgroundTaskName = 'social.coagulate.dht.refresh';
+const String refreshContactsFromDhtTaskName = 'social.coagulate.dht.refresh';
 const String refreshProfileContactTaskName = 'social.coagulate.profile.refresh';
 const String shareUpdatedProfileToDhtTaskName = 'social.coagulate.dht.profile';
 
@@ -124,8 +124,8 @@ Future<bool> shareUpdatedProfileToDHT(String task, _) async {
 }
 
 Future<bool> refreshContactsFromDHT(String task, _) async {
-  if (task != dhtRefreshBackgroundTaskName) {
-    return Future.value(true);
+  if (task != refreshContactsFromDhtTaskName) {
+    return true;
   }
   final startTime = DateTime.now();
 
@@ -134,7 +134,7 @@ Future<bool> refreshContactsFromDHT(String task, _) async {
   if (!connectivity.contains(ConnectivityResult.wifi) &&
       !connectivity.contains(ConnectivityResult.mobile) &&
       !connectivity.contains(ConnectivityResult.ethernet)) {
-    return Future.value(true);
+    return true;
   }
 
   // TODO: Check if Veilid is already running?
@@ -169,12 +169,10 @@ Future<bool> refreshContactsFromDHT(String task, _) async {
       continue;
     }
 
-    // system contact update?
-    // persiste to disk
+    // TODO: update system contact according to management profile
 
-    // If changed, update system contact according to management profile
-    // Update coagContact & persist
+    await persistentStorage.updateContact(updatedContact);
   }
 
-  return Future.value(true);
+  return true;
 }
