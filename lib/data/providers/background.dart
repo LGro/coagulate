@@ -5,8 +5,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:veilid_support/veilid_support.dart';
 
 import '../../veilid_init.dart';
 import '../../veilid_processor/repository/processor_repository.dart';
@@ -15,9 +15,8 @@ import '../providers/persistent_storage.dart';
 import '../providers/system_contacts.dart';
 import '../repositories/contacts.dart';
 
-const String refreshContactsFromDhtTaskName = 'social.coagulate.dht.refresh';
+const String updateToAndFromDhtTaskName = 'social.coagulate.dht.refresh';
 const String refreshProfileContactTaskName = 'social.coagulate.profile.refresh';
-const String shareUpdatedProfileToDhtTaskName = 'social.coagulate.dht.profile';
 
 // TODO: Can we refactor this to share more with the ContactsRepository?
 /// If system contact information for profile contact is changed, update profile
@@ -55,9 +54,8 @@ Future<bool> refreshProfileContactDetails(String task, _) async {
 
 /// Write the current profile contact information to all contacts' DHT record
 /// that have a different (outdated) version.
-Future<bool> shareUpdatedProfileToDHT(String task, _) async {
-  // TODO: Do we need refreshProfileContactDetails as a separate task or do we just do it always here because it's fast?
-  if (task != shareUpdatedProfileToDhtTaskName) {
+Future<bool> updateToAndFromDht(String task, _) async {
+  if (task != updateToAndFromDhtTaskName) {
     return true;
   }
   try {
@@ -77,19 +75,16 @@ Future<bool> shareUpdatedProfileToDHT(String task, _) async {
     }
     final profileContact = contacts[profileContactId]!;
 
-    // Don't try to fetch things if not connected to the internet
-    final connectivity = await Connectivity().checkConnectivity();
-    if (!connectivity.contains(ConnectivityResult.wifi) &&
-        !connectivity.contains(ConnectivityResult.mobile) &&
-        !connectivity.contains(ConnectivityResult.ethernet)) {
-      return true;
-    }
+    // TODO: Does shuffling the contacts really help not getting stuck?
+    // Instead consider sorting by least recently updated
+    final shuffledContacts = contacts.values.toList()..shuffle();
 
-    // TODO: Check if Veilid is already running?
-    await VeilidChatGlobalInit.initialize();
+    try {
+      await VeilidChatGlobalInit.initialize();
+    } on VeilidAPIExceptionAlreadyInitialized {}
 
     var iContact = 0;
-    while (iContact < contacts.length &&
+    while (iContact < shuffledContacts.length &&
         startTime.add(const Duration(seconds: 25)).isBefore(DateTime.now())) {
       // Wait for Veilid connectivity
       // TODO: Are we too conservative here?
@@ -100,79 +95,29 @@ Future<bool> shareUpdatedProfileToDHT(String task, _) async {
         continue;
       }
 
-      final contact = contacts.values.elementAt(iContact);
+      var contact = shuffledContacts[iContact];
       iContact++;
-      if (contact.dhtSettingsForSharing == null) {
-        continue;
+
+      // Share to DHT
+      if (contact.dhtSettingsForSharing != null) {
+        final sharedProfile = json.encode(removeNullOrEmptyValues(
+            filterAccordingToSharingProfile(profileContact).toJson()));
+        if (contact.sharedProfile != sharedProfile) {
+          contact = contact.copyWith(sharedProfile: sharedProfile);
+          await updateContactSharingDHT(contact);
+          await persistentStorage.updateContact(contact);
+        }
       }
 
-      final sharedProfile = json.encode(removeNullOrEmptyValues(
-          filterAccordingToSharingProfile(profileContact).toJson()));
-      if (contact.sharedProfile == sharedProfile) {
-        continue;
+      // Receive from DHT
+      final updatedContact = await updateContactReceivingDHT(contact);
+      if (updatedContact != contact) {
+        // TODO: update system contact according to management profile
+        await persistentStorage.updateContact(updatedContact);
       }
-
-      final updatedContact = contact.copyWith(sharedProfile: sharedProfile);
-      await updateContactSharingDHT(updatedContact);
-
-      await persistentStorage.updateContact(updatedContact);
     }
     return true;
   } on Exception catch (e) {
     return false;
   }
-}
-
-Future<bool> refreshContactsFromDHT(String task, _) async {
-  if (task != refreshContactsFromDhtTaskName) {
-    return true;
-  }
-  final startTime = DateTime.now();
-
-  // Don't try to fetch things if not connected to the internet
-  final connectivity = await Connectivity().checkConnectivity();
-  if (!connectivity.contains(ConnectivityResult.wifi) &&
-      !connectivity.contains(ConnectivityResult.mobile) &&
-      !connectivity.contains(ConnectivityResult.ethernet)) {
-    return true;
-  }
-
-  // TODO: Check if Veilid is already running?
-  await VeilidChatGlobalInit.initialize();
-
-  final appStorage = await getApplicationDocumentsDirectory();
-  final persistentStorage = HivePersistentStorage(appStorage.path);
-
-  // TODO: Update contacts from DHT records and persist; order by least recently updated or random?
-  // Shuffling might reduce the risk for re-trying on an unreachable / long running update and never getting to others?
-  final contacts = (await persistentStorage.getAllContacts()).values.toList()
-    ..shuffle();
-
-  var iContact = 0;
-  while (iContact < contacts.length &&
-      startTime.add(const Duration(seconds: 25)).isBefore(DateTime.now())) {
-    // Wait for Veilid connectivity
-    // TODO: Are we too conservative here?
-    if (!ProcessorRepository.instance.startedUp ||
-        !ProcessorRepository
-            .instance.processorConnectionState.isPublicInternetReady) {
-      sleep(const Duration(seconds: 1));
-      continue;
-    }
-
-    final contact = contacts[iContact];
-    iContact++;
-
-    // TODO: set last checked timestamp inside this function?
-    final updatedContact = await updateContactReceivingDHT(contact);
-    if (updatedContact == contact) {
-      continue;
-    }
-
-    // TODO: update system contact according to management profile
-
-    await persistentStorage.updateContact(updatedContact);
-  }
-
-  return true;
 }

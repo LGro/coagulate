@@ -23,8 +23,7 @@ import 'updates/page.dart';
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask(refreshProfileContactDetails);
-  Workmanager().executeTask(shareUpdatedProfileToDHT);
-  Workmanager().executeTask(refreshContactsFromDHT);
+  Workmanager().executeTask(updateToAndFromDht);
 }
 
 Future<void> _registerDhtRefreshBackgroundTask() async {
@@ -37,16 +36,8 @@ Future<void> _registerDhtRefreshBackgroundTask() async {
     existingWorkPolicy: ExistingWorkPolicy.keep,
   );
   await Workmanager().registerPeriodicTask(
-    shareUpdatedProfileToDhtTaskName,
-    shareUpdatedProfileToDhtTaskName,
-    initialDelay: const Duration(seconds: 40),
-    frequency: const Duration(minutes: 15),
-    constraints: Constraints(networkType: NetworkType.connected),
-    existingWorkPolicy: ExistingWorkPolicy.keep,
-  );
-  await Workmanager().registerPeriodicTask(
-    refreshContactsFromDhtTaskName,
-    refreshContactsFromDhtTaskName,
+    updateToAndFromDhtTaskName,
+    updateToAndFromDhtTaskName,
     initialDelay: const Duration(seconds: 40),
     frequency: const Duration(minutes: 15),
     constraints: Constraints(networkType: NetworkType.connected),

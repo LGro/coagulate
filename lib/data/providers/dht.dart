@@ -143,6 +143,7 @@ Future<bool> _isAvailableAndWritable(
 }
 
 // TODO: Schema version check and migration for backwards compatibility
+// TODO: set last checked timestamp inside this function?
 Future<CoagContact> updateContactReceivingDHT(CoagContact contact) async {
   if (contact.dhtSettingsForReceiving?.psk == null) {
     return contact;
