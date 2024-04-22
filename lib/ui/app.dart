@@ -20,13 +20,23 @@ import 'profile/page.dart';
 import 'settings/page.dart';
 import 'updates/page.dart';
 
+const String updateToAndFromDhtTaskName = 'social.coagulate.dht.refresh';
+const String refreshProfileContactTaskName = 'social.coagulate.profile.refresh';
+
 @pragma('vm:entry-point')
 void callbackDispatcher() {
-  Workmanager().executeTask(refreshProfileContactDetails);
-  Workmanager().executeTask(updateToAndFromDht);
+  Workmanager().executeTask((task, __) async {
+    if (task == refreshProfileContactTaskName) {
+      return refreshProfileContactDetails();
+    }
+    if (task == updateToAndFromDhtTaskName) {
+      return updateToAndFromDht();
+    }
+    return true;
+  });
 }
 
-Future<void> _registerDhtRefreshBackgroundTask() async {
+Future<void> _registerBackgroundTasks() async {
   await Workmanager().cancelAll();
   await Workmanager().registerPeriodicTask(
     refreshProfileContactTaskName,
@@ -92,7 +102,7 @@ class CoagulateApp extends StatelessWidget {
         // TODO: Is this the right place to initialize the workmanager?
         await Workmanager()
             .initialize(callbackDispatcher, isInDebugMode: kDebugMode);
-        await _registerDhtRefreshBackgroundTask();
+        await _registerBackgroundTasks();
         return VeilidChatGlobalInit.initialize();
       },
       builder: (context, child) {

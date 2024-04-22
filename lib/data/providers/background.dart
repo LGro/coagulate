@@ -15,17 +15,10 @@ import '../providers/persistent_storage.dart';
 import '../providers/system_contacts.dart';
 import '../repositories/contacts.dart';
 
-const String updateToAndFromDhtTaskName = 'social.coagulate.dht.refresh';
-const String refreshProfileContactTaskName = 'social.coagulate.profile.refresh';
-
 // TODO: Can we refactor this to share more with the ContactsRepository?
 /// If system contact information for profile contact is changed, update profile
-Future<bool> refreshProfileContactDetails(String task, _) async {
+Future<bool> refreshProfileContactDetails() async {
   try {
-    if (task != refreshProfileContactTaskName) {
-      return true;
-    }
-
     final appStorage = await getApplicationDocumentsDirectory();
     final persistentStorage = HivePersistentStorage(appStorage.path);
 
@@ -54,10 +47,7 @@ Future<bool> refreshProfileContactDetails(String task, _) async {
 
 /// Write the current profile contact information to all contacts' DHT record
 /// that have a different (outdated) version.
-Future<bool> updateToAndFromDht(String task, _) async {
-  if (task != updateToAndFromDhtTaskName) {
-    return true;
-  }
+Future<bool> updateToAndFromDht() async {
   try {
     final startTime = DateTime.now();
 
@@ -116,7 +106,7 @@ Future<bool> updateToAndFromDht(String task, _) async {
         await persistentStorage.updateContact(updatedContact);
       }
     }
-    return true;
+    return iContact > 0;
   } on Exception catch (e) {
     return false;
   }
