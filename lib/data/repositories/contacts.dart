@@ -13,7 +13,8 @@ import '../../veilid_processor/repository/processor_repository.dart';
 import '../models/coag_contact.dart';
 import '../models/contact_update.dart';
 import '../providers/dht.dart';
-import '../providers/persistent_storage/sqlite.dart' as persistent_storage;
+import '../providers/persistent_storage/shared_preferences.dart'
+    as persistent_storage;
 import '../providers/system_contacts.dart';
 
 // TODO: Persist all changes to any contact by never accessing coagContacts directly, only via getter and setter

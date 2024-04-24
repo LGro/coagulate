@@ -13,7 +13,7 @@ import '../../veilid_processor/repository/processor_repository.dart';
 import '../providers/dht.dart';
 import '../providers/system_contacts.dart';
 import '../repositories/contacts.dart';
-import 'persistent_storage/sqlite.dart' as persistent_storage;
+import 'persistent_storage/shared_preferences.dart' as persistent_storage;
 
 const String updateToAndFromDhtTaskName = 'social.coagulate.dht.refresh';
 const String refreshProfileContactTaskName = 'social.coagulate.profile.refresh';
