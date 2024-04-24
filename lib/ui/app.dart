@@ -1,13 +1,17 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:provider/provider.dart';
 import 'package:radix_colors/radix_colors.dart';
+import 'package:workmanager/workmanager.dart';
 
+import '../data/providers/background.dart';
 import '../data/repositories/contacts.dart';
 import '../tick.dart';
 import '../veilid_init.dart';
@@ -94,7 +98,8 @@ class CoagulateAppView extends StatefulWidget {
   _CoagulateAppViewState createState() => _CoagulateAppViewState();
 }
 
-class _CoagulateAppViewState extends State<CoagulateAppView> {
+class _CoagulateAppViewState extends State<CoagulateAppView>
+    with WidgetsBindingObserver {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
@@ -143,4 +148,26 @@ class _CoagulateAppViewState extends State<CoagulateAppView> {
           onTap: _onItemTapped,
         ),
       );
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Only activate background tasks when app is not open
+    if (state == AppLifecycleState.paused) {
+      unawaited(registerBackgroundTasks());
+    } else if (state == AppLifecycleState.resumed) {
+      unawaited(Workmanager().cancelAll());
+    }
+  }
 }

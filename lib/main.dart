@@ -32,10 +32,8 @@ void main() async {
     // Observer for logging Bloc related things
     Bloc.observer = const CoagulateBlocObserver();
 
-    // FIXME: Background tasks seem to disconnect DHT?
-    // await Workmanager()
-    //     .initialize(callbackDispatcher, isInDebugMode: kDebugMode);
-    // await registerBackgroundTasks();
+    await Workmanager()
+        .initialize(callbackDispatcher, isInDebugMode: kDebugMode);
 
     final appStorage = await getApplicationDocumentsDirectory();
 
