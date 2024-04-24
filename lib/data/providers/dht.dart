@@ -67,14 +67,15 @@ Future<void> updatePasswordEncryptedDHTRecord(
   await record.close();
 }
 
-// TODO: Can we just liberally call this also when not necessary
-//       or is there a risk for an update to slip through
-//       the interval between unwatch and watch?
 Future<void> watchDHTRecord(String key) async {
-  final _key = Typed<FixedEncodedString43>.fromString(key);
-  final rc = await Veilid.instance.routingContext();
-  await rc.cancelDHTWatch(_key);
-  await rc.watchDHTValues(_key);
+  final pool = DHTRecordPool.instance;
+  final record = await pool.openRead(
+      debugName: 'coag::read',
+      Typed<FixedEncodedString43>.fromString(key),
+      crypto: const DHTRecordCryptoPublic());
+  final defaultSubkey = record.subkeyOrDefault(-1);
+  await record.watch(subkeys: [ValueSubkeyRange.single(defaultSubkey)]);
+  await record.close();
 }
 
 Future<bool> isUpToDateSharingDHT(CoagContact contact) async {

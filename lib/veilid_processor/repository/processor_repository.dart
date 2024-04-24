@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:rxdart/subjects.dart';
 import 'package:veilid_support/veilid_support.dart';
 
 import '../../tools/tools.dart';
@@ -9,6 +10,8 @@ import '../models/models.dart';
 class ProcessorRepository {
   ProcessorRepository._()
       : startedUp = false,
+        _updateValueChangeStreamController =
+            BehaviorSubject<VeilidUpdateValueChange>(),
         _controllerConnectionState = StreamController.broadcast(sync: true),
         processorConnectionState = ProcessorConnectionState(
             attachment: const VeilidStateAttachment(
@@ -86,6 +89,9 @@ class ProcessorRepository {
     startedUp = false;
   }
 
+  Stream<VeilidUpdateValueChange> streamUpdateValueChange() =>
+      _updateValueChangeStreamController.asBroadcastStream();
+
   Stream<ProcessorConnectionState> streamProcessorConnectionState() =>
       _controllerConnectionState.stream;
 
@@ -122,12 +128,16 @@ class ProcessorRepository {
 
     // Send value updates to DHTRecordPool
     DHTRecordPool.instance.processRemoteValueChange(updateValueChange);
+    _updateValueChangeStreamController.add(updateValueChange);
   }
 
   ////////////////////////////////////////////
 
   StreamSubscription<VeilidUpdate>? _updateSubscription;
   final StreamController<ProcessorConnectionState> _controllerConnectionState;
+
+  final BehaviorSubject<VeilidUpdateValueChange>
+      _updateValueChangeStreamController;
   bool startedUp;
   ProcessorConnectionState processorConnectionState;
 }

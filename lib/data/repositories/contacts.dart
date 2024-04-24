@@ -8,6 +8,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:veilid/veilid.dart';
 
 import '../../veilid_processor/repository/processor_repository.dart';
 import '../models/coag_contact.dart';
@@ -73,9 +74,11 @@ class ContactsRepository {
     await _updateFromSystemContacts();
     FlutterContacts.addListener(_systemContactsChangedCallback);
 
-    // Update the contacts wrt the DHT
-    // TODO: Only do this when online
-    // await updateAndWatchReceivingDHT();
+    // Update the contacts from DHT and subscribe to future updates
+    await updateAndWatchReceivingDHT();
+    ProcessorRepository.instance
+        .streamUpdateValueChange()
+        .listen(_veilidUpdateValueChangeCallback);
 
     // TODO: Only do this when online
     // for (final contact in _contacts.values) {
@@ -115,6 +118,27 @@ class ContactsRepository {
         oldProfileContact != _contacts[profileContactId]) {
       // Trigger update of share profiles and all that jazz
       await updateProfileContact(profileContactId!);
+    }
+  }
+
+  // TODO: Refactor redundancies with updateAndWatchReceivingDHT
+  Future<void> _veilidUpdateValueChangeCallback(
+      VeilidUpdateValueChange update) async {
+    try {
+      final contact = _contacts.values.firstWhere(
+          (c) => c.dhtSettingsForReceiving!.key == update.key.toString());
+
+      final updatedContact = await updateContactReceivingDHT(contact);
+      if (updatedContact != contact) {
+        // TODO: Use update time from when the update was sent not received
+        updates.add(ContactUpdate(
+            message: 'News from ${contact.details?.displayName}',
+            timestamp: DateTime.now()));
+        await updateContact(updatedContact);
+      }
+      // FIXME: Appropriate error handling
+    } on StateError {
+      return;
     }
   }
 
@@ -232,7 +256,6 @@ class ContactsRepository {
     for (final contact in contacts) {
       // Check for incoming updates
       if (contact.dhtSettingsForReceiving != null) {
-        print('checking ${contact.coagContactId}');
         final updatedContact = await updateContactReceivingDHT(contact);
         if (updatedContact != contact) {
           // TODO: Use update time from when the update was sent not received
@@ -241,9 +264,7 @@ class ContactsRepository {
               timestamp: DateTime.now()));
           await updateContact(updatedContact);
         }
-        // TODO: Check how long this takes and what could go wrong with not awaiting instead
-        // FIXME: actually start to watch, but canceling watch seems to require opening the record?
-        // await watchDHTRecord(contact.dhtSettingsForReceiving!.key);
+        await watchDHTRecord(contact.dhtSettingsForReceiving!.key);
       }
     }
   }
