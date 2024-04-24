@@ -20,7 +20,7 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
             contact.coagContactId, ContactDetailsStatus.success,
             contact: contact)) {
     _contactsSuscription = contactsRepository.getContactUpdates().listen((c) {
-      if (c.coagContactId == state.contact?.coagContactId) {
+      if (c.coagContactId == contact.coagContactId) {
         emit(ContactDetailsState(c.coagContactId, ContactDetailsStatus.success,
             contact: contact));
       }

@@ -71,7 +71,7 @@ class ContactsRepository {
     }
 
     await _updateFromSystemContacts();
-    FlutterContacts.addListener(_updateFromSystemContacts);
+    FlutterContacts.addListener(_systemContactsChangedCallback);
 
     // Update the contacts wrt the DHT
     // TODO: Only do this when online
@@ -105,6 +105,16 @@ class ContactsRepository {
       }
     } on MissingSystemContactsPermissionError {
       _systemContactAccessGrantedStreamController.add(false);
+    }
+  }
+
+  Future<void> _systemContactsChangedCallback() async {
+    final oldProfileContact = _contacts[profileContactId];
+    await _updateFromSystemContacts();
+    if (oldProfileContact != null &&
+        oldProfileContact != _contacts[profileContactId]) {
+      // Trigger update of share profiles and all that jazz
+      await updateProfileContact(profileContactId!);
     }
   }
 
