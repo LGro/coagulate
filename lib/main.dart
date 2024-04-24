@@ -9,8 +9,10 @@ import 'package:flutter_translate/flutter_translate.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:workmanager/workmanager.dart';
 
 import 'bloc_observer.dart';
+import 'data/providers/background.dart';
 import 'tools/loggy.dart';
 import 'ui/app.dart';
 
@@ -29,6 +31,10 @@ void main() async {
 
     // Observer for logging Bloc related things
     Bloc.observer = const CoagulateBlocObserver();
+
+    await Workmanager()
+        .initialize(callbackDispatcher, isInDebugMode: kDebugMode);
+    await registerBackgroundTasks();
 
     final appStorage = await getApplicationDocumentsDirectory();
 

@@ -4,9 +4,10 @@
 import 'dart:convert';
 
 import 'package:hive/hive.dart';
-import '../models/coag_contact.dart';
+import 'package:path_provider/path_provider.dart';
+import '../../models/coag_contact.dart';
 
-part 'persistent_storage.g.dart';
+part 'hive.g.dart';
 
 const int mostRecentSchemaVersion = 1;
 
@@ -22,6 +23,13 @@ class ContactRecord {
 
   @override
   String toString() => '$schemaVersion|$coagContactJson';
+}
+
+Future<void> initializePersistentStorage() async {
+  final appStorage = await getApplicationDocumentsDirectory();
+  Hive
+    ..init(appStorage.path)
+    ..registerAdapter(ContactRecordAdapter());
 }
 
 ContactRecord _recordFromContact(CoagContact contact) => ContactRecord(
@@ -40,12 +48,7 @@ CoagContact _deserializeAndMigrateIfNecessary(ContactRecord contactRecord) {
 
 /// Simple persistent storage based on [Hive], storing contacts as JSON strings
 class HivePersistentStorage {
-  HivePersistentStorage(String storagePath) {
-    Hive
-      ..init(storagePath)
-      // TODO: override is just for hot reloading; does this hurt?
-      ..registerAdapter(ContactRecordAdapter(), override: true);
-  }
+  HivePersistentStorage();
 
   Future<Box<ContactRecord>> _lazyGetContactsBox() async =>
       Hive.openBox('hive_coag_contacts_box');

@@ -6,13 +6,14 @@ import 'dart:convert';
 
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:rxdart/subjects.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../veilid_processor/repository/processor_repository.dart';
 import '../models/coag_contact.dart';
 import '../models/contact_update.dart';
 import '../providers/dht.dart';
-import '../providers/persistent_storage.dart';
+import '../providers/persistent_storage/sqlite.dart' as persistent_storage;
 import '../providers/system_contacts.dart';
 
 // TODO: Persist all changes to any contact by never accessing coagContacts directly, only via getter and setter
@@ -36,14 +37,16 @@ Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
 
 /// Entrypoint for application layer when it comes to [CoagContact]
 class ContactsRepository {
-  ContactsRepository(this._persistentStoragePath) {
+  ContactsRepository() {
     unawaited(_init());
+
+    // Regularly check for updates from the persistent storage,
+    // e.g. in case it was updated from background processes.
+    timer = Timer.periodic(
+        Duration(seconds: 5), (_) async => _updateFromPersistentStorage());
   }
 
-  String _persistentStoragePath;
-  late final HivePersistentStorage _persistentStorage =
-      HivePersistentStorage(_persistentStoragePath);
-
+  late final Timer? timer;
   String? profileContactId;
 
   Map<String, CoagContact> _contacts = {};
@@ -58,10 +61,10 @@ class ContactsRepository {
 
   Future<void> _init() async {
     // Load profile contact ID from persistent storage
-    profileContactId = await _persistentStorage.getProfileContactId();
+    profileContactId = await persistent_storage.getProfileContactId();
 
     // Load coagulate contacts from persistent storage
-    _contacts = await _persistentStorage.getAllContacts();
+    _contacts = await persistent_storage.getAllContacts();
     for (final c in _contacts.values) {
       _contactsStreamController.add(c);
     }
@@ -71,13 +74,18 @@ class ContactsRepository {
 
     // Update the contacts wrt the DHT
     // TODO: Only do this when online
-    await updateAndWatchReceivingDHT();
+    // await updateAndWatchReceivingDHT();
+
+    // TODO: Only do this when online
+    // for (final contact in _contacts.values) {
+    //   await _saveContact(await updateContactSharingDHT(contact));
+    // }
   }
 
   Future<void> _saveContact(CoagContact coagContact) async {
     _contacts[coagContact.coagContactId] = coagContact;
     _contactsStreamController.add(coagContact);
-    await _persistentStorage.updateContact(coagContact);
+    await persistent_storage.updateContact(coagContact);
   }
 
   Future<void> _updateFromSystemContact(CoagContact contact) async {
@@ -99,6 +107,19 @@ class ContactsRepository {
     }
   }
 
+  Future<void> _updateFromPersistentStorage() async {
+    await (await SharedPreferences.getInstance()).reload();
+    final storedContacts = await persistent_storage.getAllContacts();
+    for (final contact in _contacts.values) {
+      // Update if there is no matching contact but is a corresponding ID
+      if (!storedContacts.containsValue(contact) &&
+          storedContacts.containsKey(contact.coagContactId)) {
+        // TODO: Check most recent update timestamp and make sure the on from persistent storag is more recent
+        await _saveContact(storedContacts[contact.coagContactId]!);
+      }
+    }
+  }
+
   /// Update all system contacts in case they changed and add missing ones
   // TODO: Test that there can be coagulate contacts with a system contact that isn't actually in the system
   Future<void> _updateFromSystemContacts() async {
@@ -114,6 +135,7 @@ class ContactsRepository {
         // Remove contacts that did not change
         // TODO: This could be coagContact.getSystemContactBasedOnSyncSettings
         //  in case we want to keep the original system contact for reference
+        // FIXME: SystemContact comparisons might not work, because we remove the photo / thumbnail?
         if (systemContacts.remove(coagContact.systemContact)) {
           continue;
         }
@@ -222,7 +244,7 @@ class ContactsRepository {
     }
 
     // TODO: Do we need to enforce writing to disk to make it available to background straight away?
-    await _persistentStorage.setProfileContactId(coagContactId);
+    await persistent_storage.setProfileContactId(coagContactId);
 
     // Ensure all system contacts changes are in
     await _updateFromSystemContact(_contacts[coagContactId]!);
@@ -248,6 +270,6 @@ class ContactsRepository {
 
   Future<void> removeContact(String coagContactId) async {
     _contacts.remove(coagContactId);
-    await _persistentStorage.removeContact(coagContactId);
+    await persistent_storage.removeContact(coagContactId);
   }
 }

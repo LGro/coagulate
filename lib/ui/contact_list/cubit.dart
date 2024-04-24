@@ -24,7 +24,7 @@ String extractAllValuesToString(dynamic value) {
   }
 }
 
-Iterable<CoagContact> _filterAndSort(Iterable<CoagContact> contacts,
+Iterable<CoagContact> filterAndSortContacts(Iterable<CoagContact> contacts,
         {String filter = ''}) =>
     ((filter.isEmpty)
             ? contacts
@@ -49,7 +49,7 @@ class ContactListCubit extends Cubit<ContactListState> {
         contactsRepository.getContactUpdates().listen((contact) {
       if (!isClosed) {
         emit(ContactListState(ContactListStatus.success,
-            contacts: _filterAndSort([
+            contacts: filterAndSortContacts([
               ...state.contacts
                   .where((c) => c.coagContactId != contact.coagContactId),
               contact
@@ -57,14 +57,15 @@ class ContactListCubit extends Cubit<ContactListState> {
       }
     });
     emit(ContactListState(ContactListStatus.success,
-        contacts: _filterAndSort(contactsRepository.getContacts().values)));
+        contacts:
+            filterAndSortContacts(contactsRepository.getContacts().values)));
   }
 
   final ContactsRepository contactsRepository;
   late final StreamSubscription<CoagContact> _contactsSuscription;
 
   void filter(String filter) => emit(ContactListState(ContactListStatus.success,
-      contacts: _filterAndSort(contactsRepository.getContacts().values,
+      contacts: filterAndSortContacts(contactsRepository.getContacts().values,
           filter: filter)));
 
   @override

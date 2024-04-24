@@ -37,7 +37,10 @@ class SettingsPage extends StatelessWidget {
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(state.message),
+                        // Expanded(
+                        //     child: SingleChildScrollView(
+                        //         scrollDirection: Axis.vertical, //.horizontal
+                        //         child: Text(state.message))),
                         TextButton(
                           child: Text('UPDATE'),
                           onPressed:

@@ -8,8 +8,9 @@ import 'contact_location.dart';
 part 'coag_contact.g.dart';
 
 @JsonSerializable()
-class ContactDHTSettings {
-  ContactDHTSettings({required this.key, this.writer, this.psk, this.pubKey});
+class ContactDHTSettings extends Equatable {
+  const ContactDHTSettings(
+      {required this.key, this.writer, this.psk, this.pubKey});
 
   final String key;
   // Optional writer keypair in case I shared first and offered a DHT record for
@@ -35,6 +36,9 @@ class ContactDHTSettings {
         psk: psk ?? this.psk,
         pubKey: pubKey ?? this.pubKey,
       );
+
+  @override
+  List<Object?> get props => [key, writer, psk, pubKey];
 }
 
 @JsonSerializable()

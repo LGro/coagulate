@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'persistent_storage.dart';
+part of 'hive.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator

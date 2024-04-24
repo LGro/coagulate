@@ -86,13 +86,13 @@ class _ContactListPageState extends State<ContactListPage> {
                               const SizedBox(height: 10),
                               Expanded(
                                   child: _body(state.contacts
-                                      .where((cc) =>
-                                          cc.details != null &&
-                                          // TODO: Switch to using a coag contact id for system contact
-                                          (cc.systemContact == null ||
-                                              cc.systemContact!.id !=
-                                                  profileContactState
-                                                      .profileContact?.id))
+                                      // .where((cc) =>
+                                      //     cc.details != null &&
+                                      //     // TODO: Switch to using a coag contact id for system contact
+                                      //     (cc.systemContact == null ||
+                                      //         cc.systemContact!.id !=
+                                      //             profileContactState
+                                      //                 .profileContact?.id))
                                       .toList()))
                             ])));
                 }
