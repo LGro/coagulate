@@ -300,6 +300,9 @@ class ContactsRepository {
 
   Map<String, CoagContact> getContacts() => _contacts;
 
+  // TODO: Proper error handling in case contact id not found or return nullable type
+  CoagContact getContact(String coagContactId) => _contacts[coagContactId]!;
+
   Future<void> removeContact(String coagContactId) async {
     _contacts.remove(coagContactId);
     await persistent_storage.removeContact(coagContactId);

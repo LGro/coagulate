@@ -15,14 +15,13 @@ part 'cubit.g.dart';
 part 'state.dart';
 
 class ContactDetailsCubit extends Cubit<ContactDetailsState> {
-  ContactDetailsCubit(this.contactsRepository, CoagContact contact)
-      : super(ContactDetailsState(
-            contact.coagContactId, ContactDetailsStatus.success,
-            contact: contact)) {
+  ContactDetailsCubit(this.contactsRepository, String coagContactId)
+      : super(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
+            contact: contactsRepository.getContact(coagContactId))) {
     _contactsSuscription = contactsRepository.getContactUpdates().listen((c) {
-      if (c.coagContactId == contact.coagContactId) {
+      if (c.coagContactId == coagContactId) {
         emit(ContactDetailsState(c.coagContactId, ContactDetailsStatus.success,
-            contact: contact));
+            contact: c));
       }
     });
   }

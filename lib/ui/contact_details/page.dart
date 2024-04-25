@@ -72,31 +72,31 @@ Widget _coagulateButton(
 }
 
 class ContactPage extends StatelessWidget {
-  const ContactPage({super.key});
+  const ContactPage({super.key, required this.coagContactId});
+
+  final String coagContactId;
 
   static Route<void> route(CoagContact contact) => MaterialPageRoute(
       fullscreenDialog: true,
-      builder: (context) => MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                  create: (context) => ContactDetailsCubit(
-                      context.read<ContactsRepository>(), contact)),
-              BlocProvider(
-                  create: (context) =>
-                      ProfileCubit(context.read<ContactsRepository>())),
-            ],
-            child: const ContactPage(),
-          ));
+      builder: (context) => ContactPage(coagContactId: contact.coagContactId));
 
   @override
-  Widget build(BuildContext context) =>
-      BlocConsumer<ContactDetailsCubit, ContactDetailsState>(
-          listener: (context, state) async {},
-          builder: (context, state) => Scaffold(
-              appBar: AppBar(
-                title: Text(state.contact!.details!.displayName),
-              ),
-              body: _body(context, state.contact)));
+  Widget build(BuildContext context) => MultiBlocProvider(
+          providers: [
+            BlocProvider(
+                create: (context) => ContactDetailsCubit(
+                    context.read<ContactsRepository>(), coagContactId)),
+            BlocProvider(
+                create: (context) =>
+                    ProfileCubit(context.read<ContactsRepository>())),
+          ],
+          child: BlocConsumer<ContactDetailsCubit, ContactDetailsState>(
+              listener: (context, state) async {},
+              builder: (context, state) => Scaffold(
+                  appBar: AppBar(
+                    title: Text(state.contact!.details!.displayName),
+                  ),
+                  body: _body(context, state.contact))));
 
   Widget _body(BuildContext context, CoagContact? contact) {
     if (contact?.details?.name == null) {
