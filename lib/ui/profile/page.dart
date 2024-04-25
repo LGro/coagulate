@@ -1,6 +1,9 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -97,9 +100,17 @@ Widget addresses(BuildContext context, List<Address> addresses,
                                 TextButton(
                                     child: const Text('Auto Fetch Coordinates'),
                                     // TODO: Switch to address index instead of label? Can there be duplicates?
-                                    onPressed: () async => context
-                                        .read<ProfileCubit>()
-                                        .fetchCoordinates(e.label.name))
+                                    onPressed: () async => showDialog<void>(
+                                        context: context,
+                                        // barrierDismissible: false,
+                                        builder: (dialogContext) =>
+                                            _confirmPrivacyLeakDialog(
+                                                dialogContext,
+                                                e.address,
+                                                () => unawaited(context
+                                                    .read<ProfileCubit>()
+                                                    .fetchCoordinates(
+                                                        e.label.name)))))
                               ]))
                     ]))));
 
@@ -120,13 +131,45 @@ Widget header(Contact contact) => Card(
               ),
             ]))));
 
+AlertDialog _confirmPrivacyLeakDialog(
+        BuildContext context, String address, Function() addressLookup) =>
+    AlertDialog(
+        title: const Text('Potential Privacy Leak'),
+        content: SingleChildScrollView(
+            child: ListBody(children: <Widget>[
+          // TODO: Show google / apple depending on which OS
+          Text('Looking up the coordinates of "$address" automatically '
+              'only works by sending that address to '
+              '${(Platform.isIOS) ? 'Apple' : 'Google'}. '
+              'Are you ok with leaking to them that you relate somehow '
+              'to this address?'),
+        ])),
+        actions: <Widget>[
+          // TODO: Store choice and don't ask again
+          // Row(mainAxisSize: MainAxisSize.min, children: [
+          //   Checkbox(value: false, onChanged: (v) => {}),
+          //   const Text('remember')
+          // ]),
+          TextButton(
+              child: const Text('Approve'),
+              onPressed: () async {
+                addressLookup();
+                Navigator.of(context).pop();
+              }),
+          TextButton(
+              child: const Text('Cancel'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+              })
+        ]);
+
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) => BlocProvider(
+  Widget build(BuildContext context) => BlocProvider<ProfileCubit>(
         create: (context) => ProfileCubit(context.read<ContactsRepository>()),
-        child: ProfileView(),
+        child: const ProfileView(),
       );
 }
 
