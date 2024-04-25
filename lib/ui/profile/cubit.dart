@@ -55,6 +55,7 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
           // TODO: Switch to full blown CoagContact for profile contact and get rid of this hack
           contactsRepository.getCoagContactIdForSystemContactId(contact.id)!);
     }
+    // TODO: If null, remove profile contact
   }
 
   @override

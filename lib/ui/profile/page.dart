@@ -202,31 +202,54 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
         ]));
 
 class ProfileViewState extends State<ProfileView> {
+  Widget _scaffoldBody(BuildContext context, ProfileState state) {
+    switch (state.status) {
+      case ProfileStatus.initial:
+        return Center(
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Container(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 28),
+                child: const Text(
+                    'Welcome to Coagulate. To start sharing your '
+                    'contact details with others, create a new '
+                    'profile or pick an existing contact that '
+                    'contains your data from the address book.',
+                    textScaler: TextScaler.linear(1.2))),
+            TextButton(
+                onPressed: context.read<ProfileCubit>().promptCreate,
+                child: const Text('Create Profile',
+                    textScaler: TextScaler.linear(1.2))),
+            Container(
+                padding: const EdgeInsets.all(8),
+                child: const Text('or', textScaler: TextScaler.linear(1.2))),
+            TextButton(
+                onPressed: context.read<ProfileCubit>().promptPick,
+                child: const Text('Pick Contact as Profile',
+                    textScaler: TextScaler.linear(1.2))),
+          ]),
+        );
+      case ProfileStatus.create:
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      case ProfileStatus.pick:
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      case ProfileStatus.success:
+        return Center(
+          child: buildProfileScrollView(
+              context, state.profileContact!, state.locationCoordinates),
+        );
+    }
+  }
+
   @override
   Widget build(
     BuildContext context,
   ) =>
-      Scaffold(
-          appBar: AppBar(
-            title: const Text('My Profile'),
-            // TODO: Add generate QR code for sharing with someone who I haven't as a contact yet
-            // TODO: Add update action; use system update view
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.add_task_rounded),
-                onPressed: () {
-                  // TODO: Manage profile sharing settings
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.replay_outlined),
-                onPressed: () async =>
-                    context.read<ProfileCubit>().setContact(null),
-              ),
-            ],
-          ),
-          body: BlocConsumer<ProfileCubit, ProfileState>(
-              listener: (context, state) async {
+      BlocConsumer<ProfileCubit, ProfileState>(
+          listener: (context, state) async {
             if (state.status.isPick) {
               if (await FlutterContacts.requestPermission()) {
                 await context
@@ -246,32 +269,26 @@ class ProfileViewState extends State<ProfileView> {
                 return;
               }
             }
-          }, builder: (context, state) {
-            switch (state.status) {
-              case ProfileStatus.initial:
-                return Center(
-                  child: Column(children: [
-                    TextButton(
-                        onPressed: context.read<ProfileCubit>().promptPick,
-                        child: const Text('Pick Profile Contact')),
-                    TextButton(
-                        onPressed: context.read<ProfileCubit>().promptCreate,
-                        child: const Text('Create Profile Contact')),
-                  ]),
-                );
-              case ProfileStatus.create:
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              case ProfileStatus.pick:
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              case ProfileStatus.success:
-                return Center(
-                  child: buildProfileScrollView(context, state.profileContact!,
-                      state.locationCoordinates),
-                );
-            }
-          }));
+          },
+          builder: (context, state) => Scaffold(
+              appBar: AppBar(
+                title: const Text('My Profile'),
+                // TODO: Add generate QR code for sharing with someone who I haven't as a contact yet
+                // TODO: Add update action; use system update view
+                actions: [
+                  // IconButton(
+                  //   icon: const Icon(Icons.add_task_rounded),
+                  //   onPressed: () {
+                  //     // TODO: Manage profile sharing settings
+                  //   },
+                  // ),
+                  if (state.status == ProfileStatus.success)
+                    IconButton(
+                      icon: const Icon(Icons.cancel_outlined),
+                      onPressed: () async =>
+                          context.read<ProfileCubit>().setContact(null),
+                    ),
+                ],
+              ),
+              body: _scaffoldBody(context, state)));
 }
