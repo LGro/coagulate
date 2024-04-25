@@ -100,6 +100,7 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
       updatedLocCoords = state.locationCoordinates!;
     }
     updatedLocCoords[name] = (lng, lat);
+    // TODO: Update the contact location of the profile contact and trigger DHT update
     emit(state.copyWith(locationCoordinates: updatedLocCoords));
   }
 

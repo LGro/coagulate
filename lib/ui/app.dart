@@ -82,6 +82,7 @@ class CoagulateApp extends StatelessWidget {
               child: MaterialApp(
                 title: 'Coagulate',
                 theme: ThemeData(
+                  colorScheme: ColorScheme.highContrastLight(),
                   primarySwatch: Colors.blue,
                 ),
                 home: CoagulateAppView(),

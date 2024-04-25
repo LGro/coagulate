@@ -184,11 +184,10 @@ class ContactPage extends StatelessWidget {
           Text(_shareURL(contact.dhtSettingsForSharing!).toString()),
           Center(
               child: QrImageView(
-            data: _shareURL(contact.dhtSettingsForSharing!).toString(),
-            version: QrVersions.auto,
-            size: 200,
-          ))
-        ])),
+                  data: _shareURL(contact.dhtSettingsForSharing!).toString(),
+                  backgroundColor: Colors.white,
+                  size: 200))
+        ]))
       ],
       Center(
           child: TextButton(
