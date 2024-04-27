@@ -17,6 +17,7 @@ final class ProfileState extends Equatable {
   const ProfileState({
     this.status = ProfileStatus.initial,
     this.profileContact,
+    this.permissionsGranted = false,
   });
 
   factory ProfileState.fromJson(Map<String, dynamic> json) =>
@@ -24,18 +25,21 @@ final class ProfileState extends Equatable {
 
   final ProfileStatus status;
   final CoagContact? profileContact;
+  final bool permissionsGranted;
 
   ProfileState copyWith({
     ProfileStatus? status,
     CoagContact? profileContact,
+    bool? permissionsGranted,
   }) =>
       ProfileState(
         status: status ?? this.status,
         profileContact: profileContact ?? this.profileContact,
+        permissionsGranted: permissionsGranted ?? this.permissionsGranted,
       );
 
   Map<String, dynamic> toJson() => _$ProfileStateToJson(this);
 
   @override
-  List<Object?> get props => [status, profileContact];
+  List<Object?> get props => [status, profileContact, permissionsGranted];
 }

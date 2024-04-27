@@ -17,18 +17,23 @@ part 'state.dart';
 
 class ProfileCubit extends HydratedCubit<ProfileState> {
   ProfileCubit(this.contactsRepository) : super(const ProfileState()) {
-    _contactsSuscription =
+    _contactsSubscription =
         contactsRepository.getContactUpdates().listen((contact) {
       if (state.profileContact != null &&
           contact.coagContactId == state.profileContact!.coagContactId) {
-        emit(ProfileState(
+        emit(state.copyWith(
             status: ProfileStatus.success, profileContact: contact));
       }
     });
+    _permissionsSubscription = contactsRepository
+        .isSystemContactAccessGranted()
+        .listen(
+            (isGranted) => emit(state.copyWith(permissionsGranted: isGranted)));
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<CoagContact> _contactsSuscription;
+  late final StreamSubscription<CoagContact> _contactsSubscription;
+  late final StreamSubscription<bool> _permissionsSubscription;
 
   void promptCreate() {
     emit(state.copyWith(status: ProfileStatus.create));
@@ -114,7 +119,8 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
 
   @override
   Future<void> close() {
-    _contactsSuscription.cancel();
+    _contactsSubscription.cancel();
+    _permissionsSubscription.cancel();
     return super.close();
   }
 }

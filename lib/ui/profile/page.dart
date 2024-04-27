@@ -281,17 +281,28 @@ class ProfileViewState extends State<ProfileView> {
                     'profile or pick an existing contact that '
                     'contains your data from the address book.',
                     textScaler: TextScaler.linear(1.2))),
-            TextButton(
-                onPressed: context.read<ProfileCubit>().promptCreate,
-                child: const Text('Create Profile',
-                    textScaler: TextScaler.linear(1.2))),
-            Container(
-                padding: const EdgeInsets.all(8),
-                child: const Text('or', textScaler: TextScaler.linear(1.2))),
-            TextButton(
-                onPressed: context.read<ProfileCubit>().promptPick,
-                child: const Text('Pick Contact as Profile',
-                    textScaler: TextScaler.linear(1.2))),
+            // TODO: Only display them when permissions granted, unless creation is possible in coagulate only
+            if (state.permissionsGranted) ...[
+              TextButton(
+                  onPressed: context.read<ProfileCubit>().promptCreate,
+                  child: const Text('Create Profile',
+                      textScaler: TextScaler.linear(1.2))),
+              Container(
+                  padding: const EdgeInsets.all(8),
+                  child: const Text('or', textScaler: TextScaler.linear(1.2))),
+              TextButton(
+                  onPressed: context.read<ProfileCubit>().promptPick,
+                  child: const Text('Pick Contact as Profile',
+                      textScaler: TextScaler.linear(1.2))),
+            ],
+            // TODO: Check if read access is enough / ensure
+            // TODO: Check if a re-request permissions button here is possible (doesn't seem to work reliably)
+            if (!state.permissionsGranted)
+              Container(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 28),
+                  child: const Text(
+                      'Please go to your permissions settings and grant Coagulate access to your address book'))
           ]),
         );
       case ProfileStatus.create:

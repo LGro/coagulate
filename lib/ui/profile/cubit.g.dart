@@ -13,12 +13,14 @@ ProfileState _$ProfileStateFromJson(Map<String, dynamic> json) => ProfileState(
           ? null
           : CoagContact.fromJson(
               json['profile_contact'] as Map<String, dynamic>),
+      permissionsGranted: json['permissions_granted'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ProfileStateToJson(ProfileState instance) =>
     <String, dynamic>{
       'status': _$ProfileStatusEnumMap[instance.status]!,
       'profile_contact': instance.profileContact?.toJson(),
+      'permissions_granted': instance.permissionsGranted,
     };
 
 const _$ProfileStatusEnumMap = {
