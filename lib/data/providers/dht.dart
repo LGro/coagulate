@@ -28,6 +28,10 @@ Future<String> readPasswordEncryptedDHTRecord(
       crypto: const DHTRecordCryptoPublic());
   // TODO: What is the onlyUpdates argument for?
   final raw = await record.get(forceRefresh: true);
+  if (raw == null) {
+    await record.close();
+    return '';
+  }
 
   // TODO: Detect if secret is pubkey and use asymmetric encryption here?
   // TODO: Error handling
@@ -92,26 +96,30 @@ Future<bool> isUpToDateSharingDHT(CoagContact contact) async {
 
 // TODO: Can we update the sharedProfile here as well or not because we're lacking the profile contact?
 Future<CoagContact> updateContactSharingDHT(CoagContact contact) async {
-  if (contact.dhtSettingsForSharing == null ||
-      contact.dhtSettingsForSharing!.writer == null) {
+  final cs = await DHTRecordPool.instance.veilid.bestCryptoSystem();
+
+  if (contact.dhtSettingsForSharing?.writer == null) {
     final (key, writer) = await createDHTRecord();
     contact = contact.copyWith(
         dhtSettingsForSharing: ContactDHTSettings(key: key, writer: writer));
   }
 
-  if (contact.dhtSettingsForReceiving == null ||
-      contact.dhtSettingsForReceiving!.writer == null) {
+  if (contact.dhtSettingsForReceiving?.writer == null) {
     final (key, writer) = await createDHTRecord();
     contact = contact.copyWith(
         dhtSettingsForReceiving: ContactDHTSettings(key: key, writer: writer));
   }
 
   if (contact.dhtSettingsForSharing!.psk == null) {
-    final cs = await DHTRecordPool.instance.veilid.bestCryptoSystem();
-    final sharedSecret = await cs.randomSharedSecret();
     contact = contact.copyWith(
-        dhtSettingsForSharing: contact.dhtSettingsForSharing!
-            .copyWith(psk: sharedSecret.toString()));
+        dhtSettingsForSharing: contact.dhtSettingsForSharing!.copyWith(
+            psk: await cs.randomSharedSecret().then((v) => v.toString())));
+  }
+
+  if (contact.dhtSettingsForReceiving!.psk == null) {
+    contact = contact.copyWith(
+        dhtSettingsForReceiving: contact.dhtSettingsForReceiving!.copyWith(
+            psk: await cs.randomSharedSecret().then((v) => v.toString())));
   }
 
   if (contact.sharedProfile != null) {
