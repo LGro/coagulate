@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
@@ -177,26 +178,38 @@ class ContactPage extends StatelessWidget {
       if (contact.dhtSettingsForSharing != null &&
           contact.dhtSettingsForSharing!.writer != null &&
           contact.dhtSettingsForSharing!.psk != null &&
-          contact.sharedProfile != null)
-        const Text('Full on coagulation; success!'),
-      if (contact.dhtSettingsForSharing != null &&
-          contact.dhtSettingsForSharing!.writer != null &&
-          contact.dhtSettingsForSharing!.psk != null) ...[
+          contact.sharedProfile != null &&
+          contact.sharedProfile!.isNotEmpty) ...[
         Card(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          InkWell(
-            child: const Text('I am sharing; stop or change sharing dialog'),
-            onTap: () async =>
-                launchUrl(_shareURL(contact.dhtSettingsForSharing!)),
-          ),
-          Text(_shareURL(contact.dhtSettingsForSharing!).toString()),
-          Center(
-              child: QrImageView(
-                  data: _shareURL(contact.dhtSettingsForSharing!).toString(),
-                  backgroundColor: Colors.white,
-                  size: 200))
-        ]))
+            shape:
+                const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+            margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  TextButton(
+                    child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Icon(Icons.share),
+                          SizedBox(width: 8),
+                          Text('Share via Trusted Channel'),
+                          SizedBox(width: 4),
+                        ]),
+                    // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
+                    onPressed: () async => Share.share(
+                        'I\'d like to coagulate with you: ${_shareURL(contact.dhtSettingsForSharing!)}\nKeep this link a secret, it\'s just for you.'),
+                  ),
+                  const Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text('or scan this QR code')),
+                  QrImageView(
+                      data:
+                          _shareURL(contact.dhtSettingsForSharing!).toString(),
+                      backgroundColor: Colors.white,
+                      size: 200),
+                  const SizedBox(height: 8),
+                ]))
       ],
       Center(
           child: TextButton(
@@ -207,12 +220,27 @@ class ContactPage extends StatelessWidget {
                 backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
               ),
               // TODO: Add subtext that this will retain the system contact in case it was linked
-              child: const Text(
-                'Delete from Coagulate',
-                style: TextStyle(color: Colors.black),
-              ))),
+              child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Text(
+                    'Delete from Coagulate',
+                    style: TextStyle(color: Colors.black),
+                  )))),
       // TODO: Display sharedProfile when sharing
-      if (contact.sharedProfile != null) Text(contact.sharedProfile!),
+      if (contact.sharedProfile != null && contact.sharedProfile!.isNotEmpty)
+        Card(
+            shape:
+                const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+            margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+            child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Shared Profile Details',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(contact.sharedProfile!),
+                    ]))),
     ]));
   }
 }
