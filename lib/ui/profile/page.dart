@@ -41,9 +41,7 @@ Widget emails(List<Email> emails) => Card(
                       children: [
                         Padding(
                             padding: const EdgeInsets.only(top: 8),
-                            child: Text(e.label.name,
-                                style: const TextStyle(
-                                    fontSize: 16, color: Colors.black54))),
+                            child: _label(e.label.name, e.customLabel)),
                         Padding(
                             padding: const EdgeInsets.only(top: 0),
                             child: Text(e.address,
@@ -66,9 +64,7 @@ Widget phones(List<Phone> phones) => Card(
                       children: [
                         Padding(
                             padding: const EdgeInsets.only(top: 8),
-                            child: Text(e.label.name,
-                                style: const TextStyle(
-                                    fontSize: 16, color: Colors.black54))),
+                            child: _label(e.label.name, e.customLabel)),
                         Padding(
                             padding: const EdgeInsets.only(top: 0),
                             child: Text(e.number,
@@ -91,9 +87,7 @@ Widget websites(List<Website> websites) => Card(
                       children: [
                         Padding(
                             padding: const EdgeInsets.only(top: 8),
-                            child: Text(e.label.name,
-                                style: const TextStyle(
-                                    fontSize: 16, color: Colors.black54))),
+                            child: _label(e.label.name, e.customLabel)),
                         Padding(
                             padding: const EdgeInsets.only(top: 0),
                             child: Text(e.url,
@@ -103,6 +97,11 @@ Widget websites(List<Website> websites) => Card(
 
 String _commaToNewline(String s) =>
     s.replaceAll(', ', ',').replaceAll(',', '\n');
+
+/// Potentially custom label for fields like email, phone, website
+Text _label(String name, String customLabel) =>
+    Text((name != 'custom') ? name : customLabel,
+        style: const TextStyle(fontSize: 16, color: Colors.black54));
 
 Widget addresses(BuildContext context, List<Address> addresses,
         Map<String, (num, num)>? locationCoordinates) =>
@@ -119,12 +118,7 @@ Widget addresses(BuildContext context, List<Address> addresses,
                       ...addresses.map((e) => Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                    (e.label.name != 'custom')
-                                        ? e.label.name
-                                        : e.customLabel,
-                                    style: const TextStyle(
-                                        fontSize: 16, color: Colors.black54)),
+                                _label(e.label.name, e.customLabel),
                                 Text(_commaToNewline(e.address),
                                     style: const TextStyle(fontSize: 19)),
                                 AddressCoordinatesForm(
