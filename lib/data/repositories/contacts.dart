@@ -44,11 +44,16 @@ class ContactsRepository {
 
     // Regularly check for updates from the persistent storage,
     // e.g. in case it was updated from background processes.
-    timer = Timer.periodic(
+    timerPersistentStorageRefresh = Timer.periodic(
         Duration(seconds: 5), (_) async => _updateFromPersistentStorage());
+
+    // TODO: Check if we can/should replace this with listening to the Veilid update stream
+    timerDhtRefresh = Timer.periodic(
+        Duration(seconds: 5), (_) async => updateAndWatchReceivingDHT());
   }
 
-  late final Timer? timer;
+  late final Timer? timerPersistentStorageRefresh;
+  late final Timer? timerDhtRefresh;
   String? profileContactId;
 
   Map<String, CoagContact> _contacts = {};
@@ -76,9 +81,10 @@ class ContactsRepository {
 
     // Update the contacts from DHT and subscribe to future updates
     await updateAndWatchReceivingDHT();
-    ProcessorRepository.instance
-        .streamUpdateValueChange()
-        .listen(_veilidUpdateValueChangeCallback);
+    // TODO: This doesn't seem to work, double check; current workaround via timerDhtRefresh
+    // ProcessorRepository.instance
+    //     .streamUpdateValueChange()
+    //     .listen(_veilidUpdateValueChangeCallback);
 
     // TODO: Only do this when online
     // for (final contact in _contacts.values) {
