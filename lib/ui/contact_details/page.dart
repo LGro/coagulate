@@ -124,7 +124,8 @@ class ContactPage extends StatelessWidget {
                           // TODO: Make my profile a first class citizen coag contact?
                           CoagContact(
                               coagContactId: Uuid().v4(),
-                              systemContact: state.profileContact))));
+                              systemContact:
+                                  state.profileContact?.systemContact))));
             }
           }),
 
@@ -150,9 +151,9 @@ class ContactPage extends StatelessWidget {
 
       if (contact.systemContact != null &&
           contact.systemContact!.addresses.isNotEmpty)
-        addresses(context, contact.systemContact!.addresses, null),
+        addresses(context, contact.systemContact!.addresses, []),
       if (contact.details!.addresses.isNotEmpty)
-        addresses(context, contact.details!.addresses, null),
+        addresses(context, contact.details!.addresses, []),
       // TODO: Switch to drop down selection when profiles are ready
       //  DropdownButton(
       //   // TODO make state dependent

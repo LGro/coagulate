@@ -90,6 +90,7 @@ Future<bool> isUpToDateSharingDHT(CoagContact contact) async {
   return record != contact.sharedProfile;
 }
 
+// TODO: Can we update the sharedProfile here as well or not because we're lacking the profile contact?
 Future<CoagContact> updateContactSharingDHT(CoagContact contact) async {
   if (contact.dhtSettingsForSharing == null ||
       contact.dhtSettingsForSharing!.writer == null) {

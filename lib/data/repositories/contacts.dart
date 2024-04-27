@@ -292,11 +292,12 @@ class ContactsRepository {
     }
   }
 
+  CoagContact? getCoagContactForSystemContactId(String systemContactId) =>
+      _contacts.values.firstWhere((c) =>
+          c.systemContact != null && c.systemContact!.id == systemContactId);
+
   String? getCoagContactIdForSystemContactId(String systemContactId) =>
-      _contacts.values
-          .firstWhere((c) =>
-              c.systemContact != null && c.systemContact!.id == systemContactId)
-          .coagContactId;
+      getCoagContactForSystemContactId(systemContactId)?.coagContactId;
 
   Map<String, CoagContact> getContacts() => _contacts;
 

@@ -4,12 +4,12 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
+import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 
 part 'cubit.g.dart';
@@ -20,10 +20,9 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
     _contactsSuscription =
         contactsRepository.getContactUpdates().listen((contact) {
       if (state.profileContact != null &&
-          contact.systemContact?.id == state.profileContact!.id) {
+          contact.coagContactId == state.profileContact!.coagContactId) {
         emit(ProfileState(
-            status: ProfileStatus.success,
-            profileContact: contact.systemContact));
+            status: ProfileStatus.success, profileContact: contact));
       }
     });
   }
@@ -42,20 +41,15 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
   Future<void> setContact(String? systemContactId) async {
     final contact = (systemContactId == null)
         ? null
-        : await FlutterContacts.getContact(systemContactId);
+        : contactsRepository.getCoagContactForSystemContactId(systemContactId);
 
-    emit(state.copyWith(
-        status:
-            (contact == null) ? ProfileStatus.initial : ProfileStatus.success,
-        profileContact: contact));
-
-    if (contact != null) {
-      // TODO: add more details, locations etc.
-      await contactsRepository.updateProfileContact(
-          // TODO: Switch to full blown CoagContact for profile contact and get rid of this hack
-          contactsRepository.getCoagContactIdForSystemContactId(contact.id)!);
+    if (contact == null) {
+      return emit(const ProfileState(status: ProfileStatus.initial));
     }
-    // TODO: If null, remove profile contact
+
+    await contactsRepository.updateProfileContact(contact.coagContactId);
+    emit(
+        state.copyWith(status: ProfileStatus.success, profileContact: contact));
   }
 
   @override
@@ -68,7 +62,7 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
   // TODO: Switch to address index instead of labelName
   Future<void> fetchCoordinates(String labelName) async {
     String? address;
-    for (Address a in state.profileContact!.addresses) {
+    for (final a in state.profileContact!.systemContact!.addresses) {
       if (a.label.name == labelName) {
         address = a.address;
         break;
@@ -82,13 +76,9 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
     try {
       List<Location> locations = await locationFromAddress(address);
       // TODO: Expose options to pick from, instead of just using the first.
-      Map<String, (num, num)> updatedLocCoords = {};
-      if (state.locationCoordinates != null) {
-        updatedLocCoords = state.locationCoordinates!;
-      }
-      updatedLocCoords[labelName] =
-          (locations[0].longitude, locations[0].latitude);
-      emit(state.copyWith(locationCoordinates: updatedLocCoords));
+      final chosenLocation = locations[0];
+      updateCoordinates(
+          labelName, chosenLocation.longitude, chosenLocation.latitude);
     } on NoResultFoundException catch (e) {
       // TODO: Proper error handling
       print('${e} ${address}');
@@ -96,13 +86,30 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
   }
 
   void updateCoordinates(String name, num lng, num lat) {
-    Map<String, (num, num)> updatedLocCoords = {};
-    if (state.locationCoordinates != null) {
-      updatedLocCoords = state.locationCoordinates!;
+    final newLocation = AddressLocation(
+        coagContactId: state.profileContact!.coagContactId,
+        longitude: lng.toDouble(),
+        latitude: lat.toDouble(),
+        name: name);
+    // If location name exists, update
+    var updatedLocations = state.profileContact!.locations
+        .map((l) => (l is AddressLocation && l.name == name) ? newLocation : l);
+    // Otherwise, add new
+    if (updatedLocations.isEmpty ||
+        updatedLocations.toList() == state.profileContact!.locations.toList()) {
+      updatedLocations = [...updatedLocations, newLocation];
     }
-    updatedLocCoords[name] = (lng, lat);
-    // TODO: Update the contact location of the profile contact and trigger DHT update
-    emit(state.copyWith(locationCoordinates: updatedLocCoords));
+
+    final updatedContact =
+        state.profileContact!.copyWith(locations: updatedLocations.toList());
+    // TODO: Can we ensure somehow that we don't need to remember doing both steps but just push the update to the profile contact?
+    // Also, ensure that the profile contact update really only happens after updateContact finished
+    unawaited(contactsRepository.updateContact(updatedContact).then((_) =>
+        contactsRepository
+            .updateProfileContact(state.profileContact!.coagContactId)));
+
+    // Already emit what should also come in a bit later via the updated contacts repo
+    emit(state.copyWith(profileContact: updatedContact));
   }
 
   @override

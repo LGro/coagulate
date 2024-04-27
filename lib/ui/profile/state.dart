@@ -17,28 +17,25 @@ final class ProfileState extends Equatable {
   const ProfileState({
     this.status = ProfileStatus.initial,
     this.profileContact,
-    this.locationCoordinates,
   });
 
   factory ProfileState.fromJson(Map<String, dynamic> json) =>
       _$ProfileStateFromJson(json);
 
   final ProfileStatus status;
-  final Contact? profileContact;
-  final Map<String, (num, num)>? locationCoordinates;
+  final CoagContact? profileContact;
 
-  ProfileState copyWith(
-          {ProfileStatus? status,
-          Contact? profileContact,
-          Map<String, (num, num)>? locationCoordinates}) =>
+  ProfileState copyWith({
+    ProfileStatus? status,
+    CoagContact? profileContact,
+  }) =>
       ProfileState(
         status: status ?? this.status,
         profileContact: profileContact ?? this.profileContact,
-        locationCoordinates: locationCoordinates ?? this.locationCoordinates,
       );
 
   Map<String, dynamic> toJson() => _$ProfileStateToJson(this);
 
   @override
-  List<Object?> get props => [status, profileContact, locationCoordinates];
+  List<Object?> get props => [status, profileContact];
 }

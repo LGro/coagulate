@@ -4,10 +4,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
+import '../../data/models/coag_contact.dart';
+import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../widgets/address_coordinates_form.dart';
 import 'cubit.dart';
@@ -104,7 +107,7 @@ Text _label(String name, String customLabel) =>
         style: const TextStyle(fontSize: 16, color: Colors.black54));
 
 Widget addresses(BuildContext context, List<Address> addresses,
-        Map<String, (num, num)>? locationCoordinates) =>
+        List<AddressLocation> locations) =>
     Card(
         color: Colors.white,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
@@ -121,9 +124,16 @@ Widget addresses(BuildContext context, List<Address> addresses,
                                 _label(e.label.name, e.customLabel),
                                 Text(_commaToNewline(e.address),
                                     style: const TextStyle(fontSize: 19)),
+                                // TODO: The usage of first below might result in exceptions
                                 AddressCoordinatesForm(
-                                    lng: locationCoordinates?[e.label.name]?.$1,
-                                    lat: locationCoordinates?[e.label.name]?.$2,
+                                    lng: locations
+                                        .where((l) => l.name == e.label.name)
+                                        .firstOrNull
+                                        ?.longitude,
+                                    lat: locations
+                                        .where((l) => l.name == e.label.name)
+                                        .firstOrNull
+                                        ?.latitude,
                                     callback: (num lng, num lat) => context
                                         .read<ProfileCubit>()
                                         .updateCoordinates(
@@ -211,24 +221,30 @@ class ProfileView extends StatefulWidget {
   ProfileViewState createState() => ProfileViewState();
 }
 
-Widget buildProfileScrollView(BuildContext context, Contact contact,
-        Map<String, (num, num)>? locationCoordinates) =>
+Widget buildProfileScrollView(BuildContext context, CoagContact contact) =>
     RefreshIndicator(
         onRefresh: () async =>
-            context.read<ProfileCubit>().setContact(contact.id),
+            context.read<ProfileCubit>().setContact(contact.systemContact?.id),
         child: CustomScrollView(slivers: [
           SliverFillRemaining(
               hasScrollBody: false,
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    header(contact),
-                    if (contact.phones.isNotEmpty) phones(contact.phones),
-                    if (contact.emails.isNotEmpty) emails(contact.emails),
-                    if (contact.addresses.isNotEmpty)
+                    header(contact.systemContact!),
+                    if (contact.systemContact!.phones.isNotEmpty)
+                      phones(contact.systemContact!.phones),
+                    if (contact.systemContact!.emails.isNotEmpty)
+                      emails(contact.systemContact!.emails),
+                    if (contact.systemContact!.addresses.isNotEmpty)
                       addresses(
-                          context, contact.addresses, locationCoordinates),
-                    if (contact.websites.isNotEmpty) websites(contact.websites),
+                          context,
+                          contact.systemContact!.addresses,
+                          contact.locations
+                              .whereType<AddressLocation>()
+                              .asList()),
+                    if (contact.systemContact!.websites.isNotEmpty)
+                      websites(contact.systemContact!.websites),
                   ]))
         ]));
 
@@ -269,8 +285,7 @@ class ProfileViewState extends State<ProfileView> {
         );
       case ProfileStatus.success:
         return Center(
-          child: buildProfileScrollView(
-              context, state.profileContact!, state.locationCoordinates),
+          child: buildProfileScrollView(context, state.profileContact!),
         );
     }
   }
@@ -314,14 +329,15 @@ class ProfileViewState extends State<ProfileView> {
                   //   },
                   // ),
                   if (state.status == ProfileStatus.success &&
-                      state.profileContact?.id != null)
+                      state.profileContact?.systemContact?.id != null)
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () async => FlutterContacts.openExternalEdit(
-                              state.profileContact!.id)
+                              state.profileContact!.systemContact!.id)
                           .then((contact) => context
                               .read<ProfileCubit>()
-                              .setContact(state.profileContact!.id)),
+                              .setContact(
+                                  state.profileContact!.systemContact!.id)),
                     ),
                   if (state.status == ProfileStatus.success)
                     IconButton(
