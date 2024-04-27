@@ -80,6 +80,32 @@ Widget _coagulateButton(
   }
 }
 
+Widget _qrCodeButton(BuildContext context,
+        {required String buttonText,
+        required String alertTitle,
+        required String qrCodeData}) =>
+    TextButton(
+        child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          const Icon(Icons.qr_code),
+          const SizedBox(width: 8),
+          Text(buttonText),
+          const SizedBox(width: 4),
+        ]),
+        onPressed: () async => showDialog<void>(
+            context: context,
+            builder: (_) => AlertDialog(
+                title: Text(alertTitle),
+                shape: const RoundedRectangleBorder(),
+                content: Container(
+                    height: 200,
+                    width: 200,
+                    child: Center(
+                        child: QrImageView(
+                            // TODO: This needs to be receive URL because it needs to include the writer
+                            data: qrCodeData,
+                            backgroundColor: Colors.white,
+                            size: 200))))));
+
 class ContactPage extends StatelessWidget {
   const ContactPage({super.key, required this.coagContactId});
 
@@ -171,36 +197,14 @@ class ContactPage extends StatelessWidget {
                         contact.sharedProfile != null &&
                         contact.sharedProfile!.isNotEmpty) ...[
                       Center(
-                          child: TextButton(
-                              child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    Icon(Icons.qr_code),
-                                    SizedBox(width: 8),
-                                    Text('QR code to share'),
-                                    SizedBox(width: 4),
-                                  ]),
-                              onPressed: () async => showDialog<void>(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                      title: Text(
-                                          'Share with ${contact.details!.displayName}'),
-                                      shape: const RoundedRectangleBorder(),
-                                      content: Container(
-                                          height: 200,
-                                          width: 200,
-                                          child: Center(
-                                              child: QrImageView(
-                                                  data: _shareUrl(
-                                                    key: contact
-                                                        .dhtSettingsForSharing!
-                                                        .key,
-                                                    psk: contact
-                                                        .dhtSettingsForSharing!
-                                                        .psk!,
-                                                  ).toString(),
-                                                  backgroundColor: Colors.white,
-                                                  size: 200))))))),
+                          child: _qrCodeButton(context,
+                              buttonText: 'QR code to share',
+                              alertTitle:
+                                  'Share with ${contact.details!.displayName}',
+                              qrCodeData: _shareUrl(
+                                key: contact.dhtSettingsForSharing!.key,
+                                psk: contact.dhtSettingsForSharing!.psk!,
+                              ).toString())),
                       const Center(child: Text('or')),
                       Center(
                           child: TextButton(
@@ -258,40 +262,16 @@ class ContactPage extends StatelessWidget {
                           textScaler: const TextScaler.linear(1.2)),
                       const SizedBox(height: 4),
                       Center(
-                          child: TextButton(
-                              child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    Icon(Icons.qr_code),
-                                    SizedBox(width: 8),
-                                    Text('QR code to request'),
-                                    SizedBox(width: 4),
-                                  ]),
-                              onPressed: () async => showDialog<void>(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                      title: Text(
-                                          'Request from ${contact.details!.displayName}'),
-                                      shape: const RoundedRectangleBorder(),
-                                      content: Container(
-                                          height: 200,
-                                          width: 200,
-                                          child: Center(
-                                              child: QrImageView(
-                                                  // TODO: This needs to be receive URL because it needs to include the writer
-                                                  data: _receiveUrl(
-                                                    key: contact
-                                                        .dhtSettingsForReceiving!
-                                                        .key,
-                                                    psk: contact
-                                                        .dhtSettingsForReceiving!
-                                                        .psk!,
-                                                    writer: contact
-                                                        .dhtSettingsForReceiving!
-                                                        .writer!,
-                                                  ).toString(),
-                                                  backgroundColor: Colors.white,
-                                                  size: 200))))))),
+                          child: _qrCodeButton(context,
+                              buttonText: 'QR code to request',
+                              alertTitle:
+                                  'Request from ${contact.details!.displayName}',
+                              qrCodeData: _receiveUrl(
+                                key: contact.dhtSettingsForReceiving!.key,
+                                psk: contact.dhtSettingsForReceiving!.psk!,
+                                writer:
+                                    contact.dhtSettingsForReceiving!.writer!,
+                              ).toString())),
                       const Center(child: Text('or')),
                       Center(
                           child: TextButton(
