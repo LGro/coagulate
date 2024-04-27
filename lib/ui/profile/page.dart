@@ -106,7 +106,7 @@ Text _label(String name, String customLabel) =>
     Text((name != 'custom') ? name : customLabel,
         style: const TextStyle(fontSize: 16, color: Colors.black54));
 
-Widget addresses(BuildContext context, List<Address> addresses,
+Widget addressesWithForms(BuildContext context, List<Address> addresses,
         List<ContactLocation> locations) =>
     Card(
         color: Colors.white,
@@ -154,6 +154,27 @@ Widget addresses(BuildContext context, List<Address> addresses,
                                                         e.label.name)))))
                               ]))
                     ]))));
+
+Widget addresses(BuildContext context, List<Address> addresses) => Card(
+    color: Colors.white,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+    child: SizedBox(
+        child: Padding(
+            padding:
+                const EdgeInsets.only(top: 4, left: 16, bottom: 16, right: 16),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              ...addresses.map((e) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: _label(e.label.name, e.customLabel)),
+                        Text(_commaToNewline(e.address),
+                            style: const TextStyle(fontSize: 19))
+                      ]))
+            ]))));
 
 Widget header(Contact contact) => Card(
     color: Colors.white,
@@ -237,7 +258,9 @@ Widget buildProfileScrollView(BuildContext context, CoagContact contact) =>
                     if (contact.systemContact!.emails.isNotEmpty)
                       emails(contact.systemContact!.emails),
                     if (contact.systemContact!.addresses.isNotEmpty)
-                      addresses(context, contact.systemContact!.addresses,
+                      addressesWithForms(
+                          context,
+                          contact.systemContact!.addresses,
                           contact.locations.asList()),
                     if (contact.systemContact!.websites.isNotEmpty)
                       websites(contact.systemContact!.websites),

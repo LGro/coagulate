@@ -151,9 +151,9 @@ class ContactPage extends StatelessWidget {
 
       if (contact.systemContact != null &&
           contact.systemContact!.addresses.isNotEmpty)
-        addresses(context, contact.systemContact!.addresses, []),
+        addresses(context, contact.systemContact!.addresses),
       if (contact.details!.addresses.isNotEmpty)
-        addresses(context, contact.details!.addresses, []),
+        addresses(context, contact.details!.addresses),
       // TODO: Switch to drop down selection when profiles are ready
       //  DropdownButton(
       //   // TODO make state dependent
