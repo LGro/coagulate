@@ -319,6 +319,16 @@ class ProfileViewState extends State<ProfileView> {
                   //     // TODO: Manage profile sharing settings
                   //   },
                   // ),
+                  if (state.status == ProfileStatus.success &&
+                      state.profileContact?.id != null)
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () async => FlutterContacts.openExternalEdit(
+                              state.profileContact!.id)
+                          .then((contact) => context
+                              .read<ProfileCubit>()
+                              .setContact(state.profileContact!.id)),
+                    ),
                   if (state.status == ProfileStatus.success)
                     IconButton(
                       icon: const Icon(Icons.cancel_outlined),
