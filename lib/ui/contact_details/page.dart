@@ -113,10 +113,18 @@ class ContactPage extends StatelessWidget {
           builder: (context, state) {
             if (state.profileContact == null) {
               return const Card(
-                  child:
-                      Text('Need to pick profile contact before coagulate.'));
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero),
+                  margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+                  child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child:
+                          Text('Pick a profile contact, then you can share.')));
             } else {
               return Card(
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero),
+                  margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
                   child: Center(
                       child: _coagulateButton(
                           context,
