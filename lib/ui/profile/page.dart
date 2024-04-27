@@ -28,7 +28,7 @@ Widget avatar(Contact contact,
 
 Widget emails(List<Email> emails) => Card(
     color: Colors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
     child: SizedBox(
         child: Padding(
@@ -53,7 +53,7 @@ Widget emails(List<Email> emails) => Card(
 
 Widget phones(List<Phone> phones) => Card(
     color: Colors.white,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
     child: SizedBox(
         child: Padding(
@@ -72,6 +72,31 @@ Widget phones(List<Phone> phones) => Card(
                         Padding(
                             padding: const EdgeInsets.only(top: 0),
                             child: Text(e.number,
+                                style: const TextStyle(fontSize: 19)))
+                      ]))
+            ]))));
+
+Widget websites(List<Website> websites) => Card(
+    color: Colors.white,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+    child: SizedBox(
+        child: Padding(
+            padding:
+                const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 16),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              ...websites.map((e) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(e.label.name,
+                                style: const TextStyle(
+                                    fontSize: 16, color: Colors.black54))),
+                        Padding(
+                            padding: const EdgeInsets.only(top: 0),
+                            child: Text(e.url,
                                 style: const TextStyle(fontSize: 19)))
                       ]))
             ]))));
@@ -209,7 +234,7 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
                     if (contact.addresses.isNotEmpty)
                       addresses(
                           context, contact.addresses, locationCoordinates),
-                    // if (contact.websites.isNotEmpty) websites(contact.websites), #2
+                    if (contact.websites.isNotEmpty) websites(contact.websites),
                   ]))
         ]));
 
