@@ -19,7 +19,7 @@ part 'state.dart';
 CoagContact _populateWithDummyLocations(CoagContact contact) =>
     contact.copyWith(
         locations: contact.details!.addresses
-            .map((a) => AddressLocation(
+            .map((a) => ContactLocation(
                 coagContactId: contact.coagContactId,
                 longitude: Random().nextDouble() / 2 * 50,
                 latitude: Random().nextDouble() / 2 * 50,
@@ -27,7 +27,7 @@ CoagContact _populateWithDummyLocations(CoagContact contact) =>
             .toList());
 
 Iterable<Location> _contactToLocations(CoagContact contact) =>
-    contact.locations.whereType<AddressLocation>().map((cl) => Location(
+    contact.locations.map((cl) => Location(
         coagContactId: contact.coagContactId,
         longitude: cl.longitude,
         latitude: cl.latitude,

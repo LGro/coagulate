@@ -107,7 +107,7 @@ Text _label(String name, String customLabel) =>
         style: const TextStyle(fontSize: 16, color: Colors.black54));
 
 Widget addresses(BuildContext context, List<Address> addresses,
-        List<AddressLocation> locations) =>
+        List<ContactLocation> locations) =>
     Card(
         color: Colors.white,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
@@ -237,12 +237,8 @@ Widget buildProfileScrollView(BuildContext context, CoagContact contact) =>
                     if (contact.systemContact!.emails.isNotEmpty)
                       emails(contact.systemContact!.emails),
                     if (contact.systemContact!.addresses.isNotEmpty)
-                      addresses(
-                          context,
-                          contact.systemContact!.addresses,
-                          contact.locations
-                              .whereType<AddressLocation>()
-                              .asList()),
+                      addresses(context, contact.systemContact!.addresses,
+                          contact.locations.asList()),
                     if (contact.systemContact!.websites.isNotEmpty)
                       websites(contact.systemContact!.websites),
                   ]))

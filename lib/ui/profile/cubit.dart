@@ -86,14 +86,14 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
   }
 
   void updateCoordinates(String name, num lng, num lat) {
-    final newLocation = AddressLocation(
+    final newLocation = ContactLocation(
         coagContactId: state.profileContact!.coagContactId,
         longitude: lng.toDouble(),
         latitude: lat.toDouble(),
         name: name);
     // If location name exists, update
     var updatedLocations = state.profileContact!.locations
-        .map((l) => (l is AddressLocation && l.name == name) ? newLocation : l);
+        .map((l) => (l.name == name) ? newLocation : l);
     // Otherwise, add new
     if (updatedLocations.isEmpty ||
         updatedLocations.toList() == state.profileContact!.locations.toList()) {

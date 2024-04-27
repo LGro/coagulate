@@ -6,12 +6,18 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'contact_location.g.dart';
 
+// TODO: This feels like a super type, but sub types don't seem to work well with simple reloading
 @JsonSerializable()
 class ContactLocation extends Equatable {
-  ContactLocation(
-      {required this.coagContactId,
-      required this.longitude,
-      required this.latitude});
+  const ContactLocation({
+    required this.coagContactId,
+    required this.longitude,
+    required this.latitude,
+    this.name,
+    this.start,
+    this.end,
+    this.details,
+  });
 
   factory ContactLocation.fromJson(Map<String, dynamic> json) =>
       _$ContactLocationFromJson(json);
@@ -19,52 +25,14 @@ class ContactLocation extends Equatable {
   final String coagContactId;
   final double longitude;
   final double latitude;
+  final String? name;
+  final DateTime? start;
+  final DateTime? end;
+  final String? details;
 
   Map<String, dynamic> toJson() => _$ContactLocationToJson(this);
 
   @override
-  List<Object?> get props => [coagContactId, longitude, latitude];
-}
-
-@JsonSerializable()
-class AddressLocation extends ContactLocation {
-  factory AddressLocation.fromJson(Map<String, dynamic> json) =>
-      _$AddressLocationFromJson(json);
-
-  AddressLocation(
-      {required super.coagContactId,
-      required super.longitude,
-      required super.latitude,
-      required this.name});
-
-  final String name;
-
-  Map<String, dynamic> toJson() => _$AddressLocationToJson(this);
-
-  @override
-  List<Object?> get props => [coagContactId, longitude, latitude, name];
-}
-
-@JsonSerializable()
-class TemporalLocation extends ContactLocation {
-  factory TemporalLocation.fromJson(Map<String, dynamic> json) =>
-      _$TemporalLocationFromJson(json);
-
-  TemporalLocation(
-      {required super.coagContactId,
-      required super.longitude,
-      required super.latitude,
-      required this.start,
-      required this.end,
-      required this.details});
-
-  final DateTime start;
-  final DateTime end;
-  final String details;
-
-  Map<String, dynamic> toJson() => _$TemporalLocationToJson(this);
-
-  @override
   List<Object?> get props =>
-      [coagContactId, longitude, latitude, start, end, details];
+      [coagContactId, longitude, latitude, name, start, end, details];
 }
