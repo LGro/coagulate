@@ -9,8 +9,12 @@ part 'coag_contact.g.dart';
 
 @JsonSerializable()
 class ContactDHTSettings extends Equatable {
-  const ContactDHTSettings(
-      {required this.key, this.writer, this.psk, this.pubKey});
+  ContactDHTSettings(
+      {required this.key,
+      this.writer,
+      this.psk,
+      this.pubKey,
+      this.lastUpdated});
 
   final String key;
   // Optional writer keypair in case I shared first and offered a DHT record for
@@ -20,8 +24,9 @@ class ContactDHTSettings extends Equatable {
   // their public key
   final String? psk;
   // Optional peer public key in case they share it; superseeds the psk
-  final String? pubKey;
   // TODO: Reconsile pubKey and writer somehow so that only one is needed?
+  final String? pubKey;
+  final DateTime? lastUpdated;
 
   factory ContactDHTSettings.fromJson(Map<String, dynamic> json) =>
       _$ContactDHTSettingsFromJson(json);

@@ -12,6 +12,9 @@ ContactDHTSettings _$ContactDHTSettingsFromJson(Map<String, dynamic> json) =>
       writer: json['writer'] as String?,
       psk: json['psk'] as String?,
       pubKey: json['pub_key'] as String?,
+      lastUpdated: json['last_updated'] == null
+          ? null
+          : DateTime.parse(json['last_updated'] as String),
     );
 
 Map<String, dynamic> _$ContactDHTSettingsToJson(ContactDHTSettings instance) =>
@@ -20,6 +23,7 @@ Map<String, dynamic> _$ContactDHTSettingsToJson(ContactDHTSettings instance) =>
       'writer': instance.writer,
       'psk': instance.psk,
       'pub_key': instance.pubKey,
+      'last_updated': instance.lastUpdated?.toIso8601String(),
     };
 
 ContactDetails _$ContactDetailsFromJson(Map<String, dynamic> json) =>
