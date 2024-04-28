@@ -101,3 +101,5 @@ flutter:
     - assets/images/title.svg
     - assets/images/vlogo.svg
     - assets/images/ellet.png
+    - assets/images/up_arrow_bg.svg
+    - assets/images/down_arrow_bg.svg

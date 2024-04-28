@@ -3,9 +3,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
@@ -30,8 +30,8 @@ Uri _receiveUrl(
         path: 'en/c',
         fragment: '$key:$psk:$writer');
 
-Widget _coagulateButton(
-    BuildContext context, CoagContact contact, CoagContact myProfile) {
+Widget _coagulateButton(BuildContext context,
+    {required CoagContact contact, required CoagContact myProfile}) {
   if (contact.sharedProfile == null || contact.sharedProfile!.isEmpty) {
     return TextButton(
         onPressed: () async =>
@@ -135,79 +135,80 @@ class ContactPage extends StatelessWidget {
       Card(
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
           margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-          child: Padding(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        'Start sharing your contact details with ${contact.details?.displayName}:',
-                        textScaler: const TextScaler.linear(1.2)),
-                    const SizedBox(height: 4),
-                    // TODO: Add when custom sharing profiles are there
-                    // DropdownButton(
-                    //     // TODO make state dependent
-                    //     // TODO: Get from my profile preferences
-                    //     value: 'full',
-                    //     items: const [
-                    //       DropdownMenuItem<String>(
-                    //           value: 'full', child: Text('Full Profile')),
-                    //     ],
-                    //     onChanged: (v) => ()),
-                    if (contact.dhtSettingsForSharing != null &&
-                        contact.dhtSettingsForSharing!.writer != null &&
-                        contact.dhtSettingsForSharing!.psk != null &&
-                        contact.sharedProfile != null &&
-                        contact.sharedProfile!.isNotEmpty) ...[
-                      Center(
-                          child: _qrCodeButton(context,
-                              buttonText: 'QR code to share',
-                              alertTitle:
-                                  'Share with ${contact.details!.displayName}',
-                              qrCodeData: _shareUrl(
-                                key: contact.dhtSettingsForSharing!.key,
-                                psk: contact.dhtSettingsForSharing!.psk!,
-                              ).toString())),
-                      const Center(child: Text('or')),
-                      Center(
-                          child: TextButton(
-                        child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Icon(Icons.share),
-                              SizedBox(width: 8),
-                              Text('share link via trusted channel'),
-                              SizedBox(width: 4),
-                            ]),
-                        // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
-                        onPressed: () async => Share.share(
-                            'I\'d like to coagulate with you: ${_shareUrl(key: contact.dhtSettingsForSharing!.key, psk: contact.dhtSettingsForSharing!.psk!)}\n'
-                            'Keep this link a secret, it\'s just for you.'),
-                      )),
-                    ],
-                    BlocConsumer<ProfileCubit, ProfileState>(
-                        listener: (context, state) async {},
-                        builder: (context, state) {
-                          if (state.profileContact == null) {
-                            return const Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Text(
-                                    'Pick a profile contact, then you can share.'));
-                          } else {
+          child: Stack(children: [
+            Positioned.fill(
+                child: SvgPicture.asset('assets/images/up_arrow_bg.svg',
+                    fit: BoxFit.cover)),
+            Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          'Start sharing your contact details with ${contact.details?.displayName}:',
+                          textScaler: const TextScaler.linear(1.2)),
+                      const SizedBox(height: 4),
+                      // TODO: Add when custom sharing profiles are there
+                      // DropdownButton(
+                      //     // TODO make state dependent
+                      //     // TODO: Get from my profile preferences
+                      //     value: 'full',
+                      //     items: const [
+                      //       DropdownMenuItem<String>(
+                      //           value: 'full', child: Text('Full Profile')),
+                      //     ],
+                      //     onChanged: (v) => ()),
+                      if (contact.dhtSettingsForSharing != null &&
+                          contact.dhtSettingsForSharing!.writer != null &&
+                          contact.dhtSettingsForSharing!.psk != null &&
+                          contact.sharedProfile != null &&
+                          contact.sharedProfile!.isNotEmpty) ...[
+                        Center(
+                            child: _qrCodeButton(context,
+                                buttonText: 'QR code to share',
+                                alertTitle:
+                                    'Share with ${contact.details!.displayName}',
+                                qrCodeData: _shareUrl(
+                                  key: contact.dhtSettingsForSharing!.key,
+                                  psk: contact.dhtSettingsForSharing!.psk!,
+                                ).toString())),
+                        const Center(child: Text('or')),
+                        Center(
+                            child: TextButton(
+                          child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(Icons.share),
+                                SizedBox(width: 8),
+                                Text('share link via trusted channel'),
+                                SizedBox(width: 4),
+                              ]),
+                          // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
+                          onPressed: () async => Share.share(
+                              'I\'d like to coagulate with you: ${_shareUrl(key: contact.dhtSettingsForSharing!.key, psk: contact.dhtSettingsForSharing!.psk!)}\n'
+                              'Keep this link a secret, it\'s just for you.'),
+                        )),
+                      ],
+                      // TODO: We don't need to integrate profile and sharing via the UI, we can also do it via the repository layer.
+                      //       It might make sense when we introduce the sharing profile settings, though, so let's see then.
+                      BlocConsumer<ProfileCubit, ProfileState>(
+                          listener: (context, state) async {},
+                          builder: (context, state) {
+                            if (state.profileContact == null) {
+                              return const Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Text(
+                                      'Pick a profile contact, then you can start sharing.'));
+                            }
                             return Center(
-                                child: _coagulateButton(
-                                    context,
-                                    contact,
-                                    // TODO: Make my profile a first class citizen coag contact?
-                                    CoagContact(
-                                        coagContactId: Uuid().v4(),
-                                        systemContact: state
-                                            .profileContact?.systemContact)));
-                          }
-                        }),
-                    const SizedBox(height: 8),
-                  ]))),
-      // Receiving stuff // TODO: Add background image to differentiate between sharing and receiving
+                                child: _coagulateButton(context,
+                                    contact: contact,
+                                    myProfile: state.profileContact!));
+                          }),
+                      const SizedBox(height: 8),
+                    ]))
+          ])),
+      // Receiving stuff
       if (contact.dhtSettingsForReceiving != null &&
           contact.dhtSettingsForReceiving!.writer != null &&
           contact.dhtSettingsForReceiving!.psk != null &&
@@ -215,44 +216,51 @@ class ContactPage extends StatelessWidget {
         Card(
             shape: const RoundedRectangleBorder(),
             margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-            child: Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                          'Ask ${contact.details?.displayName} to start sharing with you:',
-                          textScaler: const TextScaler.linear(1.2)),
-                      const SizedBox(height: 4),
-                      Center(
-                          child: _qrCodeButton(context,
-                              buttonText: 'QR code to request',
-                              alertTitle:
-                                  'Request from ${contact.details!.displayName}',
-                              qrCodeData: _receiveUrl(
-                                key: contact.dhtSettingsForReceiving!.key,
-                                psk: contact.dhtSettingsForReceiving!.psk!,
-                                writer:
-                                    contact.dhtSettingsForReceiving!.writer!,
-                              ).toString())),
-                      const Center(child: Text('or')),
-                      Center(
-                          child: TextButton(
-                        child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Icon(Icons.share),
-                              SizedBox(width: 8),
-                              Text('request via trusted channel'),
-                              SizedBox(width: 4),
-                            ]),
-                        // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
-                        onPressed: () async => Share.share(
-                            'I\'d like to coagulate with you: ${_receiveUrl(key: contact.dhtSettingsForReceiving!.key, psk: contact.dhtSettingsForReceiving!.psk!, writer: contact.dhtSettingsForReceiving!.writer!)}\n'
-                            'Keep this link a secret, it\'s just for you.'),
-                      )),
-                      const SizedBox(height: 8),
-                    ]))),
+            child: Stack(children: [
+              Positioned.fill(
+                child: SvgPicture.asset(
+                    'assets/images/down_arrow_bg.svg', // Path to your SVG file
+                    fit: BoxFit.cover),
+              ),
+              Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                            'Ask ${contact.details?.displayName} to start sharing with you:',
+                            textScaler: const TextScaler.linear(1.2)),
+                        const SizedBox(height: 4),
+                        Center(
+                            child: _qrCodeButton(context,
+                                buttonText: 'QR code to request',
+                                alertTitle:
+                                    'Request from ${contact.details!.displayName}',
+                                qrCodeData: _receiveUrl(
+                                  key: contact.dhtSettingsForReceiving!.key,
+                                  psk: contact.dhtSettingsForReceiving!.psk!,
+                                  writer:
+                                      contact.dhtSettingsForReceiving!.writer!,
+                                ).toString())),
+                        const Center(child: Text('or')),
+                        Center(
+                            child: TextButton(
+                          child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Icon(Icons.share),
+                                SizedBox(width: 8),
+                                Text('request via trusted channel'),
+                                SizedBox(width: 4),
+                              ]),
+                          // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
+                          onPressed: () async => Share.share(
+                              'I\'d like to coagulate with you: ${_receiveUrl(key: contact.dhtSettingsForReceiving!.key, psk: contact.dhtSettingsForReceiving!.psk!, writer: contact.dhtSettingsForReceiving!.writer!)}\n'
+                              'Keep this link a secret, it\'s just for you.'),
+                        )),
+                        const SizedBox(height: 8),
+                      ]))
+            ])),
       Center(
           child: TextButton(
               onPressed: () => context
