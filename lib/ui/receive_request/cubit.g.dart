@@ -12,6 +12,11 @@ ReceiveRequestState _$ReceiveRequestStateFromJson(Map<String, dynamic> json) =>
       profile: json['profile'] == null
           ? null
           : CoagContact.fromJson(json['profile'] as Map<String, dynamic>),
+      contactProporsalsForLinking:
+          (json['contact_proporsals_for_linking'] as List<dynamic>?)
+                  ?.map((e) => CoagContact.fromJson(e as Map<String, dynamic>))
+                  .toList() ??
+              const [],
     );
 
 Map<String, dynamic> _$ReceiveRequestStateToJson(
@@ -19,6 +24,8 @@ Map<String, dynamic> _$ReceiveRequestStateToJson(
     <String, dynamic>{
       'status': _$ReceiveRequestStatusEnumMap[instance.status]!,
       'profile': instance.profile?.toJson(),
+      'contact_proporsals_for_linking':
+          instance.contactProporsalsForLinking.map((e) => e.toJson()).toList(),
     };
 
 const _$ReceiveRequestStatusEnumMap = {

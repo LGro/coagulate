@@ -1,9 +1,12 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -50,9 +53,9 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
         }
 
         final components = fragment.split(':');
-        if (components.length != 3) {
+        if (![3, 4].contains(components.length)) {
           // TODO: Log / feedback?
-          print('Payload malformed, not three long, but $fragment');
+          print('Payload malformed, not three or four long, but $fragment');
           if (!isClosed) {
             emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
           }
@@ -62,6 +65,8 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
         try {
           final key = '${components[0]}:${components[1]}';
           final psk = components[2];
+          // TODO: Handle request qr code in addition to sharing qr code
+          final writer = components.elementAtOrNull(3);
           // TODO: Refactor updateContactFromDHT to use here as well?
           final raw =
               await readPasswordEncryptedDHTRecord(recordKey: key, secret: psk);
@@ -70,19 +75,20 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
           final contact = CoagContactDHTSchemaV1.fromJson(
               json.decode(raw) as Map<String, dynamic>);
           if (!isClosed) {
+            final coagContact = CoagContact(
+                coagContactId: const Uuid().v4(),
+                details: contact.details,
+                locations: contact.locations,
+                dhtSettingsForReceiving: ContactDHTSettings(key: key, psk: psk),
+                dhtSettingsForSharing: (contact.shareBackDHTKey == null)
+                    ? null
+                    : ContactDHTSettings(
+                        key: contact.shareBackDHTKey!,
+                        pubKey: contact.shareBackPubKey,
+                        writer: contact.shareBackDHTWriter));
+            final proposals = contactsRepository.getContacts().values.asList();
             emit(ReceiveRequestState(ReceiveRequestStatus.received,
-                profile: CoagContact(
-                    coagContactId: const Uuid().v4(),
-                    details: contact.details,
-                    locations: contact.locations,
-                    dhtSettingsForReceiving:
-                        ContactDHTSettings(key: key, psk: psk),
-                    dhtSettingsForSharing: (contact.shareBackDHTKey == null)
-                        ? null
-                        : ContactDHTSettings(
-                            key: contact.shareBackDHTKey!,
-                            pubKey: contact.shareBackPubKey,
-                            writer: contact.shareBackDHTWriter))));
+                profile: coagContact, contactProporsalsForLinking: proposals));
           }
         } on Exception catch (e) {
           // TODO: Log properly / feedback?
@@ -95,21 +101,26 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
     }
   }
 
-  // TODO: Replace with proper type instead of string
-  void linkExistingContact() {
-    // TODO: Replace with proper deserialized profile
-    // final nameFromDHT = state.profile;
-    // final potentialMatches = contactsRepository.coagContacts.values.firstWhere(
-    //     (c) =>
-    //         c.systemContact?.name == nameFromDHT ||
-    //         c.details?.name == nameFromDHT);
-    // TODO: Propose potential matches; compute earlier, move to state
+  void linkExistingContact(CoagContact contact) {
+    final updatedContact = contact.copyWith(
+        dhtSettingsForReceiving: state.profile!.dhtSettingsForReceiving);
+    unawaited(contactsRepository.updateContact(updatedContact));
+    if (!isClosed) {
+      emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+    }
+    // TODO: Forward instead to contact details page to share back etc.
   }
 
-  // TODO: Replace with proper type instead of string
   Future<void> createNewContact() async {
-    // TODO: Allow creation of linked system contact
-    await contactsRepository.updateContact(state.profile!);
+    final CoagContact contact;
+    if (await FlutterContacts.requestPermission()) {
+      contact = state.profile!.copyWith(
+          systemContact: await FlutterContacts.insertContact(
+              state.profile!.details!.toSystemContact()));
+    } else {
+      contact = state.profile!;
+    }
+    await contactsRepository.updateContact(contact);
     if (!isClosed) {
       emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
     }

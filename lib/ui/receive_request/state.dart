@@ -13,16 +13,18 @@ extension ReceiveRequestStatusX on ReceiveRequestStatus {
 
 @JsonSerializable()
 final class ReceiveRequestState extends Equatable {
-  const ReceiveRequestState(this.status, {this.profile});
+  const ReceiveRequestState(this.status,
+      {this.profile, this.contactProporsalsForLinking = const []});
 
   factory ReceiveRequestState.fromJson(Map<String, dynamic> json) =>
       _$ReceiveRequestStateFromJson(json);
 
   final ReceiveRequestStatus status;
   final CoagContact? profile;
+  final List<CoagContact> contactProporsalsForLinking;
 
   Map<String, dynamic> toJson() => _$ReceiveRequestStateToJson(this);
 
   @override
-  List<Object?> get props => [status, profile];
+  List<Object?> get props => [status, profile, contactProporsalsForLinking];
 }

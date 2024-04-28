@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
 import '../profile/page.dart';
+import '../widgets/avatar.dart';
 import '../widgets/scan_qr_code.dart';
 import 'cubit.dart';
 
@@ -34,10 +35,10 @@ class ReceiveRequestPage extends StatelessWidget {
                         child: Column(
                       children: [
                         const CircularProgressIndicator(),
-                        TextButton(
+                        IconButton(
                             onPressed:
                                 context.read<ReceiveRequestCubit>().scanQrCode,
-                            child: const Text('Cancel'))
+                            icon: const Icon(Icons.qr_code))
                       ],
                     )));
 
@@ -58,20 +59,21 @@ class ReceiveRequestPage extends StatelessWidget {
                     appBar: AppBar(
                       title: const Text('Received Contact'),
                       actions: [
-                        TextButton(
+                        IconButton(
                             onPressed:
                                 context.read<ReceiveRequestCubit>().scanQrCode,
-                            child: const Text('Cancel'))
+                            icon: const Icon(Icons.qr_code))
                       ],
                     ),
                     body: Center(
                         child: Column(
                       mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // TODO: Propose matching contact
                         // TODO: Display proper profile
-                        Text(state.profile!.details!.displayName),
+                        Center(
+                            child: Text(state.profile!.details!.displayName)),
                         if (state.profile!.details!.phones.isNotEmpty)
                           phones(state.profile!.details!.phones),
                         if (state.profile!.details!.emails.isNotEmpty)
@@ -79,13 +81,27 @@ class ReceiveRequestPage extends StatelessWidget {
                         TextButton(
                             onPressed: context
                                 .read<ReceiveRequestCubit>()
-                                .linkExistingContact,
-                            child: const Text('Link existing contact')),
-                        TextButton(
-                            onPressed: context
-                                .read<ReceiveRequestCubit>()
                                 .createNewContact,
                             child: const Text('Create new contact')),
+                        const Center(
+                            child: Text('or link to an existing contact')),
+                        Expanded(
+                            child: ListView(
+                          children: state.contactProporsalsForLinking
+                              .where((c) => c.details != null)
+                              .map((c) => ListTile(
+                                  leading: avatar(c.systemContact, radius: 18),
+                                  title: Text(c.details!.displayName),
+                                  //trailing: Text(_contactSyncStatus(c)),
+                                  onTap: () => context
+                                      .read<ReceiveRequestCubit>()
+                                      .linkExistingContact(c)))
+                              .toList(),
+                        )),
+                        TextButton(
+                            onPressed:
+                                context.read<ReceiveRequestCubit>().scanQrCode,
+                            child: const Text('Cancel')),
                       ],
                     )));
             }

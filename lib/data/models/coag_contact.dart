@@ -71,6 +71,17 @@ class ContactDetails extends Equatable {
         socialMedias = c.socialMedias,
         events = c.events;
 
+  Contact toSystemContact() => Contact(
+      displayName: displayName,
+      name: name,
+      phones: phones,
+      emails: emails,
+      addresses: addresses,
+      organizations: organizations,
+      websites: websites,
+      socialMedias: socialMedias,
+      events: events);
+
   factory ContactDetails.fromJson(Map<String, dynamic> json) =>
       _$ContactDetailsFromJson(json);
 
