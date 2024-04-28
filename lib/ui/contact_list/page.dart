@@ -10,18 +10,8 @@ import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
 import '../contact_details/page.dart';
 import '../receive_request/page.dart';
+import '../widgets/avatar.dart';
 import 'cubit.dart';
-
-Widget avatar(Contact contact,
-    [double radius = 48.0, IconData defaultIcon = Icons.person]) {
-  if (contact.photoOrThumbnail != null) {
-    return CircleAvatar(
-      backgroundImage: MemoryImage(contact.photoOrThumbnail!),
-      radius: radius,
-    );
-  }
-  return CircleAvatar(radius: radius, child: Icon(defaultIcon));
-}
 
 class ContactListPage extends StatefulWidget {
   const ContactListPage({super.key});
@@ -104,10 +94,7 @@ class _ContactListPageState extends State<ContactListPage> {
       itemBuilder: (context, i) {
         final contact = contacts[i];
         return ListTile(
-            leading: (contact.systemContact == null)
-                // TODO: Show default avatar
-                ? null
-                : avatar(contact.systemContact!, 18),
+            leading: avatar(contact.systemContact, radius: 18),
             title: Text(contact.details!.displayName),
             trailing: Text(_contactSyncStatus(contact)),
             onTap: () =>

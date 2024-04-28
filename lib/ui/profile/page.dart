@@ -13,21 +13,8 @@ import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../widgets/address_coordinates_form.dart';
+import '../widgets/avatar.dart';
 import 'cubit.dart';
-
-Widget avatar(Contact contact,
-    [double radius = 48.0, IconData defaultIcon = Icons.person]) {
-  if (contact.photoOrThumbnail != null) {
-    return CircleAvatar(
-      backgroundImage: MemoryImage(contact.photoOrThumbnail!),
-      radius: radius,
-    );
-  }
-  return CircleAvatar(
-    radius: radius,
-    child: Icon(defaultIcon),
-  );
-}
 
 Widget emails(List<Email> emails) => Card(
     color: Colors.white,

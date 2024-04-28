@@ -3,7 +3,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
@@ -12,43 +11,8 @@ import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
 import '../profile/page.dart';
+import '../widgets/avatar.dart';
 import 'cubit.dart';
-
-Widget avatar(Contact contact,
-    [double radius = 48.0, IconData defaultIcon = Icons.person]) {
-  if (contact.photoOrThumbnail != null) {
-    return CircleAvatar(
-      backgroundImage: MemoryImage(contact.photoOrThumbnail!),
-      radius: radius,
-    );
-  }
-  return CircleAvatar(
-    radius: radius,
-    child: Icon(defaultIcon),
-  );
-}
-
-List<Widget> _withSpacing(List<Widget> widgets) {
-  final spacer = SizedBox(height: 8);
-  return <Widget>[spacer] +
-      widgets.map((p) => [p, spacer]).expand((p) => p).toList();
-}
-
-Card _makeCard(
-    String title, List fields, List<Widget> Function(dynamic) mapper) {
-  var elements = <Widget>[];
-  fields.forEach((field) => elements.addAll(mapper(field)));
-  return Card(
-      child: Padding(
-          padding: EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: _withSpacing(<Widget>[
-                  Text(title, style: TextStyle(fontSize: 22)),
-                ] +
-                elements),
-          )));
-}
 
 Uri _shareUrl({required String key, required String psk}) => Uri(
     scheme: 'https',
@@ -141,8 +105,7 @@ class ContactPage extends StatelessWidget {
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       const SizedBox(height: 40),
-      if (contact!.systemContact != null)
-        Center(child: avatar(contact.systemContact!)),
+      Center(child: avatar(contact!.systemContact)),
       // TODO: Display name(s)
       // TODO: Display merged view of contact details, where
       // if a matching name with the same value is present
