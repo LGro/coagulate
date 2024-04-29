@@ -25,7 +25,8 @@ CoagContactDHTSchemaV1 filterAccordingToSharingProfile(CoagContact contact) =>
     CoagContactDHTSchemaV1(
       coagContactId: contact.coagContactId,
       details: ContactDetails.fromSystemContact(contact.systemContact!),
-      locations: contact.locations,
+      temporaryLocations: contact.temporaryLocations,
+      addressLocations: contact.addressLocations,
       // TODO: Ensure these are populated by the time this is called
       shareBackDHTKey: contact.dhtSettingsForReceiving?.key,
       shareBackDHTWriter: contact.dhtSettingsForReceiving?.writer,
@@ -183,9 +184,25 @@ class ContactsRepository {
         // The remaining matches based on system contact ID need to be updated
         final iChangedContact = systemContacts.indexWhere((systemContact) =>
             systemContact.id == coagContact.systemContact!.id);
-        final updatedContact = coagContact.copyWith(
-            systemContact: systemContacts[iChangedContact]);
-        systemContacts.removeAt(iChangedContact);
+        final CoagContact updatedContact;
+        if (iChangedContact == -1) {
+          // Remove system contact from CoagContact
+          // TODO: Add update and propose to remove contact from coagulate as well?
+          // TODO: When adding attributes to CoagContact, they need to be added here; cover this with a test
+          updatedContact = CoagContact(
+            coagContactId: coagContact.coagContactId,
+            details: coagContact.details,
+            addressLocations: coagContact.addressLocations,
+            temporaryLocations: coagContact.temporaryLocations,
+            dhtSettingsForSharing: coagContact.dhtSettingsForSharing,
+            dhtSettingsForReceiving: coagContact.dhtSettingsForReceiving,
+            sharedProfile: coagContact.sharedProfile,
+          );
+        } else {
+          updatedContact = coagContact.copyWith(
+              systemContact: systemContacts[iChangedContact]);
+          systemContacts.removeAt(iChangedContact);
+        }
         await _saveContact(updatedContact);
       }
       // The remaining system contacts are new

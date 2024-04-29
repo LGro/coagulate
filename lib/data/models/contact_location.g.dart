@@ -6,8 +6,27 @@ part of 'contact_location.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ContactLocation _$ContactLocationFromJson(Map<String, dynamic> json) =>
-    ContactLocation(
+ContactAddressLocation _$ContactAddressLocationFromJson(
+        Map<String, dynamic> json) =>
+    ContactAddressLocation(
+      coagContactId: json['coag_contact_id'] as String,
+      longitude: (json['longitude'] as num).toDouble(),
+      latitude: (json['latitude'] as num).toDouble(),
+      name: json['name'] as String,
+    );
+
+Map<String, dynamic> _$ContactAddressLocationToJson(
+        ContactAddressLocation instance) =>
+    <String, dynamic>{
+      'coag_contact_id': instance.coagContactId,
+      'longitude': instance.longitude,
+      'latitude': instance.latitude,
+      'name': instance.name,
+    };
+
+ContactTemporaryLocation _$ContactTemporaryLocationFromJson(
+        Map<String, dynamic> json) =>
+    ContactTemporaryLocation(
       coagContactId: json['coag_contact_id'] as String,
       longitude: (json['longitude'] as num).toDouble(),
       latitude: (json['latitude'] as num).toDouble(),
@@ -19,7 +38,8 @@ ContactLocation _$ContactLocationFromJson(Map<String, dynamic> json) =>
       details: json['details'] as String?,
     );
 
-Map<String, dynamic> _$ContactLocationToJson(ContactLocation instance) =>
+Map<String, dynamic> _$ContactTemporaryLocationToJson(
+        ContactTemporaryLocation instance) =>
     <String, dynamic>{
       'coag_contact_id': instance.coagContactId,
       'longitude': instance.longitude,

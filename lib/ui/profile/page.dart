@@ -93,8 +93,15 @@ Text _label(String name, String customLabel) =>
     Text((name != 'custom') ? name : customLabel,
         style: const TextStyle(fontSize: 16, color: Colors.black54));
 
+bool labelDoesMatch(String name, Address address) {
+  if (address.label == AddressLabel.custom) {
+    return name == address.customLabel;
+  }
+  return name == address.label.name;
+}
+
 Widget addressesWithForms(BuildContext context, List<Address> addresses,
-        List<ContactLocation> locations) =>
+        List<ContactAddressLocation> locations) =>
     Card(
         color: Colors.white,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
@@ -105,41 +112,54 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ...addresses.map((e) => Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _label(e.label.name, e.customLabel),
-                                Text(_commaToNewline(e.address),
-                                    style: const TextStyle(fontSize: 19)),
-                                // TODO: Custom location labels/fields need to be matched differently
-                                AddressCoordinatesForm(
-                                    lng: locations
-                                        .where((l) => l.name == e.label.name)
-                                        .firstOrNull
-                                        ?.longitude,
-                                    lat: locations
-                                        .where((l) => l.name == e.label.name)
-                                        .firstOrNull
-                                        ?.latitude,
-                                    callback: (num lng, num lat) => context
-                                        .read<ProfileCubit>()
-                                        .updateCoordinates(
-                                            e.label.name, lng, lat)),
-                                TextButton(
-                                    child: const Text('Auto Fetch Coordinates'),
-                                    // TODO: Switch to address index instead of label? Can there be duplicates?
-                                    onPressed: () async => showDialog<void>(
-                                        context: context,
-                                        // barrierDismissible: false,
-                                        builder: (dialogContext) =>
-                                            _confirmPrivacyLeakDialog(
-                                                dialogContext,
-                                                e.address,
-                                                () => unawaited(context
-                                                    .read<ProfileCubit>()
-                                                    .fetchCoordinates(
-                                                        e.label.name)))))
-                              ]))
+                      ...addresses
+                          .asMap()
+                          .map((int i, Address e) => MapEntry(
+                              i,
+                              Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _label(e.label.name, e.customLabel),
+                                    Text(_commaToNewline(e.address),
+                                        style: const TextStyle(fontSize: 19)),
+                                    const SizedBox(height: 8),
+                                    AddressCoordinatesForm(
+                                        lng: locations
+                                            .where((l) =>
+                                                labelDoesMatch(l.name, e))
+                                            .firstOrNull
+                                            ?.longitude,
+                                        lat: locations
+                                            .where((l) =>
+                                                labelDoesMatch(l.name, e))
+                                            .firstOrNull
+                                            ?.latitude,
+                                        callback: (lng, lat) => context
+                                            .read<ProfileCubit>()
+                                            .updateCoordinates(
+                                                i,
+                                                (e.label == AddressLabel.custom)
+                                                    ? e.customLabel
+                                                    : e.label.name,
+                                                lng,
+                                                lat)),
+                                    TextButton(
+                                        child: const Text(
+                                            'Auto Fetch Coordinates'),
+                                        // TODO: Switch to address index instead of label? Can there be duplicates?
+                                        onPressed: () async => showDialog<void>(
+                                            context: context,
+                                            // barrierDismissible: false,
+                                            builder: (dialogContext) =>
+                                                _confirmPrivacyLeakDialog(
+                                                    dialogContext,
+                                                    e.address,
+                                                    () => unawaited(context
+                                                        .read<ProfileCubit>()
+                                                        .fetchCoordinates(
+                                                            i, e.label.name)))))
+                                  ])))
+                          .values
                     ]))));
 
 Widget addresses(BuildContext context, List<Address> addresses) => Card(
@@ -248,7 +268,7 @@ Widget buildProfileScrollView(BuildContext context, CoagContact contact) =>
                       addressesWithForms(
                           context,
                           contact.systemContact!.addresses,
-                          contact.locations.asList()),
+                          contact.addressLocations.values.asList()),
                     if (contact.systemContact!.websites.isNotEmpty)
                       websites(contact.systemContact!.websites),
                   ]))

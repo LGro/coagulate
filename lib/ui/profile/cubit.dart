@@ -65,7 +65,7 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
   Map<String, dynamic> toJson(ProfileState state) => state.toJson();
 
   // TODO: Switch to address index instead of labelName
-  Future<void> fetchCoordinates(String labelName) async {
+  Future<void> fetchCoordinates(int iAddress, String labelName) async {
     String? address;
     for (final a in state.profileContact!.systemContact!.addresses) {
       if (a.label.name == labelName) {
@@ -82,31 +82,24 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
       List<Location> locations = await locationFromAddress(address);
       // TODO: Expose options to pick from, instead of just using the first.
       final chosenLocation = locations[0];
-      updateCoordinates(
-          labelName, chosenLocation.longitude, chosenLocation.latitude);
+      updateCoordinates(iAddress, labelName, chosenLocation.longitude,
+          chosenLocation.latitude);
     } on NoResultFoundException catch (e) {
       // TODO: Proper error handling
       print('${e} ${address}');
     }
   }
 
-  void updateCoordinates(String name, num lng, num lat) {
-    final newLocation = ContactLocation(
+  void updateCoordinates(int iAddress, String name, num lng, num lat) {
+    final updatedLocations = state.profileContact!.addressLocations;
+    updatedLocations[iAddress] = ContactAddressLocation(
         coagContactId: state.profileContact!.coagContactId,
         longitude: lng.toDouble(),
         latitude: lat.toDouble(),
         name: name);
-    // If location name exists, update
-    var updatedLocations = state.profileContact!.locations
-        .map((l) => (l.name == name) ? newLocation : l);
-    // Otherwise, add new
-    if (updatedLocations.isEmpty ||
-        updatedLocations.toList() == state.profileContact!.locations.toList()) {
-      updatedLocations = [...updatedLocations, newLocation];
-    }
 
     final updatedContact =
-        state.profileContact!.copyWith(locations: updatedLocations.toList());
+        state.profileContact!.copyWith(addressLocations: updatedLocations);
     // TODO: Can we ensure somehow that we don't need to remember doing both steps but just push the update to the profile contact?
     // Also, ensure that the profile contact update really only happens after updateContact finished
     unawaited(contactsRepository.updateContact(updatedContact).then((_) =>

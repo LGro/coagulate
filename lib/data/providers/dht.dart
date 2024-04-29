@@ -168,7 +168,8 @@ Future<CoagContact> updateContactReceivingDHT(CoagContact contact) async {
       json.decode(contactJson) as Map<String, dynamic>);
   return contact.copyWith(
       details: dhtContact.details,
-      locations: dhtContact.locations,
+      addressLocations: dhtContact.addressLocations,
+      temporaryLocations: dhtContact.temporaryLocations,
       dhtSettingsForSharing: (dhtContact.shareBackDHTKey == null)
           ? null
           : ContactDHTSettings(

@@ -35,7 +35,9 @@ class _AddressCoordinatesFormState extends State<AddressCoordinatesForm> {
             child: TextFormField(
               controller: _lngController,
               decoration: const InputDecoration(
-                  labelText: 'Longitude', border: OutlineInputBorder()),
+                  labelText: 'Longitude',
+                  border: OutlineInputBorder(),
+                  isDense: true),
               onChanged: (value) => setState(() {
                 _lngController
                   ..text = value
@@ -49,7 +51,9 @@ class _AddressCoordinatesFormState extends State<AddressCoordinatesForm> {
             child: TextFormField(
               controller: _latController,
               decoration: const InputDecoration(
-                  labelText: 'Latitude', border: OutlineInputBorder()),
+                  labelText: 'Latitude',
+                  border: OutlineInputBorder(),
+                  isDense: true),
               onChanged: (value) => setState(() {
                 _latController
                   ..text = value

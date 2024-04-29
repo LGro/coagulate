@@ -151,19 +151,22 @@ class ContactDetails extends Equatable {
 
 @JsonSerializable()
 class CoagContact extends Equatable {
-  CoagContact(
-      {required this.coagContactId,
-      this.details,
-      this.systemContact,
-      this.locations = const [],
-      this.dhtSettingsForSharing,
-      this.dhtSettingsForReceiving,
-      this.sharedProfile});
+  CoagContact({
+    required this.coagContactId,
+    this.details,
+    this.systemContact,
+    this.addressLocations = const {},
+    this.temporaryLocations = const [],
+    this.dhtSettingsForSharing,
+    this.dhtSettingsForReceiving,
+    this.sharedProfile,
+  });
 
   final String coagContactId;
   final Contact? systemContact;
   final ContactDetails? details;
-  final List<ContactLocation> locations;
+  final Map<int, ContactAddressLocation> addressLocations;
+  final List<ContactTemporaryLocation> temporaryLocations;
   final ContactDHTSettings? dhtSettingsForSharing;
   final ContactDHTSettings? dhtSettingsForReceiving;
   // TODO: Make this a proper type with toJson?
@@ -201,7 +204,8 @@ class CoagContact extends Equatable {
   CoagContact copyWith(
           {Contact? systemContact,
           ContactDetails? details,
-          List<ContactLocation>? locations,
+          Map<int, ContactAddressLocation>? addressLocations,
+          List<ContactTemporaryLocation>? temporaryLocations,
           ContactDHTSettings? dhtSettingsForSharing,
           ContactDHTSettings? dhtSettingsForReceiving,
           String? sharedProfile}) =>
@@ -209,7 +213,8 @@ class CoagContact extends Equatable {
           coagContactId: this.coagContactId,
           details: details ?? this.details,
           systemContact: systemContact ?? this.systemContact,
-          locations: locations ?? this.locations,
+          addressLocations: addressLocations ?? this.addressLocations,
+          temporaryLocations: temporaryLocations ?? this.temporaryLocations,
           dhtSettingsForSharing:
               dhtSettingsForSharing ?? this.dhtSettingsForSharing,
           dhtSettingsForReceiving:
@@ -224,25 +229,29 @@ class CoagContact extends Equatable {
         dhtSettingsForSharing,
         dhtSettingsForReceiving,
         sharedProfile,
-        locations,
+        addressLocations,
+        temporaryLocations,
       ];
 }
 
 @JsonSerializable()
 class CoagContactDHTSchemaV1 extends Equatable {
-  const CoagContactDHTSchemaV1(
-      {required this.coagContactId,
-      required this.details,
-      this.shareBackDHTKey,
-      this.shareBackPubKey,
-      this.shareBackDHTWriter,
-      this.locations = const []});
+  const CoagContactDHTSchemaV1({
+    required this.coagContactId,
+    required this.details,
+    this.shareBackDHTKey,
+    this.shareBackPubKey,
+    this.shareBackDHTWriter,
+    this.addressLocations = const {},
+    this.temporaryLocations = const [],
+  });
 
   final int schemaVersion = 1;
   // TODO: Consider removing this one again if we just try all available private keys on the receiving side
   final String coagContactId;
   final ContactDetails details;
-  final List<ContactLocation> locations;
+  final Map<int, ContactAddressLocation> addressLocations;
+  final List<ContactTemporaryLocation> temporaryLocations;
   final String? shareBackDHTKey;
   final String? shareBackDHTWriter;
   final String? shareBackPubKey;
@@ -257,7 +266,8 @@ class CoagContactDHTSchemaV1 extends Equatable {
     String? shareBackDHTKey,
     String? shareBackPubKey,
     String? shareBackDHTWriter,
-    List<ContactLocation>? locations,
+    Map<int, ContactAddressLocation>? addressLocations,
+    List<ContactTemporaryLocation>? temporaryLocations,
   }) =>
       CoagContactDHTSchemaV1(
         coagContactId: this.coagContactId,
@@ -265,7 +275,8 @@ class CoagContactDHTSchemaV1 extends Equatable {
         shareBackDHTKey: shareBackDHTKey ?? this.shareBackDHTKey,
         shareBackPubKey: shareBackPubKey ?? this.shareBackPubKey,
         shareBackDHTWriter: shareBackDHTWriter ?? this.shareBackDHTWriter,
-        locations: locations ?? this.locations,
+        addressLocations: addressLocations ?? this.addressLocations,
+        temporaryLocations: temporaryLocations ?? this.temporaryLocations,
       );
 
   @override
@@ -276,6 +287,7 @@ class CoagContactDHTSchemaV1 extends Equatable {
         shareBackDHTKey,
         shareBackPubKey,
         shareBackDHTWriter,
-        locations
+        addressLocations,
+        temporaryLocations,
       ];
 }

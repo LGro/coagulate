@@ -6,10 +6,32 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'contact_location.g.dart';
 
-// TODO: This feels like a super type, but sub types don't seem to work well with simple reloading
 @JsonSerializable()
-class ContactLocation extends Equatable {
-  const ContactLocation({
+class ContactAddressLocation extends Equatable {
+  const ContactAddressLocation({
+    required this.coagContactId,
+    required this.longitude,
+    required this.latitude,
+    required this.name,
+  });
+
+  factory ContactAddressLocation.fromJson(Map<String, dynamic> json) =>
+      _$ContactAddressLocationFromJson(json);
+
+  final String coagContactId;
+  final double longitude;
+  final double latitude;
+  final String name;
+
+  Map<String, dynamic> toJson() => _$ContactAddressLocationToJson(this);
+
+  @override
+  List<Object?> get props => [coagContactId, longitude, latitude, name];
+}
+
+@JsonSerializable()
+class ContactTemporaryLocation extends Equatable {
+  const ContactTemporaryLocation({
     required this.coagContactId,
     required this.longitude,
     required this.latitude,
@@ -19,8 +41,8 @@ class ContactLocation extends Equatable {
     this.details,
   });
 
-  factory ContactLocation.fromJson(Map<String, dynamic> json) =>
-      _$ContactLocationFromJson(json);
+  factory ContactTemporaryLocation.fromJson(Map<String, dynamic> json) =>
+      _$ContactTemporaryLocationFromJson(json);
 
   final String coagContactId;
   final double longitude;
@@ -30,7 +52,7 @@ class ContactLocation extends Equatable {
   final DateTime? end;
   final String? details;
 
-  Map<String, dynamic> toJson() => _$ContactLocationToJson(this);
+  Map<String, dynamic> toJson() => _$ContactTemporaryLocationToJson(this);
 
   @override
   List<Object?> get props =>
