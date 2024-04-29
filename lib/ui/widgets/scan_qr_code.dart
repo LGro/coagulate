@@ -60,7 +60,7 @@ class _BarcodeScannerPageViewState extends State<BarcodeScannerPageView> {
   @override
   void initState() {
     super.initState();
-    unawaited(controller.start());
+    unawaited(controller.stop().then((_) => controller.start()));
   }
 
   @override
