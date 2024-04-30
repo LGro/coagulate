@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/coag_contact.dart';
+import '../../models/contact_update.dart';
 
 const String mostRecentSchemaVersion = '1';
 
@@ -54,3 +55,17 @@ Future<String?> getProfileContactId() async =>
 
 Future<void> removeContact(String coagContactId) async =>
     (await SharedPreferences.getInstance()).remove(coagContactId);
+
+Future<List<ContactUpdate>> getUpdates() async {
+  final updatesString =
+      (await SharedPreferences.getInstance()).getString('updates');
+  if (updatesString == null || updatesString.isEmpty) {
+    return [];
+  }
+  return json.decode(updatesString) as List<ContactUpdate>;
+}
+
+Future<void> addUpdate(ContactUpdate update) async {
+  await (await SharedPreferences.getInstance())
+      .setString('updates', json.encode((await getUpdates())..add(update)));
+}

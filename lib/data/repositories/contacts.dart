@@ -58,11 +58,11 @@ class ContactsRepository {
   String? profileContactId;
 
   Map<String, CoagContact> _contacts = {};
-  // TODO: Persist; maybe just proxy read and writes to
-  // persistent storage directly instead of having additional state here
-  List<ContactUpdate> updates = [];
-
   final _contactsStreamController = BehaviorSubject<CoagContact>();
+
+  // TODO: Double check whether we actually need this second stream, i.e. when would an update be passed here but not on the contacts stream?
+  List<ContactUpdate> updates = [];
+  final _updatesStreamController = BehaviorSubject<ContactUpdate>();
 
   final _systemContactAccessGrantedStreamController =
       BehaviorSubject<bool>.seeded(false);
@@ -70,6 +70,12 @@ class ContactsRepository {
   Future<void> _init() async {
     // Load profile contact ID from persistent storage
     profileContactId = await persistent_storage.getProfileContactId();
+
+    // Load updates from persistent storage
+    updates = await persistent_storage.getUpdates();
+    for (final u in updates) {
+      _updatesStreamController.add(u);
+    }
 
     // Load coagulate contacts from persistent storage
     _contacts = await persistent_storage.getAllContacts();
@@ -97,6 +103,13 @@ class ContactsRepository {
     _contacts[coagContact.coagContactId] = coagContact;
     _contactsStreamController.add(coagContact);
     await persistent_storage.updateContact(coagContact);
+  }
+
+  Future<void> _saveUpdate(ContactUpdate update) async {
+    updates.add(update);
+    _updatesStreamController.add(update);
+    // TODO: Have two persistent storages with different prefixes for updates and contacts?
+    await persistent_storage.addUpdate(update);
   }
 
   Future<void> _updateFromSystemContact(CoagContact contact) async {
@@ -138,7 +151,7 @@ class ContactsRepository {
       final updatedContact = await updateContactReceivingDHT(contact);
       if (updatedContact != contact) {
         // TODO: Use update time from when the update was sent not received
-        updates.add(ContactUpdate(
+        await _saveUpdate(ContactUpdate(
             message: 'News from ${contact.details?.displayName}',
             timestamp: DateTime.now()));
         await updateContact(updatedContact);
@@ -218,14 +231,12 @@ class ContactsRepository {
     }
   }
 
-  Future<void> _onDHTContactUpdateReceived() async {
-    // TODO: check DHT for updates
-    // TODO: trigger persistent storage update
-    // _contactsStreamController.add(coagContact);
-  }
-
+  // TODO: Rename for clarity?
   Stream<CoagContact> getContactUpdates() =>
       _contactsStreamController.asBroadcastStream();
+
+  Stream<ContactUpdate> getUpdates() =>
+      _updatesStreamController.asBroadcastStream();
 
   // TODO: subscribe to this from a settings cubit to show the appropriate button in UI
   Stream<bool> isSystemContactAccessGranted() =>
@@ -282,7 +293,7 @@ class ContactsRepository {
         final updatedContact = await updateContactReceivingDHT(contact);
         if (updatedContact != contact) {
           // TODO: Use update time from when the update was sent not received
-          updates.add(ContactUpdate(
+          await _saveUpdate(ContactUpdate(
               message: 'News from ${contact.details?.displayName}',
               timestamp: DateTime.now()));
           await updateContact(updatedContact);
