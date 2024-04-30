@@ -31,17 +31,14 @@ class ReceiveRequestPage extends StatelessWidget {
                 return Scaffold(
                     appBar: AppBar(
                       title: const Text('Processing...'),
-                    ),
-                    body: Center(
-                        child: Column(
-                      children: [
-                        const CircularProgressIndicator(),
+                      actions: [
                         IconButton(
                             onPressed:
                                 context.read<ReceiveRequestCubit>().scanQrCode,
                             icon: const Icon(Icons.qr_code))
                       ],
-                    )));
+                    ),
+                    body: const Center(child: CircularProgressIndicator()));
 
               case ReceiveRequestStatus.qrcode:
                 if (state.profile != null) {
@@ -57,6 +54,8 @@ class ReceiveRequestPage extends StatelessWidget {
 
               case ReceiveRequestStatus.receivedRequest:
                 return Scaffold(
+                    // TODO: Theme
+                    backgroundColor: const Color.fromARGB(255, 244, 244, 244),
                     appBar: AppBar(
                       title: const Text('Received Request'),
                       actions: [
@@ -93,16 +92,20 @@ class ReceiveRequestPage extends StatelessWidget {
                                   .createNewContact,
                               child: const Text(
                                   'Create new contact & start sharing with them')),
-                          const Center(
-                              child: Text(
-                                  'or pick an existing contact to start sharing with')),
+                          if (state.contactProporsalsForLinking.isNotEmpty)
+                            const Center(
+                                child: Text(
+                                    'or pick an existing contact to start sharing with')),
                           const SizedBox(height: 12),
-                          _pickExisting(
-                              context, state.contactProporsalsForLinking),
+                          if (state.contactProporsalsForLinking.isNotEmpty)
+                            _pickExisting(
+                                context, state.contactProporsalsForLinking),
                         ])));
 
               case ReceiveRequestStatus.receivedShare:
                 return Scaffold(
+                    // TODO: Theme
+                    backgroundColor: const Color.fromARGB(255, 244, 244, 244),
                     appBar: AppBar(
                       title: const Text('Received Shared Contact'),
                       actions: [
@@ -118,8 +121,18 @@ class ReceiveRequestPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // TODO: Display proper profile
-                        Center(
-                            child: Text(state.profile!.details!.displayName)),
+                        const SizedBox(height: 8),
+                        Card(
+                            color: Colors.white,
+                            shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.zero),
+                            margin: const EdgeInsets.only(
+                                left: 8, right: 8, bottom: 8),
+                            child: SizedBox(
+                                child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Text(
+                                        state.profile!.details!.displayName)))),
                         if (state.profile!.details!.phones.isNotEmpty)
                           phones(state.profile!.details!.phones),
                         if (state.profile!.details!.emails.isNotEmpty)
@@ -129,10 +142,12 @@ class ReceiveRequestPage extends StatelessWidget {
                                 .read<ReceiveRequestCubit>()
                                 .createNewContact,
                             child: const Text('Create new contact')),
-                        const Center(
-                            child: Text('or link to an existing contact')),
-                        _pickExisting(
-                            context, state.contactProporsalsForLinking),
+                        if (state.contactProporsalsForLinking.isNotEmpty)
+                          const Center(
+                              child: Text('or link to an existing contact')),
+                        if (state.contactProporsalsForLinking.isNotEmpty)
+                          _pickExisting(
+                              context, state.contactProporsalsForLinking),
                         TextButton(
                             onPressed:
                                 context.read<ReceiveRequestCubit>().scanQrCode,

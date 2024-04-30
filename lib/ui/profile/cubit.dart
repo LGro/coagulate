@@ -4,6 +4,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -25,6 +26,7 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
             status: ProfileStatus.success, profileContact: contact));
       }
     });
+    // TODO: Check current state of permissions here in addition to listening to stream update
     _permissionsSubscription = contactsRepository
         .isSystemContactAccessGranted()
         .listen(
@@ -49,7 +51,11 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
         : contactsRepository.getCoagContactForSystemContactId(systemContactId);
 
     if (contact == null) {
-      return emit(const ProfileState(status: ProfileStatus.initial));
+      // Reset but keep the permission status
+      return emit(ProfileState(
+          status: ProfileStatus.initial,
+          profileContact: null,
+          permissionsGranted: state.permissionsGranted));
     }
 
     await contactsRepository.updateProfileContact(contact.coagContactId);
@@ -64,39 +70,32 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
   @override
   Map<String, dynamic> toJson(ProfileState state) => state.toJson();
 
-  // TODO: Switch to address index instead of labelName
-  Future<void> fetchCoordinates(int iAddress, String labelName) async {
-    String? address;
-    for (final a in state.profileContact!.systemContact!.addresses) {
-      if (a.label.name == labelName) {
-        address = a.address;
-        break;
-      }
-    }
+  Future<void> fetchCoordinates(int iAddress) async {
+    final address =
+        state.profileContact!.systemContact!.addresses[iAddress].address;
     // TODO: Also add some status indicator per address to show when unfetched, fetching, failed, fetched
-    if (address == null) {
-      // TODO: log / emit failure status, this shouldn't happen
-      return;
-    }
     try {
       List<Location> locations = await locationFromAddress(address);
       // TODO: Expose options to pick from, instead of just using the first.
       final chosenLocation = locations[0];
-      updateCoordinates(iAddress, labelName, chosenLocation.longitude,
-          chosenLocation.latitude);
+      updateCoordinates(
+          iAddress, chosenLocation.longitude, chosenLocation.latitude);
     } on NoResultFoundException catch (e) {
       // TODO: Proper error handling
       print('${e} ${address}');
     }
   }
 
-  void updateCoordinates(int iAddress, String name, num lng, num lat) {
+  void updateCoordinates(int iAddress, num lng, num lat) {
+    final address = state.profileContact!.systemContact!.addresses[iAddress];
     final updatedLocations = state.profileContact!.addressLocations;
     updatedLocations[iAddress] = ContactAddressLocation(
         coagContactId: state.profileContact!.coagContactId,
         longitude: lng.toDouble(),
         latitude: lat.toDouble(),
-        name: name);
+        name: (address.label == AddressLabel.custom)
+            ? address.customLabel
+            : address.label.name);
 
     final updatedContact =
         state.profileContact!.copyWith(addressLocations: updatedLocations);

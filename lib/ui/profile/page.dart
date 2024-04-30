@@ -136,13 +136,8 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
                                             ?.latitude,
                                         callback: (lng, lat) => context
                                             .read<ProfileCubit>()
-                                            .updateCoordinates(
-                                                i,
-                                                (e.label == AddressLabel.custom)
-                                                    ? e.customLabel
-                                                    : e.label.name,
-                                                lng,
-                                                lat)),
+                                            .updateCoordinates(i, lng, lat)),
+                                    // TODO: Add small map previewing the location when coordinates are available
                                     TextButton(
                                         child: const Text(
                                             'Auto Fetch Coordinates'),
@@ -156,8 +151,7 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
                                                     e.address,
                                                     () => unawaited(context
                                                         .read<ProfileCubit>()
-                                                        .fetchCoordinates(
-                                                            i, e.label.name)))))
+                                                        .fetchCoordinates(i)))))
                                   ])))
                           .values
                     ]))));
@@ -206,12 +200,11 @@ AlertDialog _confirmPrivacyLeakDialog(
         title: const Text('Potential Privacy Leak'),
         content: SingleChildScrollView(
             child: ListBody(children: <Widget>[
-          // TODO: Show google / apple depending on which OS
           Text('Looking up the coordinates of "$address" automatically '
               'only works by sending that address to '
               '${(Platform.isIOS) ? 'Apple' : 'Google'}. '
-              'Are you ok with leaking to them that you relate somehow '
-              'to this address?'),
+              'Are you ok with leaking to them that you relate to this '
+              'address somehow?'),
         ])),
         actions: <Widget>[
           // TODO: Store choice and don't ask again
@@ -259,6 +252,7 @@ Widget buildProfileScrollView(BuildContext context, CoagContact contact) =>
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const SizedBox(height: 8),
                     header(contact.systemContact!),
                     if (contact.systemContact!.phones.isNotEmpty)
                       phones(contact.systemContact!.phones),
@@ -309,7 +303,7 @@ class ProfileViewState extends State<ProfileView> {
                   padding:
                       const EdgeInsets.only(left: 16, right: 16, bottom: 28),
                   child: const Text(
-                      'Please go to your permissions settings and grant Coagulate access to your address book'))
+                      'Please go to your permissions settings and grant Coagulate access to your address book.'))
           ]),
         );
       case ProfileStatus.create:
@@ -354,6 +348,8 @@ class ProfileViewState extends State<ProfileView> {
             }
           },
           builder: (context, state) => Scaffold(
+              // TODO: Theme
+              backgroundColor: const Color.fromARGB(255, 244, 244, 244),
               appBar: AppBar(
                 title: const Text('My Profile'),
                 // TODO: Add generate QR code for sharing with someone who I haven't as a contact yet

@@ -1,14 +1,18 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/repositories/contacts.dart';
+import '../contact_details/page.dart';
 import 'cubit.dart';
 
 class SliderExample extends StatefulWidget {
@@ -109,15 +113,17 @@ class MapPage extends StatelessWidget {
                 final markers = state.locations
                     .map((location) => _buildMarker(
                         location: location,
-                        onTap: () {
-                          // unawaited(Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         // FIXME: That's the wrong id, it expects a system contact id
-                          //         builder: (_) => ContactPage(
-                          //             contactId: location.coagContactId)
-                          //             )));
-                        }))
+                        // TODO: Only add on tap action for other contacts, not the profile contact
+                        // TODO: Style profile contact locations differently
+                        onTap: (false)
+                            ? () {}
+                            : () {
+                                unawaited(Navigator.push(
+                                    context,
+                                    ContactPage.route(context
+                                        .read<ContactsRepository>()
+                                        .getContact(location.coagContactId))));
+                              }))
                     .toList();
 
                 return MarkerClusterLayerWidget(

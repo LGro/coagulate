@@ -92,6 +92,8 @@ class ContactPage extends StatelessWidget {
           child: BlocConsumer<ContactDetailsCubit, ContactDetailsState>(
               listener: (context, state) async {},
               builder: (context, state) => Scaffold(
+                  // TODO: Theme
+                  backgroundColor: const Color.fromARGB(255, 244, 244, 244),
                   appBar: AppBar(
                     title: Text(state.contact!.details!.displayName),
                   ),
@@ -104,8 +106,11 @@ class ContactPage extends StatelessWidget {
     return SingleChildScrollView(
         child:
             Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const SizedBox(height: 40),
-      Center(child: avatar(contact!.systemContact)),
+      const SizedBox(height: 24),
+      Center(
+          child: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: avatar(contact!.systemContact))),
       // TODO: Display name(s)
       // TODO: Display merged view of contact details, where
       // if a matching name with the same value is present
