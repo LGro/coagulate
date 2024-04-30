@@ -32,11 +32,13 @@ Uri _receiveUrl(
 
 Widget _coagulateButton(BuildContext context,
     {required CoagContact contact, required CoagContact myProfile}) {
+  // TODO: Directly prep sharing when visiting the contact details instead of hiding it behind a button?
+  //       Maybe when there are sharing profiles and we can default to one that just contains the name.
   if (contact.sharedProfile == null || contact.sharedProfile!.isEmpty) {
     return TextButton(
         onPressed: () async =>
             {context.read<ContactDetailsCubit>().share(myProfile)},
-        child: const Text('initialize sharing'));
+        child: const Text('Coagulate'));
   } else {
     return TextButton(
         onPressed: context.read<ContactDetailsCubit>().unshare,
@@ -111,8 +113,12 @@ class ContactPage extends StatelessWidget {
           child: Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: avatar(contact!.systemContact))),
-      // TODO: Display name(s)
-      // TODO: Display merged view of contact details, where
+      // First phase?
+      // for all incoming ones, show as synced to local
+      // for all local ones that don't match incoming ones, show as local
+      // match by index when linking for the first time
+
+      // TODO: Display merged view of contact details and system contact second phase, where
       // if a matching name with the same value is present
       //   - show entry with managed or unmanaged indicator
       // if a matching name with a different value is present
@@ -121,53 +127,65 @@ class ContactPage extends StatelessWidget {
       // if no matching name and value is present
       //   - add as new entry to system contact, mark managed
       // if no matching name but matching value is present, think about displaying them next to each other still
-      if (contact.systemContact != null &&
-          contact.systemContact!.phones.isNotEmpty)
-        phones(contact.systemContact!.phones),
+
+      // Contact details
       if (contact.details!.phones.isNotEmpty) phones(contact.details!.phones),
-
-      if (contact.systemContact != null &&
-          contact.systemContact!.emails.isNotEmpty)
-        emails(contact.systemContact!.emails),
       if (contact.details!.emails.isNotEmpty) emails(contact.details!.emails),
-
-      if (contact.systemContact != null &&
-          contact.systemContact!.addresses.isNotEmpty)
-        addresses(context, contact.systemContact!.addresses),
       if (contact.details!.addresses.isNotEmpty)
         addresses(context, contact.details!.addresses),
+      if (contact.details!.websites.isNotEmpty)
+        websites(contact.details!.websites),
+
+      // TODO: We don't need to integrate profile and sharing via the UI, we can also do it via the repository layer.
+      //       It might make sense when we introduce the sharing profile settings, though, so let's see then.
+      BlocConsumer<ProfileCubit, ProfileState>(
+          listener: (context, state) async {},
+          builder: (context, state) {
+            if (state.profileContact == null) {
+              return const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                      'Pick a profile contact, then you can start sharing.'));
+            }
+            return Center(
+                child: _coagulateButton(context,
+                    contact: contact, myProfile: state.profileContact!));
+          }),
+
       // Sharing stuff
-      Card(
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-          margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-          child: Stack(children: [
-            Positioned.fill(
-                child: SvgPicture.asset('assets/images/up_arrow_bg.svg',
-                    fit: BoxFit.cover)),
-            Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                          'Start sharing your contact details with ${contact.details?.displayName}:',
-                          textScaler: const TextScaler.linear(1.2)),
-                      const SizedBox(height: 4),
-                      // TODO: Add when custom sharing profiles are there
-                      // DropdownButton(
-                      //     // TODO make state dependent
-                      //     // TODO: Get from my profile preferences
-                      //     value: 'full',
-                      //     items: const [
-                      //       DropdownMenuItem<String>(
-                      //           value: 'full', child: Text('Full Profile')),
-                      //     ],
-                      //     onChanged: (v) => ()),
-                      if (contact.dhtSettingsForSharing != null &&
-                          contact.dhtSettingsForSharing!.writer != null &&
-                          contact.dhtSettingsForSharing!.psk != null &&
-                          contact.sharedProfile != null &&
-                          contact.sharedProfile!.isNotEmpty) ...[
+      if (contact.dhtSettingsForSharing != null &&
+          contact.dhtSettingsForSharing!.writer != null &&
+          contact.dhtSettingsForSharing!.psk != null &&
+          contact.sharedProfile != null &&
+          contact.sharedProfile!.isNotEmpty)
+        Card(
+            shape:
+                const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+            margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+            child: Stack(children: [
+              Positioned.fill(
+                  child: SvgPicture.asset('assets/images/up_arrow_bg.svg',
+                      fit: BoxFit.cover)),
+              Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // TODO: Add when custom sharing profiles are there
+                        // DropdownButton(
+                        //     // TODO make state dependent
+                        //     // TODO: Get from my profile preferences
+                        //     value: 'full',
+                        //     items: const [
+                        //       DropdownMenuItem<String>(
+                        //           value: 'full', child: Text('Full Profile')),
+                        //     ],
+                        //     onChanged: (v) => ()),
+
+                        Text(
+                            'Start sharing your contact details with ${contact.details?.displayName}:',
+                            textScaler: const TextScaler.linear(1.2)),
+                        const SizedBox(height: 4),
                         Center(
                             child: _qrCodeButton(context,
                                 buttonText: 'QR code to share',
@@ -193,26 +211,9 @@ class ContactPage extends StatelessWidget {
                               'I\'d like to coagulate with you: ${_shareUrl(key: contact.dhtSettingsForSharing!.key, psk: contact.dhtSettingsForSharing!.psk!)}\n'
                               'Keep this link a secret, it\'s just for you.'),
                         )),
-                      ],
-                      // TODO: We don't need to integrate profile and sharing via the UI, we can also do it via the repository layer.
-                      //       It might make sense when we introduce the sharing profile settings, though, so let's see then.
-                      BlocConsumer<ProfileCubit, ProfileState>(
-                          listener: (context, state) async {},
-                          builder: (context, state) {
-                            if (state.profileContact == null) {
-                              return const Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Text(
-                                      'Pick a profile contact, then you can start sharing.'));
-                            }
-                            return Center(
-                                child: _coagulateButton(context,
-                                    contact: contact,
-                                    myProfile: state.profileContact!));
-                          }),
-                      const SizedBox(height: 8),
-                    ]))
-          ])),
+                        const SizedBox(height: 8),
+                      ]))
+            ])),
       // Receiving stuff
       if (contact.dhtSettingsForReceiving != null &&
           contact.dhtSettingsForReceiving!.writer != null &&

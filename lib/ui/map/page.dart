@@ -5,7 +5,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:latlong2/latlong.dart';
@@ -73,8 +72,6 @@ Marker _buildMarker(
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 14),
               ),
-              // TODO: Display not just the first address but all of them
-              // TODO: Display label of the address
               Text(
                 location.subLabel,
                 overflow: TextOverflow.ellipsis,
@@ -90,7 +87,7 @@ class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FlutterMap(
         options: const MapOptions(
-          // TODO: Pick reasonable center without requiring all markers first
+          // TODO: Pick reasonable center without requiring all markers first; e.g. based on profile contact locations
           initialCenter: LatLng(50.5, 30.51),
           initialZoom: 3,
           maxZoom: 15,
