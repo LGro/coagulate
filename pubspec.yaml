@@ -12,8 +12,7 @@ dependencies:
   awesome_extensions: ^2.0.13
   basic_utils: ^5.7.0
   bloc: ^8.1.3
-  bloc_tools:
-    path: packages/bloc_tools
+  bloc_advanced_tools: ^0.1.0
   charcode: ^1.3.1
   collection: ^1.18.0
   equatable: ^2.0.5
