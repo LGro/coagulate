@@ -60,10 +60,11 @@ packages:
   async_tools:
     dependency: transitive
     description:
-      path: "packages/async_tools"
-      relative: true
-    source: path
-    version: "1.0.0"
+      name: async_tools
+      sha256: "972f68ab663724d86260a31e363c1355ff493308441b872bf4e7b8adc67c832c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   awesome_extensions:
     dependency: "direct main"
     description:
