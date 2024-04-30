@@ -156,7 +156,7 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
                           .values
                     ]))));
 
-Widget addresses(BuildContext context, List<Address> addresses) => Card(
+Widget addresses(List<Address> addresses) => Card(
     color: Colors.white,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
