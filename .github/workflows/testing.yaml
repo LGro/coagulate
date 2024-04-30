@@ -21,7 +21,7 @@ jobs:
       run: |
         git clone https://github.com/flutter/flutter.git /usr/local/flutter
         export PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
-        sdkmanager "platforms;android-29" "build-tools;28.0.3" "26.3.11579264"
+        sdkmanager "platforms;android-29" "build-tools;28.0.3" "ndk;26.3.11579264"
         yes | sdkmanager --licenses
         flutter config --android-sdk /opt/android-sdk
         flutter doctor -v
