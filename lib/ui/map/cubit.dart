@@ -3,8 +3,8 @@
 
 import 'dart:async';
 
+import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -22,7 +22,7 @@ Iterable<Location> contactToLocations(CoagContact contact) =>
             contact.details?.displayName ?? contact.systemContact!.displayName,
         subLabel: l.name));
 
-class MapCubit extends HydratedCubit<MapState> {
+class MapCubit extends Cubit<MapState> {
   MapCubit(this.contactsRepository)
       : super(const MapState({}, MapStatus.initial)) {
     _contactsSuscription =
@@ -39,12 +39,6 @@ class MapCubit extends HydratedCubit<MapState> {
 
   final ContactsRepository contactsRepository;
   late final StreamSubscription<CoagContact> _contactsSuscription;
-
-  @override
-  MapState fromJson(Map<String, dynamic> json) => MapState.fromJson(json);
-
-  @override
-  Map<String, dynamic> toJson(MapState state) => state.toJson();
 
   @override
   Future<void> close() {

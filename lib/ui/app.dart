@@ -8,6 +8,8 @@ import 'package:flutter_translate/flutter_translate.dart';
 import 'package:provider/provider.dart';
 import 'package:radix_colors/radix_colors.dart';
 
+import '../data/providers/distributed_storage/dht.dart';
+import '../data/providers/persistent_storage/shared_preferences.dart';
 import '../data/repositories/contacts.dart';
 import '../tick.dart';
 import '../veilid_init.dart';
@@ -73,8 +75,8 @@ class CoagulateApp extends StatelessWidget {
             state: LocalizationProvider.of(context).state,
             child: BackgroundTicker(
                 child: RepositoryProvider.value(
-              // TODO: Where to async initialize instead?
-              value: ContactsRepository(),
+              value: ContactsRepository(
+                  SharedPreferencesStorage(), VeilidDhtStorage()),
               child: MaterialApp(
                 title: 'Coagulate',
                 theme: ThemeData(

@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
+import 'base.dart';
 
 const String mostRecentSchemaVersion = '1';
 
@@ -25,48 +26,58 @@ CoagContact _deserializeAndMigrateIfNecessary(String contactRecord) {
   return CoagContact.fromJson(json.decode(contactJson) as Map<String, dynamic>);
 }
 
-Future<CoagContact> getContact(String coagContactId) async {
-  final contactRecord =
-      (await SharedPreferences.getInstance()).getString(coagContactId);
-  if (contactRecord == null) {
-    // TODO: handle error case more specifically
-    throw Exception('Contact ID $coagContactId could not be found');
+class SharedPreferencesStorage extends PersistentStorage {
+  @override
+  Future<CoagContact> getContact(String coagContactId) async {
+    final contactRecord =
+        (await SharedPreferences.getInstance()).getString(coagContactId);
+    if (contactRecord == null) {
+      // TODO: handle error case more specifically
+      throw Exception('Contact ID $coagContactId could not be found');
+    }
+    return _deserializeAndMigrateIfNecessary(contactRecord);
   }
-  return _deserializeAndMigrateIfNecessary(contactRecord);
-}
 
-Future<Map<String, CoagContact>> getAllContacts() async => {
-      for (final k in (await SharedPreferences.getInstance())
-          .getKeys()
-          .where((k) => Uuid.isValidUUID(fromString: k)))
-        k: await getContact(k)
-    };
+  @override
+  Future<Map<String, CoagContact>> getAllContacts() async => {
+        for (final k in (await SharedPreferences.getInstance())
+            .getKeys()
+            .where((k) => Uuid.isValidUUID(fromString: k)))
+          k: await getContact(k)
+      };
 
-Future<void> updateContact(CoagContact contact) async =>
-    (await SharedPreferences.getInstance())
-        .setString(contact.coagContactId, _recordFromContact(contact));
+  @override
+  Future<void> updateContact(CoagContact contact) async =>
+      (await SharedPreferences.getInstance())
+          .setString(contact.coagContactId, _recordFromContact(contact));
 
-Future<void> setProfileContactId(String profileContactId) async =>
-    (await SharedPreferences.getInstance())
-        .setString('profile_contact_id', profileContactId);
+  @override
+  Future<void> setProfileContactId(String profileContactId) async =>
+      (await SharedPreferences.getInstance())
+          .setString('profile_contact_id', profileContactId);
 
-Future<String?> getProfileContactId() async =>
-    (await SharedPreferences.getInstance()).getString('profile_contact_id');
+  @override
+  Future<String?> getProfileContactId() async =>
+      (await SharedPreferences.getInstance()).getString('profile_contact_id');
 
-Future<void> removeContact(String coagContactId) async =>
-    (await SharedPreferences.getInstance()).remove(coagContactId);
+  @override
+  Future<void> removeContact(String coagContactId) async =>
+      (await SharedPreferences.getInstance()).remove(coagContactId);
 
-Future<List<ContactUpdate>> getUpdates() async {
-  final updatesString =
-      (await SharedPreferences.getInstance()).getString('updates');
-  if (updatesString == null || updatesString.isEmpty) {
-    return [];
+  @override
+  Future<List<ContactUpdate>> getUpdates() async {
+    final updatesString =
+        (await SharedPreferences.getInstance()).getString('updates');
+    if (updatesString == null || updatesString.isEmpty) {
+      return [];
+    }
+    return List.from((json.decode(updatesString) as Iterable)
+        .map((u) => ContactUpdate.fromJson(u as Map<String, dynamic>)));
   }
-  return List.from((json.decode(updatesString) as Iterable)
-      .map((u) => ContactUpdate.fromJson(u as Map<String, dynamic>)));
-}
 
-Future<void> addUpdate(ContactUpdate update) async {
-  await (await SharedPreferences.getInstance())
-      .setString('updates', json.encode((await getUpdates())..add(update)));
+  @override
+  Future<void> addUpdate(ContactUpdate update) async {
+    await (await SharedPreferences.getInstance())
+        .setString('updates', json.encode((await getUpdates())..add(update)));
+  }
 }

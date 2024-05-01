@@ -3,10 +3,10 @@
 
 import 'dart:async';
 
+import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -16,7 +16,7 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
-class ProfileCubit extends HydratedCubit<ProfileState> {
+class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit(this.contactsRepository) : super(const ProfileState()) {
     _contactsSubscription =
         contactsRepository.getContactUpdates().listen((contact) {
@@ -62,13 +62,6 @@ class ProfileCubit extends HydratedCubit<ProfileState> {
     emit(
         state.copyWith(status: ProfileStatus.success, profileContact: contact));
   }
-
-  @override
-  ProfileState fromJson(Map<String, dynamic> json) =>
-      ProfileState.fromJson(json);
-
-  @override
-  Map<String, dynamic> toJson(ProfileState state) => state.toJson();
 
   Future<void> fetchCoordinates(int iAddress) async {
     final address =

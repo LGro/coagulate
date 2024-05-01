@@ -10,10 +10,10 @@ import 'package:workmanager/workmanager.dart';
 
 import '../../veilid_init.dart';
 import '../../veilid_processor/repository/processor_repository.dart';
-import '../providers/dht.dart';
 import '../providers/system_contacts.dart';
 import '../repositories/contacts.dart';
-import 'persistent_storage/shared_preferences.dart' as persistent_storage;
+import 'distributed_storage/dht.dart';
+import 'persistent_storage/shared_preferences.dart';
 
 const String updateToAndFromDhtTaskName = 'social.coagulate.dht.refresh';
 const String refreshProfileContactTaskName = 'social.coagulate.profile.refresh';
@@ -53,13 +53,14 @@ Future<void> registerBackgroundTasks() async {
 /// If system contact information for profile contact is changed, update profile
 Future<bool> refreshProfileContactDetails() async {
   try {
-    final profileContactId = await persistent_storage.getProfileContactId();
+    final profileContactId =
+        await SharedPreferencesStorage().getProfileContactId();
     if (profileContactId == null) {
       return true;
     }
 
     final profileContact =
-        await persistent_storage.getContact(profileContactId);
+        await SharedPreferencesStorage().getContact(profileContactId);
     if (profileContact.systemContact == null) {
       return false;
     }
@@ -68,7 +69,7 @@ Future<bool> refreshProfileContactDetails() async {
         await getSystemContact(profileContact.systemContact!.id);
 
     if (profileContact.systemContact != currentSystemContact) {
-      await persistent_storage.updateContact(
+      await SharedPreferencesStorage().updateContact(
           profileContact.copyWith(systemContact: currentSystemContact));
     }
     return true;
@@ -85,12 +86,13 @@ Future<bool> updateToAndFromDht() async {
     List<String> log = [];
     final startTime = DateTime.now();
 
-    final profileContactId = await persistent_storage.getProfileContactId();
+    final profileContactId =
+        await SharedPreferencesStorage().getProfileContactId();
     if (profileContactId == null) {
       return true;
     }
 
-    final contacts = await persistent_storage.getAllContacts();
+    final contacts = await SharedPreferencesStorage().getAllContacts();
     if (!contacts.containsKey(profileContactId)) {
       return false;
     }
@@ -130,18 +132,20 @@ Future<bool> updateToAndFromDht() async {
         log.add('existing profile ${contact.sharedProfile}');
         if (contact.sharedProfile != sharedProfile) {
           log.add('new profile ${sharedProfile}');
-          final updatedContact = await updateContactSharingDHT(
-              contact.copyWith(sharedProfile: sharedProfile));
-          await persistent_storage.updateContact(updatedContact);
+          final updatedContact = await VeilidDhtStorage()
+              .updateContactSharingDHT(
+                  contact.copyWith(sharedProfile: sharedProfile));
+          await SharedPreferencesStorage().updateContact(updatedContact);
         }
       }
 
       // Receive from DHT
       // TODO: Move above the profile contact true early return
-      final updatedContact = await updateContactReceivingDHT(contact);
+      final updatedContact =
+          await VeilidDhtStorage().updateContactReceivingDHT(contact);
       if (updatedContact != contact) {
         // TODO: update system contact according to management profile
-        await persistent_storage.updateContact(updatedContact);
+        await SharedPreferencesStorage().updateContact(updatedContact);
       }
     }
     return iContact > 0;

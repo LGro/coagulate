@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../models/coag_contact.dart';
+import '../../models/contact_update.dart';
+import 'base.dart';
 
 part 'hive.g.dart';
 
@@ -47,16 +49,19 @@ CoagContact _deserializeAndMigrateIfNecessary(ContactRecord contactRecord) {
 }
 
 /// Simple persistent storage based on [Hive], storing contacts as JSON strings
-class HivePersistentStorage {
-  HivePersistentStorage();
+class HiveStorage extends PersistentStorage {
+  // TODO: Add required global initialization here?!
+  HiveStorage();
 
   Future<Box<ContactRecord>> _lazyGetContactsBox() async =>
       Hive.openBox('hive_coag_contacts_box');
 
+  @override
   Future<Map<String, CoagContact>> getAllContacts() async =>
       (await _lazyGetContactsBox()).toMap().map((key, value) =>
           MapEntry(key.toString(), _deserializeAndMigrateIfNecessary(value)));
 
+  @override
   Future<CoagContact> getContact(String coagContactId) async {
     final contactJson = (await _lazyGetContactsBox()).get(coagContactId);
     if (contactJson == null) {
@@ -66,6 +71,7 @@ class HivePersistentStorage {
     return _deserializeAndMigrateIfNecessary(contactJson);
   }
 
+  @override
   Future<void> updateContact(CoagContact contact) async =>
       (await _lazyGetContactsBox())
           .put(contact.coagContactId, _recordFromContact(contact));
@@ -73,12 +79,30 @@ class HivePersistentStorage {
   Future<Box<String>> _lazyGetSettingsBox() async =>
       Hive.openBox('hive_coag_settings_box');
 
+  @override
   Future<void> setProfileContactId(String profileContactId) async =>
       (await _lazyGetSettingsBox()).put('profile_contact_id', profileContactId);
 
+  @override
   Future<String?> getProfileContactId() async =>
       (await _lazyGetSettingsBox()).get('profile_contact_id');
 
+  @override
   Future<void> removeContact(String coagContactId) async =>
       (await _lazyGetSettingsBox()).delete(coagContactId);
+
+  Future<Box<String>> _lazyGetUpdatesBox() async =>
+      Hive.openBox('hive_coag_updates_box');
+
+  @override
+  Future<void> addUpdate(ContactUpdate update) async =>
+      throw UnimplementedError();
+  // (await _lazyGetUpdatesBox())
+  //     .put(contact.coagContactId, json.encode(update.toJson()));
+
+  @override
+  Future<List<ContactUpdate>> getUpdates() {
+    // TODO: implement getUpdates
+    throw UnimplementedError();
+  }
 }

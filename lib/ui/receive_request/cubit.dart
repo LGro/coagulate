@@ -4,16 +4,16 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/models/coag_contact.dart';
-import '../../data/providers/dht.dart';
+import '../../data/providers/distributed_storage/dht.dart';
 import '../../data/repositories/contacts.dart';
 
 part 'cubit.g.dart';
@@ -75,8 +75,8 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
 
         // TODO: Refactor updateContactFromDHT to use here as well?
         try {
-          final raw =
-              await readPasswordEncryptedDHTRecord(recordKey: key, secret: psk);
+          final raw = await VeilidDhtStorage()
+              .readPasswordEncryptedDHTRecord(recordKey: key, secret: psk);
           print("Retrieved from DHT Record $key:\n$raw");
           // TODO: Error handling
           final contact = CoagContactDHTSchemaV1.fromJson(

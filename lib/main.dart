@@ -3,10 +3,10 @@
 
 import 'dart:async';
 
+import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_translate/flutter_translate.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:workmanager/workmanager.dart';
@@ -36,10 +36,6 @@ void main() async {
         .initialize(callbackDispatcher, isInDebugMode: kDebugMode);
 
     final appStorage = await getApplicationDocumentsDirectory();
-
-    // Persistent storage via hydrated blocs
-    HydratedBloc.storage =
-        await HydratedStorage.build(storageDirectory: appStorage);
 
     // Let's coagulate :)
     runApp(LocalizedApp(localizationDelegate,

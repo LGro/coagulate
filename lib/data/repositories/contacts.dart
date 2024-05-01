@@ -13,9 +13,8 @@ import 'package:veilid/veilid.dart';
 import '../../veilid_processor/repository/processor_repository.dart';
 import '../models/coag_contact.dart';
 import '../models/contact_update.dart';
-import '../providers/dht.dart';
-import '../providers/persistent_storage/shared_preferences.dart'
-    as persistent_storage;
+import '../providers/distributed_storage/base.dart';
+import '../providers/persistent_storage/base.dart';
 import '../providers/system_contacts.dart';
 
 // TODO: Persist all changes to any contact by never accessing coagContacts directly, only via getter and setter
@@ -40,7 +39,7 @@ Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
 
 /// Entrypoint for application layer when it comes to [CoagContact]
 class ContactsRepository {
-  ContactsRepository() {
+  ContactsRepository(this.persistentStorage, this.distributedStorage) {
     unawaited(_init());
 
     // Regularly check for updates from the persistent storage,
@@ -52,6 +51,9 @@ class ContactsRepository {
     timerDhtRefresh = Timer.periodic(
         Duration(seconds: 5), (_) async => updateAndWatchReceivingDHT());
   }
+
+  final PersistentStorage persistentStorage;
+  final DistributedStorage distributedStorage;
 
   late final Timer? timerPersistentStorageRefresh;
   late final Timer? timerDhtRefresh;
@@ -69,16 +71,16 @@ class ContactsRepository {
 
   Future<void> _init() async {
     // Load profile contact ID from persistent storage
-    profileContactId = await persistent_storage.getProfileContactId();
+    profileContactId = await persistentStorage.getProfileContactId();
 
     // Load updates from persistent storage
-    updates = await persistent_storage.getUpdates();
+    updates = await persistentStorage.getUpdates();
     for (final u in updates) {
       _updatesStreamController.add(u);
     }
 
     // Load coagulate contacts from persistent storage
-    _contacts = await persistent_storage.getAllContacts();
+    _contacts = await persistentStorage.getAllContacts();
     for (final c in _contacts.values) {
       _contactsStreamController.add(c);
     }
@@ -102,14 +104,14 @@ class ContactsRepository {
   Future<void> _saveContact(CoagContact coagContact) async {
     _contacts[coagContact.coagContactId] = coagContact;
     _contactsStreamController.add(coagContact);
-    await persistent_storage.updateContact(coagContact);
+    await persistentStorage.updateContact(coagContact);
   }
 
   Future<void> _saveUpdate(ContactUpdate update) async {
     updates.add(update);
     _updatesStreamController.add(update);
     // TODO: Have two persistent storages with different prefixes for updates and contacts?
-    await persistent_storage.addUpdate(update);
+    await persistentStorage.addUpdate(update);
   }
 
   Future<void> _updateFromSystemContact(CoagContact contact) async {
@@ -148,7 +150,8 @@ class ContactsRepository {
       final contact = _contacts.values.firstWhere(
           (c) => c.dhtSettingsForReceiving!.key == update.key.toString());
 
-      final updatedContact = await updateContactReceivingDHT(contact);
+      final updatedContact =
+          await distributedStorage.updateContactReceivingDHT(contact);
       if (updatedContact != contact) {
         // TODO: Use update time from when the update was sent not received
         await _saveUpdate(ContactUpdate(
@@ -164,7 +167,7 @@ class ContactsRepository {
 
   Future<void> _updateFromPersistentStorage() async {
     await (await SharedPreferences.getInstance()).reload();
-    final storedContacts = await persistent_storage.getAllContacts();
+    final storedContacts = await persistentStorage.getAllContacts();
     // TODO: Working with _contacts.values directly is prone to a ConcurrentModificationError; copying as a workaround
     for (final contact in List<CoagContact>.from(_contacts.values)) {
       // Update if there is no matching contact but is a corresponding ID
@@ -263,7 +266,8 @@ class ContactsRepository {
 
     // TODO: Move this to an unawaitable one since these changes don't need to block the stream update
     if (contact.sharedProfile != null) {
-      final updatedContact = await updateContactSharingDHT(contact);
+      final updatedContact =
+          await distributedStorage.updateContactSharingDHT(contact);
       // TODO: Is this too broad of a condition and update?
       // i.e. should we check for specific attributes where we expect and override and then copy with them?
       // I'm worried about race conditions
@@ -288,7 +292,8 @@ class ContactsRepository {
     for (final contact in contacts) {
       // Check for incoming updates
       if (contact.dhtSettingsForReceiving != null) {
-        final updatedContact = await updateContactReceivingDHT(contact);
+        final updatedContact =
+            await distributedStorage.updateContactReceivingDHT(contact);
         if (updatedContact != contact) {
           // TODO: Use update time from when the update was sent not received
           await _saveUpdate(ContactUpdate(
@@ -296,7 +301,8 @@ class ContactsRepository {
               timestamp: DateTime.now()));
           await updateContact(updatedContact);
         }
-        await watchDHTRecord(contact.dhtSettingsForReceiving!.key);
+        await distributedStorage
+            .watchDHTRecord(contact.dhtSettingsForReceiving!.key);
       }
     }
   }
@@ -309,7 +315,7 @@ class ContactsRepository {
 
     // TODO: Do we need to enforce writing to disk to make it available to background straight away?
     profileContactId = coagContactId;
-    await persistent_storage.setProfileContactId(coagContactId);
+    await persistentStorage.setProfileContactId(coagContactId);
 
     // Ensure all system contacts changes are in
     await _updateFromSystemContact(_contacts[coagContactId]!);
@@ -339,6 +345,6 @@ class ContactsRepository {
 
   Future<void> removeContact(String coagContactId) async {
     _contacts.remove(coagContactId);
-    await persistent_storage.removeContact(coagContactId);
+    await persistentStorage.removeContact(coagContactId);
   }
 }

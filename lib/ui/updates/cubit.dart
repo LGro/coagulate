@@ -3,8 +3,8 @@
 
 import 'dart:async';
 
+import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -14,7 +14,7 @@ import '../../data/repositories/contacts.dart';
 part 'state.dart';
 part 'cubit.g.dart';
 
-class UpdatesCubit extends HydratedCubit<UpdatesState> {
+class UpdatesCubit extends Cubit<UpdatesState> {
   UpdatesCubit(this.contactsRepository)
       : super(const UpdatesState(UpdatesStatus.initial)) {
     _contactsSuscription = contactsRepository.getContactUpdates().listen(
