@@ -62,7 +62,8 @@ Future<List<ContactUpdate>> getUpdates() async {
   if (updatesString == null || updatesString.isEmpty) {
     return [];
   }
-  return json.decode(updatesString) as List<ContactUpdate>;
+  return List.from((json.decode(updatesString) as Iterable)
+      .map((u) => ContactUpdate.fromJson(u as Map<String, dynamic>)));
 }
 
 Future<void> addUpdate(ContactUpdate update) async {
