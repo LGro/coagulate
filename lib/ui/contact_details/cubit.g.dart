@@ -10,9 +10,7 @@ ContactDetailsState _$ContactDetailsStateFromJson(Map<String, dynamic> json) =>
     ContactDetailsState(
       json['coag_contact_id'] as String,
       $enumDecode(_$ContactDetailsStatusEnumMap, json['status']),
-      contact: json['contact'] == null
-          ? null
-          : CoagContact.fromJson(json['contact'] as Map<String, dynamic>),
+      CoagContact.fromJson(json['contact'] as Map<String, dynamic>),
       sharedProfile: json['shared_profile'] == null
           ? null
           : CoagContact.fromJson(
@@ -23,7 +21,7 @@ Map<String, dynamic> _$ContactDetailsStateToJson(
         ContactDetailsState instance) =>
     <String, dynamic>{
       'coag_contact_id': instance.coagContactId,
-      'contact': instance.contact?.toJson(),
+      'contact': instance.contact.toJson(),
       'status': _$ContactDetailsStatusEnumMap[instance.status]!,
       'shared_profile': instance.sharedProfile?.toJson(),
     };

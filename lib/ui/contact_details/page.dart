@@ -100,96 +100,111 @@ class ContactPage extends StatelessWidget {
                   // TODO: Theme
                   backgroundColor: const Color.fromARGB(255, 244, 244, 244),
                   appBar: AppBar(
-                    title: Text(state.contact!.details!.displayName),
+                    title: Text((state.contact.details != null)
+                        ? state.contact.details!.displayName
+                        : state.contact.systemContact!.displayName),
                   ),
                   body: _body(context, state.contact))));
 
-  Widget _body(BuildContext context, CoagContact? contact) {
-    if (contact?.details?.name == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    return SingleChildScrollView(
-        child:
-            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const SizedBox(height: 24),
-      Center(
-          child: Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: avatar(contact!.systemContact))),
+  Widget _body(BuildContext context, CoagContact contact) =>
+      SingleChildScrollView(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const SizedBox(height: 24),
+        Center(
+            child: Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: avatar(contact.systemContact))),
 
-      // TODO: We don't need to integrate profile and sharing via the UI, we can also do it via the repository layer.
-      //       It might make sense when we introduce the sharing profile settings, though, so let's see then.
-      BlocConsumer<ProfileCubit, ProfileState>(
-          listener: (context, state) async {},
-          builder: (context, state) {
-            if (state.profileContact == null) {
-              return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(
-                      'Pick a profile contact, then you can start sharing.'));
-            }
-            return Center(
-                child: _coagulateButton(context,
-                    contact: contact, myProfile: state.profileContact!));
-          }),
+        // TODO: We don't need to integrate profile and sharing via the UI, we can also do it via the repository layer.
+        //       It might make sense when we introduce the sharing profile settings, though, so let's see then.
+        BlocConsumer<ProfileCubit, ProfileState>(
+            listener: (context, state) async {},
+            builder: (context, state) {
+              if (state.profileContact == null) {
+                return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                        'Pick a profile contact, then you can start sharing.'));
+              }
+              return Center(
+                  child: _coagulateButton(context,
+                      contact: contact, myProfile: state.profileContact!));
+            }),
 
-      // Receiving stuff
-      if (contact.dhtSettingsForReceiving != null &&
-          contact.dhtSettingsForReceiving!.writer != null &&
-          contact.dhtSettingsForReceiving!.psk != null &&
-          contact.dhtSettingsForReceiving!.lastUpdated == null)
-        receivingCard(context, contact),
+        // Receiving stuff
+        if (contact.dhtSettingsForReceiving != null &&
+            contact.dhtSettingsForReceiving!.writer != null &&
+            contact.dhtSettingsForReceiving!.psk != null &&
+            contact.dhtSettingsForReceiving!.lastUpdated == null)
+          receivingCard(context, contact),
 
-      // First phase?
-      // for all incoming ones, show as synced to local
-      // for all local ones that don't match incoming ones, show as local
-      // match by index when linking for the first time
+        // First phase?
+        // for all incoming ones, show as synced to local
+        // for all local ones that don't match incoming ones, show as local
+        // match by index when linking for the first time
 
-      // TODO: Display merged view of contact details and system contact second phase, where
-      // if a matching name with the same value is present
-      //   - show entry with managed or unmanaged indicator
-      // if a matching name with a different value is present
-      //   - if managed, override, collapse to same
-      //   - if not managed, display side by side, show option to enable dht management
-      // if no matching name and value is present
-      //   - add as new entry to system contact, mark managed
-      // if no matching name but matching value is present, think about displaying them next to each other still
+        // TODO: Display merged view of contact details and system contact second phase, where
+        // if a matching name with the same value is present
+        //   - show entry with managed or unmanaged indicator
+        // if a matching name with a different value is present
+        //   - if managed, override, collapse to same
+        //   - if not managed, display side by side, show option to enable dht management
+        // if no matching name and value is present
+        //   - add as new entry to system contact, mark managed
+        // if no matching name but matching value is present, think about displaying them next to each other still
 
-      // Contact details
-      if (contact.details!.phones.isNotEmpty) phones(contact.details!.phones),
-      if (contact.details!.emails.isNotEmpty) emails(contact.details!.emails),
-      if (contact.details!.addresses.isNotEmpty)
-        addresses(contact.details!.addresses),
-      if (contact.details!.websites.isNotEmpty)
-        websites(contact.details!.websites),
+        // Contact details
+        if (contact.details != null && contact.details!.phones.isNotEmpty)
+          phones(contact.details!.phones)
+        else if (contact.systemContact != null &&
+            contact.systemContact!.phones.isNotEmpty)
+          phones(contact.systemContact!.phones),
 
-      // Sharing stuff
-      if (contact.dhtSettingsForSharing != null &&
-          contact.dhtSettingsForSharing!.writer != null &&
-          contact.dhtSettingsForSharing!.psk != null &&
-          contact.sharedProfile != null &&
-          contact.sharedProfile!.isNotEmpty)
-        sharingCard(context, contact),
-      if (contact.sharedProfile != null && contact.sharedProfile!.isNotEmpty)
-        ...displaySharedProfile(contact.sharedProfile!),
+        if (contact.details != null && contact.details!.emails.isNotEmpty)
+          emails(contact.details!.emails)
+        else if (contact.systemContact != null &&
+            contact.systemContact!.emails.isNotEmpty)
+          emails(contact.systemContact!.emails),
 
-      Center(
-          child: TextButton(
-              onPressed: () => context
-                  .read<ContactDetailsCubit>()
-                  .delete(contact.coagContactId),
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
-              ),
-              // TODO: Add subtext that this will retain the system contact in case it was linked
-              child: const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: Text(
-                    'Delete from Coagulate',
-                    style: TextStyle(color: Colors.black),
-                  )))),
-    ]));
-  }
+        if (contact.details != null && contact.details!.addresses.isNotEmpty)
+          addresses(contact.details!.addresses)
+        else if (contact.systemContact != null &&
+            contact.systemContact!.addresses.isNotEmpty)
+          addresses(contact.systemContact!.addresses),
+
+        if (contact.details != null && contact.details!.websites.isNotEmpty)
+          websites(contact.details!.websites)
+        else if (contact.systemContact != null &&
+            contact.systemContact!.websites.isNotEmpty)
+          websites(contact.systemContact!.websites),
+
+        // Sharing stuff
+        if (contact.dhtSettingsForSharing != null &&
+            contact.dhtSettingsForSharing!.writer != null &&
+            contact.dhtSettingsForSharing!.psk != null &&
+            contact.sharedProfile != null &&
+            contact.sharedProfile!.isNotEmpty)
+          sharingCard(context, contact),
+        if (contact.sharedProfile != null && contact.sharedProfile!.isNotEmpty)
+          ...displaySharedProfile(contact.sharedProfile!),
+
+        Center(
+            child: TextButton(
+                onPressed: () => context
+                    .read<ContactDetailsCubit>()
+                    .delete(contact.coagContactId),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                ),
+                // TODO: Add subtext that this will retain the system contact in case it was linked
+                child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Text(
+                      'Delete from Coagulate',
+                      style: TextStyle(color: Colors.black),
+                    )))),
+      ]));
 }
 
 Widget receivingCard(BuildContext context, CoagContact contact) => Card(
@@ -206,13 +221,14 @@ Widget receivingCard(BuildContext context, CoagContact contact) => Card(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
-                'Ask ${contact.details?.displayName} to start sharing with you:',
+                'Ask ${contact.details?.displayName ?? contact.systemContact!.displayName} to start sharing with you:',
                 textScaler: const TextScaler.linear(1.2)),
             const SizedBox(height: 4),
             Center(
                 child: _qrCodeButton(context,
                     buttonText: 'QR code to request',
-                    alertTitle: 'Request from ${contact.details!.displayName}',
+                    alertTitle:
+                        'Request from ${contact.details?.displayName ?? contact.systemContact!.displayName}',
                     qrCodeData: _receiveUrl(
                       key: contact.dhtSettingsForReceiving!.key,
                       psk: contact.dhtSettingsForReceiving!.psk!,
@@ -260,13 +276,14 @@ Widget sharingCard(BuildContext context, CoagContact contact) => Card(
             //     onChanged: (v) => ()),
 
             Text(
-                'Start sharing your contact details with ${contact.details?.displayName}:',
+                'Start sharing your contact details with ${contact.details?.displayName ?? contact.systemContact!.displayName}:',
                 textScaler: const TextScaler.linear(1.2)),
             const SizedBox(height: 4),
             Center(
                 child: _qrCodeButton(context,
                     buttonText: 'QR code to share',
-                    alertTitle: 'Share with ${contact.details!.displayName}',
+                    alertTitle:
+                        'Share with ${contact.details?.displayName ?? contact.systemContact!.displayName}',
                     qrCodeData: _shareUrl(
                       key: contact.dhtSettingsForSharing!.key,
                       psk: contact.dhtSettingsForSharing!.psk!,

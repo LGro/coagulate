@@ -18,7 +18,8 @@ Iterable<Location> contactToLocations(CoagContact contact) =>
         coagContactId: contact.coagContactId,
         longitude: l.longitude,
         latitude: l.latitude,
-        label: contact.details!.displayName,
+        label:
+            contact.details?.displayName ?? contact.systemContact!.displayName,
         subLabel: l.name));
 
 class MapCubit extends HydratedCubit<MapState> {

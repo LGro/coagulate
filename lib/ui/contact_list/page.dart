@@ -85,14 +85,14 @@ class _ContactListPageState extends State<ContactListPage> {
                 }
               })));
 
-  // TODO: This currently assumes that only contacts with details are passed, make this less implicit
   Widget _body(List<CoagContact> contacts) => ListView.builder(
       itemCount: contacts.length,
       itemBuilder: (context, i) {
         final contact = contacts[i];
         return ListTile(
             leading: avatar(contact.systemContact, radius: 18),
-            title: Text(contact.details!.displayName),
+            title: Text(contact.details?.displayName ??
+                contact.systemContact!.displayName),
             trailing: Text(_contactSyncStatus(contact)),
             onTap: () =>
                 Navigator.of(context).push(ContactPage.route(contact)));

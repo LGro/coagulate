@@ -165,7 +165,8 @@ class ContactsRepository {
   Future<void> _updateFromPersistentStorage() async {
     await (await SharedPreferences.getInstance()).reload();
     final storedContacts = await persistent_storage.getAllContacts();
-    for (final contact in _contacts.values) {
+    // TODO: Working with _contacts.values directly is prone to a ConcurrentModificationError; copying as a workaround
+    for (final contact in List<CoagContact>.from(_contacts.values)) {
       // Update if there is no matching contact but is a corresponding ID
       if (!storedContacts.containsValue(contact) &&
           storedContacts.containsKey(contact.coagContactId)) {
@@ -220,11 +221,8 @@ class ContactsRepository {
       }
       // The remaining system contacts are new
       for (final systemContact in systemContacts) {
-        final coagContact = CoagContact(
-            coagContactId: const Uuid().v4(),
-            systemContact: systemContact,
-            details: ContactDetails.fromSystemContact(systemContact));
-        await _saveContact(coagContact);
+        await _saveContact(CoagContact(
+            coagContactId: const Uuid().v4(), systemContact: systemContact));
       }
     } on MissingSystemContactsPermissionError {
       _systemContactAccessGrantedStreamController.add(false);

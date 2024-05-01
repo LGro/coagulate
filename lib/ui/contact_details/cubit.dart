@@ -17,11 +17,11 @@ part 'state.dart';
 class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   ContactDetailsCubit(this.contactsRepository, String coagContactId)
       : super(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
-            contact: contactsRepository.getContact(coagContactId))) {
+            contactsRepository.getContact(coagContactId))) {
     _contactsSuscription = contactsRepository.getContactUpdates().listen((c) {
       if (c.coagContactId == coagContactId) {
-        emit(ContactDetailsState(c.coagContactId, ContactDetailsStatus.success,
-            contact: c));
+        emit(ContactDetailsState(
+            c.coagContactId, ContactDetailsStatus.success, c));
       }
     });
   }
