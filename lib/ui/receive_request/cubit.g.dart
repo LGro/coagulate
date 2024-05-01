@@ -38,4 +38,5 @@ const _$ReceiveRequestStatusEnumMap = {
   ReceiveRequestStatus.processing: 'processing',
   ReceiveRequestStatus.receivedShare: 'receivedShare',
   ReceiveRequestStatus.receivedRequest: 'receivedRequest',
+  ReceiveRequestStatus.success: 'success',
 };

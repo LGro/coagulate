@@ -120,14 +120,15 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
     }
   }
 
-  void linkExistingContact(CoagContact contact) {
+  Future<void> linkExistingContact(CoagContact contact) async {
     final updatedContact = contact.copyWith(
-        dhtSettingsForReceiving: state.profile!.dhtSettingsForReceiving);
-    unawaited(contactsRepository.updateContact(updatedContact));
+        dhtSettingsForReceiving: state.profile!.dhtSettingsForReceiving,
+        details: state.profile!.details);
+    await contactsRepository.updateContact(updatedContact);
     if (!isClosed) {
-      emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+      emit(ReceiveRequestState(ReceiveRequestStatus.success,
+          profile: updatedContact));
     }
-    // TODO: Forward instead to contact details page to share back etc.
   }
 
   Future<void> createNewContact() async {
@@ -140,9 +141,8 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
     await contactsRepository.updateContact(contact);
 
     if (!isClosed) {
-      emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+      emit(ReceiveRequestState(ReceiveRequestStatus.success, profile: contact));
     }
-    // TODO: Forward instead to contact details page to share back etc.
   }
 
   void updateNewRequesterContact(String value) {

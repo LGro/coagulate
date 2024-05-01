@@ -3,13 +3,20 @@
 
 part of 'cubit.dart';
 
-enum ReceiveRequestStatus { qrcode, processing, receivedShare, receivedRequest }
+enum ReceiveRequestStatus {
+  qrcode,
+  processing,
+  receivedShare,
+  receivedRequest,
+  success
+}
 
 extension ReceiveRequestStatusX on ReceiveRequestStatus {
   bool get isQrcode => this == ReceiveRequestStatus.qrcode;
   bool get isProcessing => this == ReceiveRequestStatus.processing;
   bool get isReceivedShare => this == ReceiveRequestStatus.receivedShare;
   bool get isReceivedRequest => this == ReceiveRequestStatus.receivedRequest;
+  bool get isSuccess => this == ReceiveRequestStatus.success;
 }
 
 @JsonSerializable()
