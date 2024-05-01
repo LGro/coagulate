@@ -123,6 +123,7 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
                                     Text(_commaToNewline(e.address),
                                         style: const TextStyle(fontSize: 19)),
                                     const SizedBox(height: 8),
+                                    // TODO: This is not updated when fetch coordinates emits new state
                                     AddressCoordinatesForm(
                                         lng: locations
                                             .where((l) =>

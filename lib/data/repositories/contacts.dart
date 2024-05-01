@@ -251,7 +251,7 @@ class ContactsRepository {
     // TODO: Allow creation of a new system contact via update contact as well; might require custom contact details schema
     // Update system contact if linked and contact details changed
     if (contact.systemContact != null &&
-        _contacts[contact.coagContactId]!.systemContact !=
+        _contacts[contact.coagContactId]?.systemContact !=
             contact.systemContact) {
       // TODO: How to reconsile system contacts if permission was removed intermittently and is then granted again?
       try {
@@ -308,6 +308,7 @@ class ContactsRepository {
     }
 
     // TODO: Do we need to enforce writing to disk to make it available to background straight away?
+    profileContactId = coagContactId;
     await persistent_storage.setProfileContactId(coagContactId);
 
     // Ensure all system contacts changes are in
@@ -325,8 +326,8 @@ class ContactsRepository {
   }
 
   CoagContact? getCoagContactForSystemContactId(String systemContactId) =>
-      _contacts.values.firstWhere((c) =>
-          c.systemContact != null && c.systemContact!.id == systemContactId);
+      _contacts.values
+          .firstWhere((c) => c.systemContact?.id == systemContactId);
 
   String? getCoagContactIdForSystemContactId(String systemContactId) =>
       getCoagContactForSystemContactId(systemContactId)?.coagContactId;

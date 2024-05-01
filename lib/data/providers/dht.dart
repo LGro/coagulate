@@ -104,21 +104,18 @@ Future<CoagContact> updateContactSharingDHT(CoagContact contact) async {
         dhtSettingsForSharing: ContactDHTSettings(key: key, writer: writer));
   }
 
-  if (contact.dhtSettingsForReceiving?.writer == null) {
+  if (contact.dhtSettingsForReceiving == null) {
     final (key, writer) = await createDHTRecord();
     contact = contact.copyWith(
-        dhtSettingsForReceiving: ContactDHTSettings(key: key, writer: writer));
+        dhtSettingsForReceiving: ContactDHTSettings(
+            key: key,
+            writer: writer,
+            psk: await cs.randomSharedSecret().then((v) => v.toString())));
   }
 
   if (contact.dhtSettingsForSharing!.psk == null) {
     contact = contact.copyWith(
         dhtSettingsForSharing: contact.dhtSettingsForSharing!.copyWith(
-            psk: await cs.randomSharedSecret().then((v) => v.toString())));
-  }
-
-  if (contact.dhtSettingsForReceiving!.psk == null) {
-    contact = contact.copyWith(
-        dhtSettingsForReceiving: contact.dhtSettingsForReceiving!.copyWith(
             psk: await cs.randomSharedSecret().then((v) => v.toString())));
   }
 

@@ -27,7 +27,7 @@ class ReceiveRequestPage extends StatelessWidget {
           ReceiveRequestCubit(context.read<ContactsRepository>()),
       child: BlocConsumer<ReceiveRequestCubit, ReceiveRequestState>(
           listener: (context, state) async {
-        if (state.status == ReceiveRequestStatus.success) {
+        if (state.status.isSuccess) {
           await Navigator.of(context)
               .pushReplacement(ContactPage.route(state.profile!));
         }
@@ -87,9 +87,13 @@ class ReceiveRequestPage extends StatelessWidget {
                                   .read<ReceiveRequestCubit>()
                                   .updateNewRequesterContact)),
                       TextButton(
-                          onPressed: context
-                              .read<ReceiveRequestCubit>()
-                              .createNewContact,
+                          onPressed:
+                              (state.profile?.details?.displayName.isEmpty ??
+                                      true)
+                                  ? null
+                                  : context
+                                      .read<ReceiveRequestCubit>()
+                                      .createNewContact,
                           child: const Text(
                               'Create new contact & start sharing with them')),
                       if (state.contactProporsalsForLinking.isNotEmpty)
@@ -99,7 +103,11 @@ class ReceiveRequestPage extends StatelessWidget {
                       const SizedBox(height: 12),
                       if (state.contactProporsalsForLinking.isNotEmpty)
                         _pickExisting(
-                            context, state.contactProporsalsForLinking),
+                            context,
+                            state.contactProporsalsForLinking,
+                            context
+                                .read<ReceiveRequestCubit>()
+                                .linkExistingContactRequested),
                     ])));
 
           case ReceiveRequestStatus.receivedShare:
@@ -132,10 +140,11 @@ class ReceiveRequestPage extends StatelessWidget {
                             child: Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Text(
-                                    state.profile!.details!.displayName)))),
-                    if (state.profile!.details!.phones.isNotEmpty)
+                                    state.profile?.details?.displayName ??
+                                        '???')))),
+                    if (state.profile?.details?.phones.isNotEmpty ?? false)
                       phones(state.profile!.details!.phones),
-                    if (state.profile!.details!.emails.isNotEmpty)
+                    if (state.profile?.details?.emails.isNotEmpty ?? false)
                       emails(state.profile!.details!.emails),
                     TextButton(
                         onPressed: context
@@ -146,7 +155,12 @@ class ReceiveRequestPage extends StatelessWidget {
                       const Center(
                           child: Text('or link to an existing contact')),
                     if (state.contactProporsalsForLinking.isNotEmpty)
-                      _pickExisting(context, state.contactProporsalsForLinking),
+                      _pickExisting(
+                          context,
+                          state.contactProporsalsForLinking,
+                          context
+                              .read<ReceiveRequestCubit>()
+                              .linkExistingContactSharing),
                     TextButton(
                         onPressed:
                             context.read<ReceiveRequestCubit>().scanQrCode,
@@ -160,17 +174,21 @@ class ReceiveRequestPage extends StatelessWidget {
       }));
 }
 
-Widget _pickExisting(BuildContext context,
-        Iterable<CoagContact> contactProporsalsForLinking) =>
+Widget _pickExisting(
+        BuildContext context,
+        Iterable<CoagContact> contactProporsalsForLinking,
+        Future<void> Function(CoagContact contact) linkExistingCallback) =>
     Expanded(
         child: ListView(
       children: contactProporsalsForLinking
-          .where((c) => c.details != null)
+          // TODO: Filter out the profile contact
+          .where((c) => c.details != null || c.systemContact != null)
           .map((c) => ListTile(
               leading: avatar(c.systemContact, radius: 18),
-              title: Text(c.details!.displayName),
+              title: Text(c.details?.displayName ??
+                  c.systemContact?.displayName ??
+                  '???'),
               //trailing: Text(_contactSyncStatus(c)),
-              onTap: () => unawaited(
-                  context.read<ReceiveRequestCubit>().linkExistingContact(c))))
+              onTap: () => unawaited(linkExistingCallback(c))))
           .toList(),
     ));

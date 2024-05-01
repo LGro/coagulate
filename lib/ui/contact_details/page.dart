@@ -135,8 +135,7 @@ class ContactPage extends StatelessWidget {
         // Receiving stuff
         if (contact.dhtSettingsForReceiving != null &&
             contact.dhtSettingsForReceiving!.writer != null &&
-            contact.dhtSettingsForReceiving!.psk != null &&
-            contact.dhtSettingsForReceiving!.lastUpdated == null)
+            contact.dhtSettingsForReceiving!.psk != null)
           receivingCard(context, contact),
 
         // First phase?
@@ -279,6 +278,7 @@ Widget sharingCard(BuildContext context, CoagContact contact) => Card(
                 'Start sharing your contact details with ${contact.details?.displayName ?? contact.systemContact!.displayName}:',
                 textScaler: const TextScaler.linear(1.2)),
             const SizedBox(height: 4),
+            // TODO: Only show share back button when receiving key and psk but not writer are set i.e. is receiving updates and has share back settings
             Center(
                 child: _qrCodeButton(context,
                     buttonText: 'QR code to share',

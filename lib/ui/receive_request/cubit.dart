@@ -19,18 +19,12 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
-class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
+// NOTE: When we make this a hydrated cubit again, we need to find a way how to reset to the initial state after success
+class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
   ReceiveRequestCubit(this.contactsRepository)
       : super(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
 
   final ContactsRepository contactsRepository;
-
-  @override
-  ReceiveRequestState fromJson(Map<String, dynamic> json) =>
-      ReceiveRequestState.fromJson(json);
-
-  @override
-  Map<String, dynamic> toJson(ReceiveRequestState state) => state.toJson();
 
   void scanQrCode() =>
       emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
@@ -38,8 +32,7 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
   Future<void> qrCodeCaptured(BarcodeCapture capture) async {
     emit(ReceiveRequestState(ReceiveRequestStatus.processing));
     for (final barcode in capture.barcodes) {
-      if (barcode.rawValue != null &&
-          barcode.rawValue!.startsWith('https://coagulate.social')) {
+      if (barcode.rawValue?.startsWith('https://coagulate.social') ?? false) {
         final uri = barcode.rawValue!;
 
         final fragment = Uri.parse(uri).fragment;
@@ -120,10 +113,29 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
     }
   }
 
-  Future<void> linkExistingContact(CoagContact contact) async {
+  /// Link an existing contact that has requested sharing
+  Future<void> linkExistingContactRequested(CoagContact contact) async {
     final updatedContact = contact.copyWith(
-        dhtSettingsForReceiving: state.profile!.dhtSettingsForReceiving,
-        details: state.profile!.details);
+      dhtSettingsForReceiving: state.requestSettings,
+      sharedProfile: (contactsRepository.profileContactId == null)
+          ? null
+          : json.encode(removeNullOrEmptyValues(filterAccordingToSharingProfile(
+                  contactsRepository
+                      .getContact(contactsRepository.profileContactId!))
+              .toJson())),
+    );
+    await contactsRepository.updateContact(updatedContact);
+    if (!isClosed) {
+      emit(ReceiveRequestState(ReceiveRequestStatus.success,
+          profile: updatedContact));
+    }
+  }
+
+  /// Link an existing contact that has shared
+  Future<void> linkExistingContactSharing(CoagContact contact) async {
+    final updatedContact = contact.copyWith(
+        dhtSettingsForReceiving: state.profile?.dhtSettingsForReceiving,
+        details: state.profile?.details);
     await contactsRepository.updateContact(updatedContact);
     if (!isClosed) {
       emit(ReceiveRequestState(ReceiveRequestStatus.success,
@@ -132,7 +144,12 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
   }
 
   Future<void> createNewContact() async {
-    final contact = await FlutterContacts.requestPermission()
+    if (state.profile == null) {
+      return;
+    }
+    // TODO: This can result in creating the contact twice (I guess when we create the system contact first, coagulate picks up on that, creates the coag contact and then we run update with a separate ID)
+    final contact = state.profile?.details != null &&
+            await FlutterContacts.requestPermission()
         ? state.profile!.copyWith(
             systemContact: await FlutterContacts.insertContact(
                 state.profile!.details!.toSystemContact()))
@@ -151,9 +168,9 @@ class ReceiveRequestCubit extends HydratedCubit<ReceiveRequestState> {
         .getContacts()
         .values
         .where((c) =>
-            c.details != null &&
+            (c.details != null || c.systemContact != null) &&
             (value.isEmpty ||
-                c.details!.displayName
+                (c.details?.displayName ?? c.systemContact?.displayName ?? '')
                     .toLowerCase()
                     .contains(value.toLowerCase())))
         .asList();
