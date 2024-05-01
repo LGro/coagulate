@@ -338,7 +338,7 @@ class ProfileViewState extends State<ProfileView> {
               }
             } else if (state.status.isCreate) {
               if (await FlutterContacts.requestPermission()) {
-                // TODO: This doesn't seem to return the contact after creation
+                // TODO: This doesn't seem to return the contact after creation, leaving the profile page with the spinner
                 await context.read<ProfileCubit>().setContact(
                     (await FlutterContacts.openExternalInsert())?.id);
               } else {

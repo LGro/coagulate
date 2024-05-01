@@ -24,22 +24,22 @@ String extractAllValuesToString(dynamic value) {
   }
 }
 
-Iterable<CoagContact> filterAndSortContacts(Iterable<CoagContact> contacts,
-        {String filter = ''}) =>
+Iterable<CoagContact> filterAndSortContacts(Iterable<CoagContact> contacts, {String filter = ''}) =>
     ((filter.isEmpty)
             ? contacts
             : contacts.where((c) =>
-                (c.details != null && extractAllValuesToString(c.details!.toJson()).toLowerCase().contains(filter.toLowerCase())) ||
+                (c.details != null &&
+                    extractAllValuesToString(c.details!.toJson())
+                        .toLowerCase()
+                        .contains(filter.toLowerCase())) ||
                 (c.systemContact != null &&
                     extractAllValuesToString(c.systemContact!.toJson())
                         .toLowerCase()
                         .contains(filter.toLowerCase()))))
         .toList()
       ..sort((a, b) => compareNatural(
-          (a.details != null)
-              ? a.details!.displayName
-              : a.systemContact!.displayName,
-          (b.details != null) ? b.details!.displayName : b.systemContact!.displayName));
+          a.details?.displayName ?? a.systemContact?.displayName ?? 'A',
+          b.details?.displayName ?? b.systemContact?.displayName ?? 'A'));
 
 // TODO: Figure out sorting of the contacts
 class ContactListCubit extends Cubit<ContactListState> {

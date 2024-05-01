@@ -100,9 +100,9 @@ class ContactPage extends StatelessWidget {
                   // TODO: Theme
                   backgroundColor: const Color.fromARGB(255, 244, 244, 244),
                   appBar: AppBar(
-                    title: Text((state.contact.details != null)
-                        ? state.contact.details!.displayName
-                        : state.contact.systemContact!.displayName),
+                    title: Text(state.contact.details?.displayName ??
+                        state.contact.systemContact?.displayName ??
+                        'Contact Details'),
                   ),
                   body: _body(context, state.contact))));
 

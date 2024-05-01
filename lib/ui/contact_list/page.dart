@@ -92,7 +92,8 @@ class _ContactListPageState extends State<ContactListPage> {
         return ListTile(
             leading: avatar(contact.systemContact, radius: 18),
             title: Text(contact.details?.displayName ??
-                contact.systemContact!.displayName),
+                contact.systemContact?.displayName ??
+                'unknown'),
             trailing: Text(_contactSyncStatus(contact)),
             onTap: () =>
                 Navigator.of(context).push(ContactPage.route(contact)));
