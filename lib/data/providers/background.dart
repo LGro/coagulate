@@ -10,10 +10,10 @@ import 'package:workmanager/workmanager.dart';
 
 import '../../veilid_init.dart';
 import '../../veilid_processor/repository/processor_repository.dart';
-import '../providers/system_contacts.dart';
 import '../repositories/contacts.dart';
 import 'distributed_storage/dht.dart';
 import 'persistent_storage/shared_preferences.dart';
+import 'system_contacts/system_contacts.dart';
 
 const String updateToAndFromDhtTaskName = 'social.coagulate.dht.refresh';
 const String refreshProfileContactTaskName = 'social.coagulate.profile.refresh';
@@ -66,7 +66,7 @@ Future<bool> refreshProfileContactDetails() async {
     }
 
     final currentSystemContact =
-        await getSystemContact(profileContact.systemContact!.id);
+        await SystemContacts().getContact(profileContact.systemContact!.id);
 
     if (profileContact.systemContact != currentSystemContact) {
       await SharedPreferencesStorage().updateContact(

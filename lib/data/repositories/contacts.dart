@@ -15,7 +15,8 @@ import '../models/coag_contact.dart';
 import '../models/contact_update.dart';
 import '../providers/distributed_storage/base.dart';
 import '../providers/persistent_storage/base.dart';
-import '../providers/system_contacts.dart';
+import '../providers/system_contacts/base.dart';
+import '../providers/system_contacts/system_contacts.dart';
 
 // TODO: Persist all changes to any contact by never accessing coagContacts directly, only via getter and setter
 
@@ -39,7 +40,8 @@ Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
 
 /// Entrypoint for application layer when it comes to [CoagContact]
 class ContactsRepository {
-  ContactsRepository(this.persistentStorage, this.distributedStorage) {
+  ContactsRepository(this.persistentStorage, this.distributedStorage,
+      this.systemContactsStorage) {
     unawaited(_init());
 
     // Regularly check for updates from the persistent storage,
@@ -54,6 +56,7 @@ class ContactsRepository {
 
   final PersistentStorage persistentStorage;
   final DistributedStorage distributedStorage;
+  final SystemContactsBase systemContactsStorage;
 
   late final Timer? timerPersistentStorageRefresh;
   late final Timer? timerDhtRefresh;
@@ -121,7 +124,8 @@ class ContactsRepository {
     }
     // Try if permissions are granted
     try {
-      final systemContact = await getSystemContact(contact.systemContact!.id);
+      final systemContact =
+          await systemContactsStorage.getContact(contact.systemContact!.id);
       _systemContactAccessGrantedStreamController.add(true);
 
       if (systemContact != contact.systemContact!) {
@@ -184,7 +188,7 @@ class ContactsRepository {
   Future<void> _updateFromSystemContacts() async {
     // Try if permissions are granted
     try {
-      var systemContacts = await getSystemContacts();
+      var systemContacts = await systemContactsStorage.getContacts();
       _systemContactAccessGrantedStreamController.add(true);
       for (final coagContact in _contacts.values) {
         // Skip coagulate contacts that are not associated with a system contact
@@ -258,7 +262,7 @@ class ContactsRepository {
             contact.systemContact) {
       // TODO: How to reconsile system contacts if permission was removed intermittently and is then granted again?
       try {
-        await updateSystemContact(contact.systemContact!);
+        await systemContactsStorage.updateContact(contact.systemContact!);
       } on MissingSystemContactsPermissionError {
         _systemContactAccessGrantedStreamController.add(false);
       }

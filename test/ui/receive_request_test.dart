@@ -17,13 +17,15 @@ ContactsRepository _contactsRepositoryFromContacts(
     ContactsRepository(
         DummyPersistentStorage(
             contacts.asMap().map((_, v) => MapEntry(v.coagContactId, v))),
-        DummyDistributedStorage());
+        DummyDistributedStorage(),
+        DummySystemContacts([]));
 
 void main() {
   group('Test Cubit State Transitions', () {
     ContactsRepository? contactsRepository;
 
     setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
       contactsRepository = _contactsRepositoryFromContacts([
         CoagContact(
             coagContactId: '1',
@@ -33,21 +35,14 @@ void main() {
       ]);
     });
 
-    tearDown(() {
-      contactsRepository?.timerDhtRefresh!.cancel();
-      contactsRepository?.timerPersistentStorageRefresh!.cancel();
-    });
-
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
       'emits [] when nothing is called',
-      setUp: TestWidgetsFlutterBinding.ensureInitialized,
       build: () => ReceiveRequestCubit(contactsRepository!),
       expect: () => const <ReceiveRequestState>[],
     );
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
       'emits qrcode state when non-coagulate code is scanned',
-      setUp: TestWidgetsFlutterBinding.ensureInitialized,
       build: () => ReceiveRequestCubit(contactsRepository!),
       act: (c) async => c.qrCodeCaptured(mobile_scanner.BarcodeCapture(
           barcodes: [
@@ -61,7 +56,6 @@ void main() {
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
       'scan request qr code',
-      setUp: TestWidgetsFlutterBinding.ensureInitialized,
       build: () => ReceiveRequestCubit(contactsRepository!),
       act: (c) async =>
           c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
@@ -77,7 +71,6 @@ void main() {
     );
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>('scan sharing qr code',
-        setUp: TestWidgetsFlutterBinding.ensureInitialized,
         build: () => ReceiveRequestCubit(contactsRepository!),
         act: (c) async => c.qrCodeCaptured(mobile_scanner.BarcodeCapture(
                 barcodes: [
@@ -93,7 +86,6 @@ void main() {
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
         'create coagulate contact for request, no system contact access',
         setUp: () {
-          TestWidgetsFlutterBinding.ensureInitialized();
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
               .setMockMethodCallHandler(
                   const MethodChannel('github.com/QuisApp/flutter_contacts'),
@@ -124,7 +116,6 @@ void main() {
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
         'link existing coagulate contact for request',
-        setUp: TestWidgetsFlutterBinding.ensureInitialized,
         build: () => ReceiveRequestCubit(contactsRepository!),
         seed: () => const ReceiveRequestState(
             ReceiveRequestStatus.receivedRequest,
@@ -150,7 +141,6 @@ void main() {
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
         'link existing coagulate contact for sharing',
-        setUp: TestWidgetsFlutterBinding.ensureInitialized,
         build: () => ReceiveRequestCubit(contactsRepository!),
         seed: () => ReceiveRequestState(ReceiveRequestStatus.receivedShare,
             profile: CoagContact(

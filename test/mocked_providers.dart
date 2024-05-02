@@ -7,7 +7,9 @@ import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_update.dart';
 import 'package:coagulate/data/providers/distributed_storage/base.dart';
 import 'package:coagulate/data/providers/persistent_storage/base.dart';
+import 'package:coagulate/data/providers/system_contacts/base.dart';
 import 'package:coagulate/data/repositories/contacts.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
 class DummyPersistentStorage extends PersistentStorage {
@@ -100,5 +102,29 @@ class DummyDistributedStorage extends DistributedStorage {
   Future<void> watchDHTRecord(String key) {
     // TODO: implement watchDHTRecord
     throw UnimplementedError();
+  }
+}
+
+class DummySystemContacts extends SystemContactsBase {
+  DummySystemContacts(this.contacts);
+
+  List<Contact> contacts;
+
+  @override
+  Future<Contact> getContact(String id) =>
+      Future.value(contacts.where((c) => c.id == id).first);
+
+  @override
+  Future<List<Contact>> getContacts() => Future.value(contacts);
+
+  @override
+  Future<Contact> updateContact(Contact contact) {
+    if (contacts.where((c) => c.id == contact.id).isNotEmpty) {
+      contacts =
+          contacts.map((c) => (c.id == contact.id) ? contact : c).asList();
+    } else {
+      contacts.add(contact);
+    }
+    return Future.value(contact);
   }
 }

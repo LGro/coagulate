@@ -10,6 +10,7 @@ import 'package:radix_colors/radix_colors.dart';
 
 import '../data/providers/distributed_storage/dht.dart';
 import '../data/providers/persistent_storage/shared_preferences.dart';
+import '../data/providers/system_contacts/system_contacts.dart';
 import '../data/repositories/contacts.dart';
 import '../tick.dart';
 import '../veilid_init.dart';
@@ -75,8 +76,8 @@ class CoagulateApp extends StatelessWidget {
             state: LocalizationProvider.of(context).state,
             child: BackgroundTicker(
                 child: RepositoryProvider.value(
-              value: ContactsRepository(
-                  SharedPreferencesStorage(), VeilidDhtStorage()),
+              value: ContactsRepository(SharedPreferencesStorage(),
+                  VeilidDhtStorage(), SystemContacts()),
               child: MaterialApp(
                 title: 'Coagulate',
                 theme: ThemeData(
