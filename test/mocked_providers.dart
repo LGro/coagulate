@@ -1,10 +1,14 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:convert';
+
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_update.dart';
 import 'package:coagulate/data/providers/distributed_storage/base.dart';
 import 'package:coagulate/data/providers/persistent_storage/base.dart';
+import 'package:coagulate/data/repositories/contacts.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 
 class DummyPersistentStorage extends PersistentStorage {
   DummyPersistentStorage(this.contacts, {this.profileContactId});
@@ -63,10 +67,12 @@ class DummyDistributedStorage extends DistributedStorage {
 
   @override
   Future<String> readPasswordEncryptedDHTRecord(
-      {required String recordKey, required String secret}) {
-    // TODO: implement readPasswordEncryptedDHTRecord
-    throw UnimplementedError();
-  }
+          {required String recordKey, required String secret}) =>
+      Future.value(json.encode(removeNullOrEmptyValues(
+          filterAccordingToSharingProfile(CoagContact(
+                  coagContactId: '',
+                  systemContact: Contact(displayName: 'Contact From DHT')))
+              .toJson())));
 
   @override
   Future<CoagContact> updateContactReceivingDHT(CoagContact contact) {

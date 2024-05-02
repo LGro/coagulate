@@ -21,8 +21,10 @@ part 'state.dart';
 
 // NOTE: When we make this a hydrated cubit again, we need to find a way how to reset to the initial state after success
 class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
-  ReceiveRequestCubit(this.contactsRepository)
-      : super(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+  ReceiveRequestCubit(this.contactsRepository,
+      {ReceiveRequestState? initialState})
+      : super(initialState ??
+            const ReceiveRequestState(ReceiveRequestStatus.qrcode));
 
   final ContactsRepository contactsRepository;
 
@@ -75,7 +77,7 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
 
         // TODO: Refactor updateContactFromDHT to use here as well?
         try {
-          final raw = await VeilidDhtStorage()
+          final raw = await contactsRepository.distributedStorage
               .readPasswordEncryptedDHTRecord(recordKey: key, secret: psk);
           print("Retrieved from DHT Record $key:\n$raw");
           // TODO: Error handling
@@ -101,22 +103,25 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
               // TODO: Intelligently sort depending on profile contact
               contactProporsalsForLinking: proposals,
             ));
+            return;
           }
         } on Exception catch (e) {
           // TODO: Log properly / feedback?
           print('Error fetching DHT UPDATE: ${e}');
           if (!isClosed) {
             emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+            return;
           }
         }
       }
     }
+    emit(ReceiveRequestState(ReceiveRequestStatus.qrcode));
   }
 
   /// Link an existing contact that has requested sharing
   Future<void> linkExistingContactRequested(CoagContact contact) async {
     final updatedContact = contact.copyWith(
-      dhtSettingsForReceiving: state.requestSettings,
+      dhtSettingsForSharing: state.requestSettings,
       sharedProfile: (contactsRepository.profileContactId == null)
           ? null
           : json.encode(removeNullOrEmptyValues(filterAccordingToSharingProfile(

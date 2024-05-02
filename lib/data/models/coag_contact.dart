@@ -9,7 +9,7 @@ part 'coag_contact.g.dart';
 
 @JsonSerializable()
 class ContactDHTSettings extends Equatable {
-  ContactDHTSettings(
+  const ContactDHTSettings(
       {required this.key,
       this.writer,
       this.psk,

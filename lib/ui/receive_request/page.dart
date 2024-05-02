@@ -14,17 +14,20 @@ import '../widgets/scan_qr_code.dart';
 import 'cubit.dart';
 
 class ReceiveRequestPage extends StatelessWidget {
-  const ReceiveRequestPage({super.key});
+  const ReceiveRequestPage({super.key, this.initialState});
 
   // TODO: Use initial status when provided
   static Route<void> route(ReceiveRequestStatus? initialStatus) =>
       MaterialPageRoute(
           fullscreenDialog: true, builder: (_) => const ReceiveRequestPage());
 
+  final ReceiveRequestState? initialState;
+
   @override
   Widget build(BuildContext _) => BlocProvider(
-      create: (context) =>
-          ReceiveRequestCubit(context.read<ContactsRepository>()),
+      create: (context) => ReceiveRequestCubit(
+          context.read<ContactsRepository>(),
+          initialState: initialState),
       child: BlocConsumer<ReceiveRequestCubit, ReceiveRequestState>(
           listener: (context, state) async {
         if (state.status.isSuccess) {
