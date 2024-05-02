@@ -27,11 +27,11 @@ jobs:
         flutter doctor -v
     - name: Rust
       run: curl -proto '=https' -tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
     - name: Checkout Veilid
       run: cd .. && git clone https://gitlab.com/veilid/veilid.git
     - uses: actions/checkout@v3
-    - shell: bash
+    - name: Add Rust Targets
+      shell: bash
       env:
         LC_ALL: en_US.UTF-8
         LANG: en_US.UTF-8
@@ -42,6 +42,24 @@ jobs:
         rustup target add aarch64-linux-android
         rustup target add i686-linux-android
         rustup target add x86_64-linux-android
+    - name: Test
+      shell: bash
+      env:
+        LC_ALL: en_US.UTF-8
+        LANG: en_US.UTF-8
+      run: |
+        source "$HOME/.cargo/env"
+        PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
+        flutter pub get
+        flutter test
+    - name: Build APK
+      shell: bash
+      env:
+        LC_ALL: en_US.UTF-8
+        LANG: en_US.UTF-8
+      run: |
+        source "$HOME/.cargo/env"
+        PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
         flutter build apk --release
     - uses: actions/upload-artifact@v4
       with:
