@@ -29,10 +29,14 @@ ContactsRepository _contactsRepositoryFromContact(CoagContact contact) =>
     ContactsRepository(
         DummyPersistentStorage(
             [contact].asMap().map((_, v) => MapEntry(v.coagContactId, v))),
-        DummyDistributedStorage());
+        DummyDistributedStorage(),
+        DummySystemContacts([
+          Contact(emails: [Email('test@mail.com')])
+        ]));
 
 void main() {
   group('Contact Details Page Widget Tests', () {
+    // TODO: Replace with unit test of the details merging functionality when it arrives
     testWidgets('Testing Details Displayed', (tester) async {
       final contact = CoagContact(
           coagContactId: '1',
