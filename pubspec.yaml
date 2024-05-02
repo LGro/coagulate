@@ -28,7 +28,6 @@ dependencies:
   freezed_annotation: ^2.4.1
   geocoding: ^3.0.0
   hive: ^2.2.3
-  hydrated_bloc: ^9.1.4
   intl: ^0.18.0
   json_annotation: ^4.8.1
   latlong2: ^0.9.0
@@ -62,6 +61,7 @@ dependencies:
         ref: b783000c18f6e066f3d81d5ecc352f3ce61860f6
 
 dev_dependencies:
+  bloc_test: ^9.1.7
   build_runner: ^2.4.6
   flutter_oss_licenses: ^2.0.1
   flutter_test:
