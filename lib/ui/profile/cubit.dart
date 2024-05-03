@@ -20,12 +20,17 @@ class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit(this.contactsRepository) : super(const ProfileState()) {
     _contactsSubscription =
         contactsRepository.getContactUpdates().listen((contact) {
-      if (state.profileContact != null &&
-          contact.coagContactId == state.profileContact!.coagContactId) {
+      if (contact.coagContactId == contactsRepository.profileContactId) {
         emit(state.copyWith(
             status: ProfileStatus.success, profileContact: contact));
       }
     });
+    if (contactsRepository.profileContactId != null) {
+      emit(state.copyWith(
+          status: ProfileStatus.success,
+          profileContact: contactsRepository
+              .getContact(contactsRepository.profileContactId!)));
+    }
     // TODO: Check current state of permissions here in addition to listening to stream update
     _permissionsSubscription = contactsRepository
         .isSystemContactAccessGranted()
