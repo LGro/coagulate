@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -152,22 +153,24 @@ class ContactsRepository {
   // TODO: Refactor redundancies with updateAndWatchReceivingDHT
   Future<void> _veilidUpdateValueChangeCallback(
       VeilidUpdateValueChange update) async {
-    try {
-      final contact = _contacts.values.firstWhere(
-          (c) => c.dhtSettingsForReceiving!.key == update.key.toString());
+    final contact = _contacts.values.firstWhereOrNull(
+        (c) => c.dhtSettingsForReceiving!.key == update.key.toString());
 
-      final updatedContact =
-          await distributedStorage.updateContactReceivingDHT(contact);
-      if (updatedContact != contact) {
-        // TODO: Use update time from when the update was sent not received
-        await _saveUpdate(ContactUpdate(
-            message: 'News from ${contact.details?.displayName}',
-            timestamp: DateTime.now()));
-        await updateContact(updatedContact);
-      }
-      // FIXME: Appropriate error handling
-    } on StateError {
+    // FIXME: Appropriate error handling
+    if (contact == null) {
       return;
+    }
+
+    final updatedContact =
+        await distributedStorage.updateContactReceivingDHT(contact);
+    if (updatedContact != contact) {
+      // TODO: Use update time from when the update was sent not received
+      // TODO: Can it happen that details are null?
+      await _saveUpdate(ContactUpdate(
+          oldContact: contact.details!,
+          newContact: updatedContact.details!,
+          timestamp: DateTime.now()));
+      await updateContact(updatedContact);
     }
   }
 
@@ -303,8 +306,10 @@ class ContactsRepository {
             await distributedStorage.updateContactReceivingDHT(contact);
         if (updatedContact != contact) {
           // TODO: Use update time from when the update was sent not received
+          // TODO: Can it happen that details are null?
           await _saveUpdate(ContactUpdate(
-              message: 'News from ${contact.details?.displayName}',
+              oldContact: contact.details!,
+              newContact: updatedContact.details!,
               timestamp: DateTime.now()));
           await updateContact(updatedContact);
         }

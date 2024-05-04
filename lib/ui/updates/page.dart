@@ -1,9 +1,12 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 
+import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import 'cubit.dart';
 
@@ -20,6 +23,53 @@ String formatTimeDifference(Duration d) {
   return '${d.inDays}d';
 }
 
+String compareContacts(ContactDetails oldContact, ContactDetails newContact) {
+  final results = <String>[];
+
+  if (oldContact.displayName != newContact.displayName) {
+    results.add('name');
+  } else if (oldContact.name != newContact.name) {
+    results.add('name');
+  }
+
+  if (!const ListEquality<Email>()
+      .equals(oldContact.emails, newContact.emails)) {
+    results.add('email addresses');
+  }
+
+  if (!const ListEquality<Address>()
+      .equals(oldContact.addresses, newContact.addresses)) {
+    results.add('addresses');
+  }
+
+  if (!const ListEquality<Phone>()
+      .equals(oldContact.phones, newContact.phones)) {
+    results.add('phone numbers');
+  }
+
+  if (!const ListEquality<Website>()
+      .equals(oldContact.websites, newContact.websites)) {
+    results.add('websites');
+  }
+
+  if (!const ListEquality<SocialMedia>()
+      .equals(oldContact.socialMedias, newContact.socialMedias)) {
+    results.add('social media');
+  }
+
+  if (!const ListEquality<Organization>()
+      .equals(oldContact.organizations, newContact.organizations)) {
+    results.add('organizations');
+  }
+
+  if (!const ListEquality<Event>()
+      .equals(oldContact.events, newContact.events)) {
+    results.add('events');
+  }
+
+  return results.join(', ');
+}
+
 Widget updateTile(String name, String timing, String change) => ListTile(
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -32,7 +82,8 @@ Widget updateTile(String name, String timing, String change) => ListTile(
       children: [
         // TODO: Use flexible for old and new value to trim them both dynamically
         // Or use Expanded for dynamic multiline
-        Flexible(child: Text(change, overflow: TextOverflow.ellipsis))
+        Flexible(
+            child: Text('Updated $change', overflow: TextOverflow.ellipsis))
       ],
     ));
 
@@ -61,10 +112,10 @@ class UpdatesPage extends StatelessWidget {
                           ]
                         : state.updates
                             .map((u) => updateTile(
-                                'Update!',
+                                u.oldContact.displayName,
                                 formatTimeDifference(
                                     DateTime.now().difference(u.timestamp)),
-                                u.message))
+                                compareContacts(u.oldContact, u.newContact)))
                             .toList(),
                     // // TODO: On tap bring to contact details
                     // updateTile(
