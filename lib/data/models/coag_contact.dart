@@ -241,7 +241,7 @@ class CoagContactDHTSchemaV1 extends Equatable {
     required this.coagContactId,
     required this.details,
     this.shareBackDHTKey,
-    this.shareBackPubKey,
+    this.shareBackPsk,
     this.shareBackDHTWriter,
     this.addressLocations = const {},
     this.temporaryLocations = const [],
@@ -255,7 +255,7 @@ class CoagContactDHTSchemaV1 extends Equatable {
   final List<ContactTemporaryLocation> temporaryLocations;
   final String? shareBackDHTKey;
   final String? shareBackDHTWriter;
-  final String? shareBackPubKey;
+  final String? shareBackPsk;
 
   factory CoagContactDHTSchemaV1.fromJson(Map<String, dynamic> json) =>
       _$CoagContactDHTSchemaV1FromJson(json);
@@ -265,16 +265,16 @@ class CoagContactDHTSchemaV1 extends Equatable {
   CoagContactDHTSchemaV1 copyWith({
     ContactDetails? details,
     String? shareBackDHTKey,
-    String? shareBackPubKey,
+    String? shareBackPsk,
     String? shareBackDHTWriter,
     Map<int, ContactAddressLocation>? addressLocations,
     List<ContactTemporaryLocation>? temporaryLocations,
   }) =>
       CoagContactDHTSchemaV1(
-        coagContactId: this.coagContactId,
+        coagContactId: coagContactId,
         details: details ?? this.details,
         shareBackDHTKey: shareBackDHTKey ?? this.shareBackDHTKey,
-        shareBackPubKey: shareBackPubKey ?? this.shareBackPubKey,
+        shareBackPsk: shareBackPsk ?? this.shareBackPsk,
         shareBackDHTWriter: shareBackDHTWriter ?? this.shareBackDHTWriter,
         addressLocations: addressLocations ?? this.addressLocations,
         temporaryLocations: temporaryLocations ?? this.temporaryLocations,
@@ -286,7 +286,7 @@ class CoagContactDHTSchemaV1 extends Equatable {
         coagContactId,
         details,
         shareBackDHTKey,
-        shareBackPubKey,
+        shareBackPsk,
         shareBackDHTWriter,
         addressLocations,
         temporaryLocations,

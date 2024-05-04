@@ -92,7 +92,7 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
                   ? null
                   : ContactDHTSettings(
                       key: contact.shareBackDHTKey!,
-                      pubKey: contact.shareBackPubKey,
+                      psk: contact.shareBackPsk,
                       writer: contact.shareBackDHTWriter));
           if (!isClosed) {
             emit(ReceiveRequestState(

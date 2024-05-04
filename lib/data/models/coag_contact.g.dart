@@ -123,7 +123,7 @@ CoagContactDHTSchemaV1 _$CoagContactDHTSchemaV1FromJson(
       coagContactId: json['coag_contact_id'] as String,
       details: ContactDetails.fromJson(json['details'] as Map<String, dynamic>),
       shareBackDHTKey: json['share_back_d_h_t_key'] as String?,
-      shareBackPubKey: json['share_back_pub_key'] as String?,
+      shareBackPsk: json['share_back_psk'] as String?,
       shareBackDHTWriter: json['share_back_d_h_t_writer'] as String?,
       addressLocations:
           (json['address_locations'] as Map<String, dynamic>?)?.map(
@@ -149,5 +149,5 @@ Map<String, dynamic> _$CoagContactDHTSchemaV1ToJson(
           instance.temporaryLocations.map((e) => e.toJson()).toList(),
       'share_back_d_h_t_key': instance.shareBackDHTKey,
       'share_back_d_h_t_writer': instance.shareBackDHTWriter,
-      'share_back_pub_key': instance.shareBackPubKey,
+      'share_back_psk': instance.shareBackPsk,
     };

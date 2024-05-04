@@ -184,7 +184,6 @@ class VeilidDhtStorage extends DistributedStorage {
             : ContactDHTSettings(
                 key: dhtContact.shareBackDHTKey!,
                 writer: dhtContact.shareBackDHTWriter,
-                // TODO: Switch to symmetric crypto as well?
-                pubKey: dhtContact.shareBackPubKey));
+                psk: dhtContact.shareBackPsk));
   }
 }

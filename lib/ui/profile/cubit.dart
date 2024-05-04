@@ -65,8 +65,11 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
 
     await contactsRepository.updateProfileContact(contact.coagContactId);
-    emit(
-        state.copyWith(status: ProfileStatus.success, profileContact: contact));
+
+    if (!isClosed) {
+      emit(state.copyWith(
+          status: ProfileStatus.success, profileContact: contact));
+    }
   }
 
   Future<void> fetchCoordinates(int iAddress) async {

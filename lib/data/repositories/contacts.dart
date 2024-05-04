@@ -30,7 +30,7 @@ CoagContactDHTSchemaV1 filterAccordingToSharingProfile(CoagContact contact) =>
       // TODO: Ensure these are populated by the time this is called
       shareBackDHTKey: contact.dhtSettingsForReceiving?.key,
       shareBackDHTWriter: contact.dhtSettingsForReceiving?.writer,
-      shareBackPubKey: contact.dhtSettingsForReceiving?.pubKey,
+      shareBackPsk: contact.dhtSettingsForReceiving?.psk,
     );
 
 Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
@@ -209,7 +209,12 @@ class ContactsRepository {
             systemContact.id == coagContact.systemContact!.id);
         final CoagContact updatedContact;
         if (iChangedContact == -1) {
-          // Remove system contact from CoagContact
+          // If after removing the system contact, nothing would be left, remove the contact entirely
+          if (coagContact.details == null) {
+            await removeContact(coagContact.coagContactId);
+            continue;
+          }
+          // Otherwise just remove system contact from CoagContact i.e. "unlink" the contact
           // TODO: Add update and propose to remove contact from coagulate as well?
           // TODO: When adding attributes to CoagContact, they need to be added here; cover this with a test
           updatedContact = CoagContact(

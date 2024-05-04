@@ -40,7 +40,9 @@ Widget _coagulateButton(BuildContext context,
     return TextButton(
         onPressed: () async =>
             {context.read<ContactDetailsCubit>().share(myProfile)},
-        child: const Text('Prepare Coagulation'));
+        child: Text((contact.dhtSettingsForReceiving == null)
+            ? 'Prepare Coagulation'
+            : 'Share Back'));
   } else {
     // TODO: Replace by choosing the "no details" sharing profile
     return TextButton(
