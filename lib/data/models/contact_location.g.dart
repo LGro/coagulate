@@ -30,12 +30,11 @@ ContactTemporaryLocation _$ContactTemporaryLocationFromJson(
       coagContactId: json['coag_contact_id'] as String,
       longitude: (json['longitude'] as num).toDouble(),
       latitude: (json['latitude'] as num).toDouble(),
-      name: json['name'] as String?,
-      start: json['start'] == null
-          ? null
-          : DateTime.parse(json['start'] as String),
-      end: json['end'] == null ? null : DateTime.parse(json['end'] as String),
-      details: json['details'] as String?,
+      name: json['name'] as String,
+      start: DateTime.parse(json['start'] as String),
+      end: DateTime.parse(json['end'] as String),
+      details: json['details'] as String,
+      checkedIn: json['checked_in'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ContactTemporaryLocationToJson(
@@ -45,7 +44,8 @@ Map<String, dynamic> _$ContactTemporaryLocationToJson(
       'longitude': instance.longitude,
       'latitude': instance.latitude,
       'name': instance.name,
-      'start': instance.start?.toIso8601String(),
-      'end': instance.end?.toIso8601String(),
+      'start': instance.start.toIso8601String(),
+      'end': instance.end.toIso8601String(),
       'details': instance.details,
+      'checked_in': instance.checkedIn,
     };

@@ -31,4 +31,9 @@ class LocationsCubit extends Cubit<LocationsState> {
           details: '')
     ]));
   }
+
+  void checkIn(ContactTemporaryLocation location) {
+    emit(LocationsState(
+        temporaryLocations: [...state.temporaryLocations, location]));
+  }
 }

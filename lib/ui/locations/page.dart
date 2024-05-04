@@ -7,6 +7,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
+import 'package:location/location.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 import '../../data/models/contact_location.dart';
@@ -334,11 +335,16 @@ extension on PasswordValidationError {
 // TODO: Display details as well?
 // TODO: Indicate with how many contacts this location is shared
 Widget locationTile(ContactTemporaryLocation location) => ListTile(
-    title: Text(location.name ?? ''),
+    title: Text(location.name),
     tileColor: Colors.white,
     subtitle: Text(
-        '${location.start} ${(location.end == null) ? "" : " - ${location.end}"}'
-        '\nlon: ${location.longitude}, lat: ${location.latitude}'));
+        'From: ${location.start} ${(location.end == location.start) ? "" : "\nTill: ${location.end}"}'
+        '\nLon: ${location.longitude}, Lat: ${location.latitude}'),
+    trailing:
+        // TODO: Better icon to indicate checked in
+        (location.checkedIn && DateTime.now().isBefore(location.end))
+            ? const Icon(Icons.pin_drop_outlined)
+            : null);
 
 class LocationsPage extends StatelessWidget {
   const LocationsPage({super.key});
@@ -396,11 +402,47 @@ class LocationsPage extends StatelessWidget {
                   Expanded(
                       child: ElevatedButton(
                           // TODO: Display check in form with location (from gps, from map picker, from address, from coordinates) circles to share with, optional duration, optional move away to check out constraint
-                          onPressed: () => ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content:
-                                    Text('Location check-in will come soon'),
-                              )),
+                          onPressed: (context
+                                      .read<LocationsCubit>()
+                                      .contactsRepository
+                                      .profileContactId ==
+                                  null)
+                              ? null
+                              : () async {
+                                  final location =
+                                      await Location().getLocation();
+
+                                  if (location.longitude == null ||
+                                      location.latitude == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'Current GPS location unavailable')));
+                                    return;
+                                  }
+
+                                  context.read<LocationsCubit>().checkIn(
+                                      ContactTemporaryLocation(
+                                          // TODO: That's not the most ideal way, is it?
+                                          coagContactId: context
+                                              .read<LocationsCubit>()
+                                              .contactsRepository
+                                              .profileContactId!,
+                                          longitude: location.longitude!,
+                                          latitude: location.latitude!,
+                                          start: DateTime.now(),
+                                          // TODO: Get the remaining details from a user input form
+                                          name: 'Current Location',
+                                          details: '',
+                                          end: DateTime.now()
+                                              .add(Duration(hours: 2)),
+                                          checkedIn: true));
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Checked in at current location for 2 hours')));
+                                },
                           child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
