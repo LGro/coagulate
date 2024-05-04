@@ -3,6 +3,7 @@
 
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,7 @@ import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
+import 'check_in/widget.dart';
 import 'cubit.dart';
 
 class LocationForm extends StatefulWidget {
@@ -378,7 +380,15 @@ class LocationsPage extends StatelessWidget {
                 Expanded(
                     child: ListView(
                         children: state.temporaryLocations
-                            .map(locationTile)
+                            .sortedBy((l) => l.start)
+                            .reversed
+                            .map((l) => Dismissible(
+                                key: Key(l.toString()),
+                                onDismissed: (_) async => context
+                                    .read<LocationsCubit>()
+                                    .removeLocation(l),
+                                background: Container(color: Colors.red),
+                                child: locationTile(l)))
                             .asList())),
                 const SizedBox(height: 16),
                 Row(children: [
@@ -399,57 +409,7 @@ class LocationsPage extends StatelessWidget {
                                 Text('share live')
                               ]))),
                   const SizedBox(width: 16),
-                  Expanded(
-                      child: ElevatedButton(
-                          // TODO: Display check in form with location (from gps, from map picker, from address, from coordinates) circles to share with, optional duration, optional move away to check out constraint
-                          onPressed: (context
-                                      .read<LocationsCubit>()
-                                      .contactsRepository
-                                      .profileContactId ==
-                                  null)
-                              ? null
-                              : () async {
-                                  final location =
-                                      await Location().getLocation();
-
-                                  if (location.longitude == null ||
-                                      location.latitude == null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                'Current GPS location unavailable')));
-                                    return;
-                                  }
-
-                                  context.read<LocationsCubit>().checkIn(
-                                      ContactTemporaryLocation(
-                                          // TODO: That's not the most ideal way, is it?
-                                          coagContactId: context
-                                              .read<LocationsCubit>()
-                                              .contactsRepository
-                                              .profileContactId!,
-                                          longitude: location.longitude!,
-                                          latitude: location.latitude!,
-                                          start: DateTime.now(),
-                                          // TODO: Get the remaining details from a user input form
-                                          name: 'Current Location',
-                                          details: '',
-                                          end: DateTime.now()
-                                              .add(Duration(hours: 2)),
-                                          checkedIn: true));
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Checked in at current location for 2 hours')));
-                                },
-                          child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.pin_drop),
-                                SizedBox(width: 8),
-                                Text('check-in')
-                              ]))),
+                  const Expanded(child: CheckInWidget()),
                   const SizedBox(width: 16),
                 ]),
                 const SizedBox(height: 16),

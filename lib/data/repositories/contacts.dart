@@ -260,10 +260,14 @@ class ContactsRepository {
   // TODO: Does that need to be separate depending on whether the update originated from the dht or not?
   //       Or maybe separate depending on what part is updated (details, locations, dht stuff)
   Future<void> updateContact(CoagContact contact) async {
+    final oldContact = _contacts[contact.coagContactId];
     // Skip in case already up to date
-    if (_contacts[contact.coagContactId] == contact) {
+    if (oldContact == contact) {
       return;
     }
+
+    // Early save to not keep everyone waiting for the DHT update
+    await saveContact(contact);
 
     // TODO: Allow creation of a new system contact via update contact as well; might require custom contact details schema
     // Update system contact if linked and contact details changed
@@ -286,6 +290,7 @@ class ContactsRepository {
       contact = await distributedStorage.updateContactReceivingDHT(contact);
     }
 
+    // Final save after a potential dht update
     await saveContact(contact);
   }
 
@@ -317,6 +322,13 @@ class ContactsRepository {
             .watchDHTRecord(contact.dhtSettingsForReceiving!.key);
       }
     }
+  }
+
+  CoagContact? getProfileContact() {
+    if (profileContactId == null) {
+      return null;
+    }
+    return _contacts[profileContactId!];
   }
 
   Future<void> updateProfileContact(String coagContactId) async {

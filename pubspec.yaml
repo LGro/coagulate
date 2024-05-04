@@ -32,6 +32,7 @@ dependencies:
   intl: ^0.18.0
   json_annotation: ^4.8.1
   latlong2: ^0.9.0
+  location: ^6.0.1
   loggy: ^2.0.3
   mobile_scanner: ^4.0.1 # TODO: Replace with privacy friendlier alternative
   multi_select_flutter: ^4.1.3
