@@ -7,6 +7,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/contacts.dart';
 import 'cubit.dart';
 
+String formatTimeDifference(Duration d) {
+  if (d.isNegative || d < const Duration(minutes: 1)) {
+    return 'now';
+  }
+  if (d < const Duration(hours: 1)) {
+    return '${d.inMinutes}m';
+  }
+  if (d < const Duration(days: 1)) {
+    return '${d.inHours}h';
+  }
+  return '${d.inDays}d';
+}
+
 Widget updateTile(String name, String timing, String change) => ListTile(
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -47,8 +60,11 @@ class UpdatesPage extends StatelessWidget {
                                     style: TextStyle(fontSize: 16)))
                           ]
                         : state.updates
-                            .map((u) => updateTile('Update!',
-                                u.timestamp.toIso8601String(), u.message))
+                            .map((u) => updateTile(
+                                'Update!',
+                                formatTimeDifference(
+                                    DateTime.now().difference(u.timestamp)),
+                                u.message))
                             .toList(),
                     // // TODO: On tap bring to contact details
                     // updateTile(
