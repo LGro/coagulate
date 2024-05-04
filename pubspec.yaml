@@ -25,6 +25,7 @@ dependencies:
   flutter_map_marker_cluster: ^1.3.5
   flutter_svg: ^2.0.10
   flutter_translate: ^4.0.4
+  formz: ^0.7.0
   freezed_annotation: ^2.4.1
   geocoding: ^3.0.0
   hive: ^2.2.3
@@ -33,6 +34,7 @@ dependencies:
   latlong2: ^0.9.0
   loggy: ^2.0.3
   mobile_scanner: ^4.0.1 # TODO: Replace with privacy friendlier alternative
+  multi_select_flutter: ^4.1.3
   mutex:
     path: packages/mutex
   path: ^1.9.0
@@ -63,7 +65,7 @@ dependencies:
 dev_dependencies:
   bloc_test: ^9.1.7
   build_runner: ^2.4.6
-  flutter_oss_licenses: ^2.0.1
+  flutter_oss_licenses: ^3.0.2
   flutter_test:
     sdk: flutter
   freezed: ^2.3.5

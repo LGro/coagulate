@@ -15,6 +15,7 @@ import '../data/repositories/contacts.dart';
 import '../tick.dart';
 import '../veilid_init.dart';
 import 'contact_list/page.dart';
+import 'locations/page.dart';
 import 'map/page.dart';
 import 'profile/page.dart';
 import 'settings/page.dart';
@@ -113,6 +114,7 @@ class _CoagulateAppViewState extends State<CoagulateAppView>
   Widget build(BuildContext context) => Scaffold(
         body: [
           const ProfilePage(),
+          const LocationsPage(),
           const UpdatesPage(),
           const ContactListPage(),
           const MapPage(),
@@ -124,6 +126,10 @@ class _CoagulateAppViewState extends State<CoagulateAppView>
             BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Profile',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.pin_drop),
+              label: 'Locations',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.update),
@@ -142,6 +148,8 @@ class _CoagulateAppViewState extends State<CoagulateAppView>
               label: 'Settings',
             ),
           ],
+          type: BottomNavigationBarType.fixed,
+          selectedFontSize: 12,
           currentIndex: _selectedIndex,
           unselectedItemColor: Colors.black,
           selectedItemColor: Colors.deepPurpleAccent,
