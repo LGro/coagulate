@@ -25,6 +25,7 @@ class ProfileCubit extends Cubit<ProfileState> {
             status: ProfileStatus.success, profileContact: contact));
       }
     });
+    // TODO: Does only doing this here and not in the parent constructor call above cause flicker?
     if (contactsRepository.profileContactId != null) {
       emit(state.copyWith(
           status: ProfileStatus.success,
@@ -86,7 +87,8 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   void updateCoordinates(int iAddress, num lng, num lat) {
     final address = state.profileContact!.systemContact!.addresses[iAddress];
-    final updatedLocations = state.profileContact!.addressLocations;
+    final updatedLocations = Map<int, ContactAddressLocation>.from(
+        state.profileContact!.addressLocations);
     updatedLocations[iAddress] = ContactAddressLocation(
         coagContactId: state.profileContact!.coagContactId,
         longitude: lng.toDouble(),

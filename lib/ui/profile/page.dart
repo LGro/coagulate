@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
-import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../widgets/address_coordinates_form.dart';
@@ -81,6 +80,29 @@ Widget websites(List<Website> websites) => Card(
                         Padding(
                             padding: const EdgeInsets.only(top: 0),
                             child: Text(e.url,
+                                style: const TextStyle(fontSize: 19)))
+                      ]))
+            ]))));
+
+Widget socialMedias(List<SocialMedia> websites) => Card(
+    color: Colors.white,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+    child: SizedBox(
+        child: Padding(
+            padding:
+                const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 16),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              ...websites.map((e) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: _label(e.label.name, e.customLabel)),
+                        Padding(
+                            padding: const EdgeInsets.only(top: 0),
+                            child: Text(e.userName,
                                 style: const TextStyle(fontSize: 19)))
                       ]))
             ]))));
@@ -243,10 +265,11 @@ class ProfileView extends StatefulWidget {
   ProfileViewState createState() => ProfileViewState();
 }
 
-Widget buildProfileScrollView(BuildContext context, CoagContact contact) =>
+Widget buildProfileScrollView(BuildContext context, Contact contact,
+        List<ContactAddressLocation> addressLocations) =>
     RefreshIndicator(
         onRefresh: () async =>
-            context.read<ProfileCubit>().setContact(contact.systemContact?.id),
+            context.read<ProfileCubit>().setContact(contact.id),
         child: CustomScrollView(slivers: [
           SliverFillRemaining(
               hasScrollBody: false,
@@ -254,18 +277,15 @@ Widget buildProfileScrollView(BuildContext context, CoagContact contact) =>
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 8),
-                    header(contact.systemContact!),
-                    if (contact.systemContact!.phones.isNotEmpty)
-                      phones(contact.systemContact!.phones),
-                    if (contact.systemContact!.emails.isNotEmpty)
-                      emails(contact.systemContact!.emails),
-                    if (contact.systemContact!.addresses.isNotEmpty)
+                    header(contact),
+                    if (contact.phones.isNotEmpty) phones(contact.phones),
+                    if (contact.emails.isNotEmpty) emails(contact.emails),
+                    if (contact.addresses.isNotEmpty)
                       addressesWithForms(
-                          context,
-                          contact.systemContact!.addresses,
-                          contact.addressLocations.values.asList()),
-                    if (contact.systemContact!.websites.isNotEmpty)
-                      websites(contact.systemContact!.websites),
+                          context, contact.addresses, addressLocations),
+                    if (contact.websites.isNotEmpty) websites(contact.websites),
+                    if (contact.socialMedias.isNotEmpty)
+                      socialMedias(contact.socialMedias),
                   ]))
         ]));
 
@@ -317,7 +337,10 @@ class ProfileViewState extends State<ProfileView> {
         );
       case ProfileStatus.success:
         return Center(
-          child: buildProfileScrollView(context, state.profileContact!),
+          child: buildProfileScrollView(
+              context,
+              state.profileContact!.systemContact!,
+              state.profileContact!.addressLocations.values.asList()),
         );
     }
   }

@@ -151,7 +151,7 @@ class ContactDetails extends Equatable {
 
 @JsonSerializable()
 class CoagContact extends Equatable {
-  CoagContact({
+  const CoagContact({
     required this.coagContactId,
     this.details,
     this.systemContact,
@@ -165,6 +165,7 @@ class CoagContact extends Equatable {
   final String coagContactId;
   final Contact? systemContact;
   final ContactDetails? details;
+  // This is a map from index to value instead of a list because only the ith address could have a location
   final Map<int, ContactAddressLocation> addressLocations;
   final List<ContactTemporaryLocation> temporaryLocations;
   final ContactDHTSettings? dhtSettingsForSharing;
@@ -210,7 +211,7 @@ class CoagContact extends Equatable {
           ContactDHTSettings? dhtSettingsForReceiving,
           String? sharedProfile}) =>
       CoagContact(
-          coagContactId: this.coagContactId,
+          coagContactId: coagContactId,
           details: details ?? this.details,
           systemContact: systemContact ?? this.systemContact,
           addressLocations: addressLocations ?? this.addressLocations,

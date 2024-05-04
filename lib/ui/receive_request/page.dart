@@ -131,24 +131,9 @@ class ReceiveRequestPage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.max,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // TODO: Display proper profile
                     const SizedBox(height: 8),
-                    Card(
-                        color: Colors.white,
-                        shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero),
-                        margin:
-                            const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-                        child: SizedBox(
-                            child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Text(
-                                    state.profile?.details?.displayName ??
-                                        '???')))),
-                    if (state.profile?.details?.phones.isNotEmpty ?? false)
-                      phones(state.profile!.details!.phones),
-                    if (state.profile?.details?.emails.isNotEmpty ?? false)
-                      emails(state.profile!.details!.emails),
+                    if (state.profile?.details != null)
+                      ...displayDetails(state.profile!.details!),
                     TextButton(
                         onPressed: context
                             .read<ReceiveRequestCubit>()

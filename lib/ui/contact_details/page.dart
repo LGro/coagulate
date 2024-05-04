@@ -154,29 +154,31 @@ class ContactPage extends StatelessWidget {
         // if no matching name but matching value is present, think about displaying them next to each other still
 
         // Contact details
-        if (contact.details != null && contact.details!.phones.isNotEmpty)
+        if (contact.details?.phones.isNotEmpty ?? false)
           phones(contact.details!.phones)
-        else if (contact.systemContact != null &&
-            contact.systemContact!.phones.isNotEmpty)
+        else if (contact.systemContact?.phones.isNotEmpty ?? false)
           phones(contact.systemContact!.phones),
 
-        if (contact.details != null && contact.details!.emails.isNotEmpty)
+        if (contact.details?.emails.isNotEmpty ?? false)
           emails(contact.details!.emails)
         else if (contact.systemContact != null &&
             contact.systemContact!.emails.isNotEmpty)
           emails(contact.systemContact!.emails),
 
-        if (contact.details != null && contact.details!.addresses.isNotEmpty)
+        if (contact.details?.addresses.isNotEmpty ?? false)
           addresses(contact.details!.addresses)
-        else if (contact.systemContact != null &&
-            contact.systemContact!.addresses.isNotEmpty)
+        else if (contact.systemContact?.addresses.isNotEmpty ?? false)
           addresses(contact.systemContact!.addresses),
 
-        if (contact.details != null && contact.details!.websites.isNotEmpty)
+        if (contact.details?.websites.isNotEmpty ?? false)
           websites(contact.details!.websites)
-        else if (contact.systemContact != null &&
-            contact.systemContact!.websites.isNotEmpty)
+        else if (contact.systemContact?.websites.isNotEmpty ?? false)
           websites(contact.systemContact!.websites),
+
+        if (contact.details?.socialMedias.isNotEmpty ?? false)
+          socialMedias(contact.details!.socialMedias)
+        else if (contact.systemContact?.socialMedias.isNotEmpty ?? false)
+          socialMedias(contact.systemContact!.socialMedias),
 
         // Sharing stuff
         if (contact.dhtSettingsForSharing != null &&
@@ -186,7 +188,9 @@ class ContactPage extends StatelessWidget {
             contact.sharedProfile!.isNotEmpty)
           sharingCard(context, contact),
         if (contact.sharedProfile != null && contact.sharedProfile!.isNotEmpty)
-          ...displaySharedProfile(contact.sharedProfile!),
+          ...displayDetails(CoagContactDHTSchemaV1.fromJson(
+                  json.decode(contact.sharedProfile!) as Map<String, dynamic>)
+              .details),
 
         Center(
             child: TextButton(
@@ -307,22 +311,19 @@ Widget sharingCard(BuildContext context, CoagContact contact) => Card(
           ]))
     ]));
 
-Iterable<Widget> displaySharedProfile(String sharedProfile) {
-  final profile = CoagContactDHTSchemaV1.fromJson(
-      json.decode(sharedProfile) as Map<String, dynamic>);
-  return [
-    Card(
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-        child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Text(profile.details.displayName,
-                textScaler: const TextScaler.linear(1.2),
-                style: const TextStyle(fontWeight: FontWeight.normal)))),
-    if (profile.details.phones.isNotEmpty) phones(profile.details.phones),
-    if (profile.details.emails.isNotEmpty) emails(profile.details.emails),
-    if (profile.details.addresses.isNotEmpty)
-      addresses(profile.details.addresses),
-    if (profile.details.websites.isNotEmpty) websites(profile.details.websites),
-  ];
-}
+// TODO: Move to widgets because it's used in two places at least
+Iterable<Widget> displayDetails(ContactDetails details) => [
+      Card(
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+          child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Text(details.displayName,
+                  textScaler: const TextScaler.linear(1.2),
+                  style: const TextStyle(fontWeight: FontWeight.normal)))),
+      if (details.phones.isNotEmpty) phones(details.phones),
+      if (details.emails.isNotEmpty) emails(details.emails),
+      if (details.addresses.isNotEmpty) addresses(details.addresses),
+      if (details.websites.isNotEmpty) websites(details.websites),
+      if (details.socialMedias.isNotEmpty) socialMedias(details.socialMedias),
+    ];

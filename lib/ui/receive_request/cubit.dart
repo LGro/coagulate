@@ -13,7 +13,6 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/models/coag_contact.dart';
-import '../../data/providers/distributed_storage/dht.dart';
 import '../../data/repositories/contacts.dart';
 
 part 'cubit.g.dart';
