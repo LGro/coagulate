@@ -7,4 +7,6 @@ abstract class SystemContactsBase {
   Future<List<Contact>> getContacts();
   Future<Contact> updateContact(Contact contact);
   Future<Contact> getContact(String id);
+  Future<Contact> insertContact(Contact contact);
+  Future<bool> requestPermission();
 }

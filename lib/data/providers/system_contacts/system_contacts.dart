@@ -38,4 +38,16 @@ class SystemContacts extends SystemContactsBase {
     // TODO: Error handling
     return (await FlutterContacts.getContact(id))!;
   }
+
+  @override
+  Future<Contact> insertContact(Contact contact) async {
+    if (!await FlutterContacts.requestPermission()) {
+      throw MissingSystemContactsPermissionError();
+    }
+
+    return FlutterContacts.insertContact(contact);
+  }
+
+  @override
+  Future<bool> requestPermission() => FlutterContacts.requestPermission();
 }

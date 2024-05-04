@@ -100,11 +100,11 @@ class ContactsRepository {
 
     // TODO: Only do this when online
     // for (final contact in _contacts.values) {
-    //   await _saveContact(await updateContactSharingDHT(contact));
+    //   await saveContact(await updateContactSharingDHT(contact));
     // }
   }
 
-  Future<void> _saveContact(CoagContact coagContact) async {
+  Future<void> saveContact(CoagContact coagContact) async {
     _contacts[coagContact.coagContactId] = coagContact;
     _contactsStreamController.add(coagContact);
     await persistentStorage.updateContact(coagContact);
@@ -130,7 +130,7 @@ class ContactsRepository {
 
       if (systemContact != contact.systemContact!) {
         final updatedContact = contact.copyWith(systemContact: systemContact);
-        await _saveContact(updatedContact);
+        await saveContact(updatedContact);
       }
     } on MissingSystemContactsPermissionError {
       _systemContactAccessGrantedStreamController.add(false);
@@ -138,6 +138,8 @@ class ContactsRepository {
   }
 
   Future<void> _systemContactsChangedCallback() async {
+    // Delay to avoid system update coming in before other updates
+    await Future.delayed(const Duration(milliseconds: 100));
     final oldProfileContact = _contacts[profileContactId];
     await _updateFromSystemContacts();
     if (oldProfileContact != null &&
@@ -178,7 +180,7 @@ class ContactsRepository {
       if (!storedContacts.containsValue(contact) &&
           storedContacts.containsKey(contact.coagContactId)) {
         // TODO: Check most recent update timestamp and make sure the on from persistent storag is more recent
-        await _saveContact(storedContacts[contact.coagContactId]!);
+        await saveContact(storedContacts[contact.coagContactId]!);
       }
     }
   }
@@ -224,11 +226,11 @@ class ContactsRepository {
               systemContact: systemContacts[iChangedContact]);
           systemContacts.removeAt(iChangedContact);
         }
-        await _saveContact(updatedContact);
+        await saveContact(updatedContact);
       }
       // The remaining system contacts are new
       for (final systemContact in systemContacts) {
-        await _saveContact(CoagContact(
+        await saveContact(CoagContact(
             coagContactId: const Uuid().v4(), systemContact: systemContact));
       }
     } on MissingSystemContactsPermissionError {
@@ -268,19 +270,15 @@ class ContactsRepository {
       }
     }
 
-    // TODO: Move this to an unawaitable one since these changes don't need to block the stream update
     if (contact.sharedProfile != null) {
-      final updatedContact =
-          await distributedStorage.updateContactSharingDHT(contact);
-      // TODO: Is this too broad of a condition and update?
-      // i.e. should we check for specific attributes where we expect and override and then copy with them?
-      // I'm worried about race conditions
-      if (updatedContact != contact) {
-        contact = updatedContact;
-      }
+      contact = await distributedStorage.updateContactSharingDHT(contact);
     }
 
-    await _saveContact(contact);
+    if (contact.dhtSettingsForReceiving != null) {
+      contact = await distributedStorage.updateContactReceivingDHT(contact);
+    }
+
+    await saveContact(contact);
   }
 
   Future<void> updateAndWatchReceivingDHT({bool shuffle = false}) async {

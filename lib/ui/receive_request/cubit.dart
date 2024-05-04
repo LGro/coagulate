@@ -147,19 +147,29 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     }
   }
 
+  // TODO: Does having these five steps here make sense or should we refactor this into the contacts repository?
   Future<void> createNewContact() async {
     if (state.profile == null) {
       return;
     }
-    // TODO: This can result in creating the contact twice (I guess when we create the system contact first, coagulate picks up on that, creates the coag contact and then we run update with a separate ID)
-    final contact = state.profile?.details != null &&
-            await FlutterContacts.requestPermission()
+
+    var contact = (state.profile?.details != null &&
+            await contactsRepository.systemContactsStorage.requestPermission())
         ? state.profile!.copyWith(
-            systemContact: await FlutterContacts.insertContact(
-                state.profile!.details!.toSystemContact()))
+            systemContact: await contactsRepository.systemContactsStorage
+                .insertContact(state.profile!.details!.toSystemContact()))
         : state.profile!;
 
-    await contactsRepository.updateContact(contact);
+    // Save it already here, to be faster than the system contact update listener picking up on the new system contact
+    // TODO: Can we lock this somehow to ensure a bit more robustly
+    await contactsRepository.saveContact(contact);
+
+    contact = await contactsRepository.distributedStorage
+        .updateContactSharingDHT(contact);
+    contact = await contactsRepository.distributedStorage
+        .updateContactReceivingDHT(contact);
+
+    await contactsRepository.saveContact(contact);
 
     if (!isClosed) {
       emit(ReceiveRequestState(ReceiveRequestStatus.success, profile: contact));
