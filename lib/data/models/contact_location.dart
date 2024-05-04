@@ -35,26 +35,51 @@ class ContactTemporaryLocation extends Equatable {
     required this.coagContactId,
     required this.longitude,
     required this.latitude,
-    this.name,
-    this.start,
-    this.end,
-    this.details,
+    required this.name,
+    required this.start,
+    required this.end,
+    required this.details,
+    this.checkedIn = false,
   });
 
   factory ContactTemporaryLocation.fromJson(Map<String, dynamic> json) =>
       _$ContactTemporaryLocationFromJson(json);
 
+  /// Contact id this location belongs to
   final String coagContactId;
+
+  /// Longitude coordinate of the location
   final double longitude;
+
+  /// Latitude coordinate of the location
   final double latitude;
-  final String? name;
-  final DateTime? start;
-  final DateTime? end;
-  final String? details;
+
+  /// Name of the location/event or short description
+  final String name;
+
+  /// Start timestamp
+  final DateTime start;
+
+  /// End timestamp
+  final DateTime end;
+
+  /// Longer description
+  final String details;
+
+  /// Mark presence at the location
+  final bool checkedIn;
 
   Map<String, dynamic> toJson() => _$ContactTemporaryLocationToJson(this);
 
   @override
-  List<Object?> get props =>
-      [coagContactId, longitude, latitude, name, start, end, details];
+  List<Object?> get props => [
+        coagContactId,
+        longitude,
+        latitude,
+        name,
+        start,
+        end,
+        details,
+        checkedIn
+      ];
 }
