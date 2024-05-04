@@ -27,44 +27,25 @@ class CheckInWidget extends StatelessWidget {
                       state.checkingIn)
                   ? null
                   : () async {
-                      final location = await Location().getLocation();
-
-                      if (location.longitude == null ||
-                          location.latitude == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text('Current GPS location unavailable')));
-                        return;
-                      }
-
                       await context.read<CheckInCubit>().checkIn(
-                          ContactTemporaryLocation(
-                              // TODO: That's not the most ideal way, is it?
-                              coagContactId: context
-                                  .read<CheckInCubit>()
-                                  .contactsRepository
-                                  .profileContactId!,
-                              longitude: location.longitude!,
-                              latitude: location.latitude!,
-                              start: DateTime.now(),
-                              // TODO: Get the remaining details from a user input form
-                              name: 'Current Location',
-                              details: '',
-                              end: DateTime.now().add(Duration(hours: 2)),
-                              checkedIn: true));
+                            // TODO: Get the remaining details from a user input form
+                            name: 'Current Location',
+                            details: '',
+                            end: DateTime.now().add(Duration(hours: 2)),
+                          );
 
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                           content: Text(
                               'Checked in at current location for 2 hours')));
                     },
-              child:
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const Icon(Icons.pin_drop),
-                const SizedBox(width: 8),
-                if (state.checkingIn)
-                  const CircularProgressIndicator()
-                else
-                  const Text('check-in')
-              ]))));
+              child: (state.checkingIn)
+                  ? Transform.scale(
+                      scale: 0.5, child: const CircularProgressIndicator())
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                          Icon(Icons.pin_drop),
+                          SizedBox(width: 8),
+                          Text('check-in')
+                        ]))));
 }

@@ -4,6 +4,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:location/location.dart';
 
 import '../../../data/models/contact_location.dart';
 import '../../../data/repositories/contacts.dart';
@@ -16,14 +17,37 @@ class CheckInCubit extends Cubit<CheckInState> {
 
   final ContactsRepository contactsRepository;
 
-  Future<void> checkIn(ContactTemporaryLocation location) async {
+  Future<void> checkIn(
+      {required String name,
+      required String details,
+      required DateTime end}) async {
     emit(const CheckInState(checkingIn: true));
+
+    final location = await Location().getLocation();
+
+    if (location.longitude == null || location.latitude == null) {
+      //TODO: Emit failure stte
+      return;
+    }
+
     final profileContact = await contactsRepository.getProfileContact();
     if (profileContact == null) {
       return;
     }
-    await contactsRepository.updateContact(profileContact.copyWith(
-        temporaryLocations: [...profileContact.temporaryLocations, location]));
+    await contactsRepository
+        .updateContact(profileContact.copyWith(temporaryLocations: [
+      ...profileContact.temporaryLocations,
+      ContactTemporaryLocation(
+          coagContactId: contactsRepository.profileContactId!,
+          longitude: location.longitude!,
+          latitude: location.latitude!,
+          start: DateTime.now(),
+          // TODO: Get the remaining details from a user input form
+          name: name,
+          details: details,
+          end: end,
+          checkedIn: true)
+    ]));
     emit(const CheckInState(checkingIn: false));
   }
 }
