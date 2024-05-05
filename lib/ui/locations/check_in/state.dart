@@ -5,7 +5,7 @@ part of 'cubit.dart';
 
 @JsonSerializable()
 final class CheckInState extends Equatable {
-  const CheckInState({this.checkingIn = false});
+  const CheckInState({required this.checkingIn});
 
   factory CheckInState.fromJson(Map<String, dynamic> json) =>
       _$CheckInStateFromJson(json);

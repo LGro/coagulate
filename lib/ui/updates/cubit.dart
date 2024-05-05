@@ -17,7 +17,7 @@ part 'cubit.g.dart';
 class UpdatesCubit extends Cubit<UpdatesState> {
   UpdatesCubit(this.contactsRepository)
       : super(const UpdatesState(UpdatesStatus.initial)) {
-    _contactsSuscription = contactsRepository.getContactUpdates().listen(
+    _contactsSubscription = contactsRepository.getContactUpdates().listen(
         (contact) => emit(UpdatesState(UpdatesStatus.success,
             updates: contactsRepository.updates.reversed)));
     emit(UpdatesState(UpdatesStatus.success,
@@ -25,20 +25,13 @@ class UpdatesCubit extends Cubit<UpdatesState> {
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<CoagContact> _contactsSuscription;
+  late final StreamSubscription<CoagContact> _contactsSubscription;
 
   Future<void> refresh() => contactsRepository.updateAndWatchReceivingDHT();
 
   @override
-  UpdatesState fromJson(Map<String, dynamic> json) =>
-      UpdatesState.fromJson(json);
-
-  @override
-  Map<String, dynamic> toJson(UpdatesState state) => state.toJson();
-
-  @override
   Future<void> close() {
-    _contactsSuscription.cancel();
+    _contactsSubscription.cancel();
     return super.close();
   }
 }

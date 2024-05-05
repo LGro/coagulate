@@ -3,9 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:location/location.dart';
 
-import '../../../data/models/contact_location.dart';
 import '../../../data/repositories/contacts.dart';
 import 'cubit.dart';
 

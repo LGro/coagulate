@@ -13,7 +13,8 @@ part 'cubit.g.dart';
 part 'state.dart';
 
 class CheckInCubit extends Cubit<CheckInState> {
-  CheckInCubit(this.contactsRepository) : super(const CheckInState());
+  CheckInCubit(this.contactsRepository)
+      : super(const CheckInState(checkingIn: false));
 
   final ContactsRepository contactsRepository;
 
@@ -48,6 +49,8 @@ class CheckInCubit extends Cubit<CheckInState> {
           end: end,
           checkedIn: true)
     ]));
-    emit(const CheckInState(checkingIn: false));
+    if (!isClosed) {
+      emit(const CheckInState(checkingIn: false));
+    }
   }
 }
