@@ -70,8 +70,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Contact 1'), findsNothing);
 
-      contactsRepository.timerDhtRefresh!.cancel();
-      contactsRepository.timerPersistentStorageRefresh!.cancel();
+      contactsRepository.timerDhtRefresh?.cancel();
+      contactsRepository.timerPersistentStorageRefresh?.cancel();
     });
   });
 }

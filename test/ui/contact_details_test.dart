@@ -56,8 +56,8 @@ void main() {
       expect(
           find.text(contact.systemContact!.emails[0].address), findsOneWidget);
 
-      contactsRepository.timerDhtRefresh!.cancel();
-      contactsRepository.timerPersistentStorageRefresh!.cancel();
+      contactsRepository.timerDhtRefresh?.cancel();
+      contactsRepository.timerPersistentStorageRefresh?.cancel();
     });
   });
 }
