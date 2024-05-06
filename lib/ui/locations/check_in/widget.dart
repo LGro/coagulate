@@ -133,7 +133,6 @@ class _MyFormState extends State<MyForm> {
                 labelText: 'Title',
                 errorMaxLines: 2,
               ),
-              obscureText: true,
               textInputAction: TextInputAction.done,
             ),
             // TextFormField(
