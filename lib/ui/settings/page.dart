@@ -37,16 +37,7 @@ class SettingsPage extends StatelessWidget {
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Expanded(
-                        //     child: SingleChildScrollView(
-                        //         scrollDirection: Axis.vertical, //.horizontal
-                        //         child: Text(state.message))),
-                        TextButton(
-                          child: Text('UPDATE'),
-                          onPressed:
-                              context.read<SettingsCubit>().updateMessage,
-                        ),
-                        Row(children: [
+                        const Row(children: [
                           const Text('Network Status:'),
                           const SizedBox(width: 10),
                           SignalStrengthMeterWidget()
@@ -57,7 +48,7 @@ class SettingsPage extends StatelessWidget {
                         // TODO: Add map provider choice
                         // TODO: Add custom bootstrap servers choice
                         TextButton(
-                            onPressed: () => Navigator.of(context)
+                            onPressed: () async => Navigator.of(context)
                                 .push(LicensesPage.route()),
                             child: const Text('Show Open Source Licenses'))
                       ])))));
