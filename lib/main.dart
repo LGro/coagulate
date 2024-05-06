@@ -6,8 +6,6 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_translate/flutter_translate.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -21,11 +19,6 @@ void main() async {
     // Initialize Veilid logging
     initLoggy();
 
-    // Make localization delegate
-    final localizationDelegate = await LocalizationDelegate.create(
-        fallbackLocale: 'en_US', supportedLocales: ['en_US', 'de_DE']);
-    await initializeDateFormatting();
-
     // Helps ensure that getting the app docs directory works
     WidgetsFlutterBinding.ensureInitialized();
 
@@ -38,8 +31,7 @@ void main() async {
     final appStorage = await getApplicationDocumentsDirectory();
 
     // Let's coagulate :)
-    runApp(LocalizedApp(localizationDelegate,
-        CoagulateApp(contactsRepositoryPath: appStorage.path)));
+    runApp(CoagulateApp(contactsRepositoryPath: appStorage.path));
   }
 
   if (kDebugMode) {

@@ -47,8 +47,10 @@ class ContactsRepository {
 
     // Regularly check for updates from the persistent storage,
     // e.g. in case it was updated from background processes.
-    // timerPersistentStorageRefresh = Timer.periodic(
-    //     Duration(seconds: 5), (_) async => _updateFromPersistentStorage());
+    timerPersistentStorageRefresh =
+        Timer.periodic(Duration(seconds: 5), (_) async => ()
+            // _updateFromPersistentStorage()
+            );
 
     // TODO: Check if we can/should replace this with listening to the Veilid update stream
     timerDhtRefresh = Timer.periodic(

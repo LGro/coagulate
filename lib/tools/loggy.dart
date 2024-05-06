@@ -3,10 +3,8 @@ import 'dart:io' show Platform;
 import 'package:ansicolor/ansicolor.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_translate/flutter_translate.dart';
 import 'package:intl/intl.dart';
 import 'package:loggy/loggy.dart';
-import 'package:veilid_support/veilid_support.dart';
 
 import 'state_logger.dart';
 
@@ -75,15 +73,15 @@ List<LogLevel> logLevels = [
 String logLevelName(LogLevel logLevel) {
   switch (logLevel) {
     case traceLevel:
-      return translate('log.trace');
+      return 'TRACE';
     case LogLevel.debug:
-      return translate('log.debug');
+      return 'DEBUG';
     case LogLevel.info:
-      return translate('log.info');
+      return 'INFO';
     case LogLevel.warning:
-      return translate('log.warning');
+      return 'WARNING';
     case LogLevel.error:
-      return translate('log.error');
+      return 'ERROR';
   }
   return '???';
 }

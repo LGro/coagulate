@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_translate/flutter_translate.dart';
 
 import '../mocked_providers.dart';
 
@@ -16,14 +15,11 @@ Future<Widget> createContactPage(
         ContactsRepository contactsRepository, String coagContactId) async =>
     RepositoryProvider.value(
         value: contactsRepository,
-        child: LocalizedApp(
-            await LocalizationDelegate.create(
-                fallbackLocale: 'en_US', supportedLocales: ['en_US', 'de_DE']),
-            MaterialApp(
-                home: Directionality(
-              textDirection: TextDirection.ltr,
-              child: ContactPage(coagContactId: coagContactId),
-            ))));
+        child: MaterialApp(
+            home: Directionality(
+          textDirection: TextDirection.ltr,
+          child: ContactPage(coagContactId: coagContactId),
+        )));
 
 ContactsRepository _contactsRepositoryFromContact(CoagContact contact) =>
     ContactsRepository(

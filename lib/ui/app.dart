@@ -3,10 +3,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_translate/flutter_translate.dart';
 import 'package:provider/provider.dart';
-import 'package:radix_colors/radix_colors.dart';
 
 import '../data/providers/distributed_storage/dht.dart';
 import '../data/providers/persistent_storage/shared_preferences.dart';
@@ -28,13 +27,13 @@ class Splash extends StatelessWidget {
   Widget build(BuildContext context) => PopScope(
       canPop: false,
       child: DecoratedBox(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
             gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: <Color>[
-              RadixColors.dark.plum.step4,
-              RadixColors.dark.plum.step2,
+              Colors.white,
+              Colors.white,
             ])),
         child: Center(
             child: ConstrainedBox(
@@ -42,7 +41,6 @@ class Splash extends StatelessWidget {
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Splash Screen
                       Expanded(
                           flex: 2,
                           child: SvgPicture.asset(
@@ -72,25 +70,25 @@ class CoagulateApp extends StatelessWidget {
           return const Splash();
         }
         // Once init is done, we proceed with the app
-        final localizationDelegate = LocalizedApp.of(context).delegate;
-        return LocalizationProvider(
-            state: LocalizationProvider.of(context).state,
-            child: BackgroundTicker(
-                child: RepositoryProvider.value(
-              value: ContactsRepository(SharedPreferencesStorage(),
-                  VeilidDhtStorage(), SystemContacts()),
-              child: MaterialApp(
-                title: 'Coagulate',
-                theme: ThemeData(
-                  colorScheme: ColorScheme.highContrastLight(),
-                  primarySwatch: Colors.blue,
-                ),
-                home: CoagulateAppView(),
-                localizationsDelegates: [localizationDelegate],
-                supportedLocales: localizationDelegate.supportedLocales,
-                locale: localizationDelegate.currentLocale,
-              ),
-            )));
+        return BackgroundTicker(
+            child: RepositoryProvider.value(
+          value: ContactsRepository(
+              SharedPreferencesStorage(), VeilidDhtStorage(), SystemContacts()),
+          child: MaterialApp(
+            title: 'Coagulate',
+            theme: ThemeData(
+              colorScheme: const ColorScheme.highContrastLight(),
+              primarySwatch: Colors.blue,
+            ),
+            home: CoagulateAppView(),
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('en'), Locale('de')],
+          ),
+        ));
       });
 }
 

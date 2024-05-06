@@ -26,11 +26,10 @@ class ProfileCubit extends Cubit<ProfileState> {
       }
     });
     // TODO: Does only doing this here and not in the parent constructor call above cause flicker?
-    if (contactsRepository.profileContactId != null) {
+    final profileContact = contactsRepository.getProfileContact();
+    if (profileContact != null) {
       emit(state.copyWith(
-          status: ProfileStatus.success,
-          profileContact: contactsRepository
-              .getContact(contactsRepository.profileContactId!)));
+          status: ProfileStatus.success, profileContact: profileContact));
     }
     // TODO: Check current state of permissions here in addition to listening to stream update
     _permissionsSubscription = contactsRepository
