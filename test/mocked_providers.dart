@@ -8,6 +8,7 @@ import 'package:coagulate/data/models/contact_update.dart';
 import 'package:coagulate/data/providers/distributed_storage/base.dart';
 import 'package:coagulate/data/providers/persistent_storage/base.dart';
 import 'package:coagulate/data/providers/system_contacts/base.dart';
+import 'package:coagulate/data/providers/system_contacts/system_contacts.dart';
 import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -59,8 +60,8 @@ class DummyPersistentStorage extends PersistentStorage {
   @override
   Future<void> setProfileContactId(String profileContactId) {
     log.add('setProfileContactId:$profileContactId');
-    // TODO: implement setProfileContactId
-    throw UnimplementedError();
+    this.profileContactId = profileContactId;
+    return Future.value();
   }
 
   @override
@@ -72,6 +73,7 @@ class DummyPersistentStorage extends PersistentStorage {
 
 class DummyDistributedStorage extends DistributedStorage {
   List<String> log = [];
+  Map<String, CoagContact> dht = {};
 
   @override
   Future<(String, String)> createDHTRecord() {
@@ -101,15 +103,15 @@ class DummyDistributedStorage extends DistributedStorage {
   @override
   Future<CoagContact> updateContactReceivingDHT(CoagContact contact) {
     log.add('updateContactReceivingDHT:${contact.coagContactId}');
-    // TODO: implement updateContactReceivingDHT
-    throw UnimplementedError();
+    dht[contact.coagContactId] = contact;
+    return Future.value(contact);
   }
 
   @override
   Future<CoagContact> updateContactSharingDHT(CoagContact contact) {
     log.add('updateContactSharingDHT:${contact.coagContactId}');
-    // TODO: implement updateContactSharingDHT
-    throw UnimplementedError();
+    dht[contact.coagContactId] = contact;
+    return Future.value(contact);
   }
 
   @override
@@ -132,25 +134,35 @@ class DummyDistributedStorage extends DistributedStorage {
 }
 
 class DummySystemContacts extends SystemContactsBase {
-  DummySystemContacts(this.contacts);
+  DummySystemContacts(this.contacts, {this.permissionGranted = true});
 
   List<Contact> contacts;
   List<String> log = [];
+  bool permissionGranted;
 
   @override
   Future<Contact> getContact(String id) async {
+    if (!permissionGranted) {
+      throw MissingSystemContactsPermissionError();
+    }
     log.add('getContact:$id');
     return Future.value(contacts.where((c) => c.id == id).first);
   }
 
   @override
   Future<List<Contact>> getContacts() async {
+    if (!permissionGranted) {
+      throw MissingSystemContactsPermissionError();
+    }
     log.add('getContacts');
     return Future.value(contacts);
   }
 
   @override
   Future<Contact> updateContact(Contact contact) {
+    if (!permissionGranted) {
+      throw MissingSystemContactsPermissionError();
+    }
     log.add('updateContact:${json.encode(contact.toJson())}');
     if (contacts.where((c) => c.id == contact.id).isNotEmpty) {
       contacts =
@@ -163,13 +175,13 @@ class DummySystemContacts extends SystemContactsBase {
 
   @override
   Future<Contact> insertContact(Contact contact) {
+    if (!permissionGranted) {
+      throw MissingSystemContactsPermissionError();
+    }
     contacts.add(contact);
     return Future.value(contact);
   }
 
   @override
-  Future<bool> requestPermission() {
-    // TODO: implement requestPermission
-    throw UnimplementedError();
-  }
+  Future<bool> requestPermission() async => permissionGranted;
 }

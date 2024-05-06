@@ -8,21 +8,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_translate/flutter_translate.dart';
 
 import '../mocked_providers.dart';
 
 Future<Widget> createProfilePage(ContactsRepository contactsRepository) async =>
     RepositoryProvider.value(
         value: contactsRepository,
-        child: LocalizedApp(
-            await LocalizationDelegate.create(
-                fallbackLocale: 'en_US', supportedLocales: ['en_US', 'de_DE']),
-            const MaterialApp(
-                home: Directionality(
-              textDirection: TextDirection.ltr,
-              child: ProfilePage(),
-            ))));
+        child: const MaterialApp(
+            home: Directionality(
+          textDirection: TextDirection.ltr,
+          child: ProfilePage(),
+        )));
 
 final _profileContact = CoagContact(
   coagContactId: '1',
@@ -37,15 +33,15 @@ final _profileContact = CoagContact(
   ),
 );
 
-ContactsRepository _contactsRepositoryFromContact() => ContactsRepository(
-    DummyPersistentStorage(
-        [_profileContact].asMap().map((_, v) => MapEntry(v.coagContactId, v))),
-    DummyDistributedStorage(),
-    DummySystemContacts([_profileContact.systemContact!]));
-
 void main() {
-  testWidgets('Test Profile Displayed', (tester) async {
-    final contactsRepository = _contactsRepositoryFromContact();
+  testWidgets('Test Chosen Profile Displayed', (tester) async {
+    final contactsRepository = ContactsRepository(
+        DummyPersistentStorage([_profileContact]
+            .asMap()
+            .map((_, v) => MapEntry(v.coagContactId, v)))
+          ..profileContactId = '1',
+        DummyDistributedStorage(),
+        DummySystemContacts([_profileContact.systemContact!]));
 
     final pageWidget = await createProfilePage(contactsRepository);
     await tester.pumpWidget(pageWidget);
@@ -60,6 +56,19 @@ void main() {
         findsOneWidget);
     expect(find.text(_profileContact.systemContact!.websites[0].url),
         findsOneWidget);
+
+    contactsRepository.timerDhtRefresh?.cancel();
+    contactsRepository.timerPersistentStorageRefresh?.cancel();
+  });
+
+  testWidgets('Test No Contact', (tester) async {
+    final contactsRepository = ContactsRepository(DummyPersistentStorage({}),
+        DummyDistributedStorage(), DummySystemContacts([]));
+
+    final pageWidget = await createProfilePage(contactsRepository);
+    await tester.pumpWidget(pageWidget);
+
+    expect(find.textContaining('Welcome to Coagulate'), findsOneWidget);
 
     contactsRepository.timerDhtRefresh?.cancel();
     contactsRepository.timerPersistentStorageRefresh?.cancel();
