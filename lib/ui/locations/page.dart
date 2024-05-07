@@ -388,7 +388,7 @@ class LocationsPage extends StatelessWidget {
                           !l.end.isBefore(DateTime.now()) &&
                           !l.start.isBefore(DateTime.now()))
                       .map((l) => Dismissible(
-                          key: Key(l.toString()),
+                          key: UniqueKey(),
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
                           background: Container(color: Colors.red),
@@ -400,7 +400,7 @@ class LocationsPage extends StatelessWidget {
                           !l.end.isBefore(DateTime.now()) &&
                           l.start.isBefore(DateTime.now()))
                       .map((l) => Dismissible(
-                          key: Key(l.toString()),
+                          key: UniqueKey(),
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
                           background: Container(color: Colors.red),
@@ -409,6 +409,15 @@ class LocationsPage extends StatelessWidget {
                                   .read<LocationsCubit>()
                                   .toggleCheckInExisting(l))))
                       .asList(),
+                  // If no future locations
+                  if (state.temporaryLocations
+                      .where((l) => !l.end.isBefore(DateTime.now()))
+                      .isEmpty)
+                    const Padding(
+                        padding: EdgeInsets.only(top: 16, bottom: 16),
+                        child: Center(
+                            child: Text(
+                                'Nothing coming up, check-in now or plan a future stay.'))),
                   const Row(children: [
                     Expanded(child: Divider(indent: 8, endIndent: 8)),
                     Text('past locations'),
@@ -418,7 +427,7 @@ class LocationsPage extends StatelessWidget {
                   ...state.temporaryLocations
                       .where((l) => l.end.isBefore(DateTime.now()))
                       .map((l) => Dismissible(
-                          key: Key(l.toString()),
+                          key: UniqueKey(),
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
                           background: Container(color: Colors.red),
