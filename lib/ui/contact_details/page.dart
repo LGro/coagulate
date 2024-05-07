@@ -3,6 +3,7 @@
 
 import 'dart:convert';
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -10,6 +11,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../data/models/coag_contact.dart';
+import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
 import '../profile/page.dart';
@@ -182,6 +184,10 @@ class ContactPage extends StatelessWidget {
         else if (contact.systemContact?.socialMedias.isNotEmpty ?? false)
           socialMedias(contact.systemContact!.socialMedias),
 
+        // Locations
+        if (contact.temporaryLocations.isNotEmpty)
+          temporaryLocationsCard(contact.temporaryLocations),
+
         // Sharing stuff
         if (contact.dhtSettingsForSharing != null &&
             contact.dhtSettingsForSharing!.writer != null &&
@@ -193,6 +199,16 @@ class ContactPage extends StatelessWidget {
           ...displayDetails(CoagContactDHTSchemaV1.fromJson(
                   json.decode(contact.sharedProfile!) as Map<String, dynamic>)
               .details),
+        // TODO: Switch to a schema instance instead of a string as the sharedProfile? Or at least offer a method to conveniently get it
+        if (contact.sharedProfile != null &&
+            contact.sharedProfile!.isNotEmpty &&
+            CoagContactDHTSchemaV1.fromJson(
+                    json.decode(contact.sharedProfile!) as Map<String, dynamic>)
+                .temporaryLocations
+                .isNotEmpty)
+          temporaryLocationsCard(CoagContactDHTSchemaV1.fromJson(
+                  json.decode(contact.sharedProfile!) as Map<String, dynamic>)
+              .temporaryLocations),
 
         Center(
             child: TextButton(
@@ -257,6 +273,17 @@ Widget receivingCard(BuildContext context, CoagContact contact) => Card(
             const SizedBox(height: 8),
           ]))
     ]));
+
+Widget temporaryLocationsCard(List<ContactTemporaryLocation> locations) => Card(
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+    child: Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:
+                // TODO: Filter out past ones?
+                locations.map((l) => Text(l.name)).asList())));
 
 Widget sharingCard(BuildContext context, CoagContact contact) => Card(
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),

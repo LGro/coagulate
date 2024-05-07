@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -50,6 +52,8 @@ class CheckInCubit extends Cubit<CheckInState> {
           end: end,
           checkedIn: true)
     ]));
+    // Make sure to regenerate the sharing profiles and update DHT sharing records
+    await contactsRepository.updateProfileContact(profileContact.coagContactId);
     if (!isClosed) {
       emit(const CheckInState(checkingIn: false));
     }

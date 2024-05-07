@@ -179,6 +179,7 @@ class VeilidDhtStorage extends DistributedStorage {
         details: dhtContact.details,
         addressLocations: dhtContact.addressLocations,
         temporaryLocations: dhtContact.temporaryLocations,
+        // TODO: Only override this in case no share back channel has been actively established
         dhtSettingsForSharing: (dhtContact.shareBackDHTKey == null)
             ? null
             : ContactDHTSettings(

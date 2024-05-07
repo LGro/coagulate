@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,7 +27,11 @@ CoagContactDHTSchemaV1 filterAccordingToSharingProfile(CoagContact contact) =>
     CoagContactDHTSchemaV1(
       coagContactId: contact.coagContactId,
       details: ContactDetails.fromSystemContact(contact.systemContact!),
-      temporaryLocations: contact.temporaryLocations,
+      // Only share locations up to 1 day ago
+      temporaryLocations: contact.temporaryLocations
+          .where((l) =>
+              !l.end.add(const Duration(days: 1)).isBefore(DateTime.now()))
+          .asList(),
       addressLocations: contact.addressLocations,
       // TODO: Ensure these are populated by the time this is called
       shareBackDHTKey: contact.dhtSettingsForReceiving?.key,
@@ -168,6 +173,7 @@ class ContactsRepository {
     if (updatedContact != contact) {
       // TODO: Use update time from when the update was sent not received
       // TODO: Can it happen that details are null?
+      // TODO: When temporary locations are updated, only record an update about added / updated locations / check-ins
       await _saveUpdate(ContactUpdate(
           oldContact: contact.details!,
           newContact: updatedContact.details!,
@@ -314,6 +320,7 @@ class ContactsRepository {
         if (updatedContact != contact) {
           // TODO: Use update time from when the update was sent not received
           // TODO: Can it happen that details are null?
+          // TODO: When temporary locations are updated, only record an update about added / updated locations / check-ins
           await _saveUpdate(ContactUpdate(
               oldContact: contact.details!,
               newContact: updatedContact.details!,
