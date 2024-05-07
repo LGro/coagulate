@@ -5,7 +5,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bloc/bloc.dart';
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -21,16 +23,23 @@ class LocationsCubit extends Cubit<LocationsState> {
         contactsRepository.getContactUpdates().listen((contact) async {
       if (contact.coagContactId ==
           contactsRepository.getProfileContact()?.coagContactId) {
-        emit(LocationsState(temporaryLocations: contact.temporaryLocations));
+        emit(LocationsState(
+            temporaryLocations: _sort(contact.temporaryLocations)));
       }
     });
     emit(LocationsState(
-        temporaryLocations:
-            contactsRepository.getProfileContact()?.temporaryLocations ?? []));
+        temporaryLocations: (contactsRepository.getProfileContact() == null)
+            ? []
+            : _sort(
+                contactsRepository.getProfileContact()!.temporaryLocations)));
   }
 
   final ContactsRepository contactsRepository;
   late final StreamSubscription<CoagContact> _contactsSuscription;
+
+  List<ContactTemporaryLocation> _sort(
+          List<ContactTemporaryLocation> locations) =>
+      locations.sortedBy((l) => l.start).reversed.asList();
 
   Future<void> addRandomLocation() async {
     final randomLocation = ContactTemporaryLocation(
@@ -46,10 +55,8 @@ class LocationsCubit extends Cubit<LocationsState> {
       return;
     }
     await contactsRepository.updateContact(profileContact.copyWith(
-        temporaryLocations: [
-          ...profileContact.temporaryLocations,
-          randomLocation
-        ]));
+        temporaryLocations:
+            _sort([...profileContact.temporaryLocations, randomLocation])));
   }
 
   Future<void> removeLocation(ContactTemporaryLocation location) async {

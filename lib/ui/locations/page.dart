@@ -3,6 +3,7 @@
 
 import 'dart:math';
 
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
@@ -335,17 +336,20 @@ extension on PasswordValidationError {
 
 // TODO: Display details as well?
 // TODO: Indicate with how many contacts this location is shared
-Widget locationTile(ContactTemporaryLocation location) => ListTile(
-    title: Text(location.name),
-    tileColor: Colors.white,
-    subtitle: Text(
-        'From: ${location.start} ${(location.end == location.start) ? "" : "\nTill: ${location.end}"}'
-        '\nLon: ${location.longitude}, Lat: ${location.latitude}'),
-    trailing:
-        // TODO: Better icon to indicate checked in
-        (location.checkedIn && DateTime.now().isBefore(location.end))
-            ? const Icon(Icons.pin_drop_outlined)
-            : null);
+Widget locationTile(ContactTemporaryLocation location,
+        {Future<void> Function()? onTap}) =>
+    ListTile(
+        title: Text(location.name),
+        tileColor: Colors.white,
+        onTap: onTap,
+        subtitle: Text(
+            'From: ${location.start} ${(location.end == location.start) ? "" : "\nTill: ${location.end}"}'
+            '\nLon: ${location.longitude}, Lat: ${location.latitude}'),
+        trailing:
+            // TODO: Better icon to indicate checked in
+            (location.checkedIn && DateTime.now().isBefore(location.end))
+                ? const Icon(Icons.pin_drop_outlined)
+                : null);
 
 class LocationsPage extends StatelessWidget {
   const LocationsPage({super.key});
@@ -380,8 +384,6 @@ class LocationsPage extends StatelessWidget {
                     child: ListView(children: [
                   // Future locations
                   ...state.temporaryLocations
-                      .sortedBy((l) => l.start)
-                      .reversed
                       .where((l) =>
                           !l.end.isBefore(DateTime.now()) &&
                           !l.start.isBefore(DateTime.now()))
@@ -394,8 +396,6 @@ class LocationsPage extends StatelessWidget {
                       .asList(),
                   // Current locations // TODO: Add option to check in; maybe allow checking in 5-10min earlier?
                   ...state.temporaryLocations
-                      .sortedBy((l) => l.start)
-                      .reversed
                       .where((l) =>
                           !l.end.isBefore(DateTime.now()) &&
                           l.start.isBefore(DateTime.now()))
@@ -404,7 +404,10 @@ class LocationsPage extends StatelessWidget {
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
                           background: Container(color: Colors.red),
-                          child: locationTile(l)))
+                          child: locationTile(l,
+                              onTap: () async => context
+                                  .read<LocationsCubit>()
+                                  .removeLocation(l))))
                       .asList(),
                   const Row(children: [
                     Expanded(child: Divider(indent: 8, endIndent: 8)),
@@ -413,8 +416,6 @@ class LocationsPage extends StatelessWidget {
                   ]),
                   // Past locations
                   ...state.temporaryLocations
-                      .sortedBy((l) => l.start)
-                      .reversed
                       .where((l) => l.end.isBefore(DateTime.now()))
                       .map((l) => Dismissible(
                           key: Key(l.toString()),
