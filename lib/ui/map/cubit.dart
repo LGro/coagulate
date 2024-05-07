@@ -4,10 +4,12 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
+import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 
 part 'cubit.g.dart';
@@ -22,19 +24,44 @@ Iterable<Location> contactToLocations(CoagContact contact) =>
             contact.details?.displayName ?? contact.systemContact!.displayName,
         subLabel: l.name));
 
+Location temporaryLocationToLocation(
+        CoagContact contact, ContactTemporaryLocation l) =>
+    Location(
+        coagContactId: contact.coagContactId,
+        label: contact.details?.displayName ??
+            contact.systemContact?.displayName ??
+            'unknown',
+        subLabel: l.name,
+        longitude: l.longitude,
+        latitude: l.latitude);
+
 class MapCubit extends Cubit<MapState> {
   MapCubit(this.contactsRepository)
-      : super(const MapState({}, MapStatus.initial)) {
+      : super(const MapState([], MapStatus.initial)) {
     _contactsSuscription =
         contactsRepository.getContactUpdates().listen((contact) {
       emit(MapState([
         ...state.locations
             .where((l) => l.coagContactId != contact.coagContactId),
-        ...contactToLocations(contact)
+        ...contactToLocations(contact),
+        ...contact.temporaryLocations
+            .map((l) => temporaryLocationToLocation(contact, l))
       ], MapStatus.success,
           mapboxApiToken:
               String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN')));
     });
+
+    emit(MapState(
+        contactsRepository
+            .getContacts()
+            .values
+            .map((c) => [
+                  ...contactToLocations(c),
+                  ...c.temporaryLocations
+                      .map((l) => temporaryLocationToLocation(c, l))
+                ])
+            .flattened,
+        MapStatus.success));
   }
 
   final ContactsRepository contactsRepository;
