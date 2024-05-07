@@ -37,7 +37,8 @@ class CheckInCubit extends Cubit<CheckInState> {
     }
     await contactsRepository
         .updateContact(profileContact.copyWith(temporaryLocations: [
-      ...profileContact.temporaryLocations,
+      ...profileContact.temporaryLocations
+          .map((l) => l.copyWith(checkedIn: false)),
       ContactTemporaryLocation(
           coagContactId: contactsRepository.profileContactId!,
           longitude: location.longitude!,

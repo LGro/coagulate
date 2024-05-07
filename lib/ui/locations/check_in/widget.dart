@@ -149,16 +149,6 @@ class _MyFormState extends State<MyForm> {
             // ),
             const SizedBox(height: 16),
             Row(children: [
-              const Text('Minutes'),
-              Expanded(
-                  child: Slider(
-                      value: _state.minutes.toDouble(),
-                      label: _state.minutes.toString(),
-                      max: 55,
-                      divisions: 11,
-                      onChanged: _onMinutesChanged)),
-            ]),
-            Row(children: [
               const Text('Hours'),
               Expanded(
                   child: Slider(
@@ -167,6 +157,16 @@ class _MyFormState extends State<MyForm> {
                       max: 24,
                       divisions: 24,
                       onChanged: _onHoursChanged)),
+            ]),
+            Row(children: [
+              const Text('Minutes'),
+              Expanded(
+                  child: Slider(
+                      value: _state.minutes.toDouble(),
+                      label: _state.minutes.toString(),
+                      max: 55,
+                      divisions: 11,
+                      onChanged: _onMinutesChanged)),
             ]),
             const SizedBox(height: 8),
             if (_state.status.isInProgress)
