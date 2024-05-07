@@ -74,4 +74,18 @@ class LocationsCubit extends Cubit<LocationsState> {
     _contactsSuscription.cancel();
     return super.close();
   }
+
+  Future<void> toggleCheckInExisting(ContactTemporaryLocation location) async {
+    final profileContact = contactsRepository.getProfileContact();
+    if (profileContact == null) {
+      return;
+    }
+    // TODO: Test that this is responsive also when location is shared with many contacts
+    await contactsRepository.updateContact(profileContact.copyWith(
+        temporaryLocations: profileContact.temporaryLocations
+            .map((l) => (l == location)
+                ? l.copyWith(checkedIn: !l.checkedIn)
+                : l.copyWith(checkedIn: false))
+            .toList()));
+  }
 }

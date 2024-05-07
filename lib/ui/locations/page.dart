@@ -394,7 +394,7 @@ class LocationsPage extends StatelessWidget {
                           background: Container(color: Colors.red),
                           child: locationTile(l)))
                       .asList(),
-                  // Current locations // TODO: Add option to check in; maybe allow checking in 5-10min earlier?
+                  // Current locations // TODO: maybe allow checking in 5-10min earlier?
                   ...state.temporaryLocations
                       .where((l) =>
                           !l.end.isBefore(DateTime.now()) &&
@@ -407,7 +407,7 @@ class LocationsPage extends StatelessWidget {
                           child: locationTile(l,
                               onTap: () async => context
                                   .read<LocationsCubit>()
-                                  .removeLocation(l))))
+                                  .toggleCheckInExisting(l))))
                       .asList(),
                   const Row(children: [
                     Expanded(child: Divider(indent: 8, endIndent: 8)),

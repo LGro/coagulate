@@ -82,4 +82,23 @@ class ContactTemporaryLocation extends Equatable {
         details,
         checkedIn
       ];
+
+  ContactTemporaryLocation copyWith(
+          {String? coagContactId,
+          double? longitude,
+          double? latitude,
+          String? name,
+          DateTime? start,
+          DateTime? end,
+          String? details,
+          bool? checkedIn}) =>
+      ContactTemporaryLocation(
+          coagContactId: coagContactId ?? this.coagContactId,
+          longitude: longitude ?? this.longitude,
+          latitude: latitude ?? this.latitude,
+          name: name ?? this.name,
+          start: start ?? this.start,
+          end: end ?? this.end,
+          details: details ?? this.details,
+          checkedIn: checkedIn ?? this.checkedIn);
 }
