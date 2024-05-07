@@ -377,18 +377,53 @@ class LocationsPage extends StatelessWidget {
               body: Column(children: [
                 // SingleChildScrollView(child: LocationForm())
                 Expanded(
-                    child: ListView(
-                        children: state.temporaryLocations
-                            .sortedBy((l) => l.start)
-                            .reversed
-                            .map((l) => Dismissible(
-                                key: Key(l.toString()),
-                                onDismissed: (_) async => context
-                                    .read<LocationsCubit>()
-                                    .removeLocation(l),
-                                background: Container(color: Colors.red),
-                                child: locationTile(l)))
-                            .asList())),
+                    child: ListView(children: [
+                  // Future locations
+                  ...state.temporaryLocations
+                      .sortedBy((l) => l.start)
+                      .reversed
+                      .where((l) =>
+                          !l.end.isBefore(DateTime.now()) &&
+                          !l.start.isBefore(DateTime.now()))
+                      .map((l) => Dismissible(
+                          key: Key(l.toString()),
+                          onDismissed: (_) async =>
+                              context.read<LocationsCubit>().removeLocation(l),
+                          background: Container(color: Colors.red),
+                          child: locationTile(l)))
+                      .asList(),
+                  // Current locations // TODO: Add option to check in; maybe allow checking in 5-10min earlier?
+                  ...state.temporaryLocations
+                      .sortedBy((l) => l.start)
+                      .reversed
+                      .where((l) =>
+                          !l.end.isBefore(DateTime.now()) &&
+                          l.start.isBefore(DateTime.now()))
+                      .map((l) => Dismissible(
+                          key: Key(l.toString()),
+                          onDismissed: (_) async =>
+                              context.read<LocationsCubit>().removeLocation(l),
+                          background: Container(color: Colors.red),
+                          child: locationTile(l)))
+                      .asList(),
+                  const Row(children: [
+                    Expanded(child: Divider(indent: 8, endIndent: 8)),
+                    Text('past locations'),
+                    Expanded(child: Divider(indent: 8, endIndent: 8))
+                  ]),
+                  // Past locations
+                  ...state.temporaryLocations
+                      .sortedBy((l) => l.start)
+                      .reversed
+                      .where((l) => l.end.isBefore(DateTime.now()))
+                      .map((l) => Dismissible(
+                          key: Key(l.toString()),
+                          onDismissed: (_) async =>
+                              context.read<LocationsCubit>().removeLocation(l),
+                          background: Container(color: Colors.red),
+                          child: locationTile(l)))
+                      .asList(),
+                ])),
                 const SizedBox(height: 16),
                 Row(children: [
                   const SizedBox(width: 16),
