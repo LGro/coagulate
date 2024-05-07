@@ -8,7 +8,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
-import '../profile/page.dart';
 import '../widgets/avatar.dart';
 import '../widgets/scan_qr_code.dart';
 import 'cubit.dart';
@@ -44,7 +43,7 @@ class ReceiveRequestPage extends StatelessWidget {
                     IconButton(
                         onPressed:
                             context.read<ReceiveRequestCubit>().scanQrCode,
-                        icon: const Icon(Icons.qr_code))
+                        icon: const Icon(Icons.qr_code_scanner))
                   ],
                 ),
                 body: const Center(child: CircularProgressIndicator()));
@@ -66,7 +65,7 @@ class ReceiveRequestPage extends StatelessWidget {
                     IconButton(
                         onPressed:
                             context.read<ReceiveRequestCubit>().scanQrCode,
-                        icon: const Icon(Icons.qr_code))
+                        icon: const Icon(Icons.qr_code_scanner))
                   ],
                 ),
                 body: Center(
@@ -123,7 +122,7 @@ class ReceiveRequestPage extends StatelessWidget {
                     IconButton(
                         onPressed:
                             context.read<ReceiveRequestCubit>().scanQrCode,
-                        icon: const Icon(Icons.qr_code))
+                        icon: const Icon(Icons.qr_code_scanner))
                   ],
                 ),
                 body: Center(
