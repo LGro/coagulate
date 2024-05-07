@@ -66,7 +66,8 @@ class LocationsCubit extends Cubit<LocationsState> {
     }
     await contactsRepository.updateContact(profileContact.copyWith(
         temporaryLocations: profileContact.temporaryLocations
-          ..remove(location)));
+            .where((l) => l != location)
+            .asList()));
   }
 
   @override

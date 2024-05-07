@@ -418,12 +418,15 @@ class LocationsPage extends StatelessWidget {
                         child: Center(
                             child: Text(
                                 'Nothing coming up, check-in now or plan a future stay.'))),
-                  const Row(children: [
-                    Expanded(child: Divider(indent: 8, endIndent: 8)),
-                    Text('past locations'),
-                    Expanded(child: Divider(indent: 8, endIndent: 8))
-                  ]),
                   // Past locations
+                  if (state.temporaryLocations
+                      .where((l) => l.end.isBefore(DateTime.now()))
+                      .isNotEmpty)
+                    const Row(children: [
+                      Expanded(child: Divider(indent: 8, endIndent: 8)),
+                      Text('past locations'),
+                      Expanded(child: Divider(indent: 8, endIndent: 8))
+                    ]),
                   ...state.temporaryLocations
                       .where((l) => l.end.isBefore(DateTime.now()))
                       .map((l) => Dismissible(
