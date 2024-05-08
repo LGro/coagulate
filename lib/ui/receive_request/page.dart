@@ -12,13 +12,9 @@ import '../widgets/avatar.dart';
 import '../widgets/scan_qr_code.dart';
 import 'cubit.dart';
 
+// TODO: Move cubit initialization outside to parent scope (potentially leaving the BlocConsumer inside) instead of passing initial state here?
 class ReceiveRequestPage extends StatelessWidget {
   const ReceiveRequestPage({super.key, this.initialState});
-
-  // TODO: Use initial status when provided
-  static Route<void> route(ReceiveRequestStatus? initialStatus) =>
-      MaterialPageRoute(
-          fullscreenDialog: true, builder: (_) => const ReceiveRequestPage());
 
   final ReceiveRequestState? initialState;
 
