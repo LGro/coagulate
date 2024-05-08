@@ -60,7 +60,7 @@ String mapboxToken() =>
 Marker _buildMarker(
         {required Location location, required GestureTapCallback? onTap}) =>
     Marker(
-        height: 60,
+        height: 90,
         width: 100,
         point: LatLng(location.latitude, location.longitude),
         alignment: Alignment.topCenter,
@@ -78,7 +78,7 @@ Marker _buildMarker(
                 style: const TextStyle(fontSize: 10),
               ),
               const SizedBox(width: 5),
-              const Icon(Icons.location_pin, size: 26, color: Colors.deepPurple)
+              const Icon(Icons.location_pin, size: 50, color: Colors.deepPurple)
             ])));
 
 class MapPage extends StatelessWidget {
@@ -87,7 +87,7 @@ class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FlutterMap(
         options: const MapOptions(
-          // TODO: Pick reasonable center without requiring all markers first; e.g. based on profile contact locations
+          // TODO: Pick reasonable center without requiring all markers first; e.g. based on profile contact locations or current GPS
           initialCenter: LatLng(50.5, 30.51),
           initialZoom: 3,
           maxZoom: 15,

@@ -11,16 +11,17 @@ extension MapStatusX on MapStatus {
   bool get isDenied => this == MapStatus.denied;
 }
 
+// TODO: Add custom marker as attribute
 @JsonSerializable()
 class Location {
-  factory Location.fromJson(Map<String, dynamic> json) =>
-      _$LocationFromJson(json);
   Location(
       {required this.coagContactId,
       required this.longitude,
       required this.latitude,
       required this.label,
       required this.subLabel});
+  factory Location.fromJson(Map<String, dynamic> json) =>
+      _$LocationFromJson(json);
 
   final String coagContactId;
   final double longitude;

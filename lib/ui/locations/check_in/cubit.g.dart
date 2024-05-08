@@ -7,7 +7,7 @@ part of 'cubit.dart';
 // **************************************************************************
 
 CheckInState _$CheckInStateFromJson(Map<String, dynamic> json) => CheckInState(
-      checkingIn: json['checking_in'] as bool? ?? false,
+      checkingIn: json['checking_in'] as bool,
     );
 
 Map<String, dynamic> _$CheckInStateToJson(CheckInState instance) =>

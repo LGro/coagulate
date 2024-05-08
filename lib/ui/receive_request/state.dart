@@ -8,7 +8,8 @@ enum ReceiveRequestStatus {
   processing,
   receivedShare,
   receivedRequest,
-  success
+  success,
+  receivedUriFragment
 }
 
 extension ReceiveRequestStatusX on ReceiveRequestStatus {
@@ -17,20 +18,26 @@ extension ReceiveRequestStatusX on ReceiveRequestStatus {
   bool get isReceivedShare => this == ReceiveRequestStatus.receivedShare;
   bool get isReceivedRequest => this == ReceiveRequestStatus.receivedRequest;
   bool get isSuccess => this == ReceiveRequestStatus.success;
+  bool get isReceivedUriFragment =>
+      this == ReceiveRequestStatus.receivedUriFragment;
 }
 
 @JsonSerializable()
 final class ReceiveRequestState extends Equatable {
-  const ReceiveRequestState(this.status,
-      {this.profile,
-      this.requestSettings,
-      this.contactProporsalsForLinking = const []});
+  const ReceiveRequestState(
+    this.status, {
+    this.profile,
+    this.requestSettings,
+    this.fragment,
+    this.contactProporsalsForLinking = const [],
+  });
 
   factory ReceiveRequestState.fromJson(Map<String, dynamic> json) =>
       _$ReceiveRequestStateFromJson(json);
 
   final ReceiveRequestStatus status;
   final CoagContact? profile;
+  final String? fragment;
   final ContactDHTSettings? requestSettings;
   final List<CoagContact> contactProporsalsForLinking;
 
@@ -38,5 +45,5 @@ final class ReceiveRequestState extends Equatable {
 
   @override
   List<Object?> get props =>
-      [status, profile, requestSettings, contactProporsalsForLinking];
+      [status, profile, requestSettings, fragment, contactProporsalsForLinking];
 }

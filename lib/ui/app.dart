@@ -1,10 +1,12 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/providers/distributed_storage/dht.dart';
@@ -13,10 +15,13 @@ import '../data/providers/system_contacts/system_contacts.dart';
 import '../data/repositories/contacts.dart';
 import '../tick.dart';
 import '../veilid_init.dart';
+import 'contact_details/page.dart';
 import 'contact_list/page.dart';
 import 'locations/page.dart';
 import 'map/page.dart';
 import 'profile/page.dart';
+import 'receive_request/cubit.dart';
+import 'receive_request/page.dart';
 import 'settings/page.dart';
 import 'updates/page.dart';
 
@@ -54,6 +59,40 @@ class Splash extends StatelessWidget {
       ));
 }
 
+// TODO: It seems odd to require the knowledge about which other route names should map to the relevant navigation items here
+const navBarItems = [
+  (
+    '/',
+    ['profile'],
+    BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile')
+  ),
+  (
+    '/locations',
+    ['locations'],
+    BottomNavigationBarItem(icon: Icon(Icons.pin_drop), label: 'Locations')
+  ),
+  (
+    '/updates',
+    ['updates'],
+    BottomNavigationBarItem(icon: Icon(Icons.update), label: 'Updates')
+  ),
+  (
+    '/contacts',
+    ['contacts', 'receiveRequest', 'contactDetails'],
+    BottomNavigationBarItem(icon: Icon(Icons.contacts), label: 'Contacts')
+  ),
+  (
+    '/map',
+    ['map'],
+    BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map')
+  ),
+  (
+    '/settings',
+    ['settings'],
+    BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings')
+  ),
+];
+
 class CoagulateApp extends StatelessWidget {
   const CoagulateApp({required this.contactsRepositoryPath, super.key});
 
@@ -74,13 +113,82 @@ class CoagulateApp extends StatelessWidget {
             child: RepositoryProvider.value(
           value: ContactsRepository(
               SharedPreferencesStorage(), VeilidDhtStorage(), SystemContacts()),
-          child: MaterialApp(
+          child: MaterialApp.router(
             title: 'Coagulate',
             theme: ThemeData(
               colorScheme: const ColorScheme.highContrastLight(),
               primarySwatch: Colors.blue,
             ),
-            home: CoagulateAppView(),
+            routerConfig: GoRouter(
+              routes: [
+                ShellRoute(
+                    navigatorKey: GlobalKey<NavigatorState>(),
+                    builder: (context, state, child) => Scaffold(
+                          body: child,
+                          bottomNavigationBar: BottomNavigationBar(
+                            items: navBarItems.map((i) => i.$3).asList(),
+                            type: BottomNavigationBarType.fixed,
+                            selectedFontSize: 12,
+                            // Use index of the first level path member (also for nested paths)
+                            currentIndex: (state.topRoute?.name == null)
+                                ? 0
+                                : navBarItems.indexWhere(
+                                    (i) => i.$2.contains(state.topRoute?.name)),
+                            unselectedItemColor: Colors.black,
+                            selectedItemColor: Colors.deepPurpleAccent,
+                            showUnselectedLabels: true,
+                            onTap: (i) async =>
+                                context.pushReplacement(navBarItems[i].$1),
+                            // onTap: _onItemTapped,
+                          ),
+                        ),
+                    routes: [
+                      GoRoute(
+                          path: '/',
+                          name: 'profile',
+                          builder: (_, __) => const ProfilePage(),
+                          routes: [
+                            GoRoute(
+                                path: 'locations',
+                                name: 'locations',
+                                builder: (_, __) => const LocationsPage()),
+                            GoRoute(
+                                path: 'updates',
+                                name: 'updates',
+                                builder: (_, __) => const UpdatesPage()),
+                            GoRoute(
+                                path: 'contacts',
+                                name: 'contacts',
+                                builder: (_, __) => const ContactListPage(),
+                                routes: [
+                                  GoRoute(
+                                      path: 'details/:coagContactId',
+                                      name: 'contactDetails',
+                                      builder: (_, state) => ContactPage(
+                                          coagContactId: state.pathParameters[
+                                              'coagContactId']!)),
+                                ]),
+                            GoRoute(
+                                path: 'map',
+                                name: 'map',
+                                builder: (_, __) => const MapPage()),
+                            GoRoute(
+                                path: 'settings',
+                                name: 'settings',
+                                builder: (_, __) => const SettingsPage()),
+                            GoRoute(
+                                // TODO: Figure out how to handle language on coagulate.social so that we don't need to add the language to the links
+                                path: 'en/c',
+                                name: 'receiveRequest',
+                                builder: (_, state) => ReceiveRequestPage(
+                                    initialState: ReceiveRequestState(
+                                        ReceiveRequestStatus
+                                            .receivedUriFragment,
+                                        fragment: state.uri.fragment))),
+                          ])
+                    ])
+              ],
+            ),
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
@@ -92,89 +200,13 @@ class CoagulateApp extends StatelessWidget {
       });
 }
 
-class CoagulateAppView extends StatefulWidget {
-  @override
-  _CoagulateAppViewState createState() => _CoagulateAppViewState();
-}
 
-class _CoagulateAppViewState extends State<CoagulateAppView>
-    with WidgetsBindingObserver {
-  // TODO: Default to profile when profile not set; otherwise default to updates
-  int _selectedIndex = 0;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        body: [
-          const ProfilePage(),
-          const LocationsPage(),
-          const UpdatesPage(),
-          const ContactListPage(),
-          const MapPage(),
-          const SettingsPage(),
-        ].elementAt(_selectedIndex),
-        bottomNavigationBar: BottomNavigationBar(
-          items: const [
-            // TODO: Move profile selection to initial startup launch screen and then hide in settings?
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.pin_drop),
-              label: 'Locations',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.update),
-              label: 'Updates',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.contacts),
-              label: 'Contacts',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.map),
-              label: 'Map',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: 'Settings',
-            ),
-          ],
-          type: BottomNavigationBarType.fixed,
-          selectedFontSize: 12,
-          currentIndex: _selectedIndex,
-          unselectedItemColor: Colors.black,
-          selectedItemColor: Colors.deepPurpleAccent,
-          showUnselectedLabels: true,
-          onTap: _onItemTapped,
-        ),
-      );
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Only activate background tasks when app is not open
-    // if (state == AppLifecycleState.paused) {
-    //   unawaited(registerBackgroundTasks());
-    // } else if (state == AppLifecycleState.resumed) {
-    //   unawaited(Workmanager().cancelAll());
-    // }
-  }
-}
+//   @override
+//   void didChangeAppLifecycleState(AppLifecycleState state) {
+//     // Only activate background tasks when app is not open
+//     // if (state == AppLifecycleState.paused) {
+//     //   unawaited(registerBackgroundTasks());
+//     // } else if (state == AppLifecycleState.resumed) {
+//     //   unawaited(Workmanager().cancelAll());
+//     // }
+// }

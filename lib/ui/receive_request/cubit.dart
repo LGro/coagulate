@@ -23,7 +23,12 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
   ReceiveRequestCubit(this.contactsRepository,
       {ReceiveRequestState? initialState})
       : super(initialState ??
-            const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+            const ReceiveRequestState(ReceiveRequestStatus.qrcode)) {
+    if ((initialState?.status.isReceivedUriFragment ?? false) &&
+        initialState?.fragment != null) {
+      unawaited(handleFragment(initialState!.fragment!));
+    }
+  }
 
   final ContactsRepository contactsRepository;
 
@@ -43,78 +48,13 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
           if (!isClosed) {
             emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
           }
-          return;
+          continue;
         }
 
-        final components = fragment.split(':');
-        if (![3, 5].contains(components.length)) {
-          // TODO: Log / feedback?
-          print('Payload malformed, not three or five long, but $fragment');
-          if (!isClosed) {
-            emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
-          }
-          return;
-        }
-
-        final proposals = contactsRepository.getContacts().values.asList();
-
-        final key = '${components[0]}:${components[1]}';
-        final psk = components[2];
-        final writer = (components.length == 5)
-            ? '${components[3]}:${components[4]}'
-            : null;
-
-        if (writer != null) {
-          if (!isClosed) {
-            emit(ReceiveRequestState(ReceiveRequestStatus.receivedRequest,
-                requestSettings:
-                    ContactDHTSettings(key: key, psk: psk, writer: writer),
-                contactProporsalsForLinking: proposals));
-          }
-          return;
-        }
-
-        // TODO: Refactor updateContactFromDHT to use here as well?
-        try {
-          final raw = await contactsRepository.distributedStorage
-              .readPasswordEncryptedDHTRecord(recordKey: key, secret: psk);
-          print("Retrieved from DHT Record $key:\n$raw");
-          // TODO: Error handling
-          final contact = CoagContactDHTSchemaV1.fromJson(
-              json.decode(raw) as Map<String, dynamic>);
-          final coagContact = CoagContact(
-              coagContactId: const Uuid().v4(),
-              details: contact.details,
-              addressLocations: contact.addressLocations,
-              temporaryLocations: contact.temporaryLocations,
-              dhtSettingsForReceiving: ContactDHTSettings(key: key, psk: psk),
-              dhtSettingsForSharing: (contact.shareBackDHTKey == null)
-                  ? null
-                  : ContactDHTSettings(
-                      key: contact.shareBackDHTKey!,
-                      psk: contact.shareBackPsk,
-                      writer: contact.shareBackDHTWriter));
-          if (!isClosed) {
-            emit(ReceiveRequestState(
-              ReceiveRequestStatus.receivedShare,
-              profile: coagContact,
-
-              // TODO: Intelligently sort depending on profile contact
-              contactProporsalsForLinking: proposals,
-            ));
-            return;
-          }
-        } on Exception catch (e) {
-          // TODO: Log properly / feedback?
-          print('Error fetching DHT UPDATE: ${e}');
-          if (!isClosed) {
-            emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
-            return;
-          }
-        }
+        return handleFragment(fragment);
       }
+      emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
     }
-    emit(ReceiveRequestState(ReceiveRequestStatus.qrcode));
   }
 
   /// Link an existing contact that has requested sharing
@@ -196,5 +136,73 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
                 ContactDetails(displayName: value, name: Name(first: value)),
             dhtSettingsForSharing: state.requestSettings),
         contactProporsalsForLinking: proposals));
+  }
+
+  Future<void> handleFragment(String fragment) async {
+    final components = fragment.split(':');
+    if (![3, 5].contains(components.length)) {
+      // TODO: Log / feedback?
+      print('Payload malformed, not three or five long, but ${fragment}');
+      if (!isClosed) {
+        emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+      }
+      return;
+    }
+
+    final proposals = contactsRepository.getContacts().values.asList();
+
+    final key = '${components[0]}:${components[1]}';
+    final psk = components[2];
+    final writer =
+        (components.length == 5) ? '${components[3]}:${components[4]}' : null;
+
+    if (writer != null) {
+      if (!isClosed) {
+        emit(ReceiveRequestState(ReceiveRequestStatus.receivedRequest,
+            requestSettings:
+                ContactDHTSettings(key: key, psk: psk, writer: writer),
+            contactProporsalsForLinking: proposals));
+      }
+      return;
+    }
+
+    // TODO: Refactor updateContactFromDHT to use here as well?
+    try {
+      final raw = await contactsRepository.distributedStorage
+          .readPasswordEncryptedDHTRecord(recordKey: key, secret: psk);
+      print("Retrieved from DHT Record $key:\n$raw");
+      // TODO: Error handling
+      final contact = CoagContactDHTSchemaV1.fromJson(
+          json.decode(raw) as Map<String, dynamic>);
+      final coagContact = CoagContact(
+          coagContactId: const Uuid().v4(),
+          details: contact.details,
+          addressLocations: contact.addressLocations,
+          temporaryLocations: contact.temporaryLocations,
+          dhtSettingsForReceiving: ContactDHTSettings(key: key, psk: psk),
+          dhtSettingsForSharing: (contact.shareBackDHTKey == null)
+              ? null
+              : ContactDHTSettings(
+                  key: contact.shareBackDHTKey!,
+                  psk: contact.shareBackPsk,
+                  writer: contact.shareBackDHTWriter));
+      if (!isClosed) {
+        emit(ReceiveRequestState(
+          ReceiveRequestStatus.receivedShare,
+          profile: coagContact,
+
+          // TODO: Intelligently sort depending on profile contact
+          contactProporsalsForLinking: proposals,
+        ));
+        return;
+      }
+    } on Exception catch (e) {
+      // TODO: Log properly / feedback?
+      print('Error fetching DHT UPDATE: ${e}');
+      if (!isClosed) {
+        emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+        return;
+      }
+    }
   }
 }

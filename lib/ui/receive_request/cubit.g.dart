@@ -16,6 +16,7 @@ ReceiveRequestState _$ReceiveRequestStateFromJson(Map<String, dynamic> json) =>
           ? null
           : ContactDHTSettings.fromJson(
               json['request_settings'] as Map<String, dynamic>),
+      fragment: json['fragment'] as String?,
       contactProporsalsForLinking:
           (json['contact_proporsals_for_linking'] as List<dynamic>?)
                   ?.map((e) => CoagContact.fromJson(e as Map<String, dynamic>))
@@ -28,6 +29,7 @@ Map<String, dynamic> _$ReceiveRequestStateToJson(
     <String, dynamic>{
       'status': _$ReceiveRequestStatusEnumMap[instance.status]!,
       'profile': instance.profile?.toJson(),
+      'fragment': instance.fragment,
       'request_settings': instance.requestSettings?.toJson(),
       'contact_proporsals_for_linking':
           instance.contactProporsalsForLinking.map((e) => e.toJson()).toList(),
@@ -39,4 +41,5 @@ const _$ReceiveRequestStatusEnumMap = {
   ReceiveRequestStatus.receivedShare: 'receivedShare',
   ReceiveRequestStatus.receivedRequest: 'receivedRequest',
   ReceiveRequestStatus.success: 'success',
+  ReceiveRequestStatus.receivedUriFragment: 'receivedUriFragment',
 };

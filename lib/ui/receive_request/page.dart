@@ -30,8 +30,8 @@ class ReceiveRequestPage extends StatelessWidget {
       child: BlocConsumer<ReceiveRequestCubit, ReceiveRequestState>(
           listener: (context, state) async {
         if (state.status.isSuccess) {
-          await Navigator.of(context)
-              .pushReplacement(ContactPage.route(state.profile!));
+          await Navigator.of(context).pushReplacementNamed('contactDetails',
+              arguments: {'coagContactId': state.profile!.coagContactId});
         }
       }, builder: (context, state) {
         switch (state.status) {
@@ -156,6 +156,9 @@ class ReceiveRequestPage extends StatelessWidget {
                 )));
 
           case ReceiveRequestStatus.success:
+            return const Center(child: CircularProgressIndicator());
+
+          case ReceiveRequestStatus.receivedUriFragment:
             return const Center(child: CircularProgressIndicator());
         }
       }));
