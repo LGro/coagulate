@@ -39,6 +39,7 @@ class ContactTemporaryLocation extends Equatable {
     required this.start,
     required this.end,
     required this.details,
+    this.circles = const [],
     this.checkedIn = false,
   });
 
@@ -66,6 +67,9 @@ class ContactTemporaryLocation extends Equatable {
   /// Longer description
   final String details;
 
+  /// Circle IDs that should be able to access this location
+  final List<String> circles;
+
   /// Mark presence at the location
   final bool checkedIn;
 
@@ -80,7 +84,8 @@ class ContactTemporaryLocation extends Equatable {
         start,
         end,
         details,
-        checkedIn
+        circles,
+        checkedIn,
       ];
 
   ContactTemporaryLocation copyWith(
@@ -91,14 +96,17 @@ class ContactTemporaryLocation extends Equatable {
           DateTime? start,
           DateTime? end,
           String? details,
+          List<String>? circles,
           bool? checkedIn}) =>
       ContactTemporaryLocation(
-          coagContactId: coagContactId ?? this.coagContactId,
-          longitude: longitude ?? this.longitude,
-          latitude: latitude ?? this.latitude,
-          name: name ?? this.name,
-          start: start ?? this.start,
-          end: end ?? this.end,
-          details: details ?? this.details,
-          checkedIn: checkedIn ?? this.checkedIn);
+        coagContactId: coagContactId ?? this.coagContactId,
+        longitude: longitude ?? this.longitude,
+        latitude: latitude ?? this.latitude,
+        name: name ?? this.name,
+        start: start ?? this.start,
+        end: end ?? this.end,
+        details: details ?? this.details,
+        circles: circles ?? this.circles,
+        checkedIn: checkedIn ?? this.checkedIn,
+      );
 }

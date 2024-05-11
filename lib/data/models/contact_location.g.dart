@@ -34,6 +34,10 @@ ContactTemporaryLocation _$ContactTemporaryLocationFromJson(
       start: DateTime.parse(json['start'] as String),
       end: DateTime.parse(json['end'] as String),
       details: json['details'] as String,
+      circles: (json['circles'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       checkedIn: json['checked_in'] as bool? ?? false,
     );
 
@@ -47,5 +51,6 @@ Map<String, dynamic> _$ContactTemporaryLocationToJson(
       'start': instance.start.toIso8601String(),
       'end': instance.end.toIso8601String(),
       'details': instance.details,
+      'circles': instance.circles,
       'checked_in': instance.checkedIn,
     };
