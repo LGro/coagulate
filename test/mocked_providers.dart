@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_update.dart';
+import 'package:coagulate/data/models/profile_sharing_settings.dart';
 import 'package:coagulate/data/providers/distributed_storage/base.dart';
 import 'package:coagulate/data/providers/persistent_storage/base.dart';
 import 'package:coagulate/data/providers/system_contacts/base.dart';
@@ -94,9 +95,14 @@ class DummyDistributedStorage extends DistributedStorage {
       {required String recordKey, required String secret}) async {
     log.add('readPasswordEncryptedDHTRecord:$recordKey:$secret');
     return Future.value(json.encode(removeNullOrEmptyValues(
-        filterAccordingToSharingProfile(CoagContact(
-                coagContactId: '',
-                systemContact: Contact(displayName: 'Contact From DHT')))
+        filterAccordingToSharingProfile(
+                profile: CoagContact(
+                    coagContactId: '',
+                    systemContact: Contact(displayName: 'Contact From DHT')),
+                settings:
+                    const ProfileSharingSettings(displayName: ['Circle1']),
+                activeCircles: ['Circle1'],
+                shareBackSettings: null)
             .toJson())));
   }
 

@@ -10,6 +10,7 @@ import 'package:workmanager/workmanager.dart';
 
 import '../../veilid_init.dart';
 import '../../veilid_processor/repository/processor_repository.dart';
+import '../models/profile_sharing_settings.dart';
 import '../repositories/contacts.dart';
 import 'distributed_storage/dht.dart';
 import 'persistent_storage/shared_preferences.dart';
@@ -105,6 +106,10 @@ Future<bool> updateToAndFromDht() async {
     // Instead consider sorting by least recently updated
     final shuffledContacts = contacts.values.toList()..shuffle();
 
+    // TODO: Load from persistent storage
+    final Map<String, List<String>> circleMemberships = {};
+    final profileSharingSettings = ProfileSharingSettings();
+
     try {
       await VeilidChatGlobalInit.initialize();
     } on VeilidAPIExceptionAlreadyInitialized {}
@@ -130,6 +135,9 @@ Future<bool> updateToAndFromDht() async {
         final sharedProfile = json.encode(removeNullOrEmptyValues(
             filterAccordingToSharingProfile(
                     profile: profileContact,
+                    settings: profileSharingSettings,
+                    activeCircles:
+                        circleMemberships[contact.coagContactId] ?? [],
                     shareBackSettings: contact.dhtSettingsForReceiving)
                 .toJson()));
         log.add('existing profile ${contact.sharedProfile}');

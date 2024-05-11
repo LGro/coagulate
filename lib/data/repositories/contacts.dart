@@ -14,6 +14,7 @@ import 'package:veilid/veilid.dart';
 
 import '../../veilid_processor/repository/processor_repository.dart';
 import '../models/coag_contact.dart';
+import '../models/contact_location.dart';
 import '../models/contact_update.dart';
 import '../models/profile_sharing_settings.dart';
 import '../providers/distributed_storage/base.dart';
@@ -23,19 +24,141 @@ import '../providers/system_contacts/system_contacts.dart';
 
 // TODO: Persist all changes to any contact by never accessing coagContacts directly, only via getter and setter
 
-// TODO: Add sharing profile and filter
+String contactDetailKey<T>(int i, T detail) {
+  if (detail is Organization) {
+    return '$i|${detail.company}';
+  }
+
+  if (detail is Phone) {
+    final label = (detail.label.name == 'custom')
+        ? detail.customLabel
+        : detail.label.name;
+    return '$i|$label';
+  }
+  if (detail is Email) {
+    final label = (detail.label.name == 'custom')
+        ? detail.customLabel
+        : detail.label.name;
+    return '$i|$label';
+  }
+  if (detail is Address) {
+    final label = (detail.label.name == 'custom')
+        ? detail.customLabel
+        : detail.label.name;
+    return '$i|$label';
+  }
+  if (detail is Website) {
+    final label = (detail.label.name == 'custom')
+        ? detail.customLabel
+        : detail.label.name;
+    return '$i|$label';
+  }
+  if (detail is SocialMedia) {
+    final label = (detail.label.name == 'custom')
+        ? detail.customLabel
+        : detail.label.name;
+    return '$i|$label';
+  }
+  if (detail is Event) {
+    final label = (detail.label.name == 'custom')
+        ? detail.customLabel
+        : detail.label.name;
+    return '$i|$label';
+  }
+
+  // TODO: Return null or i instead?
+  return '';
+}
+
+ContactDetails filterDetails(ContactDetails details,
+        ProfileSharingSettings settings, List<String> activeCircles) =>
+    ContactDetails(
+      // TODO: filter the names as well
+      displayName: details.displayName,
+      name: details.name,
+      phones: (details.phones.asMap()
+            ..removeWhere((i, e) =>
+                (settings.phones[contactDetailKey(i, e)] ?? [])
+                    .asSet()
+                    .intersectsWith(activeCircles.asSet())))
+          .values
+          .asList(),
+      emails: (details.emails.asMap()
+            ..removeWhere((i, e) =>
+                (settings.emails[contactDetailKey(i, e)] ?? [])
+                    .asSet()
+                    .intersectsWith(activeCircles.asSet())))
+          .values
+          .asList(),
+      addresses: (details.addresses.asMap()
+            ..removeWhere((i, e) =>
+                (settings.addresses[contactDetailKey(i, e)] ?? [])
+                    .asSet()
+                    .intersectsWith(activeCircles.asSet())))
+          .values
+          .asList(),
+      organizations: (details.organizations.asMap()
+            ..removeWhere((i, e) =>
+                (settings.organizations[contactDetailKey(i, e)] ?? [])
+                    .asSet()
+                    .intersectsWith(activeCircles.asSet())))
+          .values
+          .asList(),
+      websites: (details.websites.asMap()
+            ..removeWhere((i, e) =>
+                (settings.websites[contactDetailKey(i, e)] ?? [])
+                    .asSet()
+                    .intersectsWith(activeCircles.asSet())))
+          .values
+          .asList(),
+      socialMedias: (details.socialMedias.asMap()
+            ..removeWhere((i, e) =>
+                (settings.socialMedias[contactDetailKey(i, e)] ?? [])
+                    .asSet()
+                    .intersectsWith(activeCircles.asSet())))
+          .values
+          .asList(),
+      events: (details.events.asMap()
+            ..removeWhere((i, e) =>
+                (settings.events[contactDetailKey(i, e)] ?? [])
+                    .asSet()
+                    .intersectsWith(activeCircles.asSet())))
+          .values
+          .asList(),
+    );
+
+// TODO: Implement me; but maybe switch for address locations to a similar indexing scheme like with the other details for circles?
+Map<int, ContactAddressLocation> filterAddressLocations(
+        Map<int, ContactAddressLocation> locations,
+        ProfileSharingSettings settings,
+        List<String> activeCircles) =>
+    locations;
+
+/// Remove locations that ended longer than a day ago, or aren't shared with the given circles
+List<ContactTemporaryLocation> filterTemporaryLocations(
+        List<ContactTemporaryLocation> locations, List<String> activeCircles) =>
+    locations
+        .where((l) =>
+            !l.end.add(const Duration(days: 1)).isBefore(DateTime.now()) &&
+            l.circles.toSet().intersectsWith(activeCircles.toSet()))
+        .asList();
+
 CoagContactDHTSchemaV1 filterAccordingToSharingProfile(
         {required CoagContact profile,
+        required ProfileSharingSettings settings,
+        required List<String> activeCircles,
         required ContactDHTSettings? shareBackSettings}) =>
     CoagContactDHTSchemaV1(
       coagContactId: profile.coagContactId,
-      details: ContactDetails.fromSystemContact(profile.systemContact!),
+      details: filterDetails(
+          ContactDetails.fromSystemContact(profile.systemContact!),
+          settings,
+          activeCircles),
       // Only share locations up to 1 day ago
-      temporaryLocations: profile.temporaryLocations
-          .where((l) =>
-              !l.end.add(const Duration(days: 1)).isBefore(DateTime.now()))
-          .asList(),
-      addressLocations: profile.addressLocations,
+      temporaryLocations:
+          filterTemporaryLocations(profile.temporaryLocations, activeCircles),
+      addressLocations: filterAddressLocations(
+          profile.addressLocations, settings, activeCircles),
       shareBackDHTKey: shareBackSettings?.key,
       shareBackDHTWriter: shareBackSettings?.writer,
       shareBackPsk: shareBackSettings?.psk,
@@ -77,7 +200,7 @@ class ContactsRepository {
   ProfileSharingSettings profileSharingSettings =
       const ProfileSharingSettings();
 
-  /// Mapping of circle ID to list of coagulate contact IDs
+  /// Mapping of coagulate contact IDs to circle IDs
   Map<String, List<String>> circleMemberships = const {};
 
   Map<String, CoagContact> _contacts = {};
@@ -371,6 +494,9 @@ class ContactsRepository {
           sharedProfile: json.encode(removeNullOrEmptyValues(
               filterAccordingToSharingProfile(
                       profile: _contacts[coagContactId]!,
+                      settings: profileSharingSettings,
+                      activeCircles:
+                          circleMemberships[contact.coagContactId] ?? [],
                       shareBackSettings: contact.dhtSettingsForReceiving)
                   .toJson()))));
     }

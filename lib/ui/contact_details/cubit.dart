@@ -32,9 +32,15 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   // TODO: Use a method from repo level instead
   Future<void> share(CoagContact profileToShare) async {
     final sharedProfile = json.encode(removeNullOrEmptyValues(
-        filterAccordingToSharingProfile(profileToShare).toJson()));
-    final updatedContact =
-        state.contact!.copyWith(sharedProfile: sharedProfile);
+        filterAccordingToSharingProfile(
+                profile: profileToShare,
+                settings: contactsRepository.profileSharingSettings,
+                activeCircles: contactsRepository
+                        .circleMemberships[state.contact.coagContactId] ??
+                    [],
+                shareBackSettings: state.contact.dhtSettingsForReceiving)
+            .toJson()));
+    final updatedContact = state.contact.copyWith(sharedProfile: sharedProfile);
 
     await contactsRepository.updateContact(updatedContact);
   }
