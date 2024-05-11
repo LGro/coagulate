@@ -128,7 +128,10 @@ Future<bool> updateToAndFromDht() async {
       // Share to DHT
       if (contact.dhtSettingsForSharing != null) {
         final sharedProfile = json.encode(removeNullOrEmptyValues(
-            filterAccordingToSharingProfile(profileContact).toJson()));
+            filterAccordingToSharingProfile(
+                    profile: profileContact,
+                    shareBackSettings: contact.dhtSettingsForReceiving)
+                .toJson()));
         log.add('existing profile ${contact.sharedProfile}');
         if (contact.sharedProfile != sharedProfile) {
           log.add('new profile ${sharedProfile}');

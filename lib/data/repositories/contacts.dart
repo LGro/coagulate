@@ -24,20 +24,21 @@ import '../providers/system_contacts/system_contacts.dart';
 // TODO: Persist all changes to any contact by never accessing coagContacts directly, only via getter and setter
 
 // TODO: Add sharing profile and filter
-CoagContactDHTSchemaV1 filterAccordingToSharingProfile(CoagContact contact) =>
+CoagContactDHTSchemaV1 filterAccordingToSharingProfile(
+        {required CoagContact profile,
+        required ContactDHTSettings? shareBackSettings}) =>
     CoagContactDHTSchemaV1(
-      coagContactId: contact.coagContactId,
-      details: ContactDetails.fromSystemContact(contact.systemContact!),
+      coagContactId: profile.coagContactId,
+      details: ContactDetails.fromSystemContact(profile.systemContact!),
       // Only share locations up to 1 day ago
-      temporaryLocations: contact.temporaryLocations
+      temporaryLocations: profile.temporaryLocations
           .where((l) =>
               !l.end.add(const Duration(days: 1)).isBefore(DateTime.now()))
           .asList(),
-      addressLocations: contact.addressLocations,
-      // TODO: Ensure these are populated by the time this is called
-      shareBackDHTKey: contact.dhtSettingsForReceiving?.key,
-      shareBackDHTWriter: contact.dhtSettingsForReceiving?.writer,
-      shareBackPsk: contact.dhtSettingsForReceiving?.psk,
+      addressLocations: profile.addressLocations,
+      shareBackDHTKey: shareBackSettings?.key,
+      shareBackDHTWriter: shareBackSettings?.writer,
+      shareBackPsk: shareBackSettings?.psk,
     );
 
 Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
@@ -75,6 +76,9 @@ class ContactsRepository {
   Map<String, String> circles = {'C1': 'Friends', 'C2': 'Neighbors'};
   ProfileSharingSettings profileSharingSettings =
       const ProfileSharingSettings();
+
+  /// Mapping of circle ID to list of coagulate contact IDs
+  Map<String, List<String>> circleMemberships = const {};
 
   Map<String, CoagContact> _contacts = {};
   final _contactsStreamController = BehaviorSubject<CoagContact>();
@@ -365,7 +369,9 @@ class ContactsRepository {
       }
       await updateContact(contact.copyWith(
           sharedProfile: json.encode(removeNullOrEmptyValues(
-              filterAccordingToSharingProfile(_contacts[coagContactId]!)
+              filterAccordingToSharingProfile(
+                      profile: _contacts[coagContactId]!,
+                      shareBackSettings: contact.dhtSettingsForReceiving)
                   .toJson()))));
     }
   }
