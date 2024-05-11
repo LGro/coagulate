@@ -66,7 +66,7 @@ Widget _qrCodeButton(BuildContext context,
         ]),
         onPressed: () async {
           print(qrCodeData);
-          showDialog<void>(
+          await showDialog<void>(
               context: context,
               builder: (_) => AlertDialog(
                   title: Text(alertTitle),

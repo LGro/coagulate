@@ -11,6 +11,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
+import '../../data/models/profile_sharing_settings.dart';
 import '../../data/repositories/contacts.dart';
 
 part 'cubit.g.dart';
@@ -109,6 +110,79 @@ class ProfileCubit extends Cubit<ProfileState> {
 
     // Already emit what should also come in a bit later via the updated contacts repo
     emit(state.copyWith(profileContact: updatedContact));
+  }
+
+  void updatePhoneSharingCircles(
+      int index, String label, List<String> circles) {
+    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
+    final phones = Map<String, List<String>>.from(
+        contactsRepository.profileSharingSettings.phones);
+    phones['$index|$label'] = circles;
+    contactsRepository.profileSharingSettings =
+        contactsRepository.profileSharingSettings.copyWith(phones: phones);
+  }
+
+  void updateEmailSharingCircles(
+      int index, String label, List<String> circles) {
+    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
+    final emails = Map<String, List<String>>.from(
+        contactsRepository.profileSharingSettings.emails);
+    emails['$index|$label'] = circles;
+    contactsRepository.profileSharingSettings =
+        contactsRepository.profileSharingSettings.copyWith(emails: emails);
+  }
+
+  void updateAddressSharingCircles(
+      int index, String label, List<String> circles) {
+    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
+    final addresses = Map<String, List<String>>.from(
+        contactsRepository.profileSharingSettings.addresses);
+    addresses['$index|$label'] = circles;
+    contactsRepository.profileSharingSettings = contactsRepository
+        .profileSharingSettings
+        .copyWith(addresses: addresses);
+  }
+
+  void updateOrganizationSharingCircles(
+      int index, String label, List<String> circles) {
+    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
+    final organizations = Map<String, List<String>>.from(
+        contactsRepository.profileSharingSettings.organizations);
+    organizations['$index|$label'] = circles;
+    contactsRepository.profileSharingSettings = contactsRepository
+        .profileSharingSettings
+        .copyWith(organizations: organizations);
+  }
+
+  void updateWebsiteSharingCircles(
+      int index, String label, List<String> circles) {
+    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
+    final websites = Map<String, List<String>>.from(
+        contactsRepository.profileSharingSettings.websites);
+    websites['$index|$label'] = circles;
+    contactsRepository.profileSharingSettings =
+        contactsRepository.profileSharingSettings.copyWith(websites: websites);
+  }
+
+  void updateSocialMediaSharingCircles(
+      int index, String label, List<String> circles) {
+    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
+    final socialMedias = Map<String, List<String>>.from(
+        contactsRepository.profileSharingSettings.socialMedias);
+    socialMedias['$index|$label'] = circles;
+    contactsRepository.profileSharingSettings = contactsRepository
+        .profileSharingSettings
+        .copyWith(socialMedias: socialMedias);
+  }
+
+  void updateEventSharingCircles(
+      int index, String label, List<String> circles) {
+    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
+    final events = Map<String, List<String>>.from(
+        contactsRepository.profileSharingSettings.events);
+    events['$index|$label'] = circles;
+    contactsRepository.profileSharingSettings =
+        contactsRepository.profileSharingSettings.copyWith(events: events);
   }
 
   @override

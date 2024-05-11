@@ -15,6 +15,7 @@ import 'package:veilid/veilid.dart';
 import '../../veilid_processor/repository/processor_repository.dart';
 import '../models/coag_contact.dart';
 import '../models/contact_update.dart';
+import '../models/profile_sharing_settings.dart';
 import '../providers/distributed_storage/base.dart';
 import '../providers/persistent_storage/base.dart';
 import '../providers/system_contacts/base.dart';
@@ -69,6 +70,11 @@ class ContactsRepository {
   late final Timer? timerPersistentStorageRefresh;
   late final Timer? timerDhtRefresh;
   String? profileContactId;
+
+  // TODO: Persistent storage and initialization
+  Map<String, String> circles = {'C1': 'Friends', 'C2': 'Neighbors'};
+  ProfileSharingSettings profileSharingSettings =
+      const ProfileSharingSettings();
 
   Map<String, CoagContact> _contacts = {};
   final _contactsStreamController = BehaviorSubject<CoagContact>();

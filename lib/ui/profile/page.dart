@@ -8,6 +8,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
@@ -15,97 +16,225 @@ import '../widgets/address_coordinates_form.dart';
 import '../widgets/avatar.dart';
 import 'cubit.dart';
 
-Widget emails(List<Email> emails) => Card(
-    color: Colors.white,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-    child: SizedBox(
-        child: Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 16),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              ...emails.map((e) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: _label(e.label.name, e.customLabel)),
-                        Padding(
-                            padding: const EdgeInsets.only(top: 0),
-                            child: Text(e.address,
-                                style: const TextStyle(fontSize: 19)))
-                      ])),
-            ]))));
+Future<void> showPickCirclesBottomSheet(
+        {required BuildContext context,
+        required String label,
+        required Map<String, String> circles,
+        required List<String> selectedCircles,
+        required void Function(List<String> selectedCircles) callback}) async =>
+    showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (modalContext) => MultiSelectBottomSheet(
+              title: Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 12),
+                  child: Text('Share "$label" with',
+                      textScaler: const TextScaler.linear(1.4))),
+              searchable: circles.length > 10,
+              items: circles
+                  .map((id, label) => MapEntry(id, MultiSelectItem(id, label)))
+                  .values
+                  .asList(),
+              initialValue: selectedCircles,
+              onConfirm: (values) => callback(values),
+              maxChildSize: 0.8,
+            ));
 
-Widget phones(List<Phone> phones) => Card(
-    color: Colors.white,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-    child: SizedBox(
-        child: Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 16),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              ...phones.map((e) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: _label(e.label.name, e.customLabel)),
-                        Padding(
-                            padding: const EdgeInsets.only(top: 0),
-                            child: Text(e.number,
-                                style: const TextStyle(fontSize: 19)))
-                      ]))
-            ]))));
+Widget emails(List<Email> emails,
+        [void Function(int index, String label)? onTap]) =>
+    Card(
+        color: Colors.white,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        child: SizedBox(
+            child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, right: 16, top: 4, bottom: 16),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: emails
+                        .asMap()
+                        .map((i, e) => MapEntry(
+                            i,
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                        Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 8),
+                                            child: _label(
+                                                e.label.name, e.customLabel)),
+                                        Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 0),
+                                            child: Text(e.address,
+                                                style: const TextStyle(
+                                                    fontSize: 19)))
+                                      ])),
+                                  IconButton(
+                                      onPressed: () => (onTap == null)
+                                          ? null
+                                          : onTap(
+                                              i,
+                                              _label(e.label.name,
+                                                      e.customLabel)
+                                                  .data!),
+                                      icon: const Icon(Icons.add_task))
+                                ])))
+                        .values
+                        .asList()))));
 
-Widget websites(List<Website> websites) => Card(
-    color: Colors.white,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-    child: SizedBox(
-        child: Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 16),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              ...websites.map((e) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: _label(e.label.name, e.customLabel)),
-                        Padding(
-                            padding: const EdgeInsets.only(top: 0),
-                            child: Text(e.url,
-                                style: const TextStyle(fontSize: 19)))
-                      ]))
-            ]))));
+Widget phones(List<Phone> phones,
+        [void Function(int index, String label)? onTap]) =>
+    Card(
+        color: Colors.white,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        child: SizedBox(
+            child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, right: 16, top: 4, bottom: 16),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: phones
+                        .asMap()
+                        .map((i, e) => MapEntry(
+                            i,
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                        Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 8),
+                                            child: _label(
+                                                e.label.name, e.customLabel)),
+                                        Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 0),
+                                            child: Text(e.number,
+                                                style: const TextStyle(
+                                                    fontSize: 19)))
+                                      ])),
+                                  IconButton(
+                                      onPressed: () => (onTap == null)
+                                          ? null
+                                          : onTap(
+                                              i,
+                                              _label(e.label.name,
+                                                      e.customLabel)
+                                                  .data!),
+                                      icon: const Icon(Icons.add_task))
+                                ])))
+                        .values
+                        .asList()))));
 
-Widget socialMedias(List<SocialMedia> websites) => Card(
-    color: Colors.white,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-    child: SizedBox(
-        child: Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 16),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              ...websites.map((e) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: _label(e.label.name, e.customLabel)),
-                        Padding(
-                            padding: const EdgeInsets.only(top: 0),
-                            child: Text(e.userName,
-                                style: const TextStyle(fontSize: 19)))
-                      ]))
-            ]))));
+Widget websites(List<Website> websites,
+        [void Function(int index, String label)? onTap]) =>
+    Card(
+        color: Colors.white,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        child: SizedBox(
+            child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, right: 16, top: 4, bottom: 16),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: websites
+                        .asMap()
+                        .map((i, e) => MapEntry(
+                            i,
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                        Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 8),
+                                            child: _label(
+                                                e.label.name, e.customLabel)),
+                                        Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 0),
+                                            child: Text(e.url,
+                                                style: const TextStyle(
+                                                    fontSize: 19)))
+                                      ])),
+                                  IconButton(
+                                      onPressed: () => (onTap == null)
+                                          ? null
+                                          : onTap(
+                                              i,
+                                              _label(e.label.name,
+                                                      e.customLabel)
+                                                  .data!),
+                                      icon: const Icon(Icons.add_task))
+                                ])))
+                        .values
+                        .asList()))));
+
+Widget socialMedias(List<SocialMedia> websites,
+        [void Function(int index, String label)? onTap]) =>
+    Card(
+        color: Colors.white,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        child: SizedBox(
+            child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, right: 16, top: 4, bottom: 16),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: websites
+                        .asMap()
+                        .map((i, e) => MapEntry(
+                            i,
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                        Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 8),
+                                            child: _label(
+                                                e.label.name, e.customLabel)),
+                                        Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 0),
+                                            child: Text(e.userName,
+                                                style: const TextStyle(
+                                                    fontSize: 19)))
+                                      ])),
+                                  IconButton(
+                                      onPressed: () => (onTap == null)
+                                          ? null
+                                          : onTap(
+                                              i,
+                                              _label(e.label.name,
+                                                      e.customLabel)
+                                                  .data!),
+                                      icon: const Icon(Icons.add_task))
+                                ])))
+                        .values
+                        .asList()))));
 
 String _commaToNewline(String s) =>
     s.replaceAll(', ', ',').replaceAll(',', '\n');
@@ -123,7 +252,8 @@ bool labelDoesMatch(String name, Address address) {
 }
 
 Widget addressesWithForms(BuildContext context, List<Address> addresses,
-        List<ContactAddressLocation> locations) =>
+        List<ContactAddressLocation> locations,
+        [void Function(int index, String label)? onTap]) =>
     Card(
         color: Colors.white,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
@@ -133,51 +263,72 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
                 padding: const EdgeInsets.all(16),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ...addresses
-                          .asMap()
-                          .map((int i, Address e) => MapEntry(
-                              i,
-                              Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _label(e.label.name, e.customLabel),
-                                    Text(_commaToNewline(e.address),
-                                        style: const TextStyle(fontSize: 19)),
-                                    const SizedBox(height: 8),
-                                    // TODO: This is not updated when fetch coordinates emits new state
-                                    AddressCoordinatesForm(
-                                        lng: locations
-                                            .where((l) =>
-                                                labelDoesMatch(l.name, e))
-                                            .firstOrNull
-                                            ?.longitude,
-                                        lat: locations
-                                            .where((l) =>
-                                                labelDoesMatch(l.name, e))
-                                            .firstOrNull
-                                            ?.latitude,
-                                        callback: (lng, lat) => context
-                                            .read<ProfileCubit>()
-                                            .updateCoordinates(i, lng, lat)),
-                                    // TODO: Add small map previewing the location when coordinates are available
-                                    TextButton(
-                                        child: const Text(
-                                            'Auto Fetch Coordinates'),
-                                        // TODO: Switch to address index instead of label? Can there be duplicates?
-                                        onPressed: () async => showDialog<void>(
-                                            context: context,
-                                            // barrierDismissible: false,
-                                            builder: (dialogContext) =>
-                                                _confirmPrivacyLeakDialog(
-                                                    dialogContext,
-                                                    e.address,
-                                                    () => unawaited(context
-                                                        .read<ProfileCubit>()
-                                                        .fetchCoordinates(i)))))
-                                  ])))
-                          .values
-                    ]))));
+                    children: addresses
+                        .asMap()
+                        .map((i, e) => MapEntry(
+                            i,
+                            Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Expanded(
+                                            child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                              _label(
+                                                  e.label.name, e.customLabel),
+                                              Text(_commaToNewline(e.address),
+                                                  style: const TextStyle(
+                                                      fontSize: 19)),
+                                            ])),
+                                        IconButton(
+                                            onPressed: () => (onTap == null)
+                                                ? null
+                                                : onTap(
+                                                    i,
+                                                    _label(e.label.name,
+                                                            e.customLabel)
+                                                        .data!),
+                                            icon: const Icon(Icons.add_task)),
+                                      ]),
+                                  const SizedBox(height: 8),
+                                  // TODO: This is not updated when fetch coordinates emits new state
+                                  AddressCoordinatesForm(
+                                      lng: locations
+                                          .where(
+                                              (l) => labelDoesMatch(l.name, e))
+                                          .firstOrNull
+                                          ?.longitude,
+                                      lat: locations
+                                          .where(
+                                              (l) => labelDoesMatch(l.name, e))
+                                          .firstOrNull
+                                          ?.latitude,
+                                      callback: (lng, lat) => context
+                                          .read<ProfileCubit>()
+                                          .updateCoordinates(i, lng, lat)),
+                                  // TODO: Add small map previewing the location when coordinates are available
+                                  TextButton(
+                                      child:
+                                          const Text('Auto Fetch Coordinates'),
+                                      // TODO: Switch to address index instead of label? Can there be duplicates?
+                                      onPressed: () async => showDialog<void>(
+                                          context: context,
+                                          // barrierDismissible: false,
+                                          builder: (dialogContext) =>
+                                              _confirmPrivacyLeakDialog(
+                                                  dialogContext,
+                                                  e.address,
+                                                  () => unawaited(context
+                                                      .read<ProfileCubit>()
+                                                      .fetchCoordinates(i)))))
+                                ])))
+                        .values
+                        .asList()))));
 
 Widget addresses(List<Address> addresses) => Card(
     color: Colors.white,
@@ -278,14 +429,108 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
                   children: [
                     const SizedBox(height: 8),
                     header(contact),
-                    if (contact.phones.isNotEmpty) phones(contact.phones),
-                    if (contact.emails.isNotEmpty) emails(contact.emails),
+                    if (contact.phones.isNotEmpty)
+                      phones(
+                          contact.phones,
+                          (i, label) async => showPickCirclesBottomSheet(
+                              context: context,
+                              label: label,
+                              circles: context
+                                  .read<ProfileCubit>()
+                                  .contactsRepository
+                                  .circles,
+                              selectedCircles: context
+                                      .read<ProfileCubit>()
+                                      .contactsRepository
+                                      .profileSharingSettings
+                                      .phones['$i|$label'] ??
+                                  [],
+                              callback: (selectedCircles) => context
+                                  .read<ProfileCubit>()
+                                  .updatePhoneSharingCircles(
+                                      i, label, selectedCircles))),
+                    if (contact.emails.isNotEmpty)
+                      emails(
+                          contact.emails,
+                          (i, label) async => showPickCirclesBottomSheet(
+                              context: context,
+                              label: label,
+                              circles: context
+                                  .read<ProfileCubit>()
+                                  .contactsRepository
+                                  .circles,
+                              selectedCircles: context
+                                      .read<ProfileCubit>()
+                                      .contactsRepository
+                                      .profileSharingSettings
+                                      .emails['$i|$label'] ??
+                                  [],
+                              callback: (selectedCircles) => context
+                                  .read<ProfileCubit>()
+                                  .updateEmailSharingCircles(
+                                      i, label, selectedCircles))),
                     if (contact.addresses.isNotEmpty)
                       addressesWithForms(
-                          context, contact.addresses, addressLocations),
-                    if (contact.websites.isNotEmpty) websites(contact.websites),
+                          context,
+                          contact.addresses,
+                          addressLocations,
+                          (i, label) async => showPickCirclesBottomSheet(
+                              context: context,
+                              label: label,
+                              circles: context
+                                  .read<ProfileCubit>()
+                                  .contactsRepository
+                                  .circles,
+                              selectedCircles: context
+                                      .read<ProfileCubit>()
+                                      .contactsRepository
+                                      .profileSharingSettings
+                                      .addresses['$i|$label'] ??
+                                  [],
+                              callback: (selectedCircles) => context
+                                  .read<ProfileCubit>()
+                                  .updateAddressSharingCircles(
+                                      i, label, selectedCircles))),
+                    if (contact.websites.isNotEmpty)
+                      websites(
+                          contact.websites,
+                          (i, label) async => showPickCirclesBottomSheet(
+                              context: context,
+                              label: label,
+                              circles: context
+                                  .read<ProfileCubit>()
+                                  .contactsRepository
+                                  .circles,
+                              selectedCircles: context
+                                      .read<ProfileCubit>()
+                                      .contactsRepository
+                                      .profileSharingSettings
+                                      .websites['$i|$label'] ??
+                                  [],
+                              callback: (selectedCircles) => context
+                                  .read<ProfileCubit>()
+                                  .updateWebsiteSharingCircles(
+                                      i, label, selectedCircles))),
                     if (contact.socialMedias.isNotEmpty)
-                      socialMedias(contact.socialMedias),
+                      socialMedias(
+                          contact.socialMedias,
+                          (i, label) async => showPickCirclesBottomSheet(
+                              context: context,
+                              label: label,
+                              circles: context
+                                  .read<ProfileCubit>()
+                                  .contactsRepository
+                                  .circles,
+                              selectedCircles: context
+                                      .read<ProfileCubit>()
+                                      .contactsRepository
+                                      .profileSharingSettings
+                                      .socialMedias['$i|$label'] ??
+                                  [],
+                              callback: (selectedCircles) => context
+                                  .read<ProfileCubit>()
+                                  .updateSocialMediaSharingCircles(
+                                      i, label, selectedCircles))),
                   ]))
         ]));
 
