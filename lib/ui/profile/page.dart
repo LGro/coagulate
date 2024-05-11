@@ -40,201 +40,129 @@ Future<void> showPickCirclesBottomSheet(
               maxChildSize: 0.8,
             ));
 
+Card _card(List<Widget> children) => Card(
+    color: Colors.white,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+    child: SizedBox(
+        child: Padding(
+            padding:
+                const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: children))));
+
 Widget emails(List<Email> emails,
         [void Function(int index, String label)? onTap]) =>
-    Card(
-        color: Colors.white,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-        child: SizedBox(
-            child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 16, right: 16, top: 4, bottom: 16),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: emails
-                        .asMap()
-                        .map((i, e) => MapEntry(
-                            i,
-                            Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Expanded(
-                                      child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                        Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 8),
-                                            child: _label(
-                                                e.label.name, e.customLabel)),
-                                        Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 0),
-                                            child: Text(e.address,
-                                                style: const TextStyle(
-                                                    fontSize: 19)))
-                                      ])),
-                                  IconButton(
-                                      onPressed: () => (onTap == null)
-                                          ? null
-                                          : onTap(
-                                              i,
-                                              _label(e.label.name,
-                                                      e.customLabel)
-                                                  .data!),
-                                      icon: const Icon(Icons.add_task))
-                                ])))
-                        .values
-                        .asList()))));
+    _card(emails
+        .asMap()
+        .map((i, e) => MapEntry(
+            i,
+            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: _label(e.label.name, e.customLabel)),
+                    Padding(
+                        padding: const EdgeInsets.only(top: 0),
+                        child: Text(e.address,
+                            style: const TextStyle(fontSize: 19)))
+                  ])),
+              IconButton(
+                  onPressed: () => (onTap == null)
+                      ? null
+                      : onTap(i, _label(e.label.name, e.customLabel).data!),
+                  icon: const Icon(Icons.add_task))
+            ])))
+        .values
+        .asList());
 
 Widget phones(List<Phone> phones,
         [void Function(int index, String label)? onTap]) =>
-    Card(
-        color: Colors.white,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-        child: SizedBox(
-            child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 16, right: 16, top: 4, bottom: 16),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: phones
-                        .asMap()
-                        .map((i, e) => MapEntry(
-                            i,
-                            Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Expanded(
-                                      child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                        Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 8),
-                                            child: _label(
-                                                e.label.name, e.customLabel)),
-                                        Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 0),
-                                            child: Text(e.number,
-                                                style: const TextStyle(
-                                                    fontSize: 19)))
-                                      ])),
-                                  IconButton(
-                                      onPressed: () => (onTap == null)
-                                          ? null
-                                          : onTap(
-                                              i,
-                                              _label(e.label.name,
-                                                      e.customLabel)
-                                                  .data!),
-                                      icon: const Icon(Icons.add_task))
-                                ])))
-                        .values
-                        .asList()))));
+    _card(phones
+        .asMap()
+        .map((i, e) => MapEntry(
+            i,
+            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: _label(e.label.name, e.customLabel)),
+                    Padding(
+                        padding: const EdgeInsets.only(top: 0),
+                        child: Text(e.number,
+                            style: const TextStyle(fontSize: 19)))
+                  ])),
+              IconButton(
+                  onPressed: () => (onTap == null)
+                      ? null
+                      : onTap(i, _label(e.label.name, e.customLabel).data!),
+                  icon: const Icon(Icons.add_task))
+            ])))
+        .values
+        .asList());
 
 Widget websites(List<Website> websites,
         [void Function(int index, String label)? onTap]) =>
-    Card(
-        color: Colors.white,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-        child: SizedBox(
-            child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 16, right: 16, top: 4, bottom: 16),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: websites
-                        .asMap()
-                        .map((i, e) => MapEntry(
-                            i,
-                            Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Expanded(
-                                      child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                        Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 8),
-                                            child: _label(
-                                                e.label.name, e.customLabel)),
-                                        Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 0),
-                                            child: Text(e.url,
-                                                style: const TextStyle(
-                                                    fontSize: 19)))
-                                      ])),
-                                  IconButton(
-                                      onPressed: () => (onTap == null)
-                                          ? null
-                                          : onTap(
-                                              i,
-                                              _label(e.label.name,
-                                                      e.customLabel)
-                                                  .data!),
-                                      icon: const Icon(Icons.add_task))
-                                ])))
-                        .values
-                        .asList()))));
+    _card(websites
+        .asMap()
+        .map((i, e) => MapEntry(
+            i,
+            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: _label(e.label.name, e.customLabel)),
+                    Padding(
+                        padding: const EdgeInsets.only(top: 0),
+                        child:
+                            Text(e.url, style: const TextStyle(fontSize: 19)))
+                  ])),
+              IconButton(
+                  onPressed: () => (onTap == null)
+                      ? null
+                      : onTap(i, _label(e.label.name, e.customLabel).data!),
+                  icon: const Icon(Icons.add_task))
+            ])))
+        .values
+        .asList());
 
 Widget socialMedias(List<SocialMedia> websites,
         [void Function(int index, String label)? onTap]) =>
-    Card(
-        color: Colors.white,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-        child: SizedBox(
-            child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 16, right: 16, top: 4, bottom: 16),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: websites
-                        .asMap()
-                        .map((i, e) => MapEntry(
-                            i,
-                            Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Expanded(
-                                      child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                        Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 8),
-                                            child: _label(
-                                                e.label.name, e.customLabel)),
-                                        Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 0),
-                                            child: Text(e.userName,
-                                                style: const TextStyle(
-                                                    fontSize: 19)))
-                                      ])),
-                                  IconButton(
-                                      onPressed: () => (onTap == null)
-                                          ? null
-                                          : onTap(
-                                              i,
-                                              _label(e.label.name,
-                                                      e.customLabel)
-                                                  .data!),
-                                      icon: const Icon(Icons.add_task))
-                                ])))
-                        .values
-                        .asList()))));
+    _card(websites
+        .asMap()
+        .map((i, e) => MapEntry(
+            i,
+            Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: _label(e.label.name, e.customLabel)),
+                    Padding(
+                        padding: const EdgeInsets.only(top: 0),
+                        child: Text(e.userName,
+                            style: const TextStyle(fontSize: 19)))
+                  ])),
+              IconButton(
+                  onPressed: () => (onTap == null)
+                      ? null
+                      : onTap(i, _label(e.label.name, e.customLabel).data!),
+                  icon: const Icon(Icons.add_task))
+            ])))
+        .values
+        .asList());
 
 String _commaToNewline(String s) =>
     s.replaceAll(', ', ',').replaceAll(',', '\n');
@@ -254,103 +182,65 @@ bool labelDoesMatch(String name, Address address) {
 Widget addressesWithForms(BuildContext context, List<Address> addresses,
         List<ContactAddressLocation> locations,
         [void Function(int index, String label)? onTap]) =>
-    Card(
-        color: Colors.white,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-        child: SizedBox(
-            child: Padding(
-                padding: const EdgeInsets.only(
-                    left: 16, right: 16, top: 12, bottom: 12),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: addresses
-                        .asMap()
-                        .map((i, e) => MapEntry(
-                            i,
-                            Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Expanded(
-                                            child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                              _label(
-                                                  e.label.name, e.customLabel),
-                                              Text(_commaToNewline(e.address),
-                                                  style: const TextStyle(
-                                                      fontSize: 19)),
-                                            ])),
-                                        IconButton(
-                                            onPressed: () => (onTap == null)
-                                                ? null
-                                                : onTap(
-                                                    i,
-                                                    _label(e.label.name,
-                                                            e.customLabel)
-                                                        .data!),
-                                            icon: const Icon(Icons.add_task)),
-                                      ]),
-                                  const SizedBox(height: 8),
-                                  // TODO: This is not updated when fetch coordinates emits new state
-                                  AddressCoordinatesForm(
-                                      lng: locations
-                                          .where(
-                                              (l) => labelDoesMatch(l.name, e))
-                                          .firstOrNull
-                                          ?.longitude,
-                                      lat: locations
-                                          .where(
-                                              (l) => labelDoesMatch(l.name, e))
-                                          .firstOrNull
-                                          ?.latitude,
-                                      callback: (lng, lat) => context
-                                          .read<ProfileCubit>()
-                                          .updateCoordinates(i, lng, lat)),
-                                  // TODO: Add small map previewing the location when coordinates are available
-                                  TextButton(
-                                      child:
-                                          const Text('Auto Fetch Coordinates'),
-                                      // TODO: Switch to address index instead of label? Can there be duplicates?
-                                      onPressed: () async => showDialog<void>(
-                                          context: context,
-                                          // barrierDismissible: false,
-                                          builder: (dialogContext) =>
-                                              _confirmPrivacyLeakDialog(
-                                                  dialogContext,
-                                                  e.address,
-                                                  () => unawaited(context
-                                                      .read<ProfileCubit>()
-                                                      .fetchCoordinates(i)))))
-                                ])))
-                        .values
-                        .asList()))));
+    _card(addresses
+        .asMap()
+        .map((i, e) => MapEntry(
+            i,
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      _label(e.label.name, e.customLabel),
+                      Text(_commaToNewline(e.address),
+                          style: const TextStyle(fontSize: 19)),
+                    ])),
+                IconButton(
+                    onPressed: () => (onTap == null)
+                        ? null
+                        : onTap(i, _label(e.label.name, e.customLabel).data!),
+                    icon: const Icon(Icons.add_task)),
+              ]),
+              const SizedBox(height: 8),
+              // TODO: This is not updated when fetch coordinates emits new state
+              AddressCoordinatesForm(
+                  lng: locations
+                      .where((l) => labelDoesMatch(l.name, e))
+                      .firstOrNull
+                      ?.longitude,
+                  lat: locations
+                      .where((l) => labelDoesMatch(l.name, e))
+                      .firstOrNull
+                      ?.latitude,
+                  callback: (lng, lat) => context
+                      .read<ProfileCubit>()
+                      .updateCoordinates(i, lng, lat)),
+              // TODO: Add small map previewing the location when coordinates are available
+              TextButton(
+                  child: const Text('Auto Fetch Coordinates'),
+                  // TODO: Switch to address index instead of label? Can there be duplicates?
+                  onPressed: () async => showDialog<void>(
+                      context: context,
+                      // barrierDismissible: false,
+                      builder: (dialogContext) => _confirmPrivacyLeakDialog(
+                          dialogContext,
+                          e.address,
+                          () => unawaited(context
+                              .read<ProfileCubit>()
+                              .fetchCoordinates(i)))))
+            ])))
+        .values
+        .asList());
 
-Widget addresses(List<Address> addresses) => Card(
-    color: Colors.white,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-    child: SizedBox(
-        child: Padding(
-            padding:
-                const EdgeInsets.only(top: 4, left: 16, bottom: 16, right: 16),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              ...addresses.map((e) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: _label(e.label.name, e.customLabel)),
-                        Text(_commaToNewline(e.address),
-                            style: const TextStyle(fontSize: 19))
-                      ]))
-            ]))));
+Widget addresses(List<Address> addresses) => _card(addresses
+    .map((e) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: _label(e.label.name, e.customLabel)),
+          Text(_commaToNewline(e.address), style: const TextStyle(fontSize: 19))
+        ]))
+    .asList());
 
 Widget header(Contact contact) => Card(
     color: Colors.white,
