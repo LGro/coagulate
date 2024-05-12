@@ -71,11 +71,11 @@ Widget emails(List<Email> emails,
                         child: Text(e.address,
                             style: const TextStyle(fontSize: 19)))
                   ])),
-              IconButton(
-                  onPressed: () => (onTap == null)
-                      ? null
-                      : onTap(i, _label(e.label.name, e.customLabel).data!),
-                  icon: const Icon(Icons.add_task))
+              if (onTap != null)
+                IconButton(
+                    onPressed: () =>
+                        onTap(i, _label(e.label.name, e.customLabel).data!),
+                    icon: const Icon(Icons.add_task))
             ])))
         .values
         .asList());
@@ -99,11 +99,11 @@ Widget phones(List<Phone> phones,
                         child: Text(e.number,
                             style: const TextStyle(fontSize: 19)))
                   ])),
-              IconButton(
-                  onPressed: () => (onTap == null)
-                      ? null
-                      : onTap(i, _label(e.label.name, e.customLabel).data!),
-                  icon: const Icon(Icons.add_task))
+              if (onTap != null)
+                IconButton(
+                    onPressed: () =>
+                        onTap(i, _label(e.label.name, e.customLabel).data!),
+                    icon: const Icon(Icons.add_task))
             ])))
         .values
         .asList());
@@ -127,11 +127,11 @@ Widget websites(List<Website> websites,
                         child:
                             Text(e.url, style: const TextStyle(fontSize: 19)))
                   ])),
-              IconButton(
-                  onPressed: () => (onTap == null)
-                      ? null
-                      : onTap(i, _label(e.label.name, e.customLabel).data!),
-                  icon: const Icon(Icons.add_task))
+              if (onTap != null)
+                IconButton(
+                    onPressed: () =>
+                        onTap(i, _label(e.label.name, e.customLabel).data!),
+                    icon: const Icon(Icons.add_task))
             ])))
         .values
         .asList());
@@ -155,11 +155,11 @@ Widget socialMedias(List<SocialMedia> websites,
                         child: Text(e.userName,
                             style: const TextStyle(fontSize: 19)))
                   ])),
-              IconButton(
-                  onPressed: () => (onTap == null)
-                      ? null
-                      : onTap(i, _label(e.label.name, e.customLabel).data!),
-                  icon: const Icon(Icons.add_task))
+              if (onTap != null)
+                IconButton(
+                    onPressed: () =>
+                        onTap(i, _label(e.label.name, e.customLabel).data!),
+                    icon: const Icon(Icons.add_task))
             ])))
         .values
         .asList());
@@ -196,11 +196,11 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
                       Text(_commaToNewline(e.address),
                           style: const TextStyle(fontSize: 19)),
                     ])),
-                IconButton(
-                    onPressed: () => (onTap == null)
-                        ? null
-                        : onTap(i, _label(e.label.name, e.customLabel).data!),
-                    icon: const Icon(Icons.add_task)),
+                if (onTap != null)
+                  IconButton(
+                      onPressed: () =>
+                          onTap(i, _label(e.label.name, e.customLabel).data!),
+                      icon: const Icon(Icons.add_task)),
               ]),
               const SizedBox(height: 8),
               // TODO: This is not updated when fetch coordinates emits new state
