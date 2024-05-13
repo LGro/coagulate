@@ -70,61 +70,42 @@ String contactDetailKey<T>(int i, T detail) {
   return '';
 }
 
+List<T> filterContactDetailsList<T>(
+  List<T> values,
+  Map<String, List<String>> settings,
+  List<String> activeCircles,
+) {
+  if (activeCircles.isEmpty) {
+    return [];
+  }
+  final updatedValues = Map<int, T>.from(values.asMap())
+    ..removeWhere((i, e) => !(settings[contactDetailKey(i, e)]
+            ?.asSet()
+            .intersectsWith(activeCircles.asSet()) ??
+        false));
+  return updatedValues.values.asList();
+}
+
 ContactDetails filterDetails(ContactDetails details,
         ProfileSharingSettings settings, List<String> activeCircles) =>
     ContactDetails(
       // TODO: filter the names as well
       displayName: details.displayName,
       name: details.name,
-      phones: (details.phones.asMap()
-            ..removeWhere((i, e) =>
-                (settings.phones[contactDetailKey(i, e)] ?? [])
-                    .asSet()
-                    .intersectsWith(activeCircles.asSet())))
-          .values
-          .asList(),
-      emails: (details.emails.asMap()
-            ..removeWhere((i, e) =>
-                (settings.emails[contactDetailKey(i, e)] ?? [])
-                    .asSet()
-                    .intersectsWith(activeCircles.asSet())))
-          .values
-          .asList(),
-      addresses: (details.addresses.asMap()
-            ..removeWhere((i, e) =>
-                (settings.addresses[contactDetailKey(i, e)] ?? [])
-                    .asSet()
-                    .intersectsWith(activeCircles.asSet())))
-          .values
-          .asList(),
-      organizations: (details.organizations.asMap()
-            ..removeWhere((i, e) =>
-                (settings.organizations[contactDetailKey(i, e)] ?? [])
-                    .asSet()
-                    .intersectsWith(activeCircles.asSet())))
-          .values
-          .asList(),
-      websites: (details.websites.asMap()
-            ..removeWhere((i, e) =>
-                (settings.websites[contactDetailKey(i, e)] ?? [])
-                    .asSet()
-                    .intersectsWith(activeCircles.asSet())))
-          .values
-          .asList(),
-      socialMedias: (details.socialMedias.asMap()
-            ..removeWhere((i, e) =>
-                (settings.socialMedias[contactDetailKey(i, e)] ?? [])
-                    .asSet()
-                    .intersectsWith(activeCircles.asSet())))
-          .values
-          .asList(),
-      events: (details.events.asMap()
-            ..removeWhere((i, e) =>
-                (settings.events[contactDetailKey(i, e)] ?? [])
-                    .asSet()
-                    .intersectsWith(activeCircles.asSet())))
-          .values
-          .asList(),
+      phones: filterContactDetailsList(
+          details.phones, settings.phones, activeCircles),
+      emails: filterContactDetailsList(
+          details.emails, settings.emails, activeCircles),
+      addresses: filterContactDetailsList(
+          details.addresses, settings.addresses, activeCircles),
+      organizations: filterContactDetailsList(
+          details.organizations, settings.organizations, activeCircles),
+      websites: filterContactDetailsList(
+          details.websites, settings.websites, activeCircles),
+      socialMedias: filterContactDetailsList(
+          details.socialMedias, settings.socialMedias, activeCircles),
+      events: filterContactDetailsList(
+          details.events, settings.events, activeCircles),
     );
 
 // TODO: Implement me; but maybe switch for address locations to a similar indexing scheme like with the other details for circles?
