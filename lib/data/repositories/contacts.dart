@@ -245,6 +245,16 @@ class ContactsRepository {
     // }
   }
 
+  List<(String, String, bool)> circlesWithMembership(String coagContactId) =>
+      circles
+          .map((id, label) => MapEntry(id, (
+                id,
+                label,
+                (circleMemberships[coagContactId] ?? []).contains(id)
+              )))
+          .values
+          .toList();
+
   Future<void> saveContact(CoagContact coagContact) async {
     _contacts[coagContact.coagContactId] = coagContact;
     _contactsStreamController.add(coagContact);

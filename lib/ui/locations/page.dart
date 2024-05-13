@@ -3,13 +3,10 @@
 
 import 'dart:math';
 
-import 'package:awesome_extensions/awesome_extensions.dart';
-import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
-import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
@@ -200,32 +197,32 @@ class _LocationFormState extends State<LocationForm> {
               maxLines: 6,
               textInputAction: TextInputAction.next,
             ),
-            MultiSelectBottomSheetField<int>(
-              key: _multiSelectKey,
-              initialChildSize: 0.7,
-              maxChildSize: 0.95,
-              title: const Text("Circles"),
-              buttonText: const Text("Circles to share with"),
-              items: [
-                MultiSelectItem<int>(1, 'Circle 1'),
-                MultiSelectItem<int>(1, 'Circle 2')
-              ],
-              searchable: true,
-              onConfirm: (List<int?> values) {
-                // setState(() {
-                //   _selectedAnimals3 = values;
-                // });
-                // _multiSelectKey.currentState?.validate();
-              },
-              chipDisplay: MultiSelectChipDisplay(
-                  // onTap: (item) {
-                  //   setState(() {
-                  //     _selectedAnimals3.remove(item);
-                  //   });
-                  //   _multiSelectKey.currentState.validate();
-                  // },
-                  ),
-            ),
+            // MultiSelectBottomSheetField<int>(
+            //   key: _multiSelectKey,
+            //   initialChildSize: 0.7,
+            //   maxChildSize: 0.95,
+            //   title: const Text("Circles"),
+            //   buttonText: const Text("Circles to share with"),
+            //   items: [
+            //     MultiSelectItem<int>(1, 'Circle 1'),
+            //     MultiSelectItem<int>(1, 'Circle 2')
+            //   ],
+            //   searchable: true,
+            //   onConfirm: (List<int?> values) {
+            //     // setState(() {
+            //     //   _selectedAnimals3 = values;
+            //     // });
+            //     // _multiSelectKey.currentState?.validate();
+            //   },
+            //   chipDisplay: MultiSelectChipDisplay(
+            //       // onTap: (item) {
+            //       //   setState(() {
+            //       //     _selectedAnimals3.remove(item);
+            //       //   });
+            //       //   _multiSelectKey.currentState.validate();
+            //       // },
+            //       ),
+            // ),
             const SizedBox(height: 24),
             if (_state.status.isInProgress)
               const CircularProgressIndicator()

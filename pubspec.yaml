@@ -25,6 +25,7 @@ dependencies:
     sdk: flutter
   flutter_map: ^6.1.0
   flutter_map_marker_cluster: ^1.3.5
+  flutter_platform_widgets: ^6.1.0
   flutter_svg: ^2.0.10
   formz: ^0.7.0
   freezed_annotation: ^2.4.1
@@ -37,7 +38,6 @@ dependencies:
   location: ^6.0.1
   loggy: ^2.0.3
   mobile_scanner: ^4.0.1 # TODO: Replace with privacy friendlier alternative
-  multi_select_flutter: ^4.1.3
   mutex:
     path: packages/mutex
   path: ^1.9.0

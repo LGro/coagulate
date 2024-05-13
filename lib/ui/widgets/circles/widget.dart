@@ -12,10 +12,17 @@ import 'cubit.dart';
 
 // TODO: Display check in form with location (from gps, from map picker, from address, from coordinates) circles to share with, optional duration, optional move away to check out constraint
 class CirclesForm extends StatefulWidget {
-  CirclesForm({super.key, required this.circles, required this.callback});
+  CirclesForm(
+      {required this.circles,
+      required this.callback,
+      this.allowCreateNew = true,
+      this.customHeader,
+      super.key});
 
   final void Function(List<(String, String, bool)>) callback;
   final List<(String, String, bool)> circles;
+  final bool allowCreateNew;
+  final Widget? customHeader;
 
   @override
   State<CirclesForm> createState() => _CirclesFormState();
@@ -115,61 +122,59 @@ class _CirclesFormState extends State<CirclesForm> {
 
   @override
   Widget build(BuildContext context) => Form(
-        key: _key,
-        child: Column(
-          children: [
-            Row(children: [
-              Expanded(
-                  child: TextFormField(
-                key: const Key('circlesForm_newCircleInput'),
-                controller: _titleController,
-                // TODO: Make this a search or create new circle
-                decoration: const InputDecoration(
-                  helperText: 'Create a new circle',
-                  helperMaxLines: 2,
-                  labelText: 'New Circle',
-                  errorMaxLines: 2,
+      key: _key,
+      child: Column(children: [
+        if (widget.customHeader != null) widget.customHeader!,
+        if (widget.allowCreateNew)
+          Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Row(children: [
+                Expanded(
+                    child: TextFormField(
+                  key: const Key('circlesForm_newCircleInput'),
+                  controller: _titleController,
+                  // TODO: Make this a search or create new circle
+                  decoration: const InputDecoration(
+                    helperText: 'Create a new circle',
+                    helperMaxLines: 2,
+                    labelText: 'New Circle',
+                    errorMaxLines: 2,
+                  ),
+                  textInputAction: TextInputAction.done,
+                )),
+                IconButton(
+                  key: const Key('circlesForm_submitNewCircle'),
+                  onPressed: _addNewCircle,
+                  icon: const Icon(Icons.add),
                 ),
-                textInputAction: TextInputAction.done,
-              )),
-              IconButton(
-                key: const Key('circlesForm_submitNewCircle'),
-                onPressed: _addNewCircle,
-                icon: const Icon(Icons.add),
-              ),
-            ]),
-            const SizedBox(height: 16),
-            Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: _state.circles
-                    .asMap()
-                    .map((i, c) => MapEntry(
-                        i,
-                        (c.$3)
-                            ? FilledButton(
-                                onPressed: () =>
-                                    _updateCircleMembership(i, false),
-                                child: Text(c.$2))
-                            : OutlinedButton(
-                                onPressed: () =>
-                                    _updateCircleMembership(i, true),
-                                child: Text(c.$2))))
-                    .values
-                    .asList()),
-            const SizedBox(height: 8),
-            if (_state.status.isInProgress)
-              const CircularProgressIndicator()
-            else
-              ElevatedButton(
-                key: const Key('circlesForm_submit'),
-                onPressed: _onSubmit,
-                child: const Text('Save'),
-              ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      );
+              ])),
+        Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: _state.circles
+                .asMap()
+                .map((i, c) => MapEntry(
+                    i,
+                    (c.$3)
+                        ? FilledButton(
+                            onPressed: () => _updateCircleMembership(i, false),
+                            child: Text(c.$2))
+                        : OutlinedButton(
+                            onPressed: () => _updateCircleMembership(i, true),
+                            child: Text(c.$2))))
+                .values
+                .asList()),
+        const SizedBox(height: 8, width: double.maxFinite),
+        if (_state.status.isInProgress)
+          const CircularProgressIndicator()
+        else
+          ElevatedButton(
+            key: const Key('circlesForm_submit'),
+            onPressed: _onSubmit,
+            child: const Text('Save'),
+          ),
+        const SizedBox(height: 16),
+      ]));
 }
 
 class CirclesFormState with FormzMixin {
@@ -199,7 +204,7 @@ class CirclesFormState with FormzMixin {
 }
 
 class CirclesWidget extends StatelessWidget {
-  const CirclesWidget({super.key, required this.coagContactId});
+  const CirclesWidget({required this.coagContactId, super.key});
 
   final String coagContactId;
 

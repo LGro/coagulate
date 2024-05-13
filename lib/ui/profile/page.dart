@@ -8,37 +8,55 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../widgets/address_coordinates_form.dart';
 import '../widgets/avatar.dart';
+import '../widgets/circles/cubit.dart';
+import '../widgets/circles/widget.dart';
 import 'cubit.dart';
 
 Future<void> showPickCirclesBottomSheet(
         {required BuildContext context,
         required String label,
-        required Map<String, String> circles,
-        required List<String> selectedCircles,
+        required String coagContactId,
+        required List<(String, String, bool)> circles,
         required void Function(List<String> selectedCircles) callback}) async =>
     showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
-        builder: (modalContext) => MultiSelectBottomSheet(
-              title: Padding(
-                  padding: const EdgeInsets.only(left: 16, top: 12),
-                  child: Text('Share "$label" with',
-                      textScaler: const TextScaler.linear(1.4))),
-              searchable: circles.length > 10,
-              items: circles
-                  .map((id, label) => MapEntry(id, MultiSelectItem(id, label)))
-                  .values
-                  .asList(),
-              initialValue: selectedCircles,
-              onConfirm: (values) => callback(values),
-              maxChildSize: 0.8,
-            ));
+        builder: (modalContext) => Padding(
+            padding: EdgeInsets.only(
+                left: 16,
+                top: 16,
+                right: 16,
+                bottom: MediaQuery.of(modalContext).viewInsets.bottom),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BlocProvider(
+                      create: (context) => CirclesCubit(
+                          context.read<ContactsRepository>(), coagContactId),
+                      child: BlocConsumer<CirclesCubit, CirclesState>(
+                          listener: (context, state) async {},
+                          builder: (context, state) => CirclesForm(
+                              customHeader: Row(children: [
+                                Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 4, bottom: 12),
+                                    child: Text('Share "$label" with',
+                                        textScaler:
+                                            const TextScaler.linear(1.4)))
+                              ]),
+                              allowCreateNew: false,
+                              circles: circles,
+                              callback: (circles) => callback(circles
+                                  .where((c) => c.$3)
+                                  .map((c) => c.$1)
+                                  .asList()))))
+                ])));
 
 Card _card(List<Widget> children) => Card(
     color: Colors.white,
@@ -307,8 +325,8 @@ class ProfileView extends StatefulWidget {
   ProfileViewState createState() => ProfileViewState();
 }
 
-Widget buildProfileScrollView(BuildContext context, Contact contact,
-        List<ContactAddressLocation> addressLocations) =>
+Widget buildProfileScrollView(BuildContext context, String coagContactId,
+        Contact contact, List<ContactAddressLocation> addressLocations) =>
     RefreshIndicator(
         onRefresh: () async =>
             context.read<ProfileCubit>().setContact(contact.id),
@@ -326,19 +344,14 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
                           (i, label) async => showPickCirclesBottomSheet(
                               context: context,
                               label: label,
+                              coagContactId: coagContactId,
                               circles: context
                                   .read<ProfileCubit>()
                                   .contactsRepository
-                                  .circles,
-                              selectedCircles: context
-                                      .read<ProfileCubit>()
-                                      .contactsRepository
-                                      .profileSharingSettings
-                                      .phones['$i|$label'] ??
-                                  [],
+                                  .circlesWithMembership(coagContactId),
                               callback: (selectedCircles) => context
                                   .read<ProfileCubit>()
-                                  .updatePhoneSharingCircles(
+                                  .updateAddressSharingCircles(
                                       i, label, selectedCircles))),
                     if (contact.emails.isNotEmpty)
                       emails(
@@ -346,19 +359,14 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
                           (i, label) async => showPickCirclesBottomSheet(
                               context: context,
                               label: label,
+                              coagContactId: coagContactId,
                               circles: context
                                   .read<ProfileCubit>()
                                   .contactsRepository
-                                  .circles,
-                              selectedCircles: context
-                                      .read<ProfileCubit>()
-                                      .contactsRepository
-                                      .profileSharingSettings
-                                      .emails['$i|$label'] ??
-                                  [],
+                                  .circlesWithMembership(coagContactId),
                               callback: (selectedCircles) => context
                                   .read<ProfileCubit>()
-                                  .updateEmailSharingCircles(
+                                  .updateAddressSharingCircles(
                                       i, label, selectedCircles))),
                     if (contact.addresses.isNotEmpty)
                       addressesWithForms(
@@ -368,16 +376,11 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
                           (i, label) async => showPickCirclesBottomSheet(
                               context: context,
                               label: label,
+                              coagContactId: coagContactId,
                               circles: context
                                   .read<ProfileCubit>()
                                   .contactsRepository
-                                  .circles,
-                              selectedCircles: context
-                                      .read<ProfileCubit>()
-                                      .contactsRepository
-                                      .profileSharingSettings
-                                      .addresses['$i|$label'] ??
-                                  [],
+                                  .circlesWithMembership(coagContactId),
                               callback: (selectedCircles) => context
                                   .read<ProfileCubit>()
                                   .updateAddressSharingCircles(
@@ -388,19 +391,14 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
                           (i, label) async => showPickCirclesBottomSheet(
                               context: context,
                               label: label,
+                              coagContactId: coagContactId,
                               circles: context
                                   .read<ProfileCubit>()
                                   .contactsRepository
-                                  .circles,
-                              selectedCircles: context
-                                      .read<ProfileCubit>()
-                                      .contactsRepository
-                                      .profileSharingSettings
-                                      .websites['$i|$label'] ??
-                                  [],
+                                  .circlesWithMembership(coagContactId),
                               callback: (selectedCircles) => context
                                   .read<ProfileCubit>()
-                                  .updateWebsiteSharingCircles(
+                                  .updateAddressSharingCircles(
                                       i, label, selectedCircles))),
                     if (contact.socialMedias.isNotEmpty)
                       socialMedias(
@@ -408,19 +406,14 @@ Widget buildProfileScrollView(BuildContext context, Contact contact,
                           (i, label) async => showPickCirclesBottomSheet(
                               context: context,
                               label: label,
+                              coagContactId: coagContactId,
                               circles: context
                                   .read<ProfileCubit>()
                                   .contactsRepository
-                                  .circles,
-                              selectedCircles: context
-                                      .read<ProfileCubit>()
-                                      .contactsRepository
-                                      .profileSharingSettings
-                                      .socialMedias['$i|$label'] ??
-                                  [],
+                                  .circlesWithMembership(coagContactId),
                               callback: (selectedCircles) => context
                                   .read<ProfileCubit>()
-                                  .updateSocialMediaSharingCircles(
+                                  .updateAddressSharingCircles(
                                       i, label, selectedCircles))),
                   ]))
         ]));
@@ -475,6 +468,7 @@ class ProfileViewState extends State<ProfileView> {
         return Center(
           child: buildProfileScrollView(
               context,
+              state.profileContact!.coagContactId,
               state.profileContact!.systemContact!,
               state.profileContact!.addressLocations.values.asList()),
         );
