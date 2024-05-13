@@ -10,6 +10,7 @@ import 'package:formz/formz.dart';
 
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
+import '../widgets/circles/widget.dart';
 import 'check_in/widget.dart';
 import 'cubit.dart';
 
@@ -197,32 +198,17 @@ class _LocationFormState extends State<LocationForm> {
               maxLines: 6,
               textInputAction: TextInputAction.next,
             ),
-            // MultiSelectBottomSheetField<int>(
-            //   key: _multiSelectKey,
-            //   initialChildSize: 0.7,
-            //   maxChildSize: 0.95,
-            //   title: const Text("Circles"),
-            //   buttonText: const Text("Circles to share with"),
-            //   items: [
-            //     MultiSelectItem<int>(1, 'Circle 1'),
-            //     MultiSelectItem<int>(1, 'Circle 2')
-            //   ],
-            //   searchable: true,
-            //   onConfirm: (List<int?> values) {
-            //     // setState(() {
-            //     //   _selectedAnimals3 = values;
-            //     // });
-            //     // _multiSelectKey.currentState?.validate();
-            //   },
-            //   chipDisplay: MultiSelectChipDisplay(
-            //       // onTap: (item) {
-            //       //   setState(() {
-            //       //     _selectedAnimals3.remove(item);
-            //       //   });
-            //       //   _multiSelectKey.currentState.validate();
-            //       // },
-            //       ),
-            // ),
+            CirclesForm(
+                allowCreateNew: false,
+                circles: context
+                    .read<LocationsCubit>()
+                    .contactsRepository
+                    .circlesWithMembership(context
+                        .read<LocationsCubit>()
+                        .contactsRepository
+                        .profileContactId!),
+                // TODO: add callback
+                callback: (circles) => ()),
             const SizedBox(height: 24),
             if (_state.status.isInProgress)
               const CircularProgressIndicator()
