@@ -34,9 +34,9 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
     final sharedProfile = json.encode(removeNullOrEmptyValues(
         filterAccordingToSharingProfile(
                 profile: profileToShare,
-                settings: contactsRepository.profileSharingSettings,
+                settings: contactsRepository.getProfileSharingSettings(),
                 activeCircles: contactsRepository
-                        .circleMemberships[state.contact.coagContactId] ??
+                        .getCircleMemberships()[state.contact.coagContactId] ??
                     [],
                 shareBackSettings: state.contact.dhtSettingsForReceiving)
             .toJson()));

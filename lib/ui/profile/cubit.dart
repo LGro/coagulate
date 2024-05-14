@@ -23,14 +23,20 @@ class ProfileCubit extends Cubit<ProfileState> {
         contactsRepository.getContactUpdates().listen((contact) {
       if (contact.coagContactId == contactsRepository.profileContactId) {
         emit(state.copyWith(
-            status: ProfileStatus.success, profileContact: contact));
+            status: ProfileStatus.success,
+            profileContact: contact,
+            circles: contactsRepository.getCircles(),
+            sharingSettings: contactsRepository.getProfileSharingSettings()));
       }
     });
     // TODO: Does only doing this here and not in the parent constructor call above cause flicker?
     final profileContact = contactsRepository.getProfileContact();
     if (profileContact != null) {
       emit(state.copyWith(
-          status: ProfileStatus.success, profileContact: profileContact));
+          status: ProfileStatus.success,
+          profileContact: profileContact,
+          circles: contactsRepository.getCircles(),
+          sharingSettings: contactsRepository.getProfileSharingSettings()));
     }
     // TODO: Check current state of permissions here in addition to listening to stream update
     _permissionsSubscription = contactsRepository
@@ -116,73 +122,95 @@ class ProfileCubit extends Cubit<ProfileState> {
       int index, String label, List<String> circles) {
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final phones = Map<String, List<String>>.from(
-        contactsRepository.profileSharingSettings.phones);
+        contactsRepository.getProfileSharingSettings().phones);
     phones['$index|$label'] = circles;
-    contactsRepository.profileSharingSettings =
-        contactsRepository.profileSharingSettings.copyWith(phones: phones);
+    final updatedSharingSettings =
+        contactsRepository.getProfileSharingSettings().copyWith(phones: phones);
+    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    // TODO: Handle via update subscription instead of updating the state ourselves here?
+    emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
   void updateEmailSharingCircles(
       int index, String label, List<String> circles) {
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final emails = Map<String, List<String>>.from(
-        contactsRepository.profileSharingSettings.emails);
+        contactsRepository.getProfileSharingSettings().emails);
     emails['$index|$label'] = circles;
-    contactsRepository.profileSharingSettings =
-        contactsRepository.profileSharingSettings.copyWith(emails: emails);
+    final updatedSharingSettings =
+        contactsRepository.getProfileSharingSettings().copyWith(emails: emails);
+    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    // TODO: Handle via update subscription instead of updating the state ourselves here?
+    emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
   void updateAddressSharingCircles(
       int index, String label, List<String> circles) {
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final addresses = Map<String, List<String>>.from(
-        contactsRepository.profileSharingSettings.addresses);
+        contactsRepository.getProfileSharingSettings().addresses);
     addresses['$index|$label'] = circles;
-    contactsRepository.profileSharingSettings = contactsRepository
-        .profileSharingSettings
+    final updatedSharingSettings = contactsRepository
+        .getProfileSharingSettings()
         .copyWith(addresses: addresses);
+    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    // TODO: Handle via update subscription instead of updating the state ourselves here?
+    emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
   void updateOrganizationSharingCircles(
       int index, String label, List<String> circles) {
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final organizations = Map<String, List<String>>.from(
-        contactsRepository.profileSharingSettings.organizations);
+        contactsRepository.getProfileSharingSettings().organizations);
     organizations['$index|$label'] = circles;
-    contactsRepository.profileSharingSettings = contactsRepository
-        .profileSharingSettings
+    final updatedSharingSettings = contactsRepository
+        .getProfileSharingSettings()
         .copyWith(organizations: organizations);
+    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    // TODO: Handle via update subscription instead of updating the state ourselves here?
+    emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
   void updateWebsiteSharingCircles(
       int index, String label, List<String> circles) {
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final websites = Map<String, List<String>>.from(
-        contactsRepository.profileSharingSettings.websites);
+        contactsRepository.getProfileSharingSettings().websites);
     websites['$index|$label'] = circles;
-    contactsRepository.profileSharingSettings =
-        contactsRepository.profileSharingSettings.copyWith(websites: websites);
+    final updatedSharingSettings = contactsRepository
+        .getProfileSharingSettings()
+        .copyWith(websites: websites);
+    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    // TODO: Handle via update subscription instead of updating the state ourselves here?
+    emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
   void updateSocialMediaSharingCircles(
       int index, String label, List<String> circles) {
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final socialMedias = Map<String, List<String>>.from(
-        contactsRepository.profileSharingSettings.socialMedias);
+        contactsRepository.getProfileSharingSettings().socialMedias);
     socialMedias['$index|$label'] = circles;
-    contactsRepository.profileSharingSettings = contactsRepository
-        .profileSharingSettings
+    final updatedSharingSettings = contactsRepository
+        .getProfileSharingSettings()
         .copyWith(socialMedias: socialMedias);
+    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    // TODO: Handle via update subscription instead of updating the state ourselves here?
+    emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
   void updateEventSharingCircles(
       int index, String label, List<String> circles) {
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final events = Map<String, List<String>>.from(
-        contactsRepository.profileSharingSettings.events);
+        contactsRepository.getProfileSharingSettings().events);
     events['$index|$label'] = circles;
-    contactsRepository.profileSharingSettings =
-        contactsRepository.profileSharingSettings.copyWith(events: events);
+    final updatedSharingSettings =
+        contactsRepository.getProfileSharingSettings().copyWith(events: events);
+    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    // TODO: Handle via update subscription instead of updating the state ourselves here?
+    emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
   @override

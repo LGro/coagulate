@@ -66,10 +66,10 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
           : json.encode(removeNullOrEmptyValues(filterAccordingToSharingProfile(
               profile: contactsRepository
                   .getContact(contactsRepository.profileContactId!),
-              settings: contactsRepository.profileSharingSettings,
-              activeCircles:
-                  contactsRepository.circleMemberships[contact.coagContactId] ??
-                      [],
+              settings: contactsRepository.getProfileSharingSettings(),
+              activeCircles: contactsRepository
+                      .getCircleMemberships()[contact.coagContactId] ??
+                  [],
               shareBackSettings: contact.dhtSettingsForReceiving,
             ).toJson())),
     );

@@ -13,6 +13,11 @@ ProfileState _$ProfileStateFromJson(Map<String, dynamic> json) => ProfileState(
           ? null
           : CoagContact.fromJson(
               json['profile_contact'] as Map<String, dynamic>),
+      sharingSettings: json['sharing_settings'] == null
+          ? null
+          : ProfileSharingSettings.fromJson(
+              json['sharing_settings'] as Map<String, dynamic>),
+      circles: Map<String, String>.from(json['circles'] as Map),
       permissionsGranted: json['permissions_granted'] as bool? ?? false,
     );
 
@@ -20,6 +25,8 @@ Map<String, dynamic> _$ProfileStateToJson(ProfileState instance) =>
     <String, dynamic>{
       'status': _$ProfileStatusEnumMap[instance.status]!,
       'profile_contact': instance.profileContact?.toJson(),
+      'circles': instance.circles,
+      'sharing_settings': instance.sharingSettings?.toJson(),
       'permissions_granted': instance.permissionsGranted,
     };
 

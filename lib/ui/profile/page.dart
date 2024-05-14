@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
 import '../../data/models/contact_location.dart';
+import '../../data/models/profile_sharing_settings.dart';
 import '../../data/repositories/contacts.dart';
 import '../widgets/address_coordinates_form.dart';
 import '../widgets/avatar.dart';
@@ -325,8 +326,13 @@ class ProfileView extends StatefulWidget {
   ProfileViewState createState() => ProfileViewState();
 }
 
-Widget buildProfileScrollView(BuildContext context, String coagContactId,
-        Contact contact, List<ContactAddressLocation> addressLocations) =>
+Widget buildProfileScrollView(
+        {required BuildContext context,
+        required String coagContactId,
+        required Contact contact,
+        required List<ContactAddressLocation> addressLocations,
+        required Map<String, String> circles,
+        required ProfileSharingSettings profileSharingSettings}) =>
     RefreshIndicator(
         onRefresh: () async =>
             context.read<ProfileCubit>().setContact(contact.id),
@@ -345,13 +351,20 @@ Widget buildProfileScrollView(BuildContext context, String coagContactId,
                               context: context,
                               label: label,
                               coagContactId: coagContactId,
-                              circles: context
-                                  .read<ProfileCubit>()
-                                  .contactsRepository
-                                  .circlesWithMembership(coagContactId),
+                              circles: circles
+                                  .map((cId, cLabel) => MapEntry(cId, (
+                                        cId,
+                                        cLabel,
+                                        profileSharingSettings
+                                                .phones['$i|$label']
+                                                ?.contains(cId) ??
+                                            false
+                                      )))
+                                  .values
+                                  .toList(),
                               callback: (selectedCircles) => context
                                   .read<ProfileCubit>()
-                                  .updateAddressSharingCircles(
+                                  .updatePhoneSharingCircles(
                                       i, label, selectedCircles))),
                     if (contact.emails.isNotEmpty)
                       emails(
@@ -360,13 +373,20 @@ Widget buildProfileScrollView(BuildContext context, String coagContactId,
                               context: context,
                               label: label,
                               coagContactId: coagContactId,
-                              circles: context
-                                  .read<ProfileCubit>()
-                                  .contactsRepository
-                                  .circlesWithMembership(coagContactId),
+                              circles: circles
+                                  .map((cId, cLabel) => MapEntry(cId, (
+                                        cId,
+                                        cLabel,
+                                        profileSharingSettings
+                                                .emails['$i|$label']
+                                                ?.contains(cId) ??
+                                            false
+                                      )))
+                                  .values
+                                  .toList(),
                               callback: (selectedCircles) => context
                                   .read<ProfileCubit>()
-                                  .updateAddressSharingCircles(
+                                  .updateEmailSharingCircles(
                                       i, label, selectedCircles))),
                     if (contact.addresses.isNotEmpty)
                       addressesWithForms(
@@ -377,10 +397,17 @@ Widget buildProfileScrollView(BuildContext context, String coagContactId,
                               context: context,
                               label: label,
                               coagContactId: coagContactId,
-                              circles: context
-                                  .read<ProfileCubit>()
-                                  .contactsRepository
-                                  .circlesWithMembership(coagContactId),
+                              circles: circles
+                                  .map((cId, cLabel) => MapEntry(cId, (
+                                        cId,
+                                        cLabel,
+                                        profileSharingSettings
+                                                .addresses['$i|$label']
+                                                ?.contains(cId) ??
+                                            false
+                                      )))
+                                  .values
+                                  .toList(),
                               callback: (selectedCircles) => context
                                   .read<ProfileCubit>()
                                   .updateAddressSharingCircles(
@@ -392,13 +419,20 @@ Widget buildProfileScrollView(BuildContext context, String coagContactId,
                               context: context,
                               label: label,
                               coagContactId: coagContactId,
-                              circles: context
-                                  .read<ProfileCubit>()
-                                  .contactsRepository
-                                  .circlesWithMembership(coagContactId),
+                              circles: circles
+                                  .map((cId, cLabel) => MapEntry(cId, (
+                                        cId,
+                                        cLabel,
+                                        profileSharingSettings
+                                                .websites['$i|$label']
+                                                ?.contains(cId) ??
+                                            false
+                                      )))
+                                  .values
+                                  .toList(),
                               callback: (selectedCircles) => context
                                   .read<ProfileCubit>()
-                                  .updateAddressSharingCircles(
+                                  .updateWebsiteSharingCircles(
                                       i, label, selectedCircles))),
                     if (contact.socialMedias.isNotEmpty)
                       socialMedias(
@@ -407,13 +441,20 @@ Widget buildProfileScrollView(BuildContext context, String coagContactId,
                               context: context,
                               label: label,
                               coagContactId: coagContactId,
-                              circles: context
-                                  .read<ProfileCubit>()
-                                  .contactsRepository
-                                  .circlesWithMembership(coagContactId),
+                              circles: circles
+                                  .map((cId, cLabel) => MapEntry(cId, (
+                                        cId,
+                                        cLabel,
+                                        profileSharingSettings
+                                                .socialMedias['$i|$label']
+                                                ?.contains(cId) ??
+                                            false
+                                      )))
+                                  .values
+                                  .toList(),
                               callback: (selectedCircles) => context
                                   .read<ProfileCubit>()
-                                  .updateAddressSharingCircles(
+                                  .updateSocialMediaSharingCircles(
                                       i, label, selectedCircles))),
                   ]))
         ]));
@@ -467,10 +508,13 @@ class ProfileViewState extends State<ProfileView> {
       case ProfileStatus.success:
         return Center(
           child: buildProfileScrollView(
-              context,
-              state.profileContact!.coagContactId,
-              state.profileContact!.systemContact!,
-              state.profileContact!.addressLocations.values.asList()),
+              context: context,
+              coagContactId: state.profileContact!.coagContactId,
+              contact: state.profileContact!.systemContact!,
+              addressLocations:
+                  state.profileContact!.addressLocations.values.asList(),
+              circles: state.circles,
+              profileSharingSettings: state.sharingSettings!),
         );
     }
   }

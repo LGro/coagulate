@@ -5,15 +5,16 @@ part of 'cubit.dart';
 
 @JsonSerializable()
 final class CheckInState extends Equatable {
-  const CheckInState({required this.checkingIn});
+  const CheckInState({required this.checkingIn, required this.circles});
 
   factory CheckInState.fromJson(Map<String, dynamic> json) =>
       _$CheckInStateFromJson(json);
 
   final bool checkingIn;
+  final Map<String, String> circles;
 
   Map<String, dynamic> toJson() => _$CheckInStateToJson(this);
 
   @override
-  List<Object?> get props => [checkingIn];
+  List<Object?> get props => [checkingIn, circles];
 }

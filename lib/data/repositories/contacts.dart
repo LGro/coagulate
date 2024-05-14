@@ -176,13 +176,15 @@ class ContactsRepository {
   late final Timer? timerDhtRefresh;
   String? profileContactId;
 
-  // TODO: Persistent storage and initialization
-  Map<String, String> circles = {'C1': 'Friends', 'C2': 'Neighbors'};
-  ProfileSharingSettings profileSharingSettings =
+  /// Circles with IDs as keys and labels as values
+  Map<String, String> _circles = {};
+
+  /// Profile contact sharing settings, specifying circles for each detail
+  ProfileSharingSettings _profileSharingSettings =
       const ProfileSharingSettings();
 
   /// Mapping of coagulate contact IDs to circle IDs
-  Map<String, List<String>> circleMemberships = const {};
+  Map<String, List<String>> _circleMemberships = {};
 
   Map<String, CoagContact> _contacts = {};
   final _contactsStreamController = BehaviorSubject<CoagContact>();
@@ -191,12 +193,16 @@ class ContactsRepository {
   List<ContactUpdate> updates = [];
   final _updatesStreamController = BehaviorSubject<ContactUpdate>();
 
+  final _circlesStreamController = BehaviorSubject<void>();
+
   final _systemContactAccessGrantedStreamController =
       BehaviorSubject<bool>.seeded(false);
 
   Future<void> _init() async {
     // Load profile contact ID from persistent storage
     profileContactId = await persistentStorage.getProfileContactId();
+
+    // TODO: Initialize circles, circle memberships and sharing settings from persistent storage
 
     // Load updates from persistent storage
     updates = await persistentStorage.getUpdates();
@@ -226,12 +232,28 @@ class ContactsRepository {
     // }
   }
 
+  void updateCircleMemberships(Map<String, List<String>> memberships) {
+    _circleMemberships = memberships;
+    _circlesStreamController.add(null);
+  }
+
+  void updateCircles(Map<String, String> circles) {
+    _circles = circles;
+    _circlesStreamController.add(null);
+  }
+
+  void setProfileSharingSettings(ProfileSharingSettings settings) {
+    _profileSharingSettings = settings;
+  }
+
+  ProfileSharingSettings getProfileSharingSettings() => _profileSharingSettings;
+
   List<(String, String, bool)> circlesWithMembership(String coagContactId) =>
-      circles
+      _circles
           .map((id, label) => MapEntry(id, (
                 id,
                 label,
-                (circleMemberships[coagContactId] ?? []).contains(id)
+                (_circleMemberships[coagContactId] ?? []).contains(id)
               )))
           .values
           .toList();
@@ -385,6 +407,9 @@ class ContactsRepository {
   Stream<ContactUpdate> getUpdates() =>
       _updatesStreamController.asBroadcastStream();
 
+  Stream<void> getCirclesUpdates() =>
+      _circlesStreamController.asBroadcastStream();
+
   // TODO: subscribe to this from a settings cubit to show the appropriate button in UI
   Stream<bool> isSystemContactAccessGranted() =>
       _systemContactAccessGrantedStreamController.asBroadcastStream();
@@ -485,9 +510,9 @@ class ContactsRepository {
           sharedProfile: json.encode(removeNullOrEmptyValues(
               filterAccordingToSharingProfile(
                       profile: _contacts[coagContactId]!,
-                      settings: profileSharingSettings,
+                      settings: _profileSharingSettings,
                       activeCircles:
-                          circleMemberships[contact.coagContactId] ?? [],
+                          _circleMemberships[contact.coagContactId] ?? [],
                       shareBackSettings: contact.dhtSettingsForReceiving)
                   .toJson()))));
     }
@@ -509,4 +534,7 @@ class ContactsRepository {
     _contacts.remove(coagContactId);
     await persistentStorage.removeContact(coagContactId);
   }
+
+  Map<String, String> getCircles() => _circles;
+  Map<String, List<String>> getCircleMemberships() => _circleMemberships;
 }

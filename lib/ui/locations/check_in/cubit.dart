@@ -16,7 +16,8 @@ part 'state.dart';
 
 class CheckInCubit extends Cubit<CheckInState> {
   CheckInCubit(this.contactsRepository)
-      : super(const CheckInState(checkingIn: false));
+      : super(CheckInState(
+            checkingIn: false, circles: contactsRepository.getCircles()));
 
   final ContactsRepository contactsRepository;
 
@@ -24,7 +25,7 @@ class CheckInCubit extends Cubit<CheckInState> {
       {required String name,
       required String details,
       required DateTime end}) async {
-    emit(const CheckInState(checkingIn: true));
+    emit(CheckInState(checkingIn: true, circles: state.circles));
 
     final location = await Location().getLocation();
 
@@ -33,7 +34,7 @@ class CheckInCubit extends Cubit<CheckInState> {
       return;
     }
 
-    final profileContact = await contactsRepository.getProfileContact();
+    final profileContact = contactsRepository.getProfileContact();
     if (profileContact == null) {
       return;
     }
@@ -55,7 +56,7 @@ class CheckInCubit extends Cubit<CheckInState> {
     // Make sure to regenerate the sharing profiles and update DHT sharing records
     await contactsRepository.updateProfileContact(profileContact.coagContactId);
     if (!isClosed) {
-      emit(const CheckInState(checkingIn: false));
+      emit(CheckInState(checkingIn: false, circles: state.circles));
     }
   }
 }

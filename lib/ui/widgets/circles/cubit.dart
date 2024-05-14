@@ -14,11 +14,12 @@ part 'state.dart';
 // TODO: Do we need this layer inbetween the repo and the ui?
 class CirclesCubit extends Cubit<CirclesState> {
   CirclesCubit(this.contactsRepository, this.coagContactId)
-      : super(CirclesState(contactsRepository.circles
+      : super(CirclesState(contactsRepository
+            .getCircles()
             .map((id, label) => MapEntry(id, (
                   id,
                   label,
-                  contactsRepository.circleMemberships[id]?.contains(id) ??
+                  contactsRepository.getCircleMemberships()[id]?.contains(id) ??
                       false
                 )))
             .values
@@ -29,17 +30,19 @@ class CirclesCubit extends Cubit<CirclesState> {
 
   void update(List<(String, String, bool)> circles) {
     // Check if there is a new circle, add it
+    var storedCircles = contactsRepository.getCircles();
     for (final (id, label, _) in circles) {
-      if (!contactsRepository.circles.containsKey(id)) {
-        contactsRepository.circles[id] = label;
+      if (!storedCircles.containsKey(id)) {
+        storedCircles[id] = label;
       }
     }
+    contactsRepository.updateCircles(storedCircles);
 
     // Update circle membership
-    final memberships =
-        Map<String, List<String>>.from(contactsRepository.circleMemberships);
+    final memberships = Map<String, List<String>>.from(
+        contactsRepository.getCircleMemberships());
     memberships[coagContactId] =
         circles.where((c) => c.$3).map((c) => c.$1).asList();
-    contactsRepository.circleMemberships = memberships;
+    contactsRepository.updateCircleMemberships(memberships);
   }
 }

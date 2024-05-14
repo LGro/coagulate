@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'package:equatable/equatable.dart';
-// import 'package:json_annotation/json_annotation.dart';
-// part 'profile_sharing_settings.g.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'profile_sharing_settings.g.dart';
 
 /// Lists of circle IDs that have access to the corresponding name fields
-// @JsonSerializable()
+@JsonSerializable()
 class NameSharingSettings extends Equatable {
   const NameSharingSettings({
     this.first = const [],
@@ -19,6 +20,9 @@ class NameSharingSettings extends Equatable {
     this.lastPhonetic = const [],
     this.middlePhonetic = const [],
   });
+
+  factory NameSharingSettings.fromJson(Map<String, dynamic> json) =>
+      _$NameSharingSettingsFromJson(json);
 
   final List<String> first;
   final List<String> last;
@@ -65,9 +69,11 @@ class NameSharingSettings extends Equatable {
         lastPhonetic,
         middlePhonetic,
       ];
+
+  Map<String, dynamic> toJson() => _$NameSharingSettingsToJson(this);
 }
 
-// @JsonSerializable()
+@JsonSerializable()
 class ProfileSharingSettings extends Equatable {
   const ProfileSharingSettings({
     this.displayName = const [],
@@ -80,6 +86,9 @@ class ProfileSharingSettings extends Equatable {
     this.socialMedias = const {},
     this.events = const {},
   });
+
+  factory ProfileSharingSettings.fromJson(Map<String, dynamic> json) =>
+      _$ProfileSharingSettingsFromJson(json);
 
   /// List of circle IDs that have access to the displayName
   final List<String> displayName;
@@ -107,6 +116,8 @@ class ProfileSharingSettings extends Equatable {
 
   /// Map of index|label to circle IDs that have access to events
   final Map<String, List<String>> events;
+
+  Map<String, dynamic> toJson() => _$ProfileSharingSettingsToJson(this);
 
   ProfileSharingSettings copyWith({
     List<String>? displayName,

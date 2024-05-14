@@ -113,9 +113,10 @@ class ContactPage extends StatelessWidget {
                         state.contact.systemContact?.displayName ??
                         'Contact Details'),
                   ),
-                  body: _body(context, state.contact))));
+                  body: _body(context, state.contact, state.circles))));
 
-  Widget _body(BuildContext context, CoagContact contact) =>
+  Widget _body(
+          BuildContext context, CoagContact contact, List<String> circles) =>
       SingleChildScrollView(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -193,7 +194,7 @@ class ContactPage extends StatelessWidget {
         if (contact.temporaryLocations.isNotEmpty)
           temporaryLocationsCard(contact.temporaryLocations),
 
-        circlesCard(context, contact.coagContactId),
+        circlesCard(context, contact.coagContactId, circles),
 
         // Sharing stuff
         if (contact.dhtSettingsForSharing != null &&
@@ -353,59 +354,53 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
       if (details.socialMedias.isNotEmpty) socialMedias(details.socialMedias),
     ];
 
-Card circlesCard(BuildContext context, String coagContactId) => Card(
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-    child: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-        child: Row(children: [
-          Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                const Text('circles'),
-                // TODO: Avoid direct repo interaction?
-                Text(
-                    (context
-                                .read<ContactDetailsCubit>()
-                                .contactsRepository
-                                .circleMemberships[coagContactId] ??
-                            [])
-                        .map((circleId) => context
-                            .read<ContactDetailsCubit>()
-                            .contactsRepository
-                            .circles[circleId])
-                        .where((c) => c != null)
-                        .asList()
-                        .join(', '),
-                    style: const TextStyle(fontSize: 19)),
-              ])),
-          IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () async => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (modalContext) => Padding(
-                      padding: EdgeInsets.only(
-                          left: 16,
-                          top: 16,
-                          right: 16,
-                          bottom:
-                              MediaQuery.of(modalContext).viewInsets.bottom),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          BlocProvider(
-                              create: (context) => CirclesCubit(
-                                  context.read<ContactsRepository>(),
-                                  coagContactId),
-                              child: BlocConsumer<CirclesCubit, CirclesState>(
-                                  listener: (context, state) async {},
-                                  builder: (context, state) => CirclesForm(
-                                      circles: state.circles,
-                                      callback:
-                                          context.read<CirclesCubit>().update)))
-                        ],
-                      ))))
-        ])));
+Card circlesCard(
+        BuildContext context, String coagContactId, List<String> circles) =>
+    Card(
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        child: Padding(
+            padding:
+                const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+            child: Row(children: [
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    const Text('circles'),
+                    Text(circles.join(', '),
+                        style: const TextStyle(fontSize: 19)),
+                  ])),
+              IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (modalContext) => Padding(
+                          padding: EdgeInsets.only(
+                              left: 16,
+                              top: 16,
+                              right: 16,
+                              bottom: MediaQuery.of(modalContext)
+                                  .viewInsets
+                                  .bottom),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              BlocProvider(
+                                  create: (context) => CirclesCubit(
+                                      context.read<ContactsRepository>(),
+                                      coagContactId),
+                                  child:
+                                      BlocConsumer<CirclesCubit, CirclesState>(
+                                          listener: (context, state) async {},
+                                          builder: (context, state) =>
+                                              CirclesForm(
+                                                  circles: state.circles,
+                                                  callback: context
+                                                      .read<CirclesCubit>()
+                                                      .update)))
+                            ],
+                          ))))
+            ])));

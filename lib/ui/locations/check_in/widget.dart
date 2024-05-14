@@ -293,11 +293,7 @@ class CheckInWidget extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               MyForm(
-                                  // TODO: Avoid direct repo interaction?
-                                  circles: context
-                                      .read<CheckInCubit>()
-                                      .contactsRepository
-                                      .circles,
+                                  circles: state.circles,
                                   callback:
                                       context.read<CheckInCubit>().checkIn)
                             ],
