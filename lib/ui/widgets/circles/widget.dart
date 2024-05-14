@@ -144,7 +144,8 @@ class _CirclesFormState extends State<CirclesForm> {
                 )),
                 IconButton(
                   key: const Key('circlesForm_submitNewCircle'),
-                  onPressed: _addNewCircle,
+                  onPressed:
+                      (_titleController.text.isEmpty) ? null : _addNewCircle,
                   icon: const Icon(Icons.add),
                 ),
               ])),
