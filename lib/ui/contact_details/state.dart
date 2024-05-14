@@ -30,6 +30,21 @@ final class ContactDetailsState extends Equatable {
 
   Map<String, dynamic> toJson() => _$ContactDetailsStateToJson(this);
 
+  ContactDetailsState copyWith({
+    String? coagContactId,
+    ContactDetailsStatus? status,
+    CoagContact? contact,
+    CoagContact? sharedProfile,
+    List<String>? circles,
+  }) =>
+      ContactDetailsState(
+        coagContactId ?? this.coagContactId,
+        status ?? this.status,
+        contact ?? this.contact,
+        sharedProfile: sharedProfile ?? this.sharedProfile,
+        circles: circles ?? this.circles,
+      );
+
   @override
   List<Object?> get props =>
       [coagContactId, contact, sharedProfile, status, circles];

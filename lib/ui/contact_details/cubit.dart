@@ -17,17 +17,35 @@ part 'state.dart';
 class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   ContactDetailsCubit(this.contactsRepository, String coagContactId)
       : super(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
-            contactsRepository.getContact(coagContactId))) {
+            contactsRepository.getContact(coagContactId),
+            circles:
+                (contactsRepository.getCircleMemberships()[coagContactId] ?? [])
+                    .map((id) => contactsRepository.getCircles()[id])
+                    .nonNulls
+                    .toList())) {
+    _circlesSubscription = contactsRepository.getCirclesUpdates().listen((c) {
+      if (!isClosed) {
+        emit(state.copyWith(
+            circles:
+                (contactsRepository.getCircleMemberships()[coagContactId] ?? [])
+                    .map((id) => contactsRepository.getCircles()[id])
+                    .nonNulls
+                    .toList()));
+      }
+    });
     _contactsSuscription = contactsRepository.getContactUpdates().listen((c) {
-      if (c.coagContactId == coagContactId) {
-        emit(ContactDetailsState(
-            c.coagContactId, ContactDetailsStatus.success, c));
+      if (c.coagContactId == coagContactId && !isClosed) {
+        emit(state.copyWith(
+            coagContactId: c.coagContactId,
+            status: ContactDetailsStatus.success,
+            contact: c));
       }
     });
   }
 
   final ContactsRepository contactsRepository;
   late final StreamSubscription<CoagContact> _contactsSuscription;
+  late final StreamSubscription<void> _circlesSubscription;
 
   // TODO: Use a method from repo level instead
   Future<void> share(CoagContact profileToShare) async {
@@ -56,6 +74,7 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   @override
   Future<void> close() {
     _contactsSuscription.cancel();
+    _circlesSubscription.cancel();
     return super.close();
   }
 }
