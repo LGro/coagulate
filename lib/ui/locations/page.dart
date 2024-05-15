@@ -208,7 +208,7 @@ class _LocationFormState extends State<LocationForm> {
                         .contactsRepository
                         .profileContactId!),
                 // TODO: add callback
-                callback: (circles) => ()),
+                callback: (circles) async => {throw Error()}),
             const SizedBox(height: 24),
             if (_state.status.isInProgress)
               const CircularProgressIndicator()

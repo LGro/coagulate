@@ -29,7 +29,7 @@ class CirclesCubit extends Cubit<CirclesState> {
   final String coagContactId;
   late final StreamSubscription<void> _circlesSubscription;
 
-  void update(List<(String, String, bool)> circles) {
+  Future<void> update(List<(String, String, bool)> circles) async {
     // Check if there is a new circle, add it
     var storedCircles = contactsRepository.getCircles();
     for (final (id, label, _) in circles) {
@@ -37,14 +37,14 @@ class CirclesCubit extends Cubit<CirclesState> {
         storedCircles[id] = label;
       }
     }
-    contactsRepository.updateCircles(storedCircles);
+    await contactsRepository.updateCircles(storedCircles);
 
     // Update circle membership
     final memberships = Map<String, List<String>>.from(
         contactsRepository.getCircleMemberships());
     memberships[coagContactId] =
         circles.where((c) => c.$3).map((c) => c.$1).asList();
-    contactsRepository.updateCircleMemberships(memberships);
+    await contactsRepository.updateCircleMemberships(memberships);
   }
 
   @override

@@ -4,18 +4,28 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
+import '../../models/profile_sharing_settings.dart';
 import 'base.dart';
 
 Future<Database> getDatabase() async => openDatabase(
       join(await getDatabasesPath(), 'contacts.db'),
-      onCreate: (db, version) => db.execute(
-          'CREATE TABLE contacts(id TEXT PRIMARY KEY, contactJson TEXT)'),
+      onCreate: (db, version) {
+        db
+          ..execute(
+              'CREATE TABLE contacts(id TEXT PRIMARY KEY, contactJson TEXT)')
+          // TODO: Consider using specific columns for update attributes instead of one json string
+          ..execute(
+              'CREATE TABLE updates(id INTEGER PRIMARY KEY, updateJson TEXT)')
+          ..execute(
+              'CREATE TABLE settings(id TEXT PRIMARY KEY, settingsJson TEXT)');
+      },
       version: 1,
     );
 
@@ -77,14 +87,85 @@ class SqliteStorage extends PersistentStorage {
       (await SharedPreferences.getInstance()).remove(coagContactId);
 
   @override
-  Future<void> addUpdate(ContactUpdate update) {
-    // TODO: implement addUpdate
-    throw UnimplementedError();
-  }
+  Future<void> addUpdate(ContactUpdate update) async =>
+      getDatabase().then((db) async =>
+          db.insert('updates', {'updateJson': json.encode(update.toJson())}));
 
   @override
-  Future<List<ContactUpdate>> getUpdates() {
-    // TODO: implement getUpdates
-    throw UnimplementedError();
-  }
+  Future<List<ContactUpdate>> getUpdates() async => getDatabase()
+      .then((db) async => db.query('updates', columns: ['updateJson']))
+      .then((results) => results
+          .map((r) => ContactUpdate.fromJson(
+              json.decode(r['updateJson']! as String) as Map<String, dynamic>))
+          .asList());
+
+  @override
+  Future<Map<String, List<String>>> getCircleMemberships() async => getDatabase()
+      .then((db) async => db.query('settings',
+          columns: ['settingsJson'],
+          where: 'id = ?',
+          whereArgs: ['circleMemberships'],
+          limit: 1))
+      .then((results) => (results.isEmpty)
+          ? {}
+          : (json.decode(results.first['settingsJson']! as String)
+                  as Map<String, dynamic>)
+              .map((key, value) =>
+                  MapEntry(key, (value is List) ? List<String>.from(value) : <String>[])));
+
+  @override
+  Future<Map<String, String>> getCircles() async => getDatabase()
+      .then((db) async => db.query('settings',
+          columns: ['settingsJson'],
+          where: 'id = ?',
+          whereArgs: ['circles'],
+          limit: 1))
+      .then((results) => (results.isEmpty)
+          ? {}
+          : ((json.decode(results.first['settingsJson']! as String)
+                  as Map<String, dynamic>)
+              .map((key, value) =>
+                  MapEntry(key, (value is String) ? value : '???'))));
+
+  @override
+  Future<ProfileSharingSettings> getProfileSharingSettings() async =>
+      getDatabase()
+          .then((db) async => db.query('settings',
+              columns: ['settingsJson'],
+              where: 'id = ?',
+              whereArgs: ['profileSharingSettings'],
+              limit: 1))
+          .then((results) => (results.isEmpty)
+              ? const ProfileSharingSettings()
+              : ProfileSharingSettings.fromJson(
+                  json.decode(results.first['settingsJson']! as String)
+                      as Map<String, dynamic>));
+
+  @override
+  Future<void> updateCircleMemberships(
+          Map<String, List<String>> circleMemberships) async =>
+      getDatabase().then((db) async => db.insert(
+          'settings',
+          {
+            'id': 'circleMemberships',
+            'settingsJson': json.encode(circleMemberships)
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace));
+
+  @override
+  Future<void> updateCircles(Map<String, String> circles) async =>
+      getDatabase().then((db) async => db.insert(
+          'settings', {'id': 'circles', 'settingsJson': json.encode(circles)},
+          conflictAlgorithm: ConflictAlgorithm.replace));
+
+  @override
+  Future<void> updateProfileSharingSettings(
+          ProfileSharingSettings settings) async =>
+      getDatabase().then((db) async => db.insert(
+          'settings',
+          {
+            'id': 'profileSharingSettings',
+            'settingsJson': json.encode(settings.toJson())
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace));
 }

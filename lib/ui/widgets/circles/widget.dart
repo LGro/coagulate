@@ -19,7 +19,7 @@ class CirclesForm extends StatefulWidget {
       this.customHeader,
       super.key});
 
-  final void Function(List<(String, String, bool)>) callback;
+  final Future<void> Function(List<(String, String, bool)>) callback;
   final List<(String, String, bool)> circles;
   final bool allowCreateNew;
   final Widget? customHeader;
@@ -69,7 +69,7 @@ class _CirclesFormState extends State<CirclesForm> {
     });
 
     try {
-      widget.callback(_state.circles);
+      await widget.callback(_state.circles);
       _state = _state.copyWith(status: FormzSubmissionStatus.success);
       Navigator.pop(context);
     } catch (e) {

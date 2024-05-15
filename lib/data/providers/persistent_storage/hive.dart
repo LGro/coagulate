@@ -7,6 +7,7 @@ import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
+import '../../models/profile_sharing_settings.dart';
 import 'base.dart';
 
 part 'hive.g.dart';
@@ -91,18 +92,56 @@ class HiveStorage extends PersistentStorage {
   Future<void> removeContact(String coagContactId) async =>
       (await _lazyGetSettingsBox()).delete(coagContactId);
 
-  Future<Box<String>> _lazyGetUpdatesBox() async =>
-      Hive.openBox('hive_coag_updates_box');
+  Future<Box<List<String>>> _lazyGetUpdatesBox() async =>
+      Hive.openBox<List<String>>('hive_coag_updates_box');
 
   @override
-  Future<void> addUpdate(ContactUpdate update) async =>
-      throw UnimplementedError();
-  // (await _lazyGetUpdatesBox())
-  //     .put(contact.coagContactId, json.encode(update.toJson()));
+  Future<void> addUpdate(ContactUpdate update) async {
+    throw UnimplementedError();
+  }
 
   @override
-  Future<List<ContactUpdate>> getUpdates() {
-    // TODO: implement getUpdates
+  Future<List<ContactUpdate>> getUpdates() async => _lazyGetUpdatesBox()
+      .then((box) async => box.get('updates'))
+      .then((updates) => (updates ?? [])
+          .map((u) =>
+              ContactUpdate.fromJson(json.decode(u) as Map<String, dynamic>))
+          .toList());
+
+  @override
+  Future<Map<String, List<String>>> getCircleMemberships() {
+    // TODO: implement getCircleMemberships
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, String>> getCircles() {
+    // TODO: implement getCircles
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ProfileSharingSettings> getProfileSharingSettings() {
+    // TODO: implement getProfileSharingSettings
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateCircleMemberships(
+      Map<String, List<String>> circleMemberships) {
+    // TODO: implement updateCircleMemberships
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateCircles(Map<String, String> circles) {
+    // TODO: implement updateCircles
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateProfileSharingSettings(ProfileSharingSettings settings) {
+    // TODO: implement updateProfileSharingSettings
     throw UnimplementedError();
   }
 }

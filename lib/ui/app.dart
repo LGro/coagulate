@@ -10,7 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../data/providers/distributed_storage/dht.dart';
-import '../data/providers/persistent_storage/shared_preferences.dart';
+import '../data/providers/persistent_storage/sqlite.dart';
 import '../data/providers/system_contacts/system_contacts.dart';
 import '../data/repositories/contacts.dart';
 import '../tick.dart';
@@ -112,7 +112,7 @@ class CoagulateApp extends StatelessWidget {
         return BackgroundTicker(
             child: RepositoryProvider.value(
           value: ContactsRepository(
-              SharedPreferencesStorage(), VeilidDhtStorage(), SystemContacts()),
+              SqliteStorage(), VeilidDhtStorage(), SystemContacts()),
           child: MaterialApp.router(
             title: 'Coagulate',
             theme: ThemeData(

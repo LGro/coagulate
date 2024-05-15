@@ -202,7 +202,11 @@ class ContactsRepository {
     // Load profile contact ID from persistent storage
     profileContactId = await persistentStorage.getProfileContactId();
 
-    // TODO: Initialize circles, circle memberships and sharing settings from persistent storage
+    // Initialize circles, circle memberships and sharing settings from persistent storage
+    _profileSharingSettings =
+        await persistentStorage.getProfileSharingSettings();
+    _circleMemberships = await persistentStorage.getCircleMemberships();
+    _circles = await persistentStorage.getCircles();
 
     // Load updates from persistent storage
     updates = await persistentStorage.getUpdates();
@@ -232,18 +236,24 @@ class ContactsRepository {
     // }
   }
 
-  void updateCircleMemberships(Map<String, List<String>> memberships) {
+  Future<void> updateCircleMemberships(
+      Map<String, List<String>> memberships) async {
     _circleMemberships = memberships;
     _circlesStreamController.add(null);
+    await persistentStorage.updateCircleMemberships(memberships);
   }
 
-  void updateCircles(Map<String, String> circles) {
+  Future<void> updateCircles(Map<String, String> circles) async {
     _circles = circles;
     _circlesStreamController.add(null);
+    await persistentStorage.updateCircles(circles);
   }
 
-  void setProfileSharingSettings(ProfileSharingSettings settings) {
+  Future<void> setProfileSharingSettings(
+      ProfileSharingSettings settings) async {
     _profileSharingSettings = settings;
+    await persistentStorage.updateProfileSharingSettings(settings);
+    // TODO: Trigger update of all shareprofile
   }
 
   ProfileSharingSettings getProfileSharingSettings() => _profileSharingSettings;

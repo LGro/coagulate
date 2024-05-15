@@ -70,6 +70,43 @@ class DummyPersistentStorage extends PersistentStorage {
     log.add('updateContact:${contact.coagContactId}');
     contacts[contact.coagContactId] = contact;
   }
+
+  @override
+  Future<Map<String, List<String>>> getCircleMemberships() {
+    // TODO: implement getCircleMemberships
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, String>> getCircles() {
+    // TODO: implement getCircles
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ProfileSharingSettings> getProfileSharingSettings() {
+    // TODO: implement getProfileSharingSettings
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateCircleMemberships(
+      Map<String, List<String>> circleMemberships) {
+    // TODO: implement updateCircleMemberships
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateCircles(Map<String, String> circles) {
+    // TODO: implement updateCircles
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateProfileSharingSettings(ProfileSharingSettings settings) {
+    // TODO: implement updateProfileSharingSettings
+    throw UnimplementedError();
+  }
 }
 
 class DummyDistributedStorage extends DistributedStorage {

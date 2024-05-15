@@ -53,7 +53,7 @@ Future<void> showPickCirclesBottomSheet(
                               ]),
                               allowCreateNew: false,
                               circles: circles,
-                              callback: (circles) => callback(circles
+                              callback: (circles) async => callback(circles
                                   .where((c) => c.$3)
                                   .map((c) => c.$1)
                                   .asList()))))

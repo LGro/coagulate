@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
+import '../../models/profile_sharing_settings.dart';
 import 'base.dart';
 
 const String mostRecentSchemaVersion = '1';
@@ -79,5 +80,42 @@ class SharedPreferencesStorage extends PersistentStorage {
   Future<void> addUpdate(ContactUpdate update) async {
     await (await SharedPreferences.getInstance())
         .setString('updates', json.encode((await getUpdates())..add(update)));
+  }
+
+  @override
+  Future<Map<String, List<String>>> getCircleMemberships() {
+    // TODO: implement getCircleMemberships
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, String>> getCircles() {
+    // TODO: implement getCircles
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ProfileSharingSettings> getProfileSharingSettings() {
+    // TODO: implement getProfileSharingSettings
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateCircleMemberships(
+      Map<String, List<String>> circleMemberships) {
+    // TODO: implement updateCircleMemberships
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateCircles(Map<String, String> circles) {
+    // TODO: implement updateCircles
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateProfileSharingSettings(ProfileSharingSettings settings) {
+    // TODO: implement updateProfileSharingSettings
+    throw UnimplementedError();
   }
 }
