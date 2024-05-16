@@ -336,7 +336,7 @@ Widget locationTile(ContactTemporaryLocation location,
         tileColor: Colors.white,
         onTap: onTap,
         subtitle: Row(children: [
-          Column(children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('From: ${dateFormat.format(location.start)}'),
             if (location.end == location.start)
               Text('Till: ${dateFormat.format(location.end)}"}'),
