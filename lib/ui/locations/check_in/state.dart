@@ -15,6 +15,11 @@ final class CheckInState extends Equatable {
 
   Map<String, dynamic> toJson() => _$CheckInStateToJson(this);
 
+  CheckInState copyWith({bool? checkingIn, Map<String, String>? circles}) =>
+      CheckInState(
+          checkingIn: checkingIn ?? this.checkingIn,
+          circles: circles ?? this.circles);
+
   @override
   List<Object?> get props => [checkingIn, circles];
 }

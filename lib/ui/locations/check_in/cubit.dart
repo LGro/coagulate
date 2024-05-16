@@ -25,38 +25,48 @@ class CheckInCubit extends Cubit<CheckInState> {
       {required String name,
       required String details,
       required DateTime end}) async {
-    emit(CheckInState(checkingIn: true, circles: state.circles));
+    emit(state.copyWith(checkingIn: true));
 
+    // TODO: Add timeout?
     final location = await Location().getLocation();
-
     if (location.longitude == null || location.latitude == null) {
-      //TODO: Emit failure stte
+      if (!isClosed) {
+        //TODO: Emit failure state
+        emit(state.copyWith(checkingIn: false));
+      }
       return;
     }
 
     final profileContact = contactsRepository.getProfileContact();
     if (profileContact == null) {
+      if (!isClosed) {
+        //TODO: Emit failure state
+        emit(state.copyWith(checkingIn: false));
+      }
       return;
     }
+
+    // TODO: Switch to unawaited because it'll be synced eventually?
     await contactsRepository
         .updateContact(profileContact.copyWith(temporaryLocations: [
-      ...profileContact.temporaryLocations
-          .map((l) => l.copyWith(checkedIn: false)),
-      ContactTemporaryLocation(
-          coagContactId: contactsRepository.profileContactId!,
-          longitude: location.longitude!,
-          latitude: location.latitude!,
-          start: DateTime.now(),
-          // TODO: Get the remaining details from a user input form
-          name: name,
-          details: details,
-          end: end,
-          checkedIn: true)
-    ]));
-    // Make sure to regenerate the sharing profiles and update DHT sharing records
-    await contactsRepository.updateProfileContact(profileContact.coagContactId);
+          ...profileContact.temporaryLocations
+              .map((l) => l.copyWith(checkedIn: false)),
+          ContactTemporaryLocation(
+              coagContactId: contactsRepository.profileContactId!,
+              longitude: location.longitude!,
+              latitude: location.latitude!,
+              start: DateTime.now(),
+              name: name,
+              details: details,
+              end: end,
+              checkedIn: true)
+        ]))
+        // Make sure to regenerate the sharing profiles and update DHT sharing records
+        .then((_) => contactsRepository
+            .updateProfileContact(profileContact.coagContactId));
+
     if (!isClosed) {
-      emit(CheckInState(checkingIn: false, circles: state.circles));
+      emit(state.copyWith(checkingIn: true));
     }
   }
 }
