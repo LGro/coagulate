@@ -1,6 +1,7 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:coagulate/data/models/coag_contact.dart';
@@ -20,12 +21,16 @@ class DummyPersistentStorage extends PersistentStorage {
   Map<String, CoagContact> contacts;
   String? profileContactId;
   List<String> log = [];
+  Map<String, String> circles = {};
+  ProfileSharingSettings profileSharingSettings =
+      const ProfileSharingSettings();
+  Map<String, List<String>> circleMemberships = {};
+  List<ContactUpdate> updates = [];
 
   @override
-  Future<void> addUpdate(ContactUpdate update) {
+  Future<void> addUpdate(ContactUpdate update) async {
     log.add('addUpdate');
-    // TODO: implement addUpdate
-    throw UnimplementedError();
+    updates.add(update);
   }
 
   @override
@@ -59,10 +64,9 @@ class DummyPersistentStorage extends PersistentStorage {
   }
 
   @override
-  Future<void> setProfileContactId(String profileContactId) {
+  Future<void> setProfileContactId(String profileContactId) async {
     log.add('setProfileContactId:$profileContactId');
     this.profileContactId = profileContactId;
-    return Future.value();
   }
 
   @override
@@ -72,40 +76,34 @@ class DummyPersistentStorage extends PersistentStorage {
   }
 
   @override
-  Future<Map<String, List<String>>> getCircleMemberships() {
-    // TODO: implement getCircleMemberships
-    throw UnimplementedError();
-  }
+  Future<Map<String, List<String>>> getCircleMemberships() async =>
+      circleMemberships;
 
   @override
-  Future<Map<String, String>> getCircles() {
-    // TODO: implement getCircles
-    throw UnimplementedError();
-  }
+  Future<Map<String, String>> getCircles() async => circles;
 
   @override
-  Future<ProfileSharingSettings> getProfileSharingSettings() {
-    // TODO: implement getProfileSharingSettings
-    throw UnimplementedError();
-  }
+  Future<ProfileSharingSettings> getProfileSharingSettings() async =>
+      profileSharingSettings;
 
   @override
   Future<void> updateCircleMemberships(
-      Map<String, List<String>> circleMemberships) {
-    // TODO: implement updateCircleMemberships
-    throw UnimplementedError();
+      Map<String, List<String>> circleMemberships) async {
+    log.add('updateCircleMemberships');
+    this.circleMemberships = circleMemberships;
   }
 
   @override
-  Future<void> updateCircles(Map<String, String> circles) {
-    // TODO: implement updateCircles
-    throw UnimplementedError();
+  Future<void> updateCircles(Map<String, String> circles) async {
+    log.add('updateCircles');
+    this.circles = circles;
   }
 
   @override
-  Future<void> updateProfileSharingSettings(ProfileSharingSettings settings) {
-    // TODO: implement updateProfileSharingSettings
-    throw UnimplementedError();
+  Future<void> updateProfileSharingSettings(
+      ProfileSharingSettings settings) async {
+    log.add('updateProfileSharingSettings');
+    profileSharingSettings = settings;
   }
 }
 
