@@ -45,6 +45,7 @@ class MapCubit extends Cubit<MapState> {
             .where((l) => l.coagContactId != contact.coagContactId),
         ...contactToLocations(contact),
         ...contact.temporaryLocations
+            .where((l) => l.end.isAfter(DateTime.now()))
             .map((l) => temporaryLocationToLocation(contact, l))
       ], MapStatus.success,
           mapboxApiToken:
@@ -58,6 +59,7 @@ class MapCubit extends Cubit<MapState> {
             .map((c) => [
                   ...contactToLocations(c),
                   ...c.temporaryLocations
+                      .where((l) => l.end.isAfter(DateTime.now()))
                       .map((l) => temporaryLocationToLocation(c, l))
                 ])
             .flattened,
