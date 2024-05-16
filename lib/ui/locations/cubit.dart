@@ -24,10 +24,12 @@ class LocationsCubit extends Cubit<LocationsState> {
       if (contact.coagContactId ==
           contactsRepository.getProfileContact()?.coagContactId) {
         emit(LocationsState(
-            temporaryLocations: _sort(contact.temporaryLocations)));
+            temporaryLocations: _sort(contact.temporaryLocations),
+            circleMembersips: contactsRepository.getCircleMemberships()));
       }
     });
     emit(LocationsState(
+        circleMembersips: contactsRepository.getCircleMemberships(),
         temporaryLocations: (contactsRepository.getProfileContact() == null)
             ? []
             : _sort(

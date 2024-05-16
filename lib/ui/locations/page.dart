@@ -320,19 +320,31 @@ extension on PasswordValidationError {
 
 DateFormat dateFormat = DateFormat.yMd().add_Hm();
 
+int numberContactsShared(Iterable<Iterable<String>> circleMembersips,
+        Iterable<String> circles) =>
+    circleMembersips
+        .where((c) => c.asSet().intersectsWith(circles.asSet()))
+        .length;
+
 // TODO: Display details as well?
 // TODO: Indicate with how many contacts this location is shared
 Widget locationTile(ContactTemporaryLocation location,
+        Map<String, List<String>> circleMembersips,
         {Future<void> Function()? onTap}) =>
     ListTile(
         title: Text(location.name),
         tileColor: Colors.white,
         onTap: onTap,
         subtitle: Row(children: [
-          Text('From: ${dateFormat.format(location.start)} '
-              '${(location.end == location.start) ? "" : "\nTill: ${dateFormat.format(location.end)}"}'
-              '\nLon: ${location.longitude.toStringAsFixed(4)}, '
-              'Lat: ${location.latitude.toStringAsFixed(4)}'),
+          Column(children: [
+            Text('From: ${dateFormat.format(location.start)}'),
+            if (location.end == location.start)
+              Text('Till: ${dateFormat.format(location.end)}"}'),
+            Text('Lon: ${location.longitude.toStringAsFixed(4)}, '
+                'Lat: ${location.latitude.toStringAsFixed(4)}'),
+            Text(
+                'Shared with ${numberContactsShared(circleMembersips.values, location.circles)} contacts'),
+          ]),
           Text(location.details)
         ]),
         trailing:
@@ -382,7 +394,7 @@ class LocationsPage extends StatelessWidget {
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
                           background: Container(color: Colors.red),
-                          child: locationTile(l)))
+                          child: locationTile(l, state.circleMembersips)))
                       .asList(),
                   // Current locations // TODO: maybe allow checking in 5-10min earlier?
                   ...state.temporaryLocations
@@ -394,7 +406,7 @@ class LocationsPage extends StatelessWidget {
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
                           background: Container(color: Colors.red),
-                          child: locationTile(l,
+                          child: locationTile(l, state.circleMembersips,
                               onTap: () async => context
                                   .read<LocationsCubit>()
                                   .toggleCheckInExisting(l))))
@@ -424,7 +436,7 @@ class LocationsPage extends StatelessWidget {
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
                           background: Container(color: Colors.red),
-                          child: locationTile(l)))
+                          child: locationTile(l, state.circleMembersips)))
                       .asList(),
                 ])),
                 const SizedBox(height: 16),
