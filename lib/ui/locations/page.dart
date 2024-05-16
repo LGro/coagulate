@@ -7,6 +7,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
+import 'package:intl/intl.dart';
 
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
@@ -317,6 +318,8 @@ extension on PasswordValidationError {
   }
 }
 
+DateFormat dateFormat = DateFormat.yMd().add_Hm();
+
 // TODO: Display details as well?
 // TODO: Indicate with how many contacts this location is shared
 Widget locationTile(ContactTemporaryLocation location,
@@ -325,9 +328,13 @@ Widget locationTile(ContactTemporaryLocation location,
         title: Text(location.name),
         tileColor: Colors.white,
         onTap: onTap,
-        subtitle: Text(
-            'From: ${location.start} ${(location.end == location.start) ? "" : "\nTill: ${location.end}"}'
-            '\nLon: ${location.longitude}, Lat: ${location.latitude}'),
+        subtitle: Row(children: [
+          Text('From: ${dateFormat.format(location.start)} '
+              '${(location.end == location.start) ? "" : "\nTill: ${dateFormat.format(location.end)}"}'
+              '\nLon: ${location.longitude.toStringAsFixed(4)}, '
+              'Lat: ${location.latitude.toStringAsFixed(4)}'),
+          Text(location.details)
+        ]),
         trailing:
             // TODO: Better icon to indicate checked in
             (location.checkedIn && DateTime.now().isBefore(location.end))
