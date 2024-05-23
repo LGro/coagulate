@@ -484,16 +484,18 @@ class ProfileViewState extends State<ProfileView> {
                     'profile or pick an existing contact that '
                     'contains your data from the address book.',
                     textScaler: TextScaler.linear(1.2))),
-            // TODO: Only display them when permissions granted, unless creation is possible in coagulate only
             if (state.permissionsGranted) ...[
-              // Re-enable when fixed: https://github.com/QuisApp/flutter_contacts/issues/100
-              // TextButton(
-              //     onPressed: context.read<ProfileCubit>().promptCreate,
-              //     child: const Text('Create Profile',
-              //         textScaler: TextScaler.linear(1.2))),
-              // Container(
-              //     padding: const EdgeInsets.all(8),
-              //     child: const Text('or', textScaler: TextScaler.linear(1.2))),
+              // Re-enable for Android when fixed: https://github.com/QuisApp/flutter_contacts/issues/100
+              if (Platform.isIOS)
+                TextButton(
+                    onPressed: context.read<ProfileCubit>().promptCreate,
+                    child: const Text('Create Profile',
+                        textScaler: TextScaler.linear(1.2))),
+              if (Platform.isIOS)
+                Container(
+                    padding: const EdgeInsets.all(8),
+                    child:
+                        const Text('or', textScaler: TextScaler.linear(1.2))),
               TextButton(
                   onPressed: context.read<ProfileCubit>().promptPick,
                   child: const Text('Pick Contact as Profile',

@@ -52,7 +52,12 @@ class ProfileCubit extends Cubit<ProfileState> {
   Future<void> promptCreate() async {
     if (await FlutterContacts.requestPermission()) {
       emit(state.copyWith(status: ProfileStatus.create));
-      await setContact((await FlutterContacts.openExternalInsert())?.id);
+      final newContactId = (await FlutterContacts.openExternalInsert())?.id;
+      if (newContactId != null) {
+        // TODO: Can we be more trageted here, to only update the one contact id?
+        await contactsRepository.updateFromSystemContacts();
+      }
+      await setContact(newContactId);
     }
   }
 

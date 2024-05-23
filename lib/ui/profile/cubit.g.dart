@@ -17,7 +17,10 @@ ProfileState _$ProfileStateFromJson(Map<String, dynamic> json) => ProfileState(
           ? null
           : ProfileSharingSettings.fromJson(
               json['sharing_settings'] as Map<String, dynamic>),
-      circles: Map<String, String>.from(json['circles'] as Map),
+      circles: (json['circles'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
       permissionsGranted: json['permissions_granted'] as bool? ?? false,
     );
 

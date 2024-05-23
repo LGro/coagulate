@@ -218,7 +218,7 @@ class ContactsRepository {
       _contactsStreamController.add(c);
     }
 
-    await _updateFromSystemContacts();
+    await updateFromSystemContacts();
     FlutterContacts.addListener(_systemContactsChangedCallback);
 
     // Update the contacts from DHT and subscribe to future updates
@@ -322,7 +322,7 @@ class ContactsRepository {
     // Delay to avoid system update coming in before other updates
     await Future.delayed(const Duration(milliseconds: 100));
     final oldProfileContact = _contacts[profileContactId];
-    await _updateFromSystemContacts();
+    await updateFromSystemContacts();
     if (oldProfileContact != null &&
         oldProfileContact != _contacts[profileContactId]) {
       // Trigger update of share profiles and all that jazz
@@ -371,7 +371,7 @@ class ContactsRepository {
 
   /// Update all system contacts in case they changed and add missing ones
   // TODO: Test that there can be coagulate contacts with a system contact that isn't actually in the system
-  Future<void> _updateFromSystemContacts() async {
+  Future<void> updateFromSystemContacts() async {
     // Try if permissions are granted
     try {
       var systemContacts = await systemContactsStorage.getContacts();
