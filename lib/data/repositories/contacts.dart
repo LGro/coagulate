@@ -22,8 +22,6 @@ import '../providers/persistent_storage/base.dart';
 import '../providers/system_contacts/base.dart';
 import '../providers/system_contacts/system_contacts.dart';
 
-// TODO: Persist all changes to any contact by never accessing coagContacts directly, only via getter and setter
-
 String contactDetailKey<T>(int i, T detail) {
   if (detail is Organization) {
     return '$i|${detail.company}';
@@ -241,6 +239,7 @@ class ContactsRepository {
     _circleMemberships = memberships;
     _circlesStreamController.add(null);
     await persistentStorage.updateCircleMemberships(memberships);
+    // TODO: Update sharing profile and update dht record; only update where necessary
   }
 
   Future<void> updateCircles(Map<String, String> circles) async {
@@ -253,7 +252,25 @@ class ContactsRepository {
       ProfileSharingSettings settings) async {
     _profileSharingSettings = settings;
     await persistentStorage.updateProfileSharingSettings(settings);
-    // TODO: Trigger update of all shareprofile
+
+    final profileContact = getProfileContact();
+    if (profileContact == null) {
+      return;
+    }
+    for (final contact in _contacts.values) {
+      if (contact.dhtSettingsForSharing?.psk == null) {
+        continue;
+      }
+      await updateContact(contact.copyWith(
+          sharedProfile: json.encode(removeNullOrEmptyValues(
+              filterAccordingToSharingProfile(
+                      profile: profileContact,
+                      settings: _profileSharingSettings,
+                      activeCircles:
+                          _circleMemberships[contact.coagContactId] ?? [],
+                      shareBackSettings: contact.dhtSettingsForReceiving)
+                  .toJson()))));
+    }
   }
 
   ProfileSharingSettings getProfileSharingSettings() => _profileSharingSettings;

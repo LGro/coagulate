@@ -1,6 +1,7 @@
 # Custom
 report.xml
 /coverage/
+secrets/
 
 # Miscellaneous
 *.class

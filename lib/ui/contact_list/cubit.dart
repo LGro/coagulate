@@ -10,6 +10,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
+import '../../utils.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
@@ -24,7 +25,8 @@ String extractAllValuesToString(dynamic value) {
   }
 }
 
-Iterable<CoagContact> filterAndSortContacts(Iterable<CoagContact> contacts, {String filter = ''}) =>
+Iterable<CoagContact> filterAndSortContacts(Iterable<CoagContact> contacts,
+        {String filter = ''}) =>
     ((filter.isEmpty)
             ? contacts
             : contacts.where((c) =>
@@ -37,9 +39,10 @@ Iterable<CoagContact> filterAndSortContacts(Iterable<CoagContact> contacts, {Str
                         .toLowerCase()
                         .contains(filter.toLowerCase()))))
         .toList()
-      ..sort((a, b) => compareNatural(
-          a.details?.displayName ?? a.systemContact?.displayName ?? 'A',
-          b.details?.displayName ?? b.systemContact?.displayName ?? 'A'));
+      ..sort((a, b) =>
+          // Use + in case no display name could be determined to ensure the
+          // respective contacts end up before phone numbers with country codes
+          compareNatural(displayName(a) ?? '+', displayName(b) ?? '+'));
 
 // TODO: Figure out sorting of the contacts
 class ContactListCubit extends Cubit<ContactListState> {

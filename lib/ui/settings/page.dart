@@ -38,9 +38,18 @@ class SettingsPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Row(children: [
-                          const Text('Network Status:'),
-                          const SizedBox(width: 10),
+                          Text('Network Status:'),
+                          SizedBox(width: 10),
                           SignalStrengthMeterWidget()
+                        ]),
+                        Row(children: [
+                          const Expanded(
+                              child: Text('Automatic address resolution')),
+                          Switch(
+                              value: true,
+                              activeColor: Colors.green,
+                              // TODO: Add state handling
+                              onChanged: (bool value) {})
                         ]),
                         // TODO: Move async things to cubit
                         // if (Platform.isIOS) _backgroundPermissionStatus(),

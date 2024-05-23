@@ -14,6 +14,7 @@ import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
+import '../../utils.dart';
 import '../profile/page.dart';
 import '../widgets/avatar.dart';
 import '../widgets/circles/cubit.dart';
@@ -109,9 +110,8 @@ class ContactPage extends StatelessWidget {
                   // TODO: Theme
                   backgroundColor: const Color.fromARGB(255, 244, 244, 244),
                   appBar: AppBar(
-                    title: Text(state.contact.details?.displayName ??
-                        state.contact.systemContact?.displayName ??
-                        'Contact Details'),
+                    title:
+                        Text(displayName(state.contact) ?? 'Contact Details'),
                   ),
                   body: _body(context, state.contact, state.circles))));
 
@@ -250,14 +250,14 @@ Widget receivingCard(BuildContext context, CoagContact contact) => Card(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
-                'Ask ${contact.details?.displayName ?? contact.systemContact!.displayName} to start sharing with you:',
+                'Ask ${displayName(contact) ?? 'them'} to start sharing with you:',
                 textScaler: const TextScaler.linear(1.2)),
             const SizedBox(height: 4),
             Center(
                 child: _qrCodeButton(context,
                     buttonText: 'QR code to request',
                     alertTitle:
-                        'Request from ${contact.details?.displayName ?? contact.systemContact!.displayName}',
+                        'Request from ${displayName(contact) ?? 'them'}',
                     qrCodeData: _receiveUrl(
                       key: contact.dhtSettingsForReceiving!.key,
                       psk: contact.dhtSettingsForReceiving!.psk!,
@@ -305,15 +305,14 @@ Widget sharingCard(BuildContext context, CoagContact contact) => Card(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
-                'Start sharing your contact details with ${contact.details?.displayName ?? contact.systemContact!.displayName}:',
+                'Start sharing your contact details with ${displayName(contact) ?? 'them'}:',
                 textScaler: const TextScaler.linear(1.2)),
             const SizedBox(height: 4),
             // TODO: Only show share back button when receiving key and psk but not writer are set i.e. is receiving updates and has share back settings
             Center(
                 child: _qrCodeButton(context,
                     buttonText: 'QR code to share',
-                    alertTitle:
-                        'Share with ${contact.details?.displayName ?? contact.systemContact!.displayName}',
+                    alertTitle: 'Share with ${displayName(contact) ?? 'them'}',
                     qrCodeData: _shareUrl(
                       key: contact.dhtSettingsForSharing!.key,
                       psk: contact.dhtSettingsForSharing!.psk!,
@@ -361,15 +360,20 @@ Card circlesCard(
         margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
         child: Padding(
             padding:
-                const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+                const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
             child: Row(children: [
               Expanded(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    const Text('circles'),
-                    Text(circles.join(', '),
-                        style: const TextStyle(fontSize: 19)),
+                    const Text('circles',
+                        style: TextStyle(fontSize: 16, color: Colors.black54)),
+                    if (circles.isEmpty)
+                      const Text('Add them to circles to start sharing.',
+                          style: TextStyle(fontSize: 19))
+                    else
+                      Text(circles.join(', '),
+                          style: const TextStyle(fontSize: 19)),
                   ])),
               IconButton(
                   icon: const Icon(Icons.edit),

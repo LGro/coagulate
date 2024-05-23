@@ -73,4 +73,31 @@ void main() {
     contactsRepository.timerDhtRefresh?.cancel();
     contactsRepository.timerPersistentStorageRefresh?.cancel();
   });
+
+  // testWidgets('Choose system contact as profile', (tester) async {
+  //   final contactsRepository = ContactsRepository(
+  //       DummyPersistentStorage({}),
+  //       DummyDistributedStorage(),
+  //       DummySystemContacts([
+  //         Contact(
+  //             displayName: 'Sys Contact',
+  //             name: Name(first: 'Sys', last: 'Contact'))
+  //       ]));
+  //   final page = await createProfilePage(contactsRepository);
+  //   await tester.pumpWidget(page);
+
+  //   await tester.tap(find.byKey(const Key('profilePickContactAsProfile')));
+
+  //   await tester.pump();
+
+  //   // start with no profile contact
+  //   // push choose contact button
+  //   // have predefined contact returned from provider
+  //   // check that its displayed
+
+  //   expect(find.text('Sys Contact'), findsOneWidget);
+
+  //   contactsRepository.timerDhtRefresh?.cancel();
+  //   contactsRepository.timerPersistentStorageRefresh?.cancel();
+  // });
 }

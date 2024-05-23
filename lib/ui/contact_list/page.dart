@@ -8,6 +8,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
+import '../../utils.dart';
 import '../contact_details/page.dart';
 import '../receive_request/page.dart';
 import '../widgets/avatar.dart';
@@ -91,9 +92,7 @@ class _ContactListPageState extends State<ContactListPage> {
         final contact = contacts[i];
         return ListTile(
             leading: avatar(contact.systemContact, radius: 18),
-            title: Text(contact.details?.displayName ??
-                contact.systemContact?.displayName ??
-                'unknown'),
+            title: Text(displayName(contact) ?? 'unknown'),
             trailing: Text(_contactSyncStatus(contact)),
             onTap: () =>
                 Navigator.of(context).push(ContactPage.route(contact)));

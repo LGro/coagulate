@@ -49,12 +49,18 @@ class ProfileCubit extends Cubit<ProfileState> {
   late final StreamSubscription<CoagContact> _contactsSubscription;
   late final StreamSubscription<bool> _permissionsSubscription;
 
-  void promptCreate() {
-    emit(state.copyWith(status: ProfileStatus.create));
+  Future<void> promptCreate() async {
+    if (await FlutterContacts.requestPermission()) {
+      emit(state.copyWith(status: ProfileStatus.create));
+      await setContact((await FlutterContacts.openExternalInsert())?.id);
+    }
   }
 
-  void promptPick() {
-    emit(state.copyWith(status: ProfileStatus.pick));
+  Future<void> promptPick() async {
+    if (await FlutterContacts.requestPermission()) {
+      emit(state.copyWith(status: ProfileStatus.pick));
+      await setContact((await FlutterContacts.openExternalPick())?.id);
+    }
   }
 
   Future<void> setContact(String? systemContactId) async {

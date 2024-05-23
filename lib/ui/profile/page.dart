@@ -66,7 +66,7 @@ Card _card(List<Widget> children) => Card(
     child: SizedBox(
         child: Padding(
             padding:
-                const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
+                const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 12),
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: children))));
@@ -206,6 +206,7 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
         .map((i, e) => MapEntry(
             i,
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const SizedBox(height: 8),
               Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 Expanded(
                     child: Column(
@@ -347,115 +348,125 @@ Widget buildProfileScrollView(
                     if (contact.phones.isNotEmpty)
                       phones(
                           contact.phones,
-                          (i, label) async => showPickCirclesBottomSheet(
-                              context: context,
-                              label: label,
-                              coagContactId: coagContactId,
-                              circles: circles
-                                  .map((cId, cLabel) => MapEntry(cId, (
-                                        cId,
-                                        cLabel,
-                                        profileSharingSettings
-                                                .phones['$i|$label']
-                                                ?.contains(cId) ??
-                                            false
-                                      )))
-                                  .values
-                                  .toList(),
-                              callback: (selectedCircles) => context
-                                  .read<ProfileCubit>()
-                                  .updatePhoneSharingCircles(
-                                      i, label, selectedCircles))),
+                          (circles.isEmpty)
+                              ? null
+                              : (i, label) async => showPickCirclesBottomSheet(
+                                  context: context,
+                                  label: label,
+                                  coagContactId: coagContactId,
+                                  circles: circles
+                                      .map((cId, cLabel) => MapEntry(cId, (
+                                            cId,
+                                            cLabel,
+                                            profileSharingSettings
+                                                    .phones['$i|$label']
+                                                    ?.contains(cId) ??
+                                                false
+                                          )))
+                                      .values
+                                      .toList(),
+                                  callback: (selectedCircles) => context
+                                      .read<ProfileCubit>()
+                                      .updatePhoneSharingCircles(
+                                          i, label, selectedCircles))),
                     if (contact.emails.isNotEmpty)
                       emails(
                           contact.emails,
-                          (i, label) async => showPickCirclesBottomSheet(
-                              context: context,
-                              label: label,
-                              coagContactId: coagContactId,
-                              circles: circles
-                                  .map((cId, cLabel) => MapEntry(cId, (
-                                        cId,
-                                        cLabel,
-                                        profileSharingSettings
-                                                .emails['$i|$label']
-                                                ?.contains(cId) ??
-                                            false
-                                      )))
-                                  .values
-                                  .toList(),
-                              callback: (selectedCircles) => context
-                                  .read<ProfileCubit>()
-                                  .updateEmailSharingCircles(
-                                      i, label, selectedCircles))),
+                          (circles.isEmpty)
+                              ? null
+                              : (i, label) async => showPickCirclesBottomSheet(
+                                  context: context,
+                                  label: label,
+                                  coagContactId: coagContactId,
+                                  circles: circles
+                                      .map((cId, cLabel) => MapEntry(cId, (
+                                            cId,
+                                            cLabel,
+                                            profileSharingSettings
+                                                    .emails['$i|$label']
+                                                    ?.contains(cId) ??
+                                                false
+                                          )))
+                                      .values
+                                      .toList(),
+                                  callback: (selectedCircles) => context
+                                      .read<ProfileCubit>()
+                                      .updateEmailSharingCircles(
+                                          i, label, selectedCircles))),
                     if (contact.addresses.isNotEmpty)
                       addressesWithForms(
                           context,
                           contact.addresses,
                           addressLocations,
-                          (i, label) async => showPickCirclesBottomSheet(
-                              context: context,
-                              label: label,
-                              coagContactId: coagContactId,
-                              circles: circles
-                                  .map((cId, cLabel) => MapEntry(cId, (
-                                        cId,
-                                        cLabel,
-                                        profileSharingSettings
-                                                .addresses['$i|$label']
-                                                ?.contains(cId) ??
-                                            false
-                                      )))
-                                  .values
-                                  .toList(),
-                              callback: (selectedCircles) => context
-                                  .read<ProfileCubit>()
-                                  .updateAddressSharingCircles(
-                                      i, label, selectedCircles))),
+                          (circles.isEmpty)
+                              ? null
+                              : (i, label) async => showPickCirclesBottomSheet(
+                                  context: context,
+                                  label: label,
+                                  coagContactId: coagContactId,
+                                  circles: circles
+                                      .map((cId, cLabel) => MapEntry(cId, (
+                                            cId,
+                                            cLabel,
+                                            profileSharingSettings
+                                                    .addresses['$i|$label']
+                                                    ?.contains(cId) ??
+                                                false
+                                          )))
+                                      .values
+                                      .toList(),
+                                  callback: (selectedCircles) => context
+                                      .read<ProfileCubit>()
+                                      .updateAddressSharingCircles(
+                                          i, label, selectedCircles))),
                     if (contact.websites.isNotEmpty)
                       websites(
                           contact.websites,
-                          (i, label) async => showPickCirclesBottomSheet(
-                              context: context,
-                              label: label,
-                              coagContactId: coagContactId,
-                              circles: circles
-                                  .map((cId, cLabel) => MapEntry(cId, (
-                                        cId,
-                                        cLabel,
-                                        profileSharingSettings
-                                                .websites['$i|$label']
-                                                ?.contains(cId) ??
-                                            false
-                                      )))
-                                  .values
-                                  .toList(),
-                              callback: (selectedCircles) => context
-                                  .read<ProfileCubit>()
-                                  .updateWebsiteSharingCircles(
-                                      i, label, selectedCircles))),
+                          (circles.isEmpty)
+                              ? null
+                              : (i, label) async => showPickCirclesBottomSheet(
+                                  context: context,
+                                  label: label,
+                                  coagContactId: coagContactId,
+                                  circles: circles
+                                      .map((cId, cLabel) => MapEntry(cId, (
+                                            cId,
+                                            cLabel,
+                                            profileSharingSettings
+                                                    .websites['$i|$label']
+                                                    ?.contains(cId) ??
+                                                false
+                                          )))
+                                      .values
+                                      .toList(),
+                                  callback: (selectedCircles) => context
+                                      .read<ProfileCubit>()
+                                      .updateWebsiteSharingCircles(
+                                          i, label, selectedCircles))),
                     if (contact.socialMedias.isNotEmpty)
                       socialMedias(
                           contact.socialMedias,
-                          (i, label) async => showPickCirclesBottomSheet(
-                              context: context,
-                              label: label,
-                              coagContactId: coagContactId,
-                              circles: circles
-                                  .map((cId, cLabel) => MapEntry(cId, (
-                                        cId,
-                                        cLabel,
-                                        profileSharingSettings
-                                                .socialMedias['$i|$label']
-                                                ?.contains(cId) ??
-                                            false
-                                      )))
-                                  .values
-                                  .toList(),
-                              callback: (selectedCircles) => context
-                                  .read<ProfileCubit>()
-                                  .updateSocialMediaSharingCircles(
-                                      i, label, selectedCircles))),
+                          (circles.isEmpty)
+                              ? null
+                              : (i, label) async => showPickCirclesBottomSheet(
+                                  context: context,
+                                  label: label,
+                                  coagContactId: coagContactId,
+                                  circles: circles
+                                      .map((cId, cLabel) => MapEntry(cId, (
+                                            cId,
+                                            cLabel,
+                                            profileSharingSettings
+                                                    .socialMedias['$i|$label']
+                                                    ?.contains(cId) ??
+                                                false
+                                          )))
+                                      .values
+                                      .toList(),
+                                  callback: (selectedCircles) => context
+                                      .read<ProfileCubit>()
+                                      .updateSocialMediaSharingCircles(
+                                          i, label, selectedCircles))),
                   ]))
         ]));
 
@@ -475,13 +486,14 @@ class ProfileViewState extends State<ProfileView> {
                     textScaler: TextScaler.linear(1.2))),
             // TODO: Only display them when permissions granted, unless creation is possible in coagulate only
             if (state.permissionsGranted) ...[
-              TextButton(
-                  onPressed: context.read<ProfileCubit>().promptCreate,
-                  child: const Text('Create Profile',
-                      textScaler: TextScaler.linear(1.2))),
-              Container(
-                  padding: const EdgeInsets.all(8),
-                  child: const Text('or', textScaler: TextScaler.linear(1.2))),
+              // Re-enable when fixed: https://github.com/QuisApp/flutter_contacts/issues/100
+              // TextButton(
+              //     onPressed: context.read<ProfileCubit>().promptCreate,
+              //     child: const Text('Create Profile',
+              //         textScaler: TextScaler.linear(1.2))),
+              // Container(
+              //     padding: const EdgeInsets.all(8),
+              //     child: const Text('or', textScaler: TextScaler.linear(1.2))),
               TextButton(
                   onPressed: context.read<ProfileCubit>().promptPick,
                   child: const Text('Pick Contact as Profile',
@@ -524,27 +536,7 @@ class ProfileViewState extends State<ProfileView> {
     BuildContext context,
   ) =>
       BlocConsumer<ProfileCubit, ProfileState>(
-          listener: (context, state) async {
-            if (state.status.isPick) {
-              if (await FlutterContacts.requestPermission()) {
-                await context
-                    .read<ProfileCubit>()
-                    .setContact((await FlutterContacts.openExternalPick())?.id);
-              } else {
-                // TODO: Trigger hint about missing permission
-                return;
-              }
-            } else if (state.status.isCreate) {
-              if (await FlutterContacts.requestPermission()) {
-                // TODO: This doesn't seem to return the contact after creation, leaving the profile page with the spinner
-                await context.read<ProfileCubit>().setContact(
-                    (await FlutterContacts.openExternalInsert())?.id);
-              } else {
-                // TODO: Trigger hint about missing permission
-                return;
-              }
-            }
-          },
+          listener: (context, state) {},
           builder: (context, state) => Scaffold(
               // TODO: Theme
               backgroundColor: const Color.fromARGB(255, 244, 244, 244),

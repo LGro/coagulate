@@ -335,17 +335,16 @@ Widget locationTile(ContactTemporaryLocation location,
         title: Text(location.name),
         tileColor: Colors.white,
         onTap: onTap,
-        subtitle: Row(children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('From: ${dateFormat.format(location.start)}'),
-            if (location.end == location.start)
-              Text('Till: ${dateFormat.format(location.end)}"}'),
-            Text('Lon: ${location.longitude.toStringAsFixed(4)}, '
-                'Lat: ${location.latitude.toStringAsFixed(4)}'),
-            Text(
-                'Shared with ${numberContactsShared(circleMembersips.values, location.circles)} contacts'),
-          ]),
-          Text(location.details)
+        subtitle:
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('From: ${dateFormat.format(location.start)}'),
+          if (location.end == location.start)
+            Text('Till: ${dateFormat.format(location.end)}"}'),
+          Text('Lon: ${location.longitude.toStringAsFixed(4)}, '
+              'Lat: ${location.latitude.toStringAsFixed(4)}'),
+          Text(
+              'Shared with ${numberContactsShared(circleMembersips.values, location.circles)} contacts'),
+          Text(location.details),
         ]),
         trailing:
             // TODO: Better icon to indicate checked in
@@ -415,11 +414,11 @@ class LocationsPage extends StatelessWidget {
                   if (state.temporaryLocations
                       .where((l) => !l.end.isBefore(DateTime.now()))
                       .isEmpty)
-                    const Padding(
-                        padding: EdgeInsets.only(top: 16, bottom: 16),
-                        child: Center(
-                            child: Text(
-                                'Nothing coming up, check-in now or plan a future stay.'))),
+                    Container(
+                        padding: const EdgeInsets.all(20),
+                        child: const Text(
+                            'Nothing coming up, check-in now or plan a future stay.',
+                            style: TextStyle(fontSize: 16))),
                   // Past locations
                   if (state.temporaryLocations
                       .where((l) => l.end.isBefore(DateTime.now()))
