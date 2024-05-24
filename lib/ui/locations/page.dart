@@ -366,16 +366,19 @@ class LocationsPage extends StatelessWidget {
                 actions: [
                   // TODO: Import from calendar
                   IconButton(
-                      onPressed: () => ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
-                            content: Text(
-                                'Importing new locations from the calendar will come soon'),
-                          )),
+                      onPressed: (state.circleMembersips.isEmpty)
+                          ? null
+                          : () => ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                content: Text(
+                                    'Importing new locations from the calendar will come soon'),
+                              )),
                       icon: const Icon(Icons.calendar_month)),
                   // TODO: Add manually via form
                   IconButton(
-                      onPressed:
-                          context.read<LocationsCubit>().addRandomLocation,
+                      onPressed: (state.circleMembersips.isEmpty)
+                          ? null
+                          : context.read<LocationsCubit>().addRandomLocation,
                       icon: const Icon(Icons.add)),
                 ],
               ),
@@ -419,6 +422,13 @@ class LocationsPage extends StatelessWidget {
                         child: const Text(
                             'Nothing coming up, check-in now or plan a future stay.',
                             style: TextStyle(fontSize: 16))),
+                  if (state.circleMembersips.isEmpty)
+                    Container(
+                        padding: const EdgeInsets.only(
+                            left: 20, right: 20, bottom: 20),
+                        child: const Text(
+                            'Before you can start sharing your location, add some contacts to circles.',
+                            style: TextStyle(fontSize: 16))),
                   // Past locations
                   if (state.temporaryLocations
                       .where((l) => l.end.isBefore(DateTime.now()))
@@ -439,26 +449,22 @@ class LocationsPage extends StatelessWidget {
                       .asList(),
                 ])),
                 const SizedBox(height: 16),
-                Row(children: [
-                  const SizedBox(width: 16),
+                const Row(children: [
+                  SizedBox(width: 16),
                   Expanded(
                       child: ElevatedButton(
                           // TODO: Display live location sharing dialog with selection of circles and optional duration
-                          onPressed: () => ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text(
-                                    'Live location sharing will come soon'),
-                              )),
-                          child: const Row(
+                          onPressed: null,
+                          child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.route),
                                 SizedBox(width: 8),
                                 Text('share live')
                               ]))),
-                  const SizedBox(width: 16),
-                  const Expanded(child: CheckInWidget()),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
+                  Expanded(child: CheckInWidget()),
+                  SizedBox(width: 16),
                 ]),
                 const SizedBox(height: 16),
               ]))));

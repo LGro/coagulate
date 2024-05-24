@@ -275,6 +275,7 @@ class CheckInWidget extends StatelessWidget {
                               .contactsRepository
                               .profileContactId ==
                           null ||
+                      context.read<CheckInCubit>().state.circles.isEmpty ||
                       state.checkingIn)
                   ? null
                   : () async => showModalBottomSheet<void>(
