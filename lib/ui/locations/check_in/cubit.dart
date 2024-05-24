@@ -69,7 +69,7 @@ class CheckInCubit extends Cubit<CheckInState> {
             .updateProfileContact(profileContact.coagContactId));
 
     if (!isClosed) {
-      emit(state.copyWith(checkingIn: true));
+      emit(state.copyWith(checkingIn: false));
     }
   }
 }

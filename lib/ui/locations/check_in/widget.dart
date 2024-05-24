@@ -92,20 +92,19 @@ class _MyFormState extends State<MyForm> {
       ..nextFocus()
       ..unfocus();
 
-    const successSnackBar = SnackBar(
-      content: Text('Submitted successfully! 🎉'),
-    );
     const failureSnackBar = SnackBar(
       content: Text('Something went wrong... 🚨'),
     );
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        _state.status.isSuccess ? successSnackBar : failureSnackBar,
-      );
-
-    if (_state.status.isSuccess) _resetForm();
+    if (!_state.status.isSuccess) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          failureSnackBar,
+        );
+    } else {
+      _resetForm();
+    }
   }
 
   void _resetForm() {
