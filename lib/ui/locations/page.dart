@@ -326,8 +326,6 @@ int numberContactsShared(Iterable<Iterable<String>> circleMembersips,
         .where((c) => c.asSet().intersectsWith(circles.asSet()))
         .length;
 
-// TODO: Display details as well?
-// TODO: Indicate with how many contacts this location is shared
 Widget locationTile(ContactTemporaryLocation location,
         Map<String, List<String>> circleMembersips,
         {Future<void> Function()? onTap}) =>
@@ -338,13 +336,13 @@ Widget locationTile(ContactTemporaryLocation location,
         subtitle:
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('From: ${dateFormat.format(location.start)}'),
-          if (location.end == location.start)
-            Text('Till: ${dateFormat.format(location.end)}"}'),
+          if (location.end != location.start)
+            Text('Till: ${dateFormat.format(location.end)}'),
           Text('Lon: ${location.longitude.toStringAsFixed(4)}, '
               'Lat: ${location.latitude.toStringAsFixed(4)}'),
           Text(
               'Shared with ${numberContactsShared(circleMembersips.values, location.circles)} contacts'),
-          Text(location.details),
+          if (location.details.isNotEmpty) Text(location.details),
         ]),
         trailing:
             // TODO: Better icon to indicate checked in
