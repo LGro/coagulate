@@ -16,6 +16,7 @@ class MyForm extends StatefulWidget {
   final Future<void> Function({
     required String name,
     required String details,
+    required List<String> circles,
     required DateTime end,
   }) callback;
 
@@ -74,6 +75,7 @@ class _MyFormState extends State<MyForm> {
       await widget.callback(
           name: (_state.title.isEmpty) ? 'Checked-in' : _state.title,
           details: _state.details,
+          circles: _state.circles.where((c) => c.$3).map((c) => c.$1).toList(),
           end: DateTime.now()
               .add(Duration(hours: _state.hours, minutes: _state.minutes)));
       _state = _state.copyWith(status: FormzSubmissionStatus.success);
@@ -275,7 +277,7 @@ class CheckInWidget extends StatelessWidget {
                               .contactsRepository
                               .profileContactId ==
                           null ||
-                      context.read<CheckInCubit>().state.circles.isEmpty ||
+                      state.circles.isEmpty ||
                       state.checkingIn)
                   ? null
                   : () async => showModalBottomSheet<void>(

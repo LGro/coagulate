@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:location/location.dart';
 
@@ -24,6 +25,7 @@ class CheckInCubit extends Cubit<CheckInState> {
   Future<void> checkIn(
       {required String name,
       required String details,
+      required List<String> circles,
       required DateTime end}) async {
     emit(state.copyWith(checkingIn: true));
 
@@ -59,6 +61,7 @@ class CheckInCubit extends Cubit<CheckInState> {
               name: name,
               details: details,
               end: end,
+              circles: circles,
               checkedIn: true)
         ]))
         // Make sure to regenerate the sharing profiles and update DHT sharing records
