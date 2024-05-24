@@ -16,6 +16,11 @@ import 'distributed_storage/dht.dart';
 import 'persistent_storage/shared_preferences.dart';
 import 'system_contacts/system_contacts.dart';
 
+// TODO: Check if the following entry in info.plist needs to match the IDs
+// <key>BGTaskSchedulerPermittedIdentifiers</key>
+// <array>
+// 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+// </array>
 const String updateToAndFromDhtTaskName = 'social.coagulate.dht.refresh';
 const String refreshProfileContactTaskName = 'social.coagulate.profile.refresh';
 
