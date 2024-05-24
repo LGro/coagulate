@@ -85,7 +85,9 @@ class ProfileCubit extends Cubit<ProfileState> {
 
     if (!isClosed) {
       emit(state.copyWith(
-          status: ProfileStatus.success, profileContact: contact));
+          status: ProfileStatus.success,
+          profileContact: contact,
+          sharingSettings: contactsRepository.getProfileSharingSettings()));
     }
   }
 

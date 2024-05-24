@@ -167,24 +167,28 @@ class VeilidDhtStorage extends DistributedStorage {
     if (contact.dhtSettingsForReceiving?.psk == null) {
       return contact;
     }
-    final contactJson = await readPasswordEncryptedDHTRecord(
-        recordKey: contact.dhtSettingsForReceiving!.key,
-        secret: contact.dhtSettingsForReceiving!.psk!);
-    if (contactJson.isEmpty) {
+    try {
+      final contactJson = await readPasswordEncryptedDHTRecord(
+          recordKey: contact.dhtSettingsForReceiving!.key,
+          secret: contact.dhtSettingsForReceiving!.psk!);
+      if (contactJson.isEmpty) {
+        return contact;
+      }
+      final dhtContact = CoagContactDHTSchemaV1.fromJson(
+          json.decode(contactJson) as Map<String, dynamic>);
+      return contact.copyWith(
+          details: dhtContact.details,
+          addressLocations: dhtContact.addressLocations,
+          temporaryLocations: dhtContact.temporaryLocations,
+          // TODO: Only override this in case no share back channel has been actively established
+          dhtSettingsForSharing: (dhtContact.shareBackDHTKey == null)
+              ? null
+              : ContactDHTSettings(
+                  key: dhtContact.shareBackDHTKey!,
+                  writer: dhtContact.shareBackDHTWriter,
+                  psk: dhtContact.shareBackPsk));
+    } on VeilidAPIExceptionTryAgain {
       return contact;
     }
-    final dhtContact = CoagContactDHTSchemaV1.fromJson(
-        json.decode(contactJson) as Map<String, dynamic>);
-    return contact.copyWith(
-        details: dhtContact.details,
-        addressLocations: dhtContact.addressLocations,
-        temporaryLocations: dhtContact.temporaryLocations,
-        // TODO: Only override this in case no share back channel has been actively established
-        dhtSettingsForSharing: (dhtContact.shareBackDHTKey == null)
-            ? null
-            : ContactDHTSettings(
-                key: dhtContact.shareBackDHTKey!,
-                writer: dhtContact.shareBackDHTWriter,
-                psk: dhtContact.shareBackPsk));
   }
 }
