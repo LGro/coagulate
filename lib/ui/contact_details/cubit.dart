@@ -41,6 +41,12 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
             contact: c));
       }
     });
+
+    // Attempt to share straight await, when a contact details page is visited
+    final profileContact = contactsRepository.getProfileContact();
+    if (profileContact != null) {
+      unawaited(share(profileContact));
+    }
   }
 
   final ContactsRepository contactsRepository;

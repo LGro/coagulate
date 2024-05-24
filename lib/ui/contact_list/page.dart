@@ -1,6 +1,7 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -76,39 +77,44 @@ class _ContactListPageState extends State<ContactListPage> {
                               ),
                               const SizedBox(height: 10),
                               Expanded(
-                                  child: _body(state.contacts
-                                      .where((c) =>
-                                          c.coagContactId !=
-                                          profileContactState
-                                              .profileContact?.coagContactId)
-                                      .toList()))
+                                  child: _body(
+                                      state.contacts
+                                          .where((c) =>
+                                              c.coagContactId !=
+                                              profileContactState.profileContact
+                                                  ?.coagContactId)
+                                          .toList(),
+                                      state.circleMemberships))
                             ])));
                 }
               })));
 
-  Widget _body(List<CoagContact> contacts) => ListView.builder(
-      itemCount: contacts.length,
-      itemBuilder: (context, i) {
-        final contact = contacts[i];
-        return ListTile(
-            leading: avatar(contact.systemContact, radius: 18),
-            title: Text(displayName(contact) ?? 'unknown'),
-            trailing: Text(_contactSyncStatus(contact)),
-            onTap: () =>
-                Navigator.of(context).push(ContactPage.route(contact)));
-      });
+  Widget _body(List<CoagContact> contacts,
+          Map<String, List<String>> circleMemberships) =>
+      ListView.builder(
+          itemCount: contacts.length,
+          itemBuilder: (context, i) {
+            final contact = contacts[i];
+            return ListTile(
+                leading: avatar(contact.systemContact, radius: 18),
+                title: Text(displayName(contact) ?? 'unknown'),
+                trailing: Text(contactSharingReceivingStatus(
+                    contact,
+                    circleMemberships[contact.coagContactId]?.isNotEmpty ??
+                        false)),
+                onTap: () =>
+                    Navigator.of(context).push(ContactPage.route(contact)));
+          });
 }
 
-String _contactSyncStatus(CoagContact contact) {
+String contactSharingReceivingStatus(
+    CoagContact contact, bool isMemberAnyCircle) {
   var status = '';
-  if (contact.dhtSettingsForSharing != null) {
+  if (contact.dhtSettingsForSharing != null && isMemberAnyCircle) {
     status = 'S';
   }
-  if (contact.dhtSettingsForReceiving != null) {
+  if (contact.details != null) {
     status = 'R$status';
-  }
-  if (status.isEmpty) {
-    status = '?';
   }
   return status;
 }

@@ -12,10 +12,17 @@ ContactListState _$ContactListStateFromJson(Map<String, dynamic> json) =>
       contacts: (json['contacts'] as List<dynamic>?)
               ?.map((e) => CoagContact.fromJson(e as Map<String, dynamic>)) ??
           const [],
+      circleMemberships:
+          (json['circle_memberships'] as Map<String, dynamic>?)?.map(
+                (k, e) => MapEntry(
+                    k, (e as List<dynamic>).map((e) => e as String).toList()),
+              ) ??
+              const {},
     );
 
 Map<String, dynamic> _$ContactListStateToJson(ContactListState instance) =>
     <String, dynamic>{
+      'circle_memberships': instance.circleMemberships,
       'contacts': instance.contacts.map((e) => e.toJson()).toList(),
       'status': _$ContactListStatusEnumMap[instance.status]!,
     };

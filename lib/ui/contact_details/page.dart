@@ -37,25 +37,6 @@ Uri _receiveUrl(
         path: 'en/c',
         fragment: '$key:$psk:$writer');
 
-Widget _coagulateButton(BuildContext context,
-    {required CoagContact contact, required CoagContact myProfile}) {
-  // TODO: Directly prep sharing when visiting the contact details instead of hiding it behind a button?
-  //       Maybe when there are sharing profiles and we can default to one that just contains the name.
-  if (contact.sharedProfile == null || contact.sharedProfile!.isEmpty) {
-    return TextButton(
-        onPressed: () async =>
-            {context.read<ContactDetailsCubit>().share(myProfile)},
-        child: Text((contact.dhtSettingsForReceiving == null)
-            ? 'Prepare Coagulation'
-            : 'Share Back'));
-  } else {
-    // TODO: Replace by choosing the "no details" sharing profile
-    return TextButton(
-        onPressed: context.read<ContactDetailsCubit>().unshare,
-        child: const Text('Stop Sharing'));
-  }
-}
-
 Widget _qrCodeButton(BuildContext context,
         {required String buttonText,
         required String alertTitle,
@@ -126,8 +107,6 @@ class ContactPage extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: avatar(contact.systemContact))),
 
-        // TODO: We don't need to integrate profile and sharing via the UI, we can also do it via the repository layer.
-        //       It might make sense when we introduce the sharing profile settings, though, so let's see then.
         BlocConsumer<ProfileCubit, ProfileState>(
             listener: (context, state) async {},
             builder: (context, state) {
@@ -136,10 +115,9 @@ class ContactPage extends StatelessWidget {
                     padding: EdgeInsets.all(16),
                     child: Text(
                         'Pick a profile contact, then you can start sharing.'));
+              } else {
+                return Container();
               }
-              return Center(
-                  child: _coagulateButton(context,
-                      contact: contact, myProfile: state.profileContact!));
             }),
 
         // Receiving stuff

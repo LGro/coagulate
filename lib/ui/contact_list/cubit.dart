@@ -44,7 +44,6 @@ Iterable<CoagContact> filterAndSortContacts(Iterable<CoagContact> contacts,
           // respective contacts end up before phone numbers with country codes
           compareNatural(displayName(a) ?? '+', displayName(b) ?? '+'));
 
-// TODO: Figure out sorting of the contacts
 class ContactListCubit extends Cubit<ContactListState> {
   ContactListCubit(this.contactsRepository)
       : super(const ContactListState(ContactListStatus.initial)) {
@@ -52,6 +51,7 @@ class ContactListCubit extends Cubit<ContactListState> {
         contactsRepository.getContactUpdates().listen((contact) {
       if (!isClosed) {
         emit(ContactListState(ContactListStatus.success,
+            circleMemberships: contactsRepository.getCircleMemberships(),
             contacts: filterAndSortContacts([
               ...state.contacts
                   .where((c) => c.coagContactId != contact.coagContactId),
@@ -61,13 +61,15 @@ class ContactListCubit extends Cubit<ContactListState> {
     });
     emit(ContactListState(ContactListStatus.success,
         contacts:
-            filterAndSortContacts(contactsRepository.getContacts().values)));
+            filterAndSortContacts(contactsRepository.getContacts().values),
+        circleMemberships: contactsRepository.getCircleMemberships()));
   }
 
   final ContactsRepository contactsRepository;
   late final StreamSubscription<CoagContact> _contactsSuscription;
 
-  void filter(String filter) => emit(ContactListState(ContactListStatus.success,
+  void filter(String filter) => emit(state.copyWith(
+      status: ContactListStatus.success,
       contacts: filterAndSortContacts(contactsRepository.getContacts().values,
           filter: filter)));
 
