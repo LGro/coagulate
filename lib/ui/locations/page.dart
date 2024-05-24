@@ -14,6 +14,7 @@ import '../../data/repositories/contacts.dart';
 import '../widgets/circles/widget.dart';
 import 'check_in/widget.dart';
 import 'cubit.dart';
+import 'schedule/widget.dart';
 
 class LocationForm extends StatefulWidget {
   LocationForm({super.key, Random? seed}) : seed = seed ?? Random();
@@ -372,11 +373,13 @@ class LocationsPage extends StatelessWidget {
                                     'Importing new locations from the calendar will come soon'),
                               )),
                       icon: const Icon(Icons.calendar_month)),
-                  // TODO: Add manually via form
                   IconButton(
                       onPressed: (state.circleMembersips.isEmpty)
                           ? null
-                          : context.read<LocationsCubit>().addRandomLocation,
+                          : () async => Navigator.push(
+                              context,
+                              MaterialPageRoute<ScheduleWidget>(
+                                  builder: (_) => const ScheduleWidget())),
                       icon: const Icon(Icons.add)),
                 ],
               ),

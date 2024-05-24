@@ -36,6 +36,7 @@ dependencies:
   json_annotation: ^4.8.1
   latlong2: ^0.9.0
   location: ^6.0.1
+  location_picker_flutter_map: ^3.0.1
   loggy: ^2.0.3
   mobile_scanner: ^4.0.1 # TODO: Replace with privacy friendlier alternative
   mutex:

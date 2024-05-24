@@ -218,7 +218,7 @@ class _MyFormState extends State<MyForm> {
                             _state.title.isNotEmpty)
                         ? _onSubmit
                         : null,
-                child: const Text('Submit'),
+                child: const Text('Share'),
               ),
             const SizedBox(height: 16),
           ])));
