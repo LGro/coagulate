@@ -100,56 +100,68 @@ class ReceiveRequestPage extends StatelessWidget {
                                 'or pick an existing contact to start sharing with')),
                       const SizedBox(height: 12),
                       if (state.contactProporsalsForLinking.isNotEmpty)
-                        _pickExisting(
-                            context,
-                            state.contactProporsalsForLinking,
-                            context
-                                .read<ReceiveRequestCubit>()
-                                .linkExistingContactRequested),
+                        Expanded(
+                            child: _pickExisting(
+                                context,
+                                state.contactProporsalsForLinking,
+                                context
+                                    .read<ReceiveRequestCubit>()
+                                    .linkExistingContactRequested)),
                     ])));
 
           case ReceiveRequestStatus.receivedShare:
+            final appBar = AppBar(
+              title: const Text('Received Sharing Offer'),
+              actions: [
+                IconButton(
+                    onPressed: context.read<ReceiveRequestCubit>().scanQrCode,
+                    icon: const Icon(Icons.qr_code_scanner))
+              ],
+            );
             return Scaffold(
                 // TODO: Theme
                 backgroundColor: const Color.fromARGB(255, 244, 244, 244),
-                appBar: AppBar(
-                  title: const Text('Received Shared Contact'),
-                  actions: [
-                    IconButton(
-                        onPressed:
-                            context.read<ReceiveRequestCubit>().scanQrCode,
-                        icon: const Icon(Icons.qr_code_scanner))
-                  ],
-                ),
-                body: Center(
-                    child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 8),
-                    if (state.profile?.details != null)
-                      ...displayDetails(state.profile!.details!),
-                    TextButton(
-                        onPressed: context
-                            .read<ReceiveRequestCubit>()
-                            .createNewContact,
-                        child: const Text('Create new contact')),
-                    if (state.contactProporsalsForLinking.isNotEmpty)
-                      const Center(
-                          child: Text('or link to an existing contact')),
-                    if (state.contactProporsalsForLinking.isNotEmpty)
-                      _pickExisting(
-                          context,
-                          state.contactProporsalsForLinking,
-                          context
-                              .read<ReceiveRequestCubit>()
-                              .linkExistingContactSharing),
-                    TextButton(
-                        onPressed:
-                            context.read<ReceiveRequestCubit>().scanQrCode,
-                        child: const Text('Cancel')),
-                  ],
-                )));
+                appBar: appBar,
+                body: SingleChildScrollView(
+                    child: SizedBox(
+                        height: MediaQuery.of(context).size.height -
+                            appBar.preferredSize.height -
+                            MediaQuery.of(context).padding.top -
+                            kBottomNavigationBarHeight,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const SizedBox(height: 8),
+                            if (state.profile?.details != null)
+                              Expanded(
+                                  child: ListView(children: [
+                                ...displayDetails(state.profile!.details!)
+                              ])),
+                            TextButton(
+                                onPressed: context
+                                    .read<ReceiveRequestCubit>()
+                                    .createNewContact,
+                                child: const Text('Create new contact')),
+                            if (state.contactProporsalsForLinking.isNotEmpty)
+                              const Center(
+                                  child:
+                                      Text('or link to an existing contact')),
+                            if (state.contactProporsalsForLinking.isNotEmpty)
+                              Expanded(
+                                  child: _pickExisting(
+                                      context,
+                                      state.contactProporsalsForLinking,
+                                      context
+                                          .read<ReceiveRequestCubit>()
+                                          .linkExistingContactSharing)),
+                            TextButton(
+                                onPressed: context
+                                    .read<ReceiveRequestCubit>()
+                                    .scanQrCode,
+                                child: const Text('Cancel')),
+                          ],
+                        ))));
 
           case ReceiveRequestStatus.success:
             return const Center(child: CircularProgressIndicator());
@@ -164,8 +176,7 @@ Widget _pickExisting(
         BuildContext context,
         Iterable<CoagContact> contactProporsalsForLinking,
         Future<void> Function(CoagContact contact) linkExistingCallback) =>
-    Expanded(
-        child: ListView(
+    ListView(
       children: contactProporsalsForLinking
           // TODO: Filter out the profile contact
           .where((c) => c.details != null || c.systemContact != null)
@@ -177,4 +188,4 @@ Widget _pickExisting(
               //trailing: Text(_contactSyncStatus(c)),
               onTap: () => unawaited(linkExistingCallback(c))))
           .toList(),
-    ));
+    );
