@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
@@ -26,8 +27,8 @@ class ReceiveRequestPage extends StatelessWidget {
       child: BlocConsumer<ReceiveRequestCubit, ReceiveRequestState>(
           listener: (context, state) async {
         if (state.status.isSuccess) {
-          await Navigator.of(context).pushReplacementNamed('contactDetails',
-              arguments: {'coagContactId': state.profile!.coagContactId});
+          context.goNamed('contactDetails',
+              pathParameters: {'coagContactId': state.profile!.coagContactId});
         }
       }, builder: (context, state) {
         switch (state.status) {

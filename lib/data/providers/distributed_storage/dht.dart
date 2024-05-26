@@ -131,6 +131,7 @@ class VeilidDhtStorage extends DistributedStorage {
     }
 
     if (contact.sharedProfile != null) {
+      // TODO: Handle VeilidAPIExceptionKeyNotFound
       await updatePasswordEncryptedDHTRecord(
           recordKey: contact.dhtSettingsForSharing!.key,
           recordWriter: contact.dhtSettingsForSharing!.writer!,
