@@ -65,6 +65,15 @@ jobs:
       with:
         name: coagulate.apk
         path: build/app/outputs/flutter-apk/app-release.apk
+    - name: Upload APK
+      if: github.ref == 'refs/heads/main'
+      uses: Dylan700/sftp-upload-action@latest
+      with:
+        server: ${{secrets.FTP_SERVER}}
+        username: ${{secrets.FTP_USER}}
+        password: ${{secrets.FTP_PASSWORD}}
+        port: 22
+        uploads: ./build/app/outputs/flutter-apk/ => ./public_html/releases/
 
   # TODO: Set up signing certificates and re-enable
   # ios:
