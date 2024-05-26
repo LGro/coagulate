@@ -121,7 +121,8 @@ class ContactPage extends StatelessWidget {
             }),
 
         // Receiving stuff
-        if (contact.dhtSettingsForReceiving != null &&
+        if (circles.isNotEmpty &&
+            contact.dhtSettingsForReceiving != null &&
             contact.dhtSettingsForReceiving!.writer != null &&
             contact.dhtSettingsForReceiving!.psk != null)
           receivingCard(context, contact),
@@ -175,13 +176,16 @@ class ContactPage extends StatelessWidget {
         circlesCard(context, contact.coagContactId, circles),
 
         // Sharing stuff
-        if (contact.dhtSettingsForSharing != null &&
+        if (circles.isNotEmpty &&
+            contact.dhtSettingsForSharing != null &&
             contact.dhtSettingsForSharing!.writer != null &&
             contact.dhtSettingsForSharing!.psk != null &&
             contact.sharedProfile != null &&
             contact.sharedProfile!.isNotEmpty)
           sharingCard(context, contact),
-        if (contact.sharedProfile != null && contact.sharedProfile!.isNotEmpty)
+        if (circles.isNotEmpty &&
+            contact.sharedProfile != null &&
+            contact.sharedProfile!.isNotEmpty)
           ...displayDetails(CoagContactDHTSchemaV1.fromJson(
                   json.decode(contact.sharedProfile!) as Map<String, dynamic>)
               .details),
