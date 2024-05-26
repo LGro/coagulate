@@ -67,16 +67,46 @@ Marker _buildMarker(
         child: GestureDetector(
             onTap: onTap,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Text(
-                location.label,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 14),
-              ),
-              Text(
-                location.subLabel,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 10),
-              ),
+              Stack(children: [
+                Text(
+                  location.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    letterSpacing: 1.5,
+                    foreground: Paint()
+                      ..style = PaintingStyle.stroke
+                      ..strokeWidth = 3
+                      ..color = Colors.black,
+                  ),
+                ),
+                Text(
+                  location.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 14, letterSpacing: 1.5, color: Colors.white),
+                ),
+              ]),
+              Stack(children: [
+                Text(
+                  location.subLabel,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    letterSpacing: 1.25,
+                    foreground: Paint()
+                      ..style = PaintingStyle.stroke
+                      ..strokeWidth = 2
+                      ..color = Colors.black,
+                  ),
+                ),
+                Text(
+                  location.subLabel,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 10, letterSpacing: 1.25, color: Colors.white),
+                ),
+              ]),
               const SizedBox(width: 5),
               const Icon(Icons.location_pin, size: 50, color: Colors.deepPurple)
             ])));
