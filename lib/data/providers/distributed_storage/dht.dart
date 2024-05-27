@@ -122,6 +122,12 @@ class VeilidDhtStorage extends DistributedStorage {
               key: key,
               writer: writer,
               psk: await cs.randomSharedSecret().then((v) => v.toString())));
+      // Write once, to make sure it's created and published on the network
+      await updatePasswordEncryptedDHTRecord(
+          recordKey: key,
+          recordWriter: writer,
+          secret: contact.dhtSettingsForReceiving!.psk!,
+          content: '');
     }
 
     if (contact.dhtSettingsForSharing!.psk == null) {

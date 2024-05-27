@@ -498,7 +498,9 @@ class ContactsRepository {
           // TODO: Can it happen that details are null?
           // TODO: When temporary locations are updated, only record an update about added / updated locations / check-ins
           await _saveUpdate(ContactUpdate(
-              oldContact: contact.details!,
+              // TODO: contact details can be null; handle this more appropriately than the current workaround with empty details
+              oldContact: contact.details ??
+                  ContactDetails(displayName: '', name: Name()),
               newContact: updatedContact.details!,
               timestamp: DateTime.now()));
           await updateContact(updatedContact);
