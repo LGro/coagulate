@@ -69,6 +69,11 @@ class _CirclesFormState extends State<CirclesForm> {
     });
 
     try {
+      // In case someone entered a new circle name and submitted before adding
+      // the new circle explicitly, still add it
+      if (_titleController.text.isNotEmpty) {
+        _addNewCircle();
+      }
       await widget.callback(_state.circles);
       _state = _state.copyWith(status: FormzSubmissionStatus.success);
       Navigator.pop(context);
