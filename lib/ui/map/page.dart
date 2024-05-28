@@ -67,48 +67,29 @@ Marker _buildMarker(
         child: GestureDetector(
             onTap: onTap,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Stack(children: [
-                Text(
-                  location.label,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    letterSpacing: 1.5,
-                    foreground: Paint()
-                      ..style = PaintingStyle.stroke
-                      ..strokeWidth = 3
-                      ..color = Colors.black,
-                  ),
-                ),
-                Text(
-                  location.label,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 14, letterSpacing: 1.5, color: Colors.white),
-                ),
-              ]),
-              Stack(children: [
-                Text(
-                  location.subLabel,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10,
-                    letterSpacing: 1.25,
-                    foreground: Paint()
-                      ..style = PaintingStyle.stroke
-                      ..strokeWidth = 2
-                      ..color = Colors.black,
-                  ),
-                ),
-                Text(
-                  location.subLabel,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 10, letterSpacing: 1.25, color: Colors.white),
-                ),
-              ]),
-              const SizedBox(width: 5),
-              const Icon(Icons.location_pin, size: 50, color: Colors.deepPurple)
+              Container(
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(color: Colors.white),
+                  child: Column(children: [
+                    Text(
+                      location.label,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          color: Colors.black),
+                    ),
+                    Text(
+                      location.subLabel,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10,
+                          color: Colors.black),
+                    ),
+                  ])),
+              const Icon(Icons.location_pin,
+                  size: 50, color: Colors.deepPurple),
             ])));
 
 class MapPage extends StatelessWidget {
@@ -155,7 +136,7 @@ class MapPage extends StatelessWidget {
 
                 return MarkerClusterLayerWidget(
                     options: MarkerClusterLayerOptions(
-                  maxClusterRadius: 100,
+                  maxClusterRadius: 110,
                   size: const Size(40, 40),
                   alignment: Alignment.center,
                   padding: const EdgeInsets.all(50),
