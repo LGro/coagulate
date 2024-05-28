@@ -11,15 +11,19 @@ extension MapStatusX on MapStatus {
   bool get isDenied => this == MapStatus.denied;
 }
 
-// TODO: Add custom marker as attribute
+enum MarkerType { address, temporary }
+
+// TODO: Add color or indicator whether it's a contact or profile location
 @JsonSerializable()
 class Location {
-  Location(
-      {required this.coagContactId,
-      required this.longitude,
-      required this.latitude,
-      required this.label,
-      required this.subLabel});
+  Location({
+    required this.coagContactId,
+    required this.longitude,
+    required this.latitude,
+    required this.label,
+    required this.subLabel,
+    required this.marker,
+  });
   factory Location.fromJson(Map<String, dynamic> json) =>
       _$LocationFromJson(json);
 
@@ -28,6 +32,7 @@ class Location {
   final double latitude;
   final String label;
   final String subLabel;
+  final MarkerType marker;
   Map<String, dynamic> toJson() => _$LocationToJson(this);
 }
 

@@ -88,8 +88,12 @@ Marker _buildMarker(
                           color: Colors.black),
                     ),
                   ])),
-              const Icon(Icons.location_pin,
-                  size: 50, color: Colors.deepPurple),
+              Icon(
+                  (location.marker == MarkerType.address)
+                      ? Icons.house
+                      : Icons.location_pin,
+                  size: 50,
+                  color: Colors.deepPurple),
             ])));
 
 class MapPage extends StatelessWidget {
