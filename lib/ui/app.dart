@@ -93,6 +93,79 @@ const navBarItems = [
   ),
 ];
 
+class AppRouter {
+  static final GoRouter _router = GoRouter(
+    routes: [
+      ShellRoute(
+          navigatorKey: GlobalKey<NavigatorState>(),
+          builder: (context, state, child) => Scaffold(
+                body: child,
+                bottomNavigationBar: BottomNavigationBar(
+                  items: navBarItems.map((i) => i.$3).asList(),
+                  type: BottomNavigationBarType.fixed,
+                  selectedFontSize: 12,
+                  // Use index of the first level path member (also for nested paths)
+                  currentIndex: (state.topRoute?.name == null)
+                      ? 0
+                      : navBarItems.indexWhere(
+                          (i) => i.$2.contains(state.topRoute?.name)),
+                  unselectedItemColor: Colors.black,
+                  selectedItemColor: Colors.deepPurpleAccent,
+                  showUnselectedLabels: true,
+                  onTap: (i) async =>
+                      context.pushReplacement(navBarItems[i].$1),
+                ),
+              ),
+          routes: [
+            GoRoute(
+                path: '/',
+                name: 'profile',
+                builder: (_, __) => const ProfilePage(),
+                routes: [
+                  GoRoute(
+                      path: 'locations',
+                      name: 'locations',
+                      builder: (_, __) => const LocationsPage()),
+                  GoRoute(
+                      path: 'updates',
+                      name: 'updates',
+                      builder: (_, __) => const UpdatesPage()),
+                  GoRoute(
+                      path: 'contacts',
+                      name: 'contacts',
+                      builder: (_, __) => const ContactListPage(),
+                      routes: [
+                        GoRoute(
+                            path: 'details/:coagContactId',
+                            name: 'contactDetails',
+                            builder: (_, state) => ContactPage(
+                                coagContactId:
+                                    state.pathParameters['coagContactId']!)),
+                      ]),
+                  GoRoute(
+                      path: 'map',
+                      name: 'map',
+                      builder: (_, __) => const MapPage()),
+                  GoRoute(
+                      path: 'settings',
+                      name: 'settings',
+                      builder: (_, __) => const SettingsPage()),
+                  GoRoute(
+                      // TODO: Figure out how to handle language on coagulate.social so that we don't need to add the language to the links
+                      path: 'en/c',
+                      name: 'receiveRequest',
+                      builder: (_, state) => ReceiveRequestPage(
+                          initialState: ReceiveRequestState(
+                              ReceiveRequestStatus.receivedUriFragment,
+                              fragment: state.uri.fragment))),
+                ])
+          ])
+    ],
+  );
+
+  GoRouter get router => _router;
+}
+
 class CoagulateApp extends StatelessWidget {
   const CoagulateApp({required this.contactsRepositoryPath, super.key});
 
@@ -108,6 +181,7 @@ class CoagulateApp extends StatelessWidget {
         if (globalInit == null) {
           return const Splash();
         }
+
         // Once init is done, we proceed with the app
         return BackgroundTicker(
             child: RepositoryProvider.value(
@@ -119,76 +193,10 @@ class CoagulateApp extends StatelessWidget {
               colorScheme: const ColorScheme.highContrastLight(),
               primarySwatch: Colors.blue,
             ),
-            routerConfig: GoRouter(
-              routes: [
-                ShellRoute(
-                    navigatorKey: GlobalKey<NavigatorState>(),
-                    builder: (context, state, child) => Scaffold(
-                          body: child,
-                          bottomNavigationBar: BottomNavigationBar(
-                            items: navBarItems.map((i) => i.$3).asList(),
-                            type: BottomNavigationBarType.fixed,
-                            selectedFontSize: 12,
-                            // Use index of the first level path member (also for nested paths)
-                            currentIndex: (state.topRoute?.name == null)
-                                ? 0
-                                : navBarItems.indexWhere(
-                                    (i) => i.$2.contains(state.topRoute?.name)),
-                            unselectedItemColor: Colors.black,
-                            selectedItemColor: Colors.deepPurpleAccent,
-                            showUnselectedLabels: true,
-                            onTap: (i) async =>
-                                context.pushReplacement(navBarItems[i].$1),
-                            // onTap: _onItemTapped,
-                          ),
-                        ),
-                    routes: [
-                      GoRoute(
-                          path: '/',
-                          name: 'profile',
-                          builder: (_, __) => const ProfilePage(),
-                          routes: [
-                            GoRoute(
-                                path: 'locations',
-                                name: 'locations',
-                                builder: (_, __) => const LocationsPage()),
-                            GoRoute(
-                                path: 'updates',
-                                name: 'updates',
-                                builder: (_, __) => const UpdatesPage()),
-                            GoRoute(
-                                path: 'contacts',
-                                name: 'contacts',
-                                builder: (_, __) => const ContactListPage(),
-                                routes: [
-                                  GoRoute(
-                                      path: 'details/:coagContactId',
-                                      name: 'contactDetails',
-                                      builder: (_, state) => ContactPage(
-                                          coagContactId: state.pathParameters[
-                                              'coagContactId']!)),
-                                ]),
-                            GoRoute(
-                                path: 'map',
-                                name: 'map',
-                                builder: (_, __) => const MapPage()),
-                            GoRoute(
-                                path: 'settings',
-                                name: 'settings',
-                                builder: (_, __) => const SettingsPage()),
-                            GoRoute(
-                                // TODO: Figure out how to handle language on coagulate.social so that we don't need to add the language to the links
-                                path: 'en/c',
-                                name: 'receiveRequest',
-                                builder: (_, state) => ReceiveRequestPage(
-                                    initialState: ReceiveRequestState(
-                                        ReceiveRequestStatus
-                                            .receivedUriFragment,
-                                        fragment: state.uri.fragment))),
-                          ])
-                    ])
-              ],
-            ),
+            routerDelegate: AppRouter().router.routerDelegate,
+            routeInformationProvider:
+                AppRouter().router.routeInformationProvider,
+            routeInformationParser: AppRouter().router.routeInformationParser,
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
