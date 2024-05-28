@@ -339,10 +339,11 @@ Widget locationTile(ContactTemporaryLocation location,
           Text('From: ${dateFormat.format(location.start)}'),
           if (location.end != location.start)
             Text('Till: ${dateFormat.format(location.end)}'),
-          Text('Lon: ${location.longitude.toStringAsFixed(4)}, '
-              'Lat: ${location.latitude.toStringAsFixed(4)}'),
+          // Text('Lon: ${location.longitude.toStringAsFixed(4)}, '
+          //     'Lat: ${location.latitude.toStringAsFixed(4)}'),
           Text(
-              'Shared with ${numberContactsShared(circleMembersips.values, location.circles)} contacts'),
+              'Shared with ${numberContactsShared(circleMembersips.values, location.circles)} '
+              'contact${(numberContactsShared(circleMembersips.values, location.circles) == 1) ? '' : 's'}'),
           if (location.details.isNotEmpty) Text(location.details),
         ]),
         trailing:
