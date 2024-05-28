@@ -108,7 +108,9 @@ class _MyFormState extends State<MyForm> {
     try {
       await widget.callback(
           name: _state.title,
-          details: '${_state.location!.address}\n${_state.details}',
+          details: (_state.details.isEmpty)
+              ? _state.location!.address
+              : '${_state.location!.address}\n${_state.details}',
           circles: _state.circles.where((c) => c.$3).map((c) => c.$1).toList(),
           start: _state.start!,
           end: _state.end!,

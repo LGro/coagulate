@@ -328,11 +328,12 @@ int numberContactsShared(Iterable<Iterable<String>> circleMembersips,
         .length;
 
 Widget locationTile(ContactTemporaryLocation location,
-        Map<String, List<String>> circleMembersips,
-        {Future<void> Function()? onTap}) =>
+        {Map<String, List<String>>? circleMembersips,
+        Future<void> Function()? onTap}) =>
     ListTile(
         title: Text(location.name),
         tileColor: Colors.white,
+        contentPadding: EdgeInsets.zero,
         onTap: onTap,
         subtitle:
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -341,9 +342,10 @@ Widget locationTile(ContactTemporaryLocation location,
             Text('Till: ${dateFormat.format(location.end)}'),
           // Text('Lon: ${location.longitude.toStringAsFixed(4)}, '
           //     'Lat: ${location.latitude.toStringAsFixed(4)}'),
-          Text(
-              'Shared with ${numberContactsShared(circleMembersips.values, location.circles)} '
-              'contact${(numberContactsShared(circleMembersips.values, location.circles) == 1) ? '' : 's'}'),
+          if (circleMembersips != null)
+            Text(
+                'Shared with ${numberContactsShared(circleMembersips.values, location.circles)} '
+                'contact${(numberContactsShared(circleMembersips.values, location.circles) == 1) ? '' : 's'}'),
           if (location.details.isNotEmpty) Text(location.details),
         ]),
         trailing:
@@ -398,7 +400,10 @@ class LocationsPage extends StatelessWidget {
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
                           background: Container(color: Colors.red),
-                          child: locationTile(l, state.circleMembersips)))
+                          child: Padding(
+                              padding: EdgeInsets.only(left: 16, right: 16),
+                              child: locationTile(l,
+                                  circleMembersips: state.circleMembersips))))
                       .asList(),
                   // Current locations // TODO: maybe allow checking in 5-10min earlier?
                   ...state.temporaryLocations
@@ -410,10 +415,13 @@ class LocationsPage extends StatelessWidget {
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
                           background: Container(color: Colors.red),
-                          child: locationTile(l, state.circleMembersips,
-                              onTap: () async => context
-                                  .read<LocationsCubit>()
-                                  .toggleCheckInExisting(l))))
+                          child: Padding(
+                              padding: EdgeInsets.only(left: 16, right: 16),
+                              child: locationTile(l,
+                                  circleMembersips: state.circleMembersips,
+                                  onTap: () async => context
+                                      .read<LocationsCubit>()
+                                      .toggleCheckInExisting(l)))))
                       .asList(),
                   // If no future locations
                   if (state.temporaryLocations
@@ -447,7 +455,10 @@ class LocationsPage extends StatelessWidget {
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
                           background: Container(color: Colors.red),
-                          child: locationTile(l, state.circleMembersips)))
+                          child: Padding(
+                              padding: EdgeInsets.only(left: 16, right: 16),
+                              child: locationTile(l,
+                                  circleMembersips: state.circleMembersips))))
                       .asList(),
                 ])),
                 const SizedBox(height: 16),

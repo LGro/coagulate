@@ -15,6 +15,7 @@ import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
 import '../../utils.dart';
+import '../locations/page.dart';
 import '../profile/page.dart';
 import '../widgets/avatar.dart';
 import '../widgets/circles/cubit.dart';
@@ -269,11 +270,14 @@ Widget temporaryLocationsCard(List<ContactTemporaryLocation> locations) => Card(
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
     child: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children:
-                // TODO: Filter out past ones?
-                locations.map((l) => Text(l.name)).asList())));
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('locations',
+              style: TextStyle(fontSize: 16, color: Colors.black54)),
+          ...locations
+              .where((l) => l.end.isAfter(DateTime.now()))
+              .map(locationTile)
+              .asList()
+        ])));
 
 Widget sharingCard(BuildContext context, CoagContact contact) => Card(
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
