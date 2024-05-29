@@ -68,8 +68,11 @@ Marker _buildMarker(
             onTap: onTap,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               Container(
-                  padding: EdgeInsets.all(4),
-                  decoration: BoxDecoration(color: Colors.white),
+                  padding: const EdgeInsets.only(
+                      bottom: 4, left: 8, right: 8, top: 3),
+                  decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(240),
+                      borderRadius: const BorderRadius.all(Radius.circular(5))),
                   child: Column(children: [
                     Text(
                       location.label,
