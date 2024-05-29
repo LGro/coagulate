@@ -11,7 +11,7 @@ extension MapStatusX on MapStatus {
   bool get isDenied => this == MapStatus.denied;
 }
 
-enum MarkerType { address, temporary }
+enum MarkerType { address, temporary, checkedIn }
 
 // TODO: Add color or indicator whether it's a contact or profile location
 @JsonSerializable()

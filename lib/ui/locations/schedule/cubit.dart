@@ -7,7 +7,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:location/location.dart';
 
 import '../../../data/models/contact_location.dart';
 import '../../../data/repositories/contacts.dart';

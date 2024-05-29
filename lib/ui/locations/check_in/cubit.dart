@@ -5,9 +5,8 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:location/location.dart';
 
 import '../../../data/models/contact_location.dart';
 import '../../../data/repositories/contacts.dart';
@@ -29,16 +28,6 @@ class CheckInCubit extends Cubit<CheckInState> {
       required DateTime end}) async {
     emit(state.copyWith(checkingIn: true));
 
-    // TODO: Add timeout?
-    final location = await Location().getLocation();
-    if (location.longitude == null || location.latitude == null) {
-      if (!isClosed) {
-        //TODO: Emit failure state
-        emit(state.copyWith(checkingIn: false));
-      }
-      return;
-    }
-
     final profileContact = contactsRepository.getProfileContact();
     if (profileContact == null) {
       if (!isClosed) {
@@ -48,28 +37,45 @@ class CheckInCubit extends Cubit<CheckInState> {
       return;
     }
 
-    // TODO: Switch to unawaited because it'll be synced eventually?
-    await contactsRepository
-        .updateContact(profileContact.copyWith(temporaryLocations: [
-          ...profileContact.temporaryLocations
-              .map((l) => l.copyWith(checkedIn: false)),
-          ContactTemporaryLocation(
-              coagContactId: contactsRepository.profileContactId!,
-              longitude: location.longitude!,
-              latitude: location.latitude!,
-              start: DateTime.now(),
-              name: name,
-              details: details,
-              end: end,
-              circles: circles,
-              checkedIn: true)
-        ]))
-        // Make sure to regenerate the sharing profiles and update DHT sharing records
-        .then((_) => contactsRepository
-            .updateProfileContact(profileContact.coagContactId));
+    try {
+      final location =
+          await Geolocator.getCurrentPosition(timeLimit: Duration(seconds: 30));
 
-    if (!isClosed) {
-      emit(state.copyWith(checkingIn: false));
+      // TODO: Switch to unawaited because it'll be synced eventually?
+      await contactsRepository
+          .updateContact(profileContact.copyWith(temporaryLocations: [
+            ...profileContact.temporaryLocations
+                .map((l) => l.copyWith(checkedIn: false)),
+            ContactTemporaryLocation(
+                coagContactId: contactsRepository.profileContactId!,
+                longitude: location.longitude,
+                latitude: location.latitude,
+                start: DateTime.now(),
+                name: name,
+                details: details,
+                end: end,
+                circles: circles,
+                checkedIn: true)
+          ]))
+          // Make sure to regenerate the sharing profiles and update DHT sharing records
+          .then((_) => contactsRepository
+              .updateProfileContact(profileContact.coagContactId));
+
+      if (!isClosed) {
+        emit(state.copyWith(checkingIn: false));
+      }
+    } on TimeoutException {
+      if (!isClosed) {
+        //TODO: Emit failure state
+        emit(state.copyWith(checkingIn: false));
+      }
+      return;
+    } on LocationServiceDisabledException {
+      if (!isClosed) {
+        //TODO: Emit failure state
+        emit(state.copyWith(checkingIn: false));
+      }
+      return;
     }
   }
 }
