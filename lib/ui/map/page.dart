@@ -105,12 +105,13 @@ class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FlutterMap(
         options: const MapOptions(
-          // TODO: Pick reasonable center without requiring all markers first; e.g. based on profile contact locations or current GPS
-          initialCenter: LatLng(50.5, 30.51),
-          initialZoom: 3,
-          maxZoom: 15,
-          minZoom: 1,
-        ),
+            // TODO: Pick reasonable center without requiring all markers first; e.g. based on profile contact locations or current GPS
+            initialCenter: LatLng(50.5, 30.51),
+            initialZoom: 3,
+            maxZoom: 15,
+            minZoom: 1,
+            interactionOptions: InteractionOptions(
+                flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag)),
         children: <Widget>[
           TileLayer(
             urlTemplate: (mapboxToken().isEmpty)
