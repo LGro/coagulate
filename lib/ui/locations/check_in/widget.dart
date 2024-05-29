@@ -144,18 +144,19 @@ class _MyFormState extends State<MyForm> {
               key: const Key('myForm_titleInput'),
               controller: _titleController,
               decoration: const InputDecoration(
-                helperText: 'What are you up to and for how long?',
+                border: OutlineInputBorder(),
                 helperMaxLines: 2,
                 labelText: 'Title',
                 errorMaxLines: 2,
               ),
               textInputAction: TextInputAction.done,
             ),
+            const SizedBox(height: 8),
             TextFormField(
               key: const Key('myForm_detailsInput'),
               controller: _detailsController,
               decoration: const InputDecoration(
-                helperText: "More details to share about what you're up to",
+                border: OutlineInputBorder(),
                 helperMaxLines: 2,
                 labelText: 'Details',
                 errorMaxLines: 2,
