@@ -30,8 +30,7 @@ class SettingsPage extends StatelessWidget {
         title: const Text('Settings'),
       ),
       body: BlocProvider(
-          create: (context) => SettingsCubit(
-              const SettingsState(status: SettingsStatus.initial, message: '')),
+          create: (context) => SettingsCubit(),
           child: BlocConsumer<SettingsCubit, SettingsState>(
               listener: (context, state) => {},
               builder: (context, state) => ListView(children: [
@@ -42,14 +41,17 @@ class SettingsPage extends StatelessWidget {
                             child: SignalStrengthMeterWidget())),
                     ListTile(
                         title: const Text('Automatic address resolution'),
-                        trailing: Switch(value: false, onChanged: (v) => ())),
+                        trailing: Switch(
+                            value: state.autoAddressResolution,
+                            onChanged: (v) => ())),
                     ListTile(
                         title: const Text('Dark mode'),
-                        trailing: Switch(value: false, onChanged: (v) => ())),
+                        trailing: Switch(
+                            value: state.darkMode, onChanged: (v) => ())),
                     ListTile(
                         title: const Text('Map provider'),
                         trailing: DropdownMenu<String>(
-                            initialSelection: 'mapbox',
+                            initialSelection: state.mapProvider,
                             requestFocusOnTap: true,
                             enabled: false,
                             onSelected: (v) => (),

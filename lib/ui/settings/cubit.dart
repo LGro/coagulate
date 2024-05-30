@@ -4,18 +4,18 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
-  SettingsCubit(super.state);
-
-  Future<void> updateMessage() async {
-    final _sharedPreference = await SharedPreferences.getInstance();
-    final bgLog = _sharedPreference.getString('bgLog');
-    emit(SettingsState(
-        status: SettingsStatus.success, message: (bgLog == null) ? '' : bgLog));
-  }
+  SettingsCubit()
+      : super(const SettingsState(
+            message: '',
+            status: SettingsStatus.initial,
+            backgroundPermission: BackgroundRefreshPermissionState.unknown,
+            darkMode: false,
+            autoAddressResolution: false,
+            mapProvider: 'mapbox'));
 }
