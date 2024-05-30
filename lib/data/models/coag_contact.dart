@@ -226,6 +226,7 @@ class CoagContact extends Equatable {
       ];
 }
 
+// TODO: Add most recent update timestamp that is not part of props
 @JsonSerializable()
 class CoagContactDHTSchemaV1 extends Equatable {
   const CoagContactDHTSchemaV1({

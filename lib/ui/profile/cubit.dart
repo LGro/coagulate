@@ -131,97 +131,115 @@ class ProfileCubit extends Cubit<ProfileState> {
     emit(state.copyWith(profileContact: updatedContact));
   }
 
-  void updatePhoneSharingCircles(
-      int index, String label, List<String> circles) {
+  /// For circle ID and label pairs, add the new ones to the contacts repository
+  Future<void> createCirclesIfNotExist(List<(String, String)> circles) async {
+    final storedCircles = contactsRepository.getCircles();
+    for (final (id, label) in circles) {
+      if (!storedCircles.containsKey(id)) {
+        storedCircles[id] = label;
+      }
+    }
+    await contactsRepository.updateCircles(storedCircles);
+  }
+
+  Future<void> updatePhoneSharingCircles(
+      int index, String label, List<(String, String)> circles) async {
+    await createCirclesIfNotExist(circles);
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final phones = Map<String, List<String>>.from(
         contactsRepository.getProfileSharingSettings().phones);
-    phones['$index|$label'] = circles;
+    phones['$index|$label'] = circles.map((c) => c.$1).toList();
     final updatedSharingSettings =
         contactsRepository.getProfileSharingSettings().copyWith(phones: phones);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
     emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
-  void updateEmailSharingCircles(
-      int index, String label, List<String> circles) {
+  Future<void> updateEmailSharingCircles(
+      int index, String label, List<(String, String)> circles) async {
+    await createCirclesIfNotExist(circles);
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final emails = Map<String, List<String>>.from(
         contactsRepository.getProfileSharingSettings().emails);
-    emails['$index|$label'] = circles;
+    emails['$index|$label'] = circles.map((c) => c.$1).toList();
     final updatedSharingSettings =
         contactsRepository.getProfileSharingSettings().copyWith(emails: emails);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
     emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
-  void updateAddressSharingCircles(
-      int index, String label, List<String> circles) {
+  Future<void> updateAddressSharingCircles(
+      int index, String label, List<(String, String)> circles) async {
+    await createCirclesIfNotExist(circles);
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final addresses = Map<String, List<String>>.from(
         contactsRepository.getProfileSharingSettings().addresses);
-    addresses['$index|$label'] = circles;
+    addresses['$index|$label'] = circles.map((c) => c.$1).toList();
     final updatedSharingSettings = contactsRepository
         .getProfileSharingSettings()
         .copyWith(addresses: addresses);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
     emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
-  void updateOrganizationSharingCircles(
-      int index, String label, List<String> circles) {
+  Future<void> updateOrganizationSharingCircles(
+      int index, String label, List<(String, String)> circles) async {
+    await createCirclesIfNotExist(circles);
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final organizations = Map<String, List<String>>.from(
         contactsRepository.getProfileSharingSettings().organizations);
-    organizations['$index|$label'] = circles;
+    organizations['$index|$label'] = circles.map((c) => c.$1).toList();
     final updatedSharingSettings = contactsRepository
         .getProfileSharingSettings()
         .copyWith(organizations: organizations);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
     emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
-  void updateWebsiteSharingCircles(
-      int index, String label, List<String> circles) {
+  Future<void> updateWebsiteSharingCircles(
+      int index, String label, List<(String, String)> circles) async {
+    await createCirclesIfNotExist(circles);
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final websites = Map<String, List<String>>.from(
         contactsRepository.getProfileSharingSettings().websites);
-    websites['$index|$label'] = circles;
+    websites['$index|$label'] = circles.map((c) => c.$1).toList();
     final updatedSharingSettings = contactsRepository
         .getProfileSharingSettings()
         .copyWith(websites: websites);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
     emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
-  void updateSocialMediaSharingCircles(
-      int index, String label, List<String> circles) {
+  Future<void> updateSocialMediaSharingCircles(
+      int index, String label, List<(String, String)> circles) async {
+    await createCirclesIfNotExist(circles);
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final socialMedias = Map<String, List<String>>.from(
         contactsRepository.getProfileSharingSettings().socialMedias);
-    socialMedias['$index|$label'] = circles;
+    socialMedias['$index|$label'] = circles.map((c) => c.$1).toList();
     final updatedSharingSettings = contactsRepository
         .getProfileSharingSettings()
         .copyWith(socialMedias: socialMedias);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
     emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
 
-  void updateEventSharingCircles(
-      int index, String label, List<String> circles) {
+  Future<void> updateEventSharingCircles(
+      int index, String label, List<(String, String)> circles) async {
+    await createCirclesIfNotExist(circles);
     // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
     final events = Map<String, List<String>>.from(
         contactsRepository.getProfileSharingSettings().events);
-    events['$index|$label'] = circles;
+    events['$index|$label'] = circles.map((c) => c.$1).toList();
     final updatedSharingSettings =
         contactsRepository.getProfileSharingSettings().copyWith(events: events);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+    await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
     emit(state.copyWith(sharingSettings: updatedSharingSettings));
   }
