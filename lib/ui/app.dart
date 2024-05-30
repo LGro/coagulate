@@ -109,8 +109,6 @@ class AppRouter {
                       ? 0
                       : navBarItems.indexWhere(
                           (i) => i.$2.contains(state.topRoute?.name)),
-                  unselectedItemColor: Colors.black,
-                  selectedItemColor: Colors.deepPurpleAccent,
                   showUnselectedLabels: true,
                   onTap: (i) async =>
                       context.pushReplacement(navBarItems[i].$1),
@@ -189,10 +187,9 @@ class CoagulateApp extends StatelessWidget {
               SqliteStorage(), VeilidDhtStorage(), SystemContacts()),
           child: MaterialApp.router(
             title: 'Coagulate',
-            theme: ThemeData(
-              colorScheme: const ColorScheme.highContrastLight(),
-              primarySwatch: Colors.blue,
-            ),
+            themeMode: ThemeMode.system,
+            theme: ThemeData.light(),
+            darkTheme: ThemeData.dark(),
             routerDelegate: AppRouter().router.routerDelegate,
             routeInformationProvider:
                 AppRouter().router.routeInformationProvider,

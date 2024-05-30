@@ -27,6 +27,7 @@ Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
 const _$MarkerTypeEnumMap = {
   MarkerType.address: 'address',
   MarkerType.temporary: 'temporary',
+  MarkerType.checkedIn: 'checkedIn',
 };
 
 MapState _$MapStateFromJson(Map<String, dynamic> json) => MapState(

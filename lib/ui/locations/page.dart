@@ -332,7 +332,6 @@ Widget locationTile(ContactTemporaryLocation location,
         Future<void> Function()? onTap}) =>
     ListTile(
         title: Text(location.name),
-        tileColor: Colors.white,
         contentPadding: EdgeInsets.zero,
         onTap: onTap,
         subtitle:

@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -61,7 +62,6 @@ Future<void> showPickCirclesBottomSheet(
                 ])));
 
 Card _card(List<Widget> children) => Card(
-    color: Colors.white,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
     child: SizedBox(
@@ -190,7 +190,7 @@ String _commaToNewline(String s) =>
 /// Potentially custom label for fields like email, phone, website
 Text _label(String name, String customLabel) =>
     Text((name != 'custom') ? name : customLabel,
-        style: const TextStyle(fontSize: 16, color: Colors.black54));
+        style: const TextStyle(fontSize: 16));
 
 bool labelDoesMatch(String name, Address address) {
   if (address.label == AddressLabel.custom) {
@@ -264,7 +264,6 @@ Widget addresses(List<Address> addresses) => _card(addresses
     .asList());
 
 Widget header(Contact contact) => Card(
-    color: Colors.white,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
     child: SizedBox(
@@ -531,8 +530,6 @@ class ProfileViewState extends State<ProfileView> {
       BlocConsumer<ProfileCubit, ProfileState>(
           listener: (context, state) {},
           builder: (context, state) => Scaffold(
-              // TODO: Theme
-              backgroundColor: const Color.fromARGB(255, 244, 244, 244),
               appBar: AppBar(
                 title: const Text('My Profile'),
                 // TODO: Add generate QR code for sharing with someone who I haven't as a contact yet

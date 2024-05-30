@@ -54,8 +54,6 @@ class ReceiveRequestPage extends StatelessWidget {
 
           case ReceiveRequestStatus.receivedRequest:
             return Scaffold(
-                // TODO: Theme
-                backgroundColor: const Color.fromARGB(255, 244, 244, 244),
                 appBar: AppBar(
                   title: const Text('Received Request'),
                   actions: [
@@ -120,8 +118,6 @@ class ReceiveRequestPage extends StatelessWidget {
               ],
             );
             return Scaffold(
-                // TODO: Theme
-                backgroundColor: const Color.fromARGB(255, 244, 244, 244),
                 appBar: appBar,
                 body: SingleChildScrollView(
                     child: SizedBox(

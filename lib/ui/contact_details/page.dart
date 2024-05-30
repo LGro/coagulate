@@ -89,8 +89,6 @@ class ContactPage extends StatelessWidget {
           child: BlocConsumer<ContactDetailsCubit, ContactDetailsState>(
               listener: (context, state) async {},
               builder: (context, state) => Scaffold(
-                  // TODO: Theme
-                  backgroundColor: const Color.fromARGB(255, 244, 244, 244),
                   appBar: AppBar(
                     title:
                         Text(displayName(state.contact) ?? 'Contact Details'),
