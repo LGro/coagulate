@@ -1,7 +1,7 @@
 name: coagulate
 description: Staying in contact, with privacy friendly contact synchronization powered by Veilid.
 publish_to: 'none'
-version: "0.0.1"
+version: "0.0.1+3"
 
 environment:
   sdk: '>=3.0.5 <4.0.0'  
@@ -30,12 +30,12 @@ dependencies:
   formz: ^0.7.0
   freezed_annotation: ^2.4.1
   geocoding: ^3.0.0
+  geolocator: ^10.1.1
   go_router: ^14.0.2
   hive: ^2.2.3
   intl: any
   json_annotation: ^4.8.1
   latlong2: ^0.9.0
-  location: ^6.0.1
   location_picker_flutter_map: ^3.0.1
   loggy: ^2.0.3
   mobile_scanner: ^4.0.1 # TODO: Replace with privacy friendlier alternative

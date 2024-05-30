@@ -526,7 +526,7 @@ packages:
     source: hosted
     version: "3.2.0"
   geolocator:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: geolocator
       sha256: f4efb8d3c4cdcad2e226af9661eb1a0dd38c71a9494b22526f9da80ab79520e5
@@ -749,14 +749,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
-  location:
-    dependency: "direct main"
-    description:
-      name: location
-      sha256: "2d88e4ffb464d0ca5510e7edd29723ab762c43479de39d2d19ed6194f5b6d624"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.0.1"
   location_picker_flutter_map:
     dependency: "direct main"
     description:
@@ -765,22 +757,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
-  location_platform_interface:
-    dependency: transitive
-    description:
-      name: location_platform_interface
-      sha256: "2ecde6bb0f88032b0bbbde37e18975b4468711dd92619c2235cc0c0ee93b4b8e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.0"
-  location_web:
-    dependency: transitive
-    description:
-      name: location_web
-      sha256: "924da8436db7ded5eef92a7ef3ae6aa3715831a93965376c91738f586302350e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.0.0"
   logger:
     dependency: transitive
     description:
