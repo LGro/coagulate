@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:workmanager/workmanager.dart';
@@ -32,33 +34,44 @@ class SettingsPage extends StatelessWidget {
               const SettingsState(status: SettingsStatus.initial, message: '')),
           child: BlocConsumer<SettingsCubit, SettingsState>(
               listener: (context, state) => {},
-              builder: (context, state) => Container(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(children: [
-                          Text('Network Status:'),
-                          SizedBox(width: 10),
-                          SignalStrengthMeterWidget()
-                        ]),
-                        Row(children: [
-                          const Expanded(
-                              child: Text('Automatic address resolution')),
-                          Switch(
-                              value: true,
-                              activeColor: Colors.green,
-                              // TODO: Add state handling
-                              onChanged: (bool value) {})
-                        ]),
-                        // TODO: Move async things to cubit
-                        // if (Platform.isIOS) _backgroundPermissionStatus(),
-                        // TODO: Add dark mode switch
-                        // TODO: Add map provider choice
-                        // TODO: Add custom bootstrap servers choice
-                        TextButton(
-                            onPressed: () async => Navigator.of(context)
-                                .push(LicensesPage.route()),
-                            child: const Text('Show Open Source Licenses'))
-                      ])))));
+              builder: (context, state) => ListView(children: [
+                    const ListTile(
+                        title: Text('Network status'),
+                        trailing: Padding(
+                            padding: EdgeInsets.only(right: 20),
+                            child: SignalStrengthMeterWidget())),
+                    ListTile(
+                        title: const Text('Automatic address resolution'),
+                        trailing: Switch(value: false, onChanged: (v) => ())),
+                    ListTile(
+                        title: const Text('Dark mode'),
+                        trailing: Switch(value: false, onChanged: (v) => ())),
+                    ListTile(
+                        title: const Text('Map provider'),
+                        trailing: DropdownMenu<String>(
+                            initialSelection: 'mapbox',
+                            requestFocusOnTap: true,
+                            enabled: false,
+                            onSelected: (v) => (),
+                            dropdownMenuEntries: [
+                              const DropdownMenuEntry(
+                                  value: 'mapbox', label: 'MapBox'),
+                              const DropdownMenuEntry(
+                                  value: 'osm', label: 'OpenStreetMap'),
+                              if (Platform.isIOS)
+                                const DropdownMenuEntry(
+                                    value: 'apple', label: 'Apple Maps'),
+                            ])),
+                    // TODO: Add option to delete circles
+                    // TODO: Move async things to cubit
+                    // if (Platform.isIOS) _backgroundPermissionStatus(),
+                    // TODO: Add custom bootstrap servers choice
+                    ListTile(
+                        title: const Text('Show open source licenses'),
+                        trailing: const Padding(
+                            padding: EdgeInsets.only(right: 20),
+                            child: Icon(Icons.arrow_right)),
+                        onTap: () async =>
+                            Navigator.of(context).push(LicensesPage.route())),
+                  ]))));
 }
