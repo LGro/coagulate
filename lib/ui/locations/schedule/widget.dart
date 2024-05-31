@@ -374,7 +374,7 @@ class ScheduleWidget extends StatelessWidget {
       child: BlocConsumer<ScheduleCubit, ScheduleState>(
           listener: (context, state) async {},
           builder: (context, state) => Scaffold(
-              appBar: AppBar(title: const Text('Plan Visit')),
+              appBar: AppBar(title: const Text('Schedule Visit')),
               body: SingleChildScrollView(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

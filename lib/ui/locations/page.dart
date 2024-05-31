@@ -362,29 +362,7 @@ class LocationsPage extends StatelessWidget {
       child: BlocConsumer<LocationsCubit, LocationsState>(
           listener: (context, state) async {},
           builder: (context, state) => Scaffold(
-              appBar: AppBar(
-                title: const Text('Locations'),
-                actions: [
-                  // TODO: Import from calendar
-                  IconButton(
-                      onPressed: (state.circleMembersips.isEmpty)
-                          ? null
-                          : () => ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text(
-                                    'Importing new locations from the calendar will come soon'),
-                              )),
-                      icon: const Icon(Icons.calendar_month)),
-                  IconButton(
-                      onPressed: (state.circleMembersips.isEmpty)
-                          ? null
-                          : () async => Navigator.push(
-                              context,
-                              MaterialPageRoute<ScheduleWidget>(
-                                  builder: (_) => const ScheduleWidget())),
-                      icon: const Icon(Icons.add)),
-                ],
-              ),
+              appBar: AppBar(title: const Text('Locations')),
               body: Column(children: [
                 // SingleChildScrollView(child: LocationForm())
                 Expanded(
@@ -474,24 +452,27 @@ class LocationsPage extends StatelessWidget {
                                 'Before you can start sharing your location, add some contacts to circles.',
                                 style: TextStyle(fontSize: 16))),
                     ])),
-                const SizedBox(height: 16),
-                const Row(children: [
-                  SizedBox(width: 16),
-                  Expanded(
-                      child: ElevatedButton(
-                          // TODO: Display live location sharing dialog with selection of circles and optional duration
-                          onPressed: null,
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.route),
-                                SizedBox(width: 8),
-                                Text('share live')
-                              ]))),
-                  SizedBox(width: 16),
-                  Expanded(child: CheckInWidget()),
-                  SizedBox(width: 16),
+                const SizedBox(height: 8),
+                Row(children: [
+                  const Expanded(child: SizedBox()),
+                  const CheckInWidget(),
+                  const Expanded(child: SizedBox()),
+                  ElevatedButton(
+                      onPressed: (state.circleMembersips.isEmpty)
+                          ? null
+                          : () async => Navigator.push(
+                              context,
+                              MaterialPageRoute<ScheduleWidget>(
+                                  builder: (_) => const ScheduleWidget())),
+                      child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.calendar_month),
+                            SizedBox(width: 8),
+                            Text('schedule')
+                          ])),
+                  const Expanded(child: SizedBox()),
                 ]),
-                const SizedBox(height: 16),
+                const SizedBox(height: 4),
               ]))));
 }
