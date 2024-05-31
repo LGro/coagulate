@@ -8,6 +8,7 @@ part of 'contact_update.dart';
 
 ContactUpdate _$ContactUpdateFromJson(Map<String, dynamic> json) =>
     ContactUpdate(
+      coagContactId: json['coag_contact_id'] as String?,
       oldContact:
           ContactDetails.fromJson(json['old_contact'] as Map<String, dynamic>),
       newContact:
@@ -17,6 +18,7 @@ ContactUpdate _$ContactUpdateFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ContactUpdateToJson(ContactUpdate instance) =>
     <String, dynamic>{
+      'coag_contact_id': instance.coagContactId,
       'old_contact': instance.oldContact.toJson(),
       'new_contact': instance.newContact.toJson(),
       'timestamp': instance.timestamp.toIso8601String(),

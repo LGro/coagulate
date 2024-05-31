@@ -11,13 +11,15 @@ part 'contact_update.g.dart';
 @JsonSerializable()
 class ContactUpdate extends Equatable {
   const ContactUpdate(
-      {required this.oldContact,
+      {required this.coagContactId,
+      required this.oldContact,
       required this.newContact,
       required this.timestamp});
 
   factory ContactUpdate.fromJson(Map<String, dynamic> json) =>
       _$ContactUpdateFromJson(json);
 
+  final String? coagContactId;
   final ContactDetails oldContact;
   final ContactDetails newContact;
   final DateTime timestamp;
@@ -25,5 +27,5 @@ class ContactUpdate extends Equatable {
   Map<String, dynamic> toJson() => _$ContactUpdateToJson(this);
 
   @override
-  List<Object?> get props => [oldContact, newContact, timestamp];
+  List<Object?> get props => [coagContactId, oldContact, newContact, timestamp];
 }

@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +10,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
+import '../contact_details/page.dart';
 import 'cubit.dart';
 
 String formatTimeDifference(Duration d) {
@@ -70,22 +73,25 @@ String compareContacts(ContactDetails oldContact, ContactDetails newContact) {
   return results.join(', ');
 }
 
-Widget updateTile(String name, String timing, String change) => ListTile(
-    title: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Flexible(child: Text(name, overflow: TextOverflow.ellipsis)),
-        Text(timing),
-      ],
-    ),
-    subtitle: Row(
-      children: [
-        // TODO: Use flexible for old and new value to trim them both dynamically
-        // Or use Expanded for dynamic multiline
-        Flexible(
-            child: Text('Updated $change', overflow: TextOverflow.ellipsis))
-      ],
-    ));
+Widget updateTile(String name, String timing, String change,
+        {required void Function()? onTap}) =>
+    ListTile(
+        onTap: onTap,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(child: Text(name, overflow: TextOverflow.ellipsis)),
+            Text(timing),
+          ],
+        ),
+        subtitle: Row(
+          children: [
+            // TODO: Use flexible for old and new value to trim them both dynamically
+            // Or use Expanded for dynamic multiline
+            Flexible(
+                child: Text('Updated $change', overflow: TextOverflow.ellipsis))
+          ],
+        ));
 
 class UpdatesPage extends StatelessWidget {
   const UpdatesPage({super.key});
@@ -115,14 +121,23 @@ class UpdatesPage extends StatelessWidget {
                                 u.oldContact.displayName,
                                 formatTimeDifference(
                                     DateTime.now().difference(u.timestamp)),
-                                compareContacts(u.oldContact, u.newContact)))
+                                compareContacts(u.oldContact, u.newContact),
+                                // TODO: For location updates, bring to map, centered around location with time slider at right time instead
+                                onTap: (u.coagContactId == null)
+                                    ? null
+                                    : () {
+                                        unawaited(Navigator.push(
+                                            context,
+                                            ContactPage.route(context
+                                                .read<ContactsRepository>()
+                                                .getContact(
+                                                    u.coagContactId!))));
+                                      }))
                             .toList(),
-                    // // TODO: On tap bring to contact details
                     // updateTile(
                     //     'Ronja Dudeli van Makolle Longname The Fourth',
                     //     '(today)',
                     //     'Name: Timo => Ronja Dudeli van Makolle Longname The Fourth'),
-                    // // TODO: On tap bring to map, centered around location with time slider at right time
                     // updateTile('Ronja Dudeli', '(4 days)',
                     //     'Will be near Hamburg, 2024-10-21 till 2024-10-28'),
                     // updateTile(
