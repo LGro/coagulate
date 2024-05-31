@@ -70,10 +70,17 @@ class _ContactListPageState extends State<ContactListPage> {
                                 onChanged:
                                     context.read<ContactListCubit>().filter,
                                 autocorrect: false,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                     labelText: 'Search',
-                                    prefixIcon: Icon(Icons.search),
-                                    border: OutlineInputBorder()),
+                                    prefixIcon: const Icon(Icons.search),
+                                    // TODO: Clear the actual text as well
+                                    suffixIcon: IconButton(
+                                      onPressed: () async => context
+                                          .read<ContactListCubit>()
+                                          .filter(''),
+                                      icon: const Icon(Icons.clear),
+                                    ),
+                                    border: const OutlineInputBorder()),
                               ),
                               const SizedBox(height: 10),
                               Expanded(
