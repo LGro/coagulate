@@ -16,7 +16,7 @@ part 'state.dart';
 
 class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   ContactDetailsCubit(this.contactsRepository, String coagContactId)
-      : super(ContactDetailsState(coagContactId, ContactDetailsStatus.success,
+      : super(ContactDetailsState(ContactDetailsStatus.success,
             contactsRepository.getContact(coagContactId),
             circles:
                 (contactsRepository.getCircleMemberships()[coagContactId] ?? [])
@@ -35,10 +35,7 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
     });
     _contactsSuscription = contactsRepository.getContactUpdates().listen((c) {
       if (c.coagContactId == coagContactId && !isClosed) {
-        emit(state.copyWith(
-            coagContactId: c.coagContactId,
-            status: ContactDetailsStatus.success,
-            contact: c));
+        emit(state.copyWith(status: ContactDetailsStatus.success, contact: c));
       }
     });
 
@@ -68,11 +65,6 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
 
     await contactsRepository.updateContact(updatedContact);
   }
-
-  // TODO: Figure out better way to set the shareprofile to null again
-  // The solution is probably adding profile sharing filters and then switching this to a filter that doesn't let anything through?
-  Future<void> unshare() async => contactsRepository
-      .updateContact(state.contact!.copyWith(sharedProfile: ''));
 
   Future<void> delete(String coagContactId) async =>
       contactsRepository.removeContact(coagContactId);

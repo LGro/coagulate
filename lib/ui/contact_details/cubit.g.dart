@@ -8,13 +8,8 @@ part of 'cubit.dart';
 
 ContactDetailsState _$ContactDetailsStateFromJson(Map<String, dynamic> json) =>
     ContactDetailsState(
-      json['coag_contact_id'] as String,
       $enumDecode(_$ContactDetailsStatusEnumMap, json['status']),
       CoagContact.fromJson(json['contact'] as Map<String, dynamic>),
-      sharedProfile: json['shared_profile'] == null
-          ? null
-          : CoagContact.fromJson(
-              json['shared_profile'] as Map<String, dynamic>),
       circles: (json['circles'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -24,10 +19,8 @@ ContactDetailsState _$ContactDetailsStateFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ContactDetailsStateToJson(
         ContactDetailsState instance) =>
     <String, dynamic>{
-      'coag_contact_id': instance.coagContactId,
       'contact': instance.contact.toJson(),
       'status': _$ContactDetailsStatusEnumMap[instance.status]!,
-      'shared_profile': instance.sharedProfile?.toJson(),
       'circles': instance.circles,
     };
 
