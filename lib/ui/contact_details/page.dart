@@ -269,8 +269,7 @@ Widget temporaryLocationsCard(List<ContactTemporaryLocation> locations) => Card(
     child: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('locations',
-              style: TextStyle(fontSize: 16, color: Colors.black54)),
+          const Text('locations', style: TextStyle(fontSize: 16)),
           ...locations
               .where((l) => l.end.isAfter(DateTime.now()))
               .map(locationTile)
@@ -350,8 +349,7 @@ Card circlesCard(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    const Text('circles',
-                        style: TextStyle(fontSize: 16, color: Colors.black54)),
+                    const Text('circles', style: TextStyle(fontSize: 16)),
                     if (circles.isEmpty)
                       const Text('Add them to circles to start sharing.',
                           style: TextStyle(fontSize: 19))
