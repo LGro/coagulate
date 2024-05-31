@@ -40,8 +40,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       return;
     }
 
-    // TODO: Switch to unawaited because it'll be synced eventually?
-    await contactsRepository
+    unawaited(contactsRepository
         .updateContact(profileContact.copyWith(temporaryLocations: [
           ...profileContact.temporaryLocations
               .map((l) => l.copyWith(checkedIn: false)),
@@ -57,7 +56,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
         ]))
         // Make sure to regenerate the sharing profiles and update DHT sharing records
         .then((_) => contactsRepository
-            .updateProfileContact(profileContact.coagContactId));
+            .updateProfileContact(profileContact.coagContactId)));
 
     if (!isClosed) {
       emit(state.copyWith(checkingIn: false));
