@@ -388,78 +388,92 @@ class LocationsPage extends StatelessWidget {
               body: Column(children: [
                 // SingleChildScrollView(child: LocationForm())
                 Expanded(
-                    child: ListView(children: [
-                  // Future locations
-                  ...state.temporaryLocations
-                      .where((l) =>
-                          !l.end.isBefore(DateTime.now()) &&
-                          !l.start.isBefore(DateTime.now()))
-                      .map((l) => Dismissible(
-                          key: UniqueKey(),
-                          onDismissed: (_) async =>
-                              context.read<LocationsCubit>().removeLocation(l),
-                          background: Container(color: Colors.red),
-                          child: Padding(
-                              padding: EdgeInsets.only(left: 16, right: 16),
-                              child: locationTile(l,
-                                  circleMembersips: state.circleMembersips))))
-                      .asList(),
-                  // Current locations // TODO: maybe allow checking in 5-10min earlier?
-                  ...state.temporaryLocations
-                      .where((l) =>
-                          !l.end.isBefore(DateTime.now()) &&
-                          l.start.isBefore(DateTime.now()))
-                      .map((l) => Dismissible(
-                          key: UniqueKey(),
-                          onDismissed: (_) async =>
-                              context.read<LocationsCubit>().removeLocation(l),
-                          background: Container(color: Colors.red),
-                          child: Padding(
-                              padding: EdgeInsets.only(left: 16, right: 16),
-                              child: locationTile(l,
-                                  circleMembersips: state.circleMembersips,
-                                  onTap: () async => context
-                                      .read<LocationsCubit>()
-                                      .toggleCheckInExisting(l)))))
-                      .asList(),
-                  // If no future locations
-                  if (state.temporaryLocations
-                      .where((l) => !l.end.isBefore(DateTime.now()))
-                      .isEmpty)
-                    Container(
-                        padding: const EdgeInsets.all(20),
-                        child: const Text(
-                            'Nothing coming up, check-in now or plan a future stay.',
-                            style: TextStyle(fontSize: 16))),
-                  if (state.circleMembersips.isEmpty)
-                    Container(
-                        padding: const EdgeInsets.only(
-                            left: 20, right: 20, bottom: 20),
-                        child: const Text(
-                            'Before you can start sharing your location, add some contacts to circles.',
-                            style: TextStyle(fontSize: 16))),
-                  // Past locations
-                  if (state.temporaryLocations
-                      .where((l) => l.end.isBefore(DateTime.now()))
-                      .isNotEmpty)
-                    const Row(children: [
-                      Expanded(child: Divider(indent: 8, endIndent: 8)),
-                      Text('past locations'),
-                      Expanded(child: Divider(indent: 8, endIndent: 8))
-                    ]),
-                  ...state.temporaryLocations
-                      .where((l) => l.end.isBefore(DateTime.now()))
-                      .map((l) => Dismissible(
-                          key: UniqueKey(),
-                          onDismissed: (_) async =>
-                              context.read<LocationsCubit>().removeLocation(l),
-                          background: Container(color: Colors.red),
-                          child: Padding(
-                              padding: EdgeInsets.only(left: 16, right: 16),
-                              child: locationTile(l,
-                                  circleMembersips: state.circleMembersips))))
-                      .asList(),
-                ])),
+                    child: ListView(
+                        controller: ScrollController(
+                            // TODO: This will fail with different font sizes when e.g. in big text mode for accessibility
+                            initialScrollOffset: 20 +
+                                100.0 *
+                                    state.temporaryLocations
+                                        .where((l) =>
+                                            l.end.isBefore(DateTime.now()))
+                                        .length),
+                        children: [
+                      // Past locations
+                      ...state.temporaryLocations
+                          .where((l) => l.end.isBefore(DateTime.now()))
+                          .map((l) => Dismissible(
+                              key: UniqueKey(),
+                              onDismissed: (_) async => context
+                                  .read<LocationsCubit>()
+                                  .removeLocation(l),
+                              background: Container(color: Colors.red),
+                              child: Padding(
+                                  padding: EdgeInsets.only(left: 16, right: 16),
+                                  child: locationTile(l,
+                                      circleMembersips:
+                                          state.circleMembersips))))
+                          .asList(),
+                      if (state.temporaryLocations
+                          .where((l) => l.end.isBefore(DateTime.now()))
+                          .isNotEmpty)
+                        const Row(children: [
+                          Expanded(child: Divider(indent: 8, endIndent: 8)),
+                          Text('past locations'),
+                          Expanded(child: Divider(indent: 8, endIndent: 8))
+                        ]),
+                      // Current locations // TODO: maybe allow checking in 5-10min earlier?
+                      ...state.temporaryLocations
+                          .where((l) =>
+                              !l.end.isBefore(DateTime.now()) &&
+                              l.start.isBefore(DateTime.now()))
+                          .map((l) => Dismissible(
+                              key: UniqueKey(),
+                              onDismissed: (_) async => context
+                                  .read<LocationsCubit>()
+                                  .removeLocation(l),
+                              background: Container(color: Colors.red),
+                              child: Padding(
+                                  padding: EdgeInsets.only(left: 16, right: 16),
+                                  child: locationTile(l,
+                                      circleMembersips: state.circleMembersips,
+                                      onTap: () async => context
+                                          .read<LocationsCubit>()
+                                          .toggleCheckInExisting(l)))))
+                          .asList(),
+                      // Future locations
+                      ...state.temporaryLocations
+                          .where((l) =>
+                              !l.end.isBefore(DateTime.now()) &&
+                              !l.start.isBefore(DateTime.now()))
+                          .map((l) => Dismissible(
+                              key: UniqueKey(),
+                              onDismissed: (_) async => context
+                                  .read<LocationsCubit>()
+                                  .removeLocation(l),
+                              background: Container(color: Colors.red),
+                              child: Padding(
+                                  padding: EdgeInsets.only(left: 16, right: 16),
+                                  child: locationTile(l,
+                                      circleMembersips:
+                                          state.circleMembersips))))
+                          .asList(),
+                      // If no future locations
+                      if (state.temporaryLocations
+                          .where((l) => !l.end.isBefore(DateTime.now()))
+                          .isEmpty)
+                        Container(
+                            padding: const EdgeInsets.all(20),
+                            child: const Text(
+                                'Nothing coming up, check-in now or plan a future stay.',
+                                style: TextStyle(fontSize: 16))),
+                      if (state.circleMembersips.isEmpty)
+                        Container(
+                            padding: const EdgeInsets.only(
+                                left: 20, right: 20, bottom: 20),
+                            child: const Text(
+                                'Before you can start sharing your location, add some contacts to circles.',
+                                style: TextStyle(fontSize: 16))),
+                    ])),
                 const SizedBox(height: 16),
                 const Row(children: [
                   SizedBox(width: 16),

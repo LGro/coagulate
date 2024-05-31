@@ -41,7 +41,7 @@ class LocationsCubit extends Cubit<LocationsState> {
 
   List<ContactTemporaryLocation> _sort(
           List<ContactTemporaryLocation> locations) =>
-      locations.sortedBy((l) => l.start).reversed.asList();
+      locations.sortedBy((l) => l.start).asList();
 
   Future<void> addRandomLocation() async {
     final randomLocation = ContactTemporaryLocation(
