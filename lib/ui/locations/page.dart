@@ -353,6 +353,15 @@ Widget locationTile(ContactTemporaryLocation location,
                 ? const Icon(Icons.pin_drop_outlined)
                 : null);
 
+// TODO: This will fail with different font sizes when e.g. in big text mode for accessibility
+double locationsScrollOffset(Iterable<ContactTemporaryLocation> locations) {
+  final oldLocations = locations.where((l) => l.end.isBefore(DateTime.now()));
+  if (oldLocations.isEmpty) {
+    return 0;
+  }
+  return 20 + 100.0 * oldLocations.length;
+}
+
 class LocationsPage extends StatelessWidget {
   const LocationsPage({super.key});
 
@@ -368,13 +377,8 @@ class LocationsPage extends StatelessWidget {
                 Expanded(
                     child: ListView(
                         controller: ScrollController(
-                            // TODO: This will fail with different font sizes when e.g. in big text mode for accessibility
-                            initialScrollOffset: 20 +
-                                100.0 *
-                                    state.temporaryLocations
-                                        .where((l) =>
-                                            l.end.isBefore(DateTime.now()))
-                                        .length),
+                            initialScrollOffset: locationsScrollOffset(
+                                state.temporaryLocations)),
                         children: [
                       // Past locations
                       ...state.temporaryLocations
