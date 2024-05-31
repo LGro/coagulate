@@ -58,7 +58,9 @@ String mapboxToken() =>
     const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN');
 
 Marker _buildMarker(
-        {required Location location, required GestureTapCallback? onTap}) =>
+        {required Location location,
+        required GestureTapCallback? onTap,
+        bool isDarkMode = false}) =>
     Marker(
         height: 90,
         width: 100,
@@ -71,24 +73,21 @@ Marker _buildMarker(
                   padding: const EdgeInsets.only(
                       bottom: 4, left: 8, right: 8, top: 3),
                   decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(240),
+                      color: (isDarkMode ? Colors.black : Colors.white)
+                          .withAlpha(240),
                       borderRadius: const BorderRadius.all(Radius.circular(5))),
                   child: Column(children: [
                     Text(
                       location.label,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          color: Colors.black),
+                          fontWeight: FontWeight.w600, fontSize: 12),
                     ),
                     Text(
                       location.subLabel,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10,
-                          color: Colors.black),
+                          fontWeight: FontWeight.w600, fontSize: 10),
                     ),
                   ])),
               Icon(
@@ -114,51 +113,58 @@ class MapPage extends StatelessWidget {
                 flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag)),
         children: <Widget>[
           TileLayer(
+            userAgentPackageName: 'social.coagulate.app',
             urlTemplate: (mapboxToken().isEmpty)
                 ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
                 // TODO: Add {r} along with retinaMode.isHighDensity and TileLayer.retinaMode #7
-                : 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=${mapboxToken()}',
+                : 'https://api.mapbox.com/styles/v1/mapbox/'
+                    // For more styles, see https://docs.mapbox.com/api/maps/styles/
+                    '${(MediaQuery.of(context).platformBrightness == Brightness.dark) ? 'dark-v11' : 'light-v11'}'
+                    '/tiles/256/{z}/{x}/{y}?access_token=${mapboxToken()}',
           ),
           BlocProvider(
               create: (context) => MapCubit(context.read<ContactsRepository>()),
               child: BlocConsumer<MapCubit, MapState>(
-                  listener: (context, state) async {
-                print('map bloc provider listener');
-              }, builder: (context, state) {
-                print('map bloc provider building');
-                final markers = state.locations
-                    .map((location) => _buildMarker(
-                        location: location,
-                        // TODO: Only add on tap action for other contacts, not the profile contact
-                        // TODO: Style profile contact locations differently
-                        onTap: (false)
-                            ? () {}
-                            : () {
-                                unawaited(Navigator.push(
-                                    context,
-                                    ContactPage.route(context
-                                        .read<ContactsRepository>()
-                                        .getContact(location.coagContactId))));
-                              }))
-                    .toList();
+                  listener: (context, state) async {},
+                  builder: (context, state) {
+                    final markers = state.locations
+                        .map((location) => _buildMarker(
+                            location: location,
+                            isDarkMode:
+                                MediaQuery.of(context).platformBrightness ==
+                                    Brightness.dark,
+                            // TODO: Only add on tap action for other contacts, not the profile contact
+                            // TODO: Style profile contact locations differently
+                            onTap: (false)
+                                ? () {}
+                                : () {
+                                    unawaited(Navigator.push(
+                                        context,
+                                        ContactPage.route(context
+                                            .read<ContactsRepository>()
+                                            .getContact(
+                                                location.coagContactId))));
+                                  }))
+                        .toList();
 
-                return MarkerClusterLayerWidget(
-                    options: MarkerClusterLayerOptions(
-                  maxClusterRadius: 110,
-                  size: const Size(40, 40),
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.all(50),
-                  maxZoom: 15,
-                  markers: markers,
-                  builder: (context, markers) => DecoratedBox(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.deepPurple),
-                      child: Center(
-                          child: Text(markers.length.toString(),
-                              style: const TextStyle(color: Colors.white)))),
-                ));
-              })),
+                    return MarkerClusterLayerWidget(
+                        options: MarkerClusterLayerOptions(
+                      maxClusterRadius: 110,
+                      size: const Size(40, 40),
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.all(50),
+                      maxZoom: 15,
+                      markers: markers,
+                      builder: (context, markers) => DecoratedBox(
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.deepPurple),
+                          child: Center(
+                              child: Text(markers.length.toString(),
+                                  style:
+                                      const TextStyle(color: Colors.white)))),
+                    ));
+                  })),
           // TODO: Consider replacing it with a start and end date selection
           // const Align(
           //     alignment: Alignment.bottomLeft,

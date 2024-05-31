@@ -75,7 +75,7 @@ Widget updateTile(String name, String timing, String change) => ListTile(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Flexible(child: Text(name, overflow: TextOverflow.ellipsis)),
-        Text(timing, style: const TextStyle(color: Colors.black54))
+        Text(timing),
       ],
     ),
     subtitle: Row(
