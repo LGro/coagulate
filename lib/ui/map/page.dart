@@ -110,7 +110,11 @@ class MapPage extends StatelessWidget {
             maxZoom: 15,
             minZoom: 1,
             interactionOptions: InteractionOptions(
-                flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag)),
+                flags: InteractiveFlag.pinchZoom |
+                    InteractiveFlag.drag |
+                    InteractiveFlag.doubleTapZoom |
+                    InteractiveFlag.doubleTapDragZoom |
+                    InteractiveFlag.pinchMove)),
         children: <Widget>[
           TileLayer(
             userAgentPackageName: 'social.coagulate.app',
