@@ -222,9 +222,14 @@ Widget receivingCard(BuildContext context, CoagContact contact) => Card(
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
     child: Stack(children: [
       Positioned.fill(
-        child: SvgPicture.asset(
-            'assets/images/down_arrow_bg.svg', // Path to your SVG file
-            fit: BoxFit.cover),
+        child: Opacity(
+            opacity:
+                (MediaQuery.of(context).platformBrightness == Brightness.dark)
+                    ? 0.2
+                    : 0.8,
+            child: SvgPicture.asset(
+                'assets/images/down_arrow_bg.svg', // Path to your SVG file
+                fit: BoxFit.cover)),
       ),
       Padding(
           padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
@@ -281,8 +286,13 @@ Widget sharingCard(BuildContext context, CoagContact contact) => Card(
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
     child: Stack(children: [
       Positioned.fill(
-          child: SvgPicture.asset('assets/images/up_arrow_bg.svg',
-              fit: BoxFit.cover)),
+          child: Opacity(
+              opacity:
+                  (MediaQuery.of(context).platformBrightness == Brightness.dark)
+                      ? 0.2
+                      : 0.8,
+              child: SvgPicture.asset('assets/images/up_arrow_bg.svg',
+                  fit: BoxFit.cover))),
       Padding(
           padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
           child:
@@ -321,6 +331,10 @@ Widget sharingCard(BuildContext context, CoagContact contact) => Card(
 
 // TODO: Move to widgets because it's used in two places at least
 Iterable<Widget> displayDetails(ContactDetails details) => [
+      const Padding(
+          padding: EdgeInsets.only(top: 12, left: 8, right: 8, bottom: 8),
+          child:
+              Text('Shared with this contact based on the selected circles:')),
       Card(
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
           margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
