@@ -14,25 +14,68 @@ import '../../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
+Future<CheckInStatus> checkLocationAccess() async {
+  // Test if location services are enabled.
+  final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    // Location services are not enabled don't continue
+    // accessing the position and request users of the
+    // App to enable the location services.
+    return CheckInStatus.locationDisabled;
+  }
+
+  var permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      // Permissions are denied, next time you could try
+      // requesting permissions again (this is also where
+      // Android's shouldShowRequestPermissionRationale
+      // returned true. According to Android guidelines
+      // your App should show an explanatory UI now.
+      return CheckInStatus.locationDenied;
+    }
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    // Permissions are denied forever, handle appropriately.
+    // return Future.error(
+    //     'Location permissions are permanently denied, we cannot request permissions.');
+    return CheckInStatus.locationDeniedPermanent;
+  }
+
+  return CheckInStatus.readyForCheckIn;
+}
+
 class CheckInCubit extends Cubit<CheckInState> {
   CheckInCubit(this.contactsRepository)
       : super(CheckInState(
-            checkingIn: false, circles: contactsRepository.getCircles()));
+            status: CheckInStatus.initial,
+            circles: contactsRepository.getCircles())) {
+    unawaited(initialPermissionsCheck());
+  }
 
   final ContactsRepository contactsRepository;
+
+  Future<void> initialPermissionsCheck() async {
+    if (!isClosed) {
+      emit(state.copyWith(status: await checkLocationAccess()));
+    }
+  }
 
   Future<void> checkIn(
       {required String name,
       required String details,
       required List<String> circles,
       required DateTime end}) async {
-    emit(state.copyWith(checkingIn: true));
+    if (!isClosed) {
+      emit(state.copyWith(status: CheckInStatus.checkingIn));
+    }
 
     final profileContact = contactsRepository.getProfileContact();
     if (profileContact == null) {
       if (!isClosed) {
-        //TODO: Emit failure state
-        emit(state.copyWith(checkingIn: false));
+        emit(state.copyWith(status: CheckInStatus.noProfile));
       }
       return;
     }
@@ -60,19 +103,18 @@ class CheckInCubit extends Cubit<CheckInState> {
           .then((_) => contactsRepository
               .updateProfileContact(profileContact.coagContactId)));
 
-      if (!isClosed) {
-        emit(state.copyWith(checkingIn: false));
-      }
+      // TODO: Emit success status?
+      // if (!isClosed) {
+      //   emit(state.copyWith(checkingIn: false));
+      // }
     } on TimeoutException {
       if (!isClosed) {
-        //TODO: Emit failure state
-        emit(state.copyWith(checkingIn: false));
+        emit(state.copyWith(status: CheckInStatus.locationTimeout));
       }
       return;
     } on LocationServiceDisabledException {
       if (!isClosed) {
-        //TODO: Emit failure state
-        emit(state.copyWith(checkingIn: false));
+        emit(state.copyWith(status: CheckInStatus.locationDisabled));
       }
       return;
     }

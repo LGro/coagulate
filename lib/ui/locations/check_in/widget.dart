@@ -271,44 +271,52 @@ class CheckInWidget extends StatelessWidget {
       create: (context) => CheckInCubit(context.read<ContactsRepository>()),
       child: BlocConsumer<CheckInCubit, CheckInState>(
           listener: (context, state) async {},
-          builder: (context, state) => ElevatedButton(
-              onPressed: (context
-                              .read<CheckInCubit>()
-                              .contactsRepository
-                              .profileContactId ==
-                          null ||
-                      state.circles.isEmpty ||
-                      state.checkingIn)
-                  ? null
-                  : () async => showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (modalContext) => Padding(
-                          padding: EdgeInsets.only(
-                              left: 16,
-                              top: 16,
-                              right: 16,
-                              bottom: MediaQuery.of(modalContext)
-                                  .viewInsets
-                                  .bottom),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              MyForm(
-                                  circles: state.circles,
-                                  callback:
-                                      context.read<CheckInCubit>().checkIn)
-                            ],
-                          ))),
-              child: (state.checkingIn)
-                  ? Transform.scale(
-                      scale: 0.5, child: const CircularProgressIndicator())
-                  : const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                          Icon(Icons.pin_drop),
-                          SizedBox(width: 8),
-                          Text('check-in')
-                        ]))));
+          builder: (context, state) {
+            if (state.status.isInitial) {
+              return SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 100,
+                  child: const Center(child: CircularProgressIndicator()));
+            }
+
+            if (context
+                        .read<CheckInCubit>()
+                        .contactsRepository
+                        .profileContactId ==
+                    null ||
+                state.circles.isEmpty) {
+              return SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: const Padding(
+                      padding: EdgeInsets.only(
+                          left: 16, right: 16, bottom: 32, top: 8),
+                      child: Text(
+                          'Pick a profile and add (contacts to) circles first.')));
+            }
+
+            // TODO: Instead of these two error cases, just show manual location picker in form
+            if (state.status.isLocationDenied ||
+                state.status.isLocationDeniedPermanent) {
+              return SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: const Padding(
+                      padding: EdgeInsets.only(
+                          left: 16, right: 16, bottom: 32, top: 8),
+                      child: Text(
+                          'Location permission denied. Please grant Coagulate location access.')));
+            }
+            if (state.status.isLocationDisabled) {
+              return SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: const Padding(
+                      padding: EdgeInsets.only(
+                          left: 16, right: 16, bottom: 32, top: 8),
+                      child: Text(
+                          'Location services seem to be disabled, GPS based check-in is not possible.')));
+            }
+
+            return MyForm(
+                circles: state.circles,
+                callback: context.read<CheckInCubit>().checkIn);
+          }));
 }

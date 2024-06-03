@@ -459,7 +459,29 @@ class LocationsPage extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(children: [
                   const Expanded(child: SizedBox()),
-                  const CheckInWidget(),
+                  ElevatedButton(
+                      onPressed: () async => showModalBottomSheet<void>(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (modalContext) => Padding(
+                              padding: EdgeInsets.only(
+                                  left: 16,
+                                  top: 16,
+                                  right: 16,
+                                  bottom: MediaQuery.of(modalContext)
+                                      .viewInsets
+                                      .bottom),
+                              child: const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [CheckInWidget()]))),
+                      child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.pin_drop),
+                            SizedBox(width: 8),
+                            Text('check-in')
+                          ])),
                   const Expanded(child: SizedBox()),
                   ElevatedButton(
                       onPressed: (state.circleMembersips.isEmpty)
