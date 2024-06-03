@@ -4,6 +4,7 @@
 import 'dart:convert';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -118,6 +119,17 @@ class ContactPage extends StatelessWidget {
                 return Container();
               }
             }),
+
+        if (!kReleaseMode)
+          Column(children: [
+            Text('DEBUG INFOS'),
+            if (contact.dhtSettingsForSharing != null)
+              Text(
+                  'SHR: ${json.encode(contact.dhtSettingsForSharing!.toJson())}'),
+            if (contact.dhtSettingsForReceiving != null)
+              Text(
+                  'RCV: ${json.encode(contact.dhtSettingsForReceiving!.toJson())}'),
+          ]),
 
         // Receiving stuff
         if (circles.isNotEmpty &&

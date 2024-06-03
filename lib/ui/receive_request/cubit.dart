@@ -185,7 +185,9 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
           addressLocations: contact.addressLocations,
           temporaryLocations: contact.temporaryLocations,
           dhtSettingsForReceiving: ContactDHTSettings(key: key, psk: psk),
-          dhtSettingsForSharing: (contact.shareBackDHTKey == null)
+          dhtSettingsForSharing: (contact.shareBackDHTKey == null ||
+                  contact.shareBackDHTWriter == null ||
+                  contact.shareBackPsk == null)
               ? null
               : ContactDHTSettings(
                   key: contact.shareBackDHTKey!,
