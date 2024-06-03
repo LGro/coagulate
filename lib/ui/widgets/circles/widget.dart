@@ -3,12 +3,8 @@
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:uuid/uuid.dart';
-
-import '../../../data/repositories/contacts.dart';
-import 'cubit.dart';
 
 // TODO: Display check in form with location (from gps, from map picker, from address, from coordinates) circles to share with, optional duration, optional move away to check out constraint
 class CirclesForm extends StatefulWidget {
@@ -204,44 +200,4 @@ class CirclesFormState with FormzMixin {
 
   @override
   List<FormzInput<dynamic, dynamic>> get inputs => [];
-}
-
-class CirclesWidget extends StatelessWidget {
-  const CirclesWidget({required this.coagContactId, super.key});
-
-  final String coagContactId;
-
-  @override
-  Widget build(BuildContext context) => BlocProvider(
-      create: (context) =>
-          CirclesCubit(context.read<ContactsRepository>(), coagContactId),
-      child: BlocConsumer<CirclesCubit, CirclesState>(
-          listener: (context, state) async {},
-          builder: (context, state) => ElevatedButton(
-              onPressed: () async => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (modalContext) => Padding(
-                      padding: EdgeInsets.only(
-                          left: 16,
-                          top: 16,
-                          right: 16,
-                          bottom:
-                              MediaQuery.of(modalContext).viewInsets.bottom),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CirclesForm(
-                              circles: state.circles,
-                              callback: context.read<CirclesCubit>().update)
-                        ],
-                      ))),
-              child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.pin_drop),
-                    SizedBox(width: 8),
-                    Text('check-in')
-                  ]))));
 }

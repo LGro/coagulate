@@ -93,6 +93,7 @@ Widget emails(List<Email> emails,
                   ])),
               if (onTap != null)
                 IconButton(
+                    key: Key('emailsCirclesMgmt${i}'),
                     onPressed: () =>
                         onTap(i, _label(e.label.name, e.customLabel).data!),
                     icon: const Icon(Icons.add_task))
@@ -121,6 +122,7 @@ Widget phones(List<Phone> phones,
                   ])),
               if (onTap != null)
                 IconButton(
+                    key: Key('phonesCirclesMgmt${i}'),
                     onPressed: () =>
                         onTap(i, _label(e.label.name, e.customLabel).data!),
                     icon: const Icon(Icons.add_task))
@@ -149,6 +151,7 @@ Widget websites(List<Website> websites,
                   ])),
               if (onTap != null)
                 IconButton(
+                    key: Key('websitesCirclesMgmt${i}'),
                     onPressed: () =>
                         onTap(i, _label(e.label.name, e.customLabel).data!),
                     icon: const Icon(Icons.add_task))
@@ -177,6 +180,7 @@ Widget socialMedias(List<SocialMedia> websites,
                   ])),
               if (onTap != null)
                 IconButton(
+                    key: Key('socialMediasCirclesMgmt${i}'),
                     onPressed: () =>
                         onTap(i, _label(e.label.name, e.customLabel).data!),
                     icon: const Icon(Icons.add_task))
@@ -219,6 +223,7 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
                     ])),
                 if (onTap != null)
                   IconButton(
+                      key: Key('addressesCirclesMgmt${i}'),
                       onPressed: () =>
                           onTap(i, _label(e.label.name, e.customLabel).data!),
                       icon: const Icon(Icons.add_task)),

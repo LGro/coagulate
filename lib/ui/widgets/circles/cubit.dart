@@ -23,6 +23,10 @@ class CirclesCubit extends Cubit<CirclesState> {
             contactsRepository.circlesWithMembership(coagContactId)));
       }
     });
+    if (!isClosed) {
+      emit(CirclesState(
+          contactsRepository.circlesWithMembership(coagContactId)));
+    }
   }
 
   final ContactsRepository contactsRepository;
@@ -45,6 +49,11 @@ class CirclesCubit extends Cubit<CirclesState> {
     memberships[coagContactId] =
         circles.where((c) => c.$3).map((c) => c.$1).asList();
     await contactsRepository.updateCircleMemberships(memberships);
+
+    if (!isClosed) {
+      emit(CirclesState(
+          contactsRepository.circlesWithMembership(coagContactId)));
+    }
   }
 
   @override
