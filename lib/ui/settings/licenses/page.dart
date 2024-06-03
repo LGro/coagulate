@@ -31,6 +31,7 @@ class LicensesPage extends StatelessWidget {
               child: Center(
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children:
-                          ossLicenses.map(_buildLicenseWidget).toList())))));
+                      children: allDependencies
+                          .map(_buildLicenseWidget)
+                          .toList())))));
 }
