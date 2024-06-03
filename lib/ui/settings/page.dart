@@ -44,10 +44,10 @@ class SettingsPage extends StatelessWidget {
                         trailing: Switch(
                             value: state.autoAddressResolution,
                             onChanged: (v) => ())),
-                    ListTile(
-                        title: const Text('Dark mode'),
-                        trailing: Switch(
-                            value: state.darkMode, onChanged: (v) => ())),
+                    // ListTile(
+                    //     title: const Text('Dark mode'),
+                    //     trailing: Switch(
+                    //         value: state.darkMode, onChanged: (v) => ())),
                     ListTile(
                         title: const Text('Map provider'),
                         trailing: DropdownMenu<String>(
