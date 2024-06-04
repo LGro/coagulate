@@ -23,6 +23,7 @@ Iterable<Location> contactToLocations(CoagContact contact) =>
         label:
             contact.details?.displayName ?? contact.systemContact!.displayName,
         subLabel: l.name,
+        details: '',
         marker: MarkerType.address));
 
 Location temporaryLocationToLocation(
@@ -35,6 +36,7 @@ Location temporaryLocationToLocation(
         subLabel: l.name,
         longitude: l.longitude,
         latitude: l.latitude,
+        details: '${l.start} - ${l.end}\nDetails: ${l.details}',
         marker: MarkerType.temporary);
 
 class MapCubit extends Cubit<MapState> {

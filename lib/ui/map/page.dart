@@ -139,8 +139,26 @@ class MapPage extends StatelessWidget {
                                     Brightness.dark,
                             // TODO: Only add on tap action for other contacts, not the profile contact
                             // TODO: Style profile contact locations differently
-                            onTap: (false)
-                                ? () {}
+                            onTap: (location.marker == MarkerType.temporary)
+                                ? () async => showModalBottomSheet<void>(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    builder: (modalContext) => Padding(
+                                        padding: EdgeInsets.only(
+                                            left: 16,
+                                            top: 16,
+                                            right: 16,
+                                            bottom: 12 +
+                                                MediaQuery.of(modalContext)
+                                                    .viewInsets
+                                                    .bottom),
+                                        child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(location.details)
+                                            ])))
                                 : () {
                                     unawaited(Navigator.push(
                                         context,

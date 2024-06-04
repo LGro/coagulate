@@ -22,6 +22,7 @@ class Location {
     required this.latitude,
     required this.label,
     required this.subLabel,
+    required this.details,
     required this.marker,
   });
   factory Location.fromJson(Map<String, dynamic> json) =>
@@ -32,6 +33,7 @@ class Location {
   final double latitude;
   final String label;
   final String subLabel;
+  final String details;
   final MarkerType marker;
   Map<String, dynamic> toJson() => _$LocationToJson(this);
 }

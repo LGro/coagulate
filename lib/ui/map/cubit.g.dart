@@ -12,6 +12,7 @@ Location _$LocationFromJson(Map<String, dynamic> json) => Location(
       latitude: (json['latitude'] as num).toDouble(),
       label: json['label'] as String,
       subLabel: json['sub_label'] as String,
+      details: json['details'] as String,
       marker: $enumDecode(_$MarkerTypeEnumMap, json['marker']),
     );
 
@@ -21,6 +22,7 @@ Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
       'latitude': instance.latitude,
       'label': instance.label,
       'sub_label': instance.subLabel,
+      'details': instance.details,
       'marker': _$MarkerTypeEnumMap[instance.marker]!,
     };
 
