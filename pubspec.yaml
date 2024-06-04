@@ -1,7 +1,7 @@
 name: coagulate
 description: Staying in contact, with privacy friendly contact synchronization powered by Veilid.
 publish_to: 'none'
-version: "0.0.1+5"
+version: "0.0.1+6"
 
 environment:
   sdk: '>=3.0.5 <4.0.0'  
