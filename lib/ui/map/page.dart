@@ -137,36 +137,39 @@ class MapPage extends StatelessWidget {
                             isDarkMode:
                                 MediaQuery.of(context).platformBrightness ==
                                     Brightness.dark,
-                            // TODO: Only add on tap action for other contacts, not the profile contact
                             // TODO: Style profile contact locations differently
-                            onTap: (location.marker == MarkerType.temporary)
-                                ? () async => showModalBottomSheet<void>(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    builder: (modalContext) => Padding(
-                                        padding: EdgeInsets.only(
-                                            left: 16,
-                                            top: 16,
-                                            right: 16,
-                                            bottom: 12 +
-                                                MediaQuery.of(modalContext)
-                                                    .viewInsets
-                                                    .bottom),
-                                        child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(location.details)
-                                            ])))
-                                : () {
-                                    unawaited(Navigator.push(
-                                        context,
-                                        ContactPage.route(context
+                            onTap: (context
                                             .read<ContactsRepository>()
-                                            .getContact(
-                                                location.coagContactId))));
-                                  }))
+                                            .profileContactId ==
+                                        location.coagContactId &&
+                                    location.marker == MarkerType.address)
+                                ? null
+                                : (location.marker == MarkerType.temporary)
+                                    ? () async => showModalBottomSheet<void>(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        builder: (modalContext) => Padding(
+                                            padding: EdgeInsets.only(
+                                                left: 16,
+                                                top: 16,
+                                                right: 16,
+                                                bottom: 12 +
+                                                    MediaQuery.of(modalContext)
+                                                        .viewInsets
+                                                        .bottom),
+                                            child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [Text(location.details)])))
+                                    : () {
+                                        unawaited(Navigator.push(
+                                            context,
+                                            ContactPage.route(context
+                                                .read<ContactsRepository>()
+                                                .getContact(
+                                                    location.coagContactId))));
+                                      }))
                         .toList();
 
                     return MarkerClusterLayerWidget(
