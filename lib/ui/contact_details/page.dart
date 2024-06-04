@@ -272,7 +272,7 @@ Widget receivingCard(BuildContext context, CoagContact contact) => Card(
               ]),
               // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
               onPressed: () async => Share.share(
-                  'I\'d like to coagulate with you: ${_receiveUrl(key: contact.dhtSettingsForReceiving!.key, psk: contact.dhtSettingsForReceiving!.psk!, writer: contact.dhtSettingsForReceiving!.writer!)}\n'
+                  'Please share with me: ${_receiveUrl(key: contact.dhtSettingsForReceiving!.key, psk: contact.dhtSettingsForReceiving!.psk!, writer: contact.dhtSettingsForReceiving!.writer!)}\n'
                   'Keep this link a secret, it\'s just for you.'),
             )),
             const SizedBox(height: 8),
@@ -333,7 +333,7 @@ Widget sharingCard(BuildContext context, CoagContact contact) => Card(
               ]),
               // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
               onPressed: () async => Share.share(
-                  'I\'d like to coagulate with you: ${_shareUrl(key: contact.dhtSettingsForSharing!.key, psk: contact.dhtSettingsForSharing!.psk!)}\n'
+                  'I\'d like to share with you: ${_shareUrl(key: contact.dhtSettingsForSharing!.key, psk: contact.dhtSettingsForSharing!.psk!)}\n'
                   'Keep this link a secret, it\'s just for you.'),
             )),
             const SizedBox(height: 8),
