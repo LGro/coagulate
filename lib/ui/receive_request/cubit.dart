@@ -128,6 +128,7 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
         .values
         .where((c) =>
             (c.details != null || c.systemContact != null) &&
+            c.coagContactId != contactsRepository.profileContactId &&
             (value.isEmpty ||
                 (c.details?.displayName ?? c.systemContact?.displayName ?? '')
                     .toLowerCase()
@@ -154,7 +155,11 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
       return;
     }
 
-    final proposals = contactsRepository.getContacts().values.asList();
+    final proposals = contactsRepository
+        .getContacts()
+        .values
+        .where((c) => c.coagContactId != contactsRepository.profileContactId)
+        .asList();
 
     final key = '${components[0]}:${components[1]}';
     final psk = components[2];
