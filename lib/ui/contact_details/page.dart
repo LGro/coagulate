@@ -50,23 +50,22 @@ Widget _qrCodeButton(BuildContext context,
           Text(buttonText),
           const SizedBox(width: 4),
         ]),
-        onPressed: () async {
-          print(qrCodeData);
-          await showDialog<void>(
-              context: context,
-              builder: (_) => AlertDialog(
-                  title: Text(alertTitle),
-                  shape: const RoundedRectangleBorder(),
-                  content: Container(
-                      height: 200,
-                      width: 200,
-                      child: Center(
-                          child: QrImageView(
-                              // TODO: This needs to be receive URL because it needs to include the writer
-                              data: qrCodeData,
-                              backgroundColor: Colors.white,
-                              size: 200)))));
-        });
+        onPressed: () async => showDialog<void>(
+            context: context,
+            builder: (_) => AlertDialog(
+                titlePadding:
+                    const EdgeInsets.only(left: 20, right: 20, top: 16),
+                title: Text(alertTitle),
+                shape: const RoundedRectangleBorder(),
+                content: SizedBox(
+                    height: 200,
+                    width: 200,
+                    child: Center(
+                        child: QrImageView(
+                            // TODO: This needs to be receive URL because it needs to include the writer
+                            data: qrCodeData,
+                            backgroundColor: Colors.white,
+                            size: 200))))));
 
 class ContactPage extends StatelessWidget {
   const ContactPage({super.key, required this.coagContactId});
