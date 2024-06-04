@@ -239,7 +239,30 @@ class ContactsRepository {
     _circleMemberships = memberships;
     _circlesStreamController.add(null);
     await persistentStorage.updateCircleMemberships(memberships);
-    // TODO: Update sharing profile and update dht record; only update where necessary
+
+    for (final contact in _contacts.values) {
+      final profileContact = getProfileContact();
+      if (contact.dhtSettingsForSharing == null || profileContact == null) {
+        continue;
+      }
+
+      final sharedProfile = json.encode(removeNullOrEmptyValues(
+          filterAccordingToSharingProfile(
+                  profile: profileContact,
+                  settings: _profileSharingSettings,
+                  activeCircles:
+                      _circleMemberships[contact.coagContactId] ?? [],
+                  shareBackSettings: contact.dhtSettingsForReceiving)
+              .toJson()));
+      if (sharedProfile == contact.sharedProfile) {
+        continue;
+      }
+
+      // TODO: This seems too big of an action to trigger
+      // disentangle this to just updating the contact and letting the ui know
+      // push changes to dht async
+      await updateContact(contact.copyWith(sharedProfile: sharedProfile));
+    }
   }
 
   Future<void> updateCircles(Map<String, String> circles) async {
