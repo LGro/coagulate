@@ -88,8 +88,7 @@ Widget updateTile(String name, String timing, String change,
           children: [
             // TODO: Use flexible for old and new value to trim them both dynamically
             // Or use Expanded for dynamic multiline
-            Flexible(
-                child: Text('Updated $change', overflow: TextOverflow.ellipsis))
+            Expanded(child: Text('Updated $change'))
           ],
         ));
 
