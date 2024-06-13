@@ -117,7 +117,9 @@ class UpdatesPage extends StatelessWidget {
                           ]
                         : state.updates
                             .map((u) => updateTile(
-                                u.oldContact.displayName,
+                                (u.oldContact.displayName.isNotEmpty)
+                                    ? u.oldContact.displayName
+                                    : u.newContact.displayName,
                                 formatTimeDifference(
                                     DateTime.now().difference(u.timestamp)),
                                 compareContacts(u.oldContact, u.newContact),
