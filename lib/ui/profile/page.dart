@@ -21,6 +21,7 @@ import 'cubit.dart';
 
 Future<void> showPickCirclesBottomSheet(
         {required BuildContext context,
+        required String value,
         required String label,
         required String coagContactId,
         required List<(String, String, bool)> circles,
@@ -45,14 +46,20 @@ Future<void> showPickCirclesBottomSheet(
                       child: BlocConsumer<CirclesCubit, CirclesState>(
                           listener: (context, state) async {},
                           builder: (context, state) => CirclesForm(
-                              customHeader: Row(children: [
-                                Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 4, bottom: 12),
-                                    child: Text('Share "$label" with',
-                                        textScaler:
-                                            const TextScaler.linear(1.4)))
-                              ]),
+                              customHeader: Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 4, bottom: 12),
+                                  child: Row(children: [
+                                    const Text('Share "',
+                                        textScaler: TextScaler.linear(1.4)),
+                                    Flexible(
+                                        child: Text(value,
+                                            overflow: TextOverflow.ellipsis,
+                                            textScaler:
+                                                const TextScaler.linear(1.4))),
+                                    const Text('" with',
+                                        textScaler: TextScaler.linear(1.4)),
+                                  ])),
                               allowCreateNew: true,
                               circles: circles,
                               callback: (circles) async => callback(circles
@@ -229,7 +236,6 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
                       icon: const Icon(Icons.add_task)),
               ]),
               const SizedBox(height: 8),
-              // TODO: This is not updated when fetch coordinates emits new state
               AddressCoordinatesForm(
                   i: i,
                   longitude: locations
@@ -357,6 +363,7 @@ Widget buildProfileScrollView(
                           (i, label) async => showPickCirclesBottomSheet(
                               context: context,
                               label: label,
+                              value: contact.phones[i].number,
                               coagContactId: coagContactId,
                               circles: circles
                                   .map((cId, cLabel) => MapEntry(cId, (
@@ -379,6 +386,7 @@ Widget buildProfileScrollView(
                           (i, label) async => showPickCirclesBottomSheet(
                               context: context,
                               label: label,
+                              value: contact.emails[i].address,
                               coagContactId: coagContactId,
                               circles: circles
                                   .map((cId, cLabel) => MapEntry(cId, (
@@ -403,6 +411,7 @@ Widget buildProfileScrollView(
                           (i, label) async => showPickCirclesBottomSheet(
                               context: context,
                               label: label,
+                              value: contact.addresses[i].address,
                               coagContactId: coagContactId,
                               circles: circles
                                   .map((cId, cLabel) => MapEntry(cId, (
@@ -425,6 +434,7 @@ Widget buildProfileScrollView(
                           (i, label) async => showPickCirclesBottomSheet(
                               context: context,
                               label: label,
+                              value: contact.websites[i].url,
                               coagContactId: coagContactId,
                               circles: circles
                                   .map((cId, cLabel) => MapEntry(cId, (
@@ -447,6 +457,7 @@ Widget buildProfileScrollView(
                           (i, label) async => showPickCirclesBottomSheet(
                               context: context,
                               label: label,
+                              value: contact.socialMedias[i].userName,
                               coagContactId: coagContactId,
                               circles: circles
                                   .map((cId, cLabel) => MapEntry(cId, (
