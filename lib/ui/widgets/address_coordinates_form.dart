@@ -5,11 +5,17 @@ import 'package:flutter/material.dart';
 typedef UpdateLngLatCallback = void Function(num, num);
 
 class AddressCoordinatesForm extends StatefulWidget {
-  final num? lng;
-  final num? lat;
-  final UpdateLngLatCallback? callback;
+  const AddressCoordinatesForm(
+      {required this.i,
+      super.key,
+      this.longitude,
+      this.latitude,
+      this.callback});
 
-  AddressCoordinatesForm({super.key, this.lng, this.lat, this.callback});
+  final int i;
+  final num? longitude;
+  final num? latitude;
+  final UpdateLngLatCallback? callback;
 
   @override
   _AddressCoordinatesFormState createState() => _AddressCoordinatesFormState();
@@ -22,10 +28,19 @@ class _AddressCoordinatesFormState extends State<AddressCoordinatesForm> {
   @override
   void initState() {
     super.initState();
-    _lngController = TextEditingController(
-        text: (widget.lng != null) ? widget.lng.toString() : '');
-    _latController = TextEditingController(
-        text: (widget.lat != null) ? widget.lat.toString() : '');
+    _lngController = TextEditingController(text: '${widget.longitude}');
+    _latController = TextEditingController(text: '${widget.latitude}');
+  }
+
+  @override
+  void didUpdateWidget(covariant AddressCoordinatesForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.longitude != widget.longitude) {
+      _lngController.text = '${widget.longitude}';
+    }
+    if (oldWidget.latitude != widget.latitude) {
+      _latController.text = '${widget.latitude}';
+    }
   }
 
   @override
@@ -33,33 +48,25 @@ class _AddressCoordinatesFormState extends State<AddressCoordinatesForm> {
         children: <Widget>[
           Expanded(
             child: TextFormField(
+              key: Key('addressCoordinatesForm_${widget.i}Longitude'),
               controller: _lngController,
+              keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                   labelText: 'Longitude',
                   border: OutlineInputBorder(),
                   isDense: true),
-              onChanged: (value) => setState(() {
-                _lngController
-                  ..text = value
-                  ..selection = TextSelection.fromPosition(
-                      TextPosition(offset: value.length));
-              }),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: TextFormField(
+              key: Key('addressCoordinatesForm_${widget.i}Latitude'),
               controller: _latController,
+              keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                   labelText: 'Latitude',
                   border: OutlineInputBorder(),
                   isDense: true),
-              onChanged: (value) => setState(() {
-                _latController
-                  ..text = value
-                  ..selection = TextSelection.fromPosition(
-                      TextPosition(offset: value.length));
-              }),
             ),
           ),
           TextButton(

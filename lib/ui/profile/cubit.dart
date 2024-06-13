@@ -54,7 +54,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       emit(state.copyWith(status: ProfileStatus.create));
       final newContactId = (await FlutterContacts.openExternalInsert())?.id;
       if (newContactId != null) {
-        // TODO: Can we be more trageted here, to only update the one contact id?
+        // TODO: Can we be more targeted here, to only update the one contact id?
         await contactsRepository.updateFromSystemContacts();
       }
       await setContact(newContactId);
@@ -102,7 +102,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       updateCoordinates(
           iAddress, chosenLocation.longitude, chosenLocation.latitude);
     } on NoResultFoundException catch (e) {
-      // TODO: Proper error handling
+      // TODO: Proper error handling with corresponding error state
       print('${e} ${address}');
     }
   }

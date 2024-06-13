@@ -4,7 +4,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:awesome_extensions/awesome_extensions.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +16,7 @@ import '../widgets/address_coordinates_form.dart';
 import '../widgets/avatar.dart';
 import '../widgets/circles/cubit.dart';
 import '../widgets/circles/widget.dart';
+// import 'address_location/widget.dart';
 import 'cubit.dart';
 
 Future<void> showPickCirclesBottomSheet(
@@ -231,11 +231,12 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
               const SizedBox(height: 8),
               // TODO: This is not updated when fetch coordinates emits new state
               AddressCoordinatesForm(
-                  lng: locations
+                  i: i,
+                  longitude: locations
                       .where((l) => labelDoesMatch(l.name, e))
                       .firstOrNull
                       ?.longitude,
-                  lat: locations
+                  latitude: locations
                       .where((l) => labelDoesMatch(l.name, e))
                       .firstOrNull
                       ?.latitude,
@@ -465,55 +466,53 @@ Widget buildProfileScrollView(
                   ]))
         ]));
 
+Widget buildUninitializedProfileScreen(
+        BuildContext context, bool permissionsGranted) =>
+    Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Container(
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 28),
+          child: const Text(
+              'Welcome to Coagulate. To start sharing your '
+              'contact details with others, create a new '
+              'profile or pick an existing contact that '
+              'contains your data from the address book.',
+              textScaler: TextScaler.linear(1.2))),
+      if (permissionsGranted) ...[
+        // Re-enable for Android when fixed: https://github.com/QuisApp/flutter_contacts/issues/100
+        if (Platform.isIOS)
+          TextButton(
+              onPressed: context.read<ProfileCubit>().promptCreate,
+              child: const Text('Create Profile',
+                  textScaler: TextScaler.linear(1.2))),
+        if (Platform.isIOS)
+          Container(
+              padding: const EdgeInsets.all(8),
+              child: const Text('or', textScaler: TextScaler.linear(1.2))),
+        TextButton(
+            onPressed: context.read<ProfileCubit>().promptPick,
+            child: const Text('Pick Contact as Profile',
+                textScaler: TextScaler.linear(1.2))),
+      ],
+      // TODO: Check if read access is enough / ensure
+      // TODO: Check if a re-request permissions button here is possible (doesn't seem to work reliably)
+      if (!permissionsGranted)
+        Container(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 28),
+            child: const Text(
+                'Please go to your permissions settings and grant Coagulate access to your address book.'))
+    ]);
+
 class ProfileViewState extends State<ProfileView> {
   Widget _scaffoldBody(BuildContext context, ProfileState state) {
     switch (state.status) {
       case ProfileStatus.initial:
         return Center(
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Container(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 28),
-                child: const Text(
-                    'Welcome to Coagulate. To start sharing your '
-                    'contact details with others, create a new '
-                    'profile or pick an existing contact that '
-                    'contains your data from the address book.',
-                    textScaler: TextScaler.linear(1.2))),
-            if (state.permissionsGranted) ...[
-              // Re-enable for Android when fixed: https://github.com/QuisApp/flutter_contacts/issues/100
-              if (Platform.isIOS)
-                TextButton(
-                    onPressed: context.read<ProfileCubit>().promptCreate,
-                    child: const Text('Create Profile',
-                        textScaler: TextScaler.linear(1.2))),
-              if (Platform.isIOS)
-                Container(
-                    padding: const EdgeInsets.all(8),
-                    child:
-                        const Text('or', textScaler: TextScaler.linear(1.2))),
-              TextButton(
-                  onPressed: context.read<ProfileCubit>().promptPick,
-                  child: const Text('Pick Contact as Profile',
-                      textScaler: TextScaler.linear(1.2))),
-            ],
-            // TODO: Check if read access is enough / ensure
-            // TODO: Check if a re-request permissions button here is possible (doesn't seem to work reliably)
-            if (!state.permissionsGranted)
-              Container(
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 28),
-                  child: const Text(
-                      'Please go to your permissions settings and grant Coagulate access to your address book.'))
-          ]),
-        );
+            child: buildUninitializedProfileScreen(
+                context, state.permissionsGranted));
       case ProfileStatus.create:
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
+        return const Center(child: CircularProgressIndicator());
       case ProfileStatus.pick:
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
+        return const Center(child: CircularProgressIndicator());
       case ProfileStatus.success:
         return Center(
           child: buildProfileScrollView(
@@ -540,12 +539,6 @@ class ProfileViewState extends State<ProfileView> {
                 // TODO: Add generate QR code for sharing with someone who I haven't as a contact yet
                 // TODO: Add update action; use system update view
                 actions: [
-                  // IconButton(
-                  //   icon: const Icon(Icons.add_task_rounded),
-                  //   onPressed: () {
-                  //     // TODO: Manage profile sharing settings
-                  //   },
-                  // ),
                   if (state.status == ProfileStatus.success &&
                       state.profileContact?.systemContact?.id != null)
                     IconButton(
