@@ -26,6 +26,7 @@ class ProfileCubit extends Cubit<ProfileState> {
             status: ProfileStatus.success,
             profileContact: contact,
             circles: contactsRepository.getCircles(),
+            circleMemberships: contactsRepository.getCircleMemberships(),
             sharingSettings: contactsRepository.getProfileSharingSettings()));
       }
     });
@@ -36,6 +37,7 @@ class ProfileCubit extends Cubit<ProfileState> {
           status: ProfileStatus.success,
           profileContact: profileContact,
           circles: contactsRepository.getCircles(),
+          circleMemberships: contactsRepository.getCircleMemberships(),
           sharingSettings: contactsRepository.getProfileSharingSettings()));
     }
     // TODO: Check current state of permissions here in addition to listening to stream update

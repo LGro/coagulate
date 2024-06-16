@@ -24,7 +24,7 @@ Future<void> showPickCirclesBottomSheet(
         required String value,
         required String label,
         required String coagContactId,
-        required List<(String, String, bool)> circles,
+        required List<(String, String, bool, int)> circles,
         required void Function(List<(String, String)> selectedCircles)
             callback}) async =>
     showModalBottomSheet<void>(
@@ -345,6 +345,7 @@ Widget buildProfileScrollView(
         required Contact contact,
         required List<ContactAddressLocation> addressLocations,
         required Map<String, String> circles,
+        required Map<String, List<String>> circleMemberships,
         required ProfileSharingSettings profileSharingSettings}) =>
     RefreshIndicator(
         onRefresh: () async =>
@@ -372,7 +373,11 @@ Widget buildProfileScrollView(
                                         profileSharingSettings
                                                 .phones['$i|$label']
                                                 ?.contains(cId) ??
-                                            false
+                                            false,
+                                        circleMemberships.values
+                                            .where((circles) =>
+                                                circles.contains(cId))
+                                            .length
                                       )))
                                   .values
                                   .toList(),
@@ -395,7 +400,11 @@ Widget buildProfileScrollView(
                                         profileSharingSettings
                                                 .emails['$i|$label']
                                                 ?.contains(cId) ??
-                                            false
+                                            false,
+                                        circleMemberships.values
+                                            .where((circles) =>
+                                                circles.contains(cId))
+                                            .length
                                       )))
                                   .values
                                   .toList(),
@@ -420,7 +429,11 @@ Widget buildProfileScrollView(
                                         profileSharingSettings
                                                 .addresses['$i|$label']
                                                 ?.contains(cId) ??
-                                            false
+                                            false,
+                                        circleMemberships.values
+                                            .where((circles) =>
+                                                circles.contains(cId))
+                                            .length
                                       )))
                                   .values
                                   .toList(),
@@ -443,7 +456,11 @@ Widget buildProfileScrollView(
                                         profileSharingSettings
                                                 .websites['$i|$label']
                                                 ?.contains(cId) ??
-                                            false
+                                            false,
+                                        circleMemberships.values
+                                            .where((circles) =>
+                                                circles.contains(cId))
+                                            .length
                                       )))
                                   .values
                                   .toList(),
@@ -466,7 +483,11 @@ Widget buildProfileScrollView(
                                         profileSharingSettings
                                                 .socialMedias['$i|$label']
                                                 ?.contains(cId) ??
-                                            false
+                                            false,
+                                        circleMemberships.values
+                                            .where((circles) =>
+                                                circles.contains(cId))
+                                            .length
                                       )))
                                   .values
                                   .toList(),
@@ -533,6 +554,7 @@ class ProfileViewState extends State<ProfileView> {
               addressLocations:
                   state.profileContact!.addressLocations.values.asList(),
               circles: state.circles,
+              circleMemberships: state.circleMemberships,
               profileSharingSettings: state.sharingSettings!),
         );
     }

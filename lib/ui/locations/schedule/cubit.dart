@@ -17,7 +17,9 @@ part 'state.dart';
 class ScheduleCubit extends Cubit<ScheduleState> {
   ScheduleCubit(this.contactsRepository)
       : super(ScheduleState(
-            checkingIn: false, circles: contactsRepository.getCircles()));
+            checkingIn: false,
+            circles: contactsRepository.getCircles(),
+            circleMemberships: contactsRepository.getCircleMemberships()));
 
   final ContactsRepository contactsRepository;
 

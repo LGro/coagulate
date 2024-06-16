@@ -28,21 +28,29 @@ extension CheckInStatusX on CheckInStatus {
 
 @JsonSerializable()
 final class CheckInState extends Equatable {
-  const CheckInState({required this.status, required this.circles});
+  const CheckInState(
+      {required this.status,
+      required this.circles,
+      required this.circleMemberships});
 
   factory CheckInState.fromJson(Map<String, dynamic> json) =>
       _$CheckInStateFromJson(json);
 
   final CheckInStatus status;
   final Map<String, String> circles;
+  final Map<String, List<String>> circleMemberships;
 
   Map<String, dynamic> toJson() => _$CheckInStateToJson(this);
 
   CheckInState copyWith(
-          {CheckInStatus? status, Map<String, String>? circles}) =>
+          {CheckInStatus? status,
+          Map<String, String>? circles,
+          Map<String, List<String>>? circleMemberships}) =>
       CheckInState(
-          status: status ?? this.status, circles: circles ?? this.circles);
+          status: status ?? this.status,
+          circles: circles ?? this.circles,
+          circleMemberships: circleMemberships ?? this.circleMemberships);
 
   @override
-  List<Object?> get props => [status, circles];
+  List<Object?> get props => [status, circles, circleMemberships];
 }

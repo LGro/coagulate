@@ -298,12 +298,16 @@ class ContactsRepository {
 
   ProfileSharingSettings getProfileSharingSettings() => _profileSharingSettings;
 
-  List<(String, String, bool)> circlesWithMembership(String coagContactId) =>
+  List<(String, String, bool, int)> circlesWithMembership(
+          String coagContactId) =>
       _circles
           .map((id, label) => MapEntry(id, (
                 id,
                 label,
-                (_circleMemberships[coagContactId] ?? []).contains(id)
+                (_circleMemberships[coagContactId] ?? []).contains(id),
+                _circleMemberships.values
+                    .where((circles) => circles.contains(id))
+                    .length
               )))
           .values
           .toList();

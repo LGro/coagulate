@@ -19,6 +19,7 @@ final class ProfileState extends Equatable {
     this.profileContact,
     this.sharingSettings,
     this.circles = const {},
+    this.circleMemberships = const {},
     this.permissionsGranted = false,
   });
 
@@ -28,6 +29,7 @@ final class ProfileState extends Equatable {
   final ProfileStatus status;
   final CoagContact? profileContact;
   final Map<String, String> circles;
+  final Map<String, List<String>> circleMemberships;
   final ProfileSharingSettings? sharingSettings;
   final bool permissionsGranted;
 
@@ -35,6 +37,7 @@ final class ProfileState extends Equatable {
     ProfileStatus? status,
     CoagContact? profileContact,
     Map<String, String>? circles,
+    Map<String, List<String>>? circleMemberships,
     ProfileSharingSettings? sharingSettings,
     bool? permissionsGranted,
   }) =>
@@ -43,12 +46,19 @@ final class ProfileState extends Equatable {
         profileContact: profileContact ?? this.profileContact,
         sharingSettings: sharingSettings ?? this.sharingSettings,
         circles: circles ?? this.circles,
+        circleMemberships: circleMemberships ?? this.circleMemberships,
         permissionsGranted: permissionsGranted ?? this.permissionsGranted,
       );
 
   Map<String, dynamic> toJson() => _$ProfileStateToJson(this);
 
   @override
-  List<Object?> get props =>
-      [status, profileContact, circles, sharingSettings, permissionsGranted];
+  List<Object?> get props => [
+        status,
+        profileContact,
+        circles,
+        circleMemberships,
+        sharingSettings,
+        permissionsGranted,
+      ];
 }

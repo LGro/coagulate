@@ -16,7 +16,7 @@ class CirclesForm extends StatefulWidget {
       super.key});
 
   final Future<void> Function(List<(String, String, bool)>) callback;
-  final List<(String, String, bool)> circles;
+  final List<(String, String, bool, int)> circles;
   final bool allowCreateNew;
   final Widget? customHeader;
 
@@ -37,12 +37,14 @@ class _CirclesFormState extends State<CirclesForm> {
 
   void _addNewCircle() {
     // if circle name already exists, add to it, otherwise create new and add to
-    final updatedCircles = (_state.circles
-            .map((e) => e.$2)
-            .contains(_titleController.text))
-        ? _state.circles.map(
-            (e) => (e.$2 == _titleController.text) ? (e.$1, e.$2, true) : e)
-        : [(const Uuid().v4(), _titleController.text, true), ..._state.circles];
+    final updatedCircles =
+        (_state.circles.map((e) => e.$2).contains(_titleController.text))
+            ? _state.circles.map((e) =>
+                (e.$2 == _titleController.text) ? (e.$1, e.$2, true, e.$4) : e)
+            : [
+                (const Uuid().v4(), _titleController.text, true, 0),
+                ..._state.circles
+              ];
     setState(() {
       _state = _state.copyWith(circles: updatedCircles.asList());
     });
@@ -51,8 +53,8 @@ class _CirclesFormState extends State<CirclesForm> {
 
   void _updateCircleMembership(int i, bool state) {
     setState(() {
-      var circles = List<(String, String, bool)>.from(_state.circles);
-      circles[i] = (circles[i].$1, circles[i].$2, state);
+      var circles = List<(String, String, bool, int)>.from(_state.circles);
+      circles[i] = (circles[i].$1, circles[i].$2, state, circles[i].$4);
       _state = _state.copyWith(circles: circles);
     });
   }
@@ -70,7 +72,8 @@ class _CirclesFormState extends State<CirclesForm> {
       if (_titleController.text.isNotEmpty) {
         _addNewCircle();
       }
-      await widget.callback(_state.circles);
+      await widget
+          .callback(_state.circles.map((c) => (c.$1, c.$2, c.$3)).toList());
       _state = _state.copyWith(status: FormzSubmissionStatus.success);
       Navigator.pop(context);
     } catch (e) {
@@ -154,13 +157,13 @@ class _CirclesFormState extends State<CirclesForm> {
                 .asMap()
                 .map((i, c) => MapEntry(
                     i,
-                    (c.$3)
+                    c.$3
                         ? FilledButton(
                             onPressed: () => _updateCircleMembership(i, false),
-                            child: Text(c.$2))
+                            child: Text('${c.$2} (${c.$4})'))
                         : OutlinedButton(
                             onPressed: () => _updateCircleMembership(i, true),
-                            child: Text(c.$2))))
+                            child: Text('${c.$2} (${c.$4})'))))
                 .values
                 .asList()),
         const SizedBox(height: 8, width: double.maxFinite),
@@ -185,11 +188,11 @@ class CirclesFormState with FormzMixin {
 
   final FormzSubmissionStatus status;
   final String newCircleName;
-  final List<(String, String, bool)> circles;
+  final List<(String, String, bool, int)> circles;
 
   CirclesFormState copyWith({
     String? newCircleName,
-    List<(String, String, bool)>? circles,
+    List<(String, String, bool, int)>? circles,
     FormzSubmissionStatus? status,
   }) =>
       CirclesFormState(

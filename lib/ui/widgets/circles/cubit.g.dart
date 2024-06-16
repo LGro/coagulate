@@ -14,6 +14,7 @@ CirclesState _$CirclesStateFromJson(Map<String, dynamic> json) => CirclesState(
                   $jsonValue[r'$1'] as String,
                   $jsonValue[r'$2'] as String,
                   $jsonValue[r'$3'] as bool,
+                  ($jsonValue[r'$4'] as num).toInt(),
                 ),
               ))
           .toList(),
@@ -26,6 +27,7 @@ Map<String, dynamic> _$CirclesStateToJson(CirclesState instance) =>
                 r'$1': e.$1,
                 r'$2': e.$2,
                 r'$3': e.$3,
+                r'$4': e.$4,
               })
           .toList(),
     };

@@ -13,7 +13,11 @@ import '../../../data/repositories/contacts.dart';
 import 'cubit.dart';
 
 class MyForm extends StatefulWidget {
-  const MyForm({required this.callback, super.key, this.circles = const {}});
+  const MyForm(
+      {required this.callback,
+      super.key,
+      this.circles = const {},
+      this.circleMemberships = const {}});
 
   final Future<void> Function({
     required String name,
@@ -25,6 +29,7 @@ class MyForm extends StatefulWidget {
   }) callback;
 
   final Map<String, String> circles;
+  final Map<String, List<String>> circleMemberships;
 
   @override
   State<MyForm> createState() => _MyFormState();
@@ -91,8 +96,8 @@ class _MyFormState extends State<MyForm> {
   }
 
   void _updateCircleSelection(int i, bool selected) {
-    final circles = List<(String, String, bool)>.from(_state.circles);
-    circles[i] = (circles[i].$1, circles[i].$2, selected);
+    final circles = List<(String, String, bool, int)>.from(_state.circles);
+    circles[i] = (circles[i].$1, circles[i].$2, selected, circles[i].$4);
     setState(() {
       _state = _state.copyWith(circles: circles);
     });
@@ -140,7 +145,14 @@ class _MyFormState extends State<MyForm> {
     super.initState();
     _state = MyFormState(
         circles: widget.circles
-            .map((id, label) => MapEntry(id, (id, label, false)))
+            .map((id, label) => MapEntry(id, (
+                  id,
+                  label,
+                  false,
+                  widget.circleMemberships.values
+                      .where((circles) => circles.contains(id))
+                      .length
+                )))
             .values
             .toList());
     _titleController = TextEditingController(text: _state.title)
@@ -207,11 +219,11 @@ class _MyFormState extends State<MyForm> {
                             ? FilledButton(
                                 onPressed: () =>
                                     _updateCircleSelection(i, false),
-                                child: Text(c.$2))
+                                child: Text('${c.$2} (${c.$4})'))
                             : OutlinedButton(
                                 onPressed: () =>
                                     _updateCircleSelection(i, true),
-                                child: Text(c.$2))))
+                                child: Text('${c.$2} (${c.$4})'))))
                     .values
                     .toList()),
             const SizedBox(height: 16),
@@ -340,7 +352,7 @@ class MyFormState with FormzMixin {
   final DateTime? start;
   final DateTime? end;
   final PickedData? location;
-  final List<(String, String, bool)> circles;
+  final List<(String, String, bool, int)> circles;
 
   MyFormState copyWith({
     DateTime? start,
@@ -348,7 +360,7 @@ class MyFormState with FormzMixin {
     PickedData? location,
     String? title,
     String? details,
-    List<(String, String, bool)>? circles,
+    List<(String, String, bool, int)>? circles,
     FormzSubmissionStatus? status,
   }) =>
       MyFormState(
@@ -382,6 +394,7 @@ class ScheduleWidget extends StatelessWidget {
                       children: [
                     MyForm(
                         circles: state.circles,
+                        circleMemberships: state.circleMemberships,
                         callback: context.read<ScheduleCubit>().schedule)
                   ])))));
 }

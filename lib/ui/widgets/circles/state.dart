@@ -6,7 +6,7 @@ part of 'cubit.dart';
 @JsonSerializable()
 final class CirclesState extends Equatable {
   const CirclesState(this.circles);
-  final List<(String, String, bool)> circles;
+  final List<(String, String, bool, int)> circles;
 
   factory CirclesState.fromJson(Map<String, dynamic> json) =>
       _$CirclesStateFromJson(json);

@@ -51,7 +51,8 @@ class CheckInCubit extends Cubit<CheckInState> {
   CheckInCubit(this.contactsRepository)
       : super(CheckInState(
             status: CheckInStatus.initial,
-            circles: contactsRepository.getCircles())) {
+            circles: contactsRepository.getCircles(),
+            circleMemberships: contactsRepository.getCircleMemberships())) {
     unawaited(initialPermissionsCheck());
   }
 

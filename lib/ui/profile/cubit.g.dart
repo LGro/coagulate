@@ -21,6 +21,12 @@ ProfileState _$ProfileStateFromJson(Map<String, dynamic> json) => ProfileState(
             (k, e) => MapEntry(k, e as String),
           ) ??
           const {},
+      circleMemberships:
+          (json['circle_memberships'] as Map<String, dynamic>?)?.map(
+                (k, e) => MapEntry(
+                    k, (e as List<dynamic>).map((e) => e as String).toList()),
+              ) ??
+              const {},
       permissionsGranted: json['permissions_granted'] as bool? ?? false,
     );
 
@@ -29,6 +35,7 @@ Map<String, dynamic> _$ProfileStateToJson(ProfileState instance) =>
       'status': _$ProfileStatusEnumMap[instance.status]!,
       'profile_contact': instance.profileContact?.toJson(),
       'circles': instance.circles,
+      'circle_memberships': instance.circleMemberships,
       'sharing_settings': instance.sharingSettings?.toJson(),
       'permissions_granted': instance.permissionsGranted,
     };
