@@ -1,5 +1,7 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 typedef UpdateLngLatCallback = void Function(num, num);
@@ -50,7 +52,10 @@ class _AddressCoordinatesFormState extends State<AddressCoordinatesForm> {
             child: TextFormField(
               key: Key('addressCoordinatesForm_${widget.i}Longitude'),
               controller: _lngController,
-              keyboardType: TextInputType.number,
+              // On iOS the number input has no done button and thus can't be dismissed
+              keyboardType: Platform.isIOS
+                  ? const TextInputType.numberWithOptions(decimal: true)
+                  : TextInputType.number,
               decoration: const InputDecoration(
                   labelText: 'Longitude',
                   border: OutlineInputBorder(),
@@ -62,7 +67,10 @@ class _AddressCoordinatesFormState extends State<AddressCoordinatesForm> {
             child: TextFormField(
               key: Key('addressCoordinatesForm_${widget.i}Latitude'),
               controller: _latController,
-              keyboardType: TextInputType.number,
+              // On iOS the number input has no done button and thus can't be dismissed
+              keyboardType: Platform.isIOS
+                  ? const TextInputType.numberWithOptions(decimal: true)
+                  : TextInputType.number,
               decoration: const InputDecoration(
                   labelText: 'Latitude',
                   border: OutlineInputBorder(),
