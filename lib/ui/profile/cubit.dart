@@ -130,7 +130,9 @@ class ProfileCubit extends Cubit<ProfileState> {
             .updateProfileContact(state.profileContact!.coagContactId)));
 
     // Already emit what should also come in a bit later via the updated contacts repo
-    emit(state.copyWith(profileContact: updatedContact));
+    if (!isClosed) {
+      emit(state.copyWith(profileContact: updatedContact));
+    }
   }
 
   /// For circle ID and label pairs, add the new ones to the contacts repository
@@ -155,7 +157,9 @@ class ProfileCubit extends Cubit<ProfileState> {
         contactsRepository.getProfileSharingSettings().copyWith(phones: phones);
     await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
-    emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    if (!isClosed) {
+      emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    }
   }
 
   Future<void> updateEmailSharingCircles(
@@ -169,7 +173,9 @@ class ProfileCubit extends Cubit<ProfileState> {
         contactsRepository.getProfileSharingSettings().copyWith(emails: emails);
     await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
-    emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    if (!isClosed) {
+      emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    }
   }
 
   Future<void> updateAddressSharingCircles(
@@ -184,7 +190,9 @@ class ProfileCubit extends Cubit<ProfileState> {
         .copyWith(addresses: addresses);
     await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
-    emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    if (!isClosed) {
+      emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    }
   }
 
   Future<void> updateOrganizationSharingCircles(
@@ -199,7 +207,9 @@ class ProfileCubit extends Cubit<ProfileState> {
         .copyWith(organizations: organizations);
     await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
-    emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    if (!isClosed) {
+      emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    }
   }
 
   Future<void> updateWebsiteSharingCircles(
@@ -214,7 +224,9 @@ class ProfileCubit extends Cubit<ProfileState> {
         .copyWith(websites: websites);
     await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
-    emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    if (!isClosed) {
+      emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    }
   }
 
   Future<void> updateSocialMediaSharingCircles(
@@ -229,7 +241,9 @@ class ProfileCubit extends Cubit<ProfileState> {
         .copyWith(socialMedias: socialMedias);
     await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
-    emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    if (!isClosed) {
+      emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    }
   }
 
   Future<void> updateEventSharingCircles(
@@ -243,7 +257,9 @@ class ProfileCubit extends Cubit<ProfileState> {
         contactsRepository.getProfileSharingSettings().copyWith(events: events);
     await contactsRepository.setProfileSharingSettings(updatedSharingSettings);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
-    emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    if (!isClosed) {
+      emit(state.copyWith(sharingSettings: updatedSharingSettings));
+    }
   }
 
   @override

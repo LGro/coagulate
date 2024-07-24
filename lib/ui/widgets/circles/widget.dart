@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:formz/formz.dart';
@@ -72,8 +74,8 @@ class _CirclesFormState extends State<CirclesForm> {
       if (_titleController.text.isNotEmpty) {
         _addNewCircle();
       }
-      await widget
-          .callback(_state.circles.map((c) => (c.$1, c.$2, c.$3)).toList());
+      unawaited(widget
+          .callback(_state.circles.map((c) => (c.$1, c.$2, c.$3)).toList()));
       _state = _state.copyWith(status: FormzSubmissionStatus.success);
       Navigator.pop(context);
     } catch (e) {
