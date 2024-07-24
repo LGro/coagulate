@@ -16,7 +16,6 @@ import '../widgets/address_coordinates_form.dart';
 import '../widgets/avatar.dart';
 import '../widgets/circles/cubit.dart';
 import '../widgets/circles/widget.dart';
-// import 'address_location/widget.dart';
 import 'cubit.dart';
 
 Future<void> showPickCirclesBottomSheet(
@@ -235,33 +234,37 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
                           onTap(i, _label(e.label.name, e.customLabel).data!),
                       icon: const Icon(Icons.add_task)),
               ]),
-              const SizedBox(height: 8),
-              AddressCoordinatesForm(
-                  i: i,
-                  longitude: locations
-                      .where((l) => labelDoesMatch(l.name, e))
-                      .firstOrNull
-                      ?.longitude,
-                  latitude: locations
-                      .where((l) => labelDoesMatch(l.name, e))
-                      .firstOrNull
-                      ?.latitude,
-                  callback: (lng, lat) => context
-                      .read<ProfileCubit>()
-                      .updateCoordinates(i, lng, lat)),
-              // TODO: Add small map previewing the location when coordinates are available
-              TextButton(
-                  child: const Text('Auto Fetch Coordinates'),
-                  // TODO: Switch to address index instead of label? Can there be duplicates?
-                  onPressed: () async => showDialog<void>(
-                      context: context,
-                      // barrierDismissible: false,
-                      builder: (dialogContext) => _confirmPrivacyLeakDialog(
-                          dialogContext,
-                          e.address,
-                          () => unawaited(context
-                              .read<ProfileCubit>()
-                              .fetchCoordinates(i)))))
+              if (locations
+                  .where((l) => labelDoesMatch(l.name, e))
+                  .isEmpty) ...[
+                const SizedBox(height: 8),
+                AddressCoordinatesForm(
+                    i: i,
+                    longitude: locations
+                        .where((l) => labelDoesMatch(l.name, e))
+                        .firstOrNull
+                        ?.longitude,
+                    latitude: locations
+                        .where((l) => labelDoesMatch(l.name, e))
+                        .firstOrNull
+                        ?.latitude,
+                    callback: (lng, lat) => context
+                        .read<ProfileCubit>()
+                        .updateCoordinates(i, lng, lat)),
+                // TODO: Add small map previewing the location when coordinates are available
+                TextButton(
+                    child: const Text('Auto Fetch Coordinates'),
+                    // TODO: Switch to address index instead of label? Can there be duplicates?
+                    onPressed: () async => showDialog<void>(
+                        context: context,
+                        // barrierDismissible: false,
+                        builder: (dialogContext) => _confirmPrivacyLeakDialog(
+                            dialogContext,
+                            e.address,
+                            () => unawaited(context
+                                .read<ProfileCubit>()
+                                .fetchCoordinates(i))))),
+              ]
             ])))
         .values
         .asList());

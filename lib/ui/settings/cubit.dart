@@ -16,6 +16,6 @@ class SettingsCubit extends Cubit<SettingsState> {
             status: SettingsStatus.initial,
             backgroundPermission: BackgroundRefreshPermissionState.unknown,
             darkMode: false,
-            autoAddressResolution: false,
+            autoAddressResolution: true,
             mapProvider: 'mapbox'));
 }

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:uuid/uuid.dart';
 import 'package:veilid/veilid_state.dart';
@@ -590,6 +591,7 @@ class ContactsRepository {
     await persistentStorage.setProfileContactId(coagContactId);
 
     final profileContact = getProfileContact();
+
     if (profileContact != null) {
       // Ensure all system contacts changes are in
       // Try if permissions are granted
@@ -598,9 +600,30 @@ class ContactsRepository {
             .getContact(profileContact.systemContact!.id);
         _systemContactAccessGrantedStreamController.add(true);
 
-        if (systemContact != profileContact.systemContact!) {
-          final updatedContact =
-              profileContact.copyWith(systemContact: systemContact);
+        // Automatically resolve addresses to coordinates
+        // TODO: Only do this when enabled in the settings
+        // TODO: Detect which addresses changed, and refetch more intelligently
+        final addressLocations = <int, ContactAddressLocation>{};
+        for (var i = 0; i < systemContact.addresses.length; i++) {
+          final address = systemContact.addresses[i];
+          // TODO: Also add some status indicator per address to show when unfetched, fetching, failed, fetched
+          try {
+            final locations = await locationFromAddress(address.address);
+            final chosenLocation = locations[0];
+            addressLocations[i] = ContactAddressLocation(
+                coagContactId: profileContact.coagContactId,
+                longitude: chosenLocation.longitude,
+                latitude: chosenLocation.latitude,
+                name: (address.label == AddressLabel.custom)
+                    ? address.customLabel
+                    : address.label.name);
+          } on NoResultFoundException catch (e) {}
+        }
+
+        if (systemContact != profileContact.systemContact! ||
+            addressLocations != profileContact.addressLocations) {
+          final updatedContact = profileContact.copyWith(
+              systemContact: systemContact, addressLocations: addressLocations);
           await saveContact(updatedContact);
         }
       } on MissingSystemContactsPermissionError {

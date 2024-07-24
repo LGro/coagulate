@@ -18,9 +18,16 @@ class ContactAddressLocation extends Equatable {
   factory ContactAddressLocation.fromJson(Map<String, dynamic> json) =>
       _$ContactAddressLocationFromJson(json);
 
+  /// Contact id this location belongs to
   final String coagContactId;
+
+  /// Longitude coordinate of the location
   final double longitude;
+
+  /// Latitude coordinate of the location
   final double latitude;
+
+  /// Name of the location
   final String name;
 
   Map<String, dynamic> toJson() => _$ContactAddressLocationToJson(this);
