@@ -83,6 +83,68 @@ class DHTData extends $pb.GeneratedMessage {
   void clearSize() => clearField(4);
 }
 
+class DHTLog extends $pb.GeneratedMessage {
+  factory DHTLog() => create();
+  DHTLog._() : super();
+  factory DHTLog.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory DHTLog.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DHTLog', package: const $pb.PackageName(_omitMessageNames ? '' : 'dht'), createEmptyInstance: create)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'head', $pb.PbFieldType.OU3)
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'tail', $pb.PbFieldType.OU3)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'stride', $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+  'Will be removed in next major version')
+  DHTLog clone() => DHTLog()..mergeFromMessage(this);
+  @$core.Deprecated(
+  'Using this can add significant overhead to your binary. '
+  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+  'Will be removed in next major version')
+  DHTLog copyWith(void Function(DHTLog) updates) => super.copyWith((message) => updates(message as DHTLog)) as DHTLog;
+
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DHTLog create() => DHTLog._();
+  DHTLog createEmptyInstance() => create();
+  static $pb.PbList<DHTLog> createRepeated() => $pb.PbList<DHTLog>();
+  @$core.pragma('dart2js:noInline')
+  static DHTLog getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DHTLog>(create);
+  static DHTLog? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get head => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set head($core.int v) { $_setUnsignedInt32(0, v); }
+  @$pb.TagNumber(1)
+  $core.bool hasHead() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearHead() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get tail => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set tail($core.int v) { $_setUnsignedInt32(1, v); }
+  @$pb.TagNumber(2)
+  $core.bool hasTail() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTail() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get stride => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set stride($core.int v) { $_setUnsignedInt32(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasStride() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearStride() => clearField(3);
+}
+
 class DHTShortArray extends $pb.GeneratedMessage {
   factory DHTShortArray() => create();
   DHTShortArray._() : super();
@@ -131,125 +193,6 @@ class DHTShortArray extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(3)
   $core.List<$core.int> get seqs => $_getList(2);
-}
-
-class DHTLog extends $pb.GeneratedMessage {
-  factory DHTLog() => create();
-  DHTLog._() : super();
-  factory DHTLog.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory DHTLog.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DHTLog', package: const $pb.PackageName(_omitMessageNames ? '' : 'dht'), createEmptyInstance: create)
-    ..pc<$0.TypedKey>(1, _omitFieldNames ? '' : 'keys', $pb.PbFieldType.PM, subBuilder: $0.TypedKey.create)
-    ..aOM<$0.TypedKey>(2, _omitFieldNames ? '' : 'back', subBuilder: $0.TypedKey.create)
-    ..p<$core.int>(3, _omitFieldNames ? '' : 'subkeyCounts', $pb.PbFieldType.KU3)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'totalSubkeys', $pb.PbFieldType.OU3)
-    ..hasRequiredFields = false
-  ;
-
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
-  DHTLog clone() => DHTLog()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  DHTLog copyWith(void Function(DHTLog) updates) => super.copyWith((message) => updates(message as DHTLog)) as DHTLog;
-
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static DHTLog create() => DHTLog._();
-  DHTLog createEmptyInstance() => create();
-  static $pb.PbList<DHTLog> createRepeated() => $pb.PbList<DHTLog>();
-  @$core.pragma('dart2js:noInline')
-  static DHTLog getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DHTLog>(create);
-  static DHTLog? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.List<$0.TypedKey> get keys => $_getList(0);
-
-  @$pb.TagNumber(2)
-  $0.TypedKey get back => $_getN(1);
-  @$pb.TagNumber(2)
-  set back($0.TypedKey v) { setField(2, v); }
-  @$pb.TagNumber(2)
-  $core.bool hasBack() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearBack() => clearField(2);
-  @$pb.TagNumber(2)
-  $0.TypedKey ensureBack() => $_ensure(1);
-
-  @$pb.TagNumber(3)
-  $core.List<$core.int> get subkeyCounts => $_getList(2);
-
-  @$pb.TagNumber(4)
-  $core.int get totalSubkeys => $_getIZ(3);
-  @$pb.TagNumber(4)
-  set totalSubkeys($core.int v) { $_setUnsignedInt32(3, v); }
-  @$pb.TagNumber(4)
-  $core.bool hasTotalSubkeys() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearTotalSubkeys() => clearField(4);
-}
-
-enum DataReference_Kind {
-  dhtData, 
-  notSet
-}
-
-class DataReference extends $pb.GeneratedMessage {
-  factory DataReference() => create();
-  DataReference._() : super();
-  factory DataReference.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory DataReference.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-
-  static const $core.Map<$core.int, DataReference_Kind> _DataReference_KindByTag = {
-    1 : DataReference_Kind.dhtData,
-    0 : DataReference_Kind.notSet
-  };
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DataReference', package: const $pb.PackageName(_omitMessageNames ? '' : 'dht'), createEmptyInstance: create)
-    ..oo(0, [1])
-    ..aOM<$0.TypedKey>(1, _omitFieldNames ? '' : 'dhtData', subBuilder: $0.TypedKey.create)
-    ..hasRequiredFields = false
-  ;
-
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
-  'Will be removed in next major version')
-  DataReference clone() => DataReference()..mergeFromMessage(this);
-  @$core.Deprecated(
-  'Using this can add significant overhead to your binary. '
-  'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
-  'Will be removed in next major version')
-  DataReference copyWith(void Function(DataReference) updates) => super.copyWith((message) => updates(message as DataReference)) as DataReference;
-
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static DataReference create() => DataReference._();
-  DataReference createEmptyInstance() => create();
-  static $pb.PbList<DataReference> createRepeated() => $pb.PbList<DataReference>();
-  @$core.pragma('dart2js:noInline')
-  static DataReference getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DataReference>(create);
-  static DataReference? _defaultInstance;
-
-  DataReference_Kind whichKind() => _DataReference_KindByTag[$_whichOneof(0)]!;
-  void clearKind() => clearField($_whichOneof(0));
-
-  @$pb.TagNumber(1)
-  $0.TypedKey get dhtData => $_getN(0);
-  @$pb.TagNumber(1)
-  set dhtData($0.TypedKey v) { setField(1, v); }
-  @$pb.TagNumber(1)
-  $core.bool hasDhtData() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearDhtData() => clearField(1);
-  @$pb.TagNumber(1)
-  $0.TypedKey ensureDhtData() => $_ensure(0);
 }
 
 class OwnedDHTRecordPointer extends $pb.GeneratedMessage {

@@ -294,7 +294,7 @@ class CheckInWidget extends StatelessWidget {
             if (context
                         .read<CheckInCubit>()
                         .contactsRepository
-                        .profileContactId ==
+                        .getProfileContact() ==
                     null ||
                 state.circles.isEmpty) {
               return SizedBox(

@@ -8,12 +8,14 @@ import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_update.dart';
 import 'package:coagulate/data/models/profile_sharing_settings.dart';
 import 'package:coagulate/data/providers/distributed_storage/base.dart';
+import 'package:coagulate/data/providers/distributed_storage/dht.dart';
 import 'package:coagulate/data/providers/persistent_storage/base.dart';
 import 'package:coagulate/data/providers/system_contacts/base.dart';
 import 'package:coagulate/data/providers/system_contacts/system_contacts.dart';
 import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:uuid/v4.dart';
 
 class DummyPersistentStorage extends PersistentStorage {
   DummyPersistentStorage(this.contacts, {this.profileContactId});
@@ -105,54 +107,48 @@ class DummyPersistentStorage extends PersistentStorage {
     log.add('updateProfileSharingSettings');
     profileSharingSettings = settings;
   }
+
+  @override
+  Future<void> removeProfileContactId() async {
+    profileContactId = null;
+  }
 }
 
-class DummyDistributedStorage extends DistributedStorage {
-  List<String> log = [];
-  Map<String, CoagContact> dht = {};
-
-  @override
-  Future<(String, String)> createDHTRecord() {
-    log.add('createDHTRecord');
-    // TODO: implement createDHTRecord
-    throw UnimplementedError();
+class DummyDistributedStorage extends VeilidDhtStorage {
+  DummyDistributedStorage({Map<String, String>? initialDht}) {
+    if (initialDht != null) {
+      dht = initialDht;
+    }
   }
+  List<String> log = [];
+  Map<String, String> dht = {};
+  Set<String> watchedRecordKeys = {};
 
   @override
-  Future<bool> isUpToDateSharingDHT(CoagContact contact) {
-    log.add('isUpToDateSharingDHT:${contact.coagContactId}');
-    // TODO: implement isUpToDateSharingDHT
-    throw UnimplementedError();
+  Future<(String, String)> createDHTRecord() async {
+    log.add('createDHTRecord');
+    return ('key', 'writer');
   }
 
   @override
   Future<String> readPasswordEncryptedDHTRecord(
       {required String recordKey, required String secret}) async {
     log.add('readPasswordEncryptedDHTRecord:$recordKey:$secret');
-    return Future.value(json.encode(removeNullOrEmptyValues(
-        filterAccordingToSharingProfile(
-                profile: CoagContact(
-                    coagContactId: '',
-                    systemContact: Contact(displayName: 'Contact From DHT')),
-                settings:
-                    const ProfileSharingSettings(displayName: ['Circle1']),
-                activeCircles: ['Circle1'],
-                shareBackSettings: null)
-            .toJson())));
+    return dht[recordKey]!;
   }
 
   @override
   Future<CoagContact> updateContactReceivingDHT(CoagContact contact) {
     log.add('updateContactReceivingDHT:${contact.coagContactId}');
-    dht[contact.coagContactId] = contact;
-    return Future.value(contact);
+    return super.updateContactReceivingDHT(contact);
   }
 
   @override
-  Future<CoagContact> updateContactSharingDHT(CoagContact contact) {
+  Future<CoagContact> updateContactSharingDHT(CoagContact contact,
+      {Future<String> Function()? pskGenerator}) async {
     log.add('updateContactSharingDHT:${contact.coagContactId}');
-    dht[contact.coagContactId] = contact;
-    return Future.value(contact);
+    return super.updateContactSharingDHT(contact,
+        pskGenerator: () async => 'generatedRandomKey');
   }
 
   @override
@@ -160,17 +156,15 @@ class DummyDistributedStorage extends DistributedStorage {
       {required String recordKey,
       required String recordWriter,
       required String secret,
-      required String content}) {
+      required String content}) async {
     log.add('updatePasswordEncryptedDHTRecord:$recordKey');
-    // TODO: implement updatePasswordEncryptedDHTRecord
-    throw UnimplementedError();
+    dht[recordKey] = content;
   }
 
   @override
-  Future<void> watchDHTRecord(String key) {
+  Future<void> watchDHTRecord(String key) async {
     log.add('watchDHTRecord:$key');
-    // TODO: implement watchDHTRecord
-    throw UnimplementedError();
+    watchedRecordKeys.add(key);
   }
 }
 

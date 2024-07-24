@@ -10,13 +10,15 @@ import '../../models/coag_contact.dart';
 import 'base.dart';
 
 class VeilidDhtStorage extends DistributedStorage {
+  final Map<Typed<FixedEncodedString43>, DHTRecord> _openedRecords = {};
+
   /// Create an empty DHT record, return key and writer in string representation
   @override
   Future<(String, String)> createDHTRecord() async {
     final pool = DHTRecordPool.instance;
-    final record = await pool.create(
-        debugName: 'coag::create', crypto: const DHTRecordCryptoPublic());
-    await record.close();
+    final record = await pool.createRecord(
+        debugName: 'coag::create', crypto: const VeilidCryptoPublic());
+    _openedRecords[record.key] = record;
     return (record.key.toString(), record.writer!.toString());
   }
 
@@ -24,28 +26,32 @@ class VeilidDhtStorage extends DistributedStorage {
   @override
   Future<String> readPasswordEncryptedDHTRecord(
       {required String recordKey, required String secret}) async {
-    final pool = DHTRecordPool.instance;
-    // TODO: Handle VeilidAPIExceptionKeyNotFound, VeilidAPIExceptionTryAgain
-    final record = await pool.openRead(
-        debugName: 'coag::read',
-        Typed<FixedEncodedString43>.fromString(recordKey),
-        crypto: const DHTRecordCryptoPublic());
-    // TODO: What is the onlyUpdates argument for?
-    final raw = await record.get(forceRefresh: true);
+    final _key = Typed<FixedEncodedString43>.fromString(recordKey);
+    final DHTRecord record;
+    if (_openedRecords.containsKey(_key)) {
+      record = _openedRecords[_key]!;
+    } else {
+      // TODO: Handle VeilidAPIExceptionKeyNotFound, VeilidAPIExceptionTryAgain
+      record = await DHTRecordPool.instance.openRecordRead(
+          debugName: 'coag::read',
+          Typed<FixedEncodedString43>.fromString(recordKey),
+          crypto: const VeilidCryptoPublic());
+      final defaultSubkey = record.subkeyOrDefault(-1);
+      await record.watch(subkeys: [ValueSubkeyRange.single(defaultSubkey)]);
+      _openedRecords[record.key] = record;
+    }
+    final raw = await record.get(refreshMode: DHTRecordRefreshMode.network);
     if (raw == null) {
-      await record.close();
       return '';
     }
 
     // TODO: Detect if secret is pubkey and use asymmetric encryption here?
     // TODO: Error handling
-    final cs = await pool.veilid.bestCryptoSystem();
-    final bodyBytes = raw!.sublist(0, raw.length - Nonce.decodedLength());
+    final cs = await DHTRecordPool.instance.veilid.bestCryptoSystem();
+    final bodyBytes = raw.sublist(0, raw.length - Nonce.decodedLength());
     final saltBytes = raw.sublist(raw.length - Nonce.decodedLength());
     final decrypted = await cs.decryptAead(bodyBytes,
         Nonce.fromBytes(saltBytes), SharedSecret.fromString(secret), null);
-
-    await record.close();
 
     return utf8.decode(decrypted);
   }
@@ -57,15 +63,21 @@ class VeilidDhtStorage extends DistributedStorage {
       required String recordWriter,
       required String secret,
       required String content}) async {
-    final pool = DHTRecordPool.instance;
-    final record = await pool.openWrite(
-        debugName: 'coag::update',
-        Typed<FixedEncodedString43>.fromString(recordKey),
-        KeyPair.fromString(recordWriter),
-        crypto: const DHTRecordCryptoPublic());
+    final _key = Typed<FixedEncodedString43>.fromString(recordKey);
+    final DHTRecord record;
+    if (_openedRecords.containsKey(_key)) {
+      record = _openedRecords[_key]!;
+    } else {
+      record = await DHTRecordPool.instance.openRecordWrite(
+          debugName: 'coag::update',
+          Typed<FixedEncodedString43>.fromString(recordKey),
+          KeyPair.fromString(recordWriter),
+          crypto: const VeilidCryptoPublic());
+      _openedRecords[record.key] = record;
+    }
 
     // TODO: Detect if secret is pubkey and use asymmetric encryption here?
-    final cs = await pool.veilid.bestCryptoSystem();
+    final cs = await DHTRecordPool.instance.veilid.bestCryptoSystem();
     final nonce = await cs.randomNonce();
     final saltBytes = nonce.decode();
     final encrypted = Uint8List.fromList((await cs.encryptAead(
@@ -76,38 +88,33 @@ class VeilidDhtStorage extends DistributedStorage {
         saltBytes);
 
     await record.tryWriteBytes(encrypted);
-    await record.close();
   }
 
   @override
   Future<void> watchDHTRecord(String key) async {
-    final pool = DHTRecordPool.instance;
-    final record = await pool.openRead(
-        debugName: 'coag::read',
-        Typed<FixedEncodedString43>.fromString(key),
-        crypto: const DHTRecordCryptoPublic());
+    final _key = Typed<FixedEncodedString43>.fromString(key);
+    final DHTRecord record;
+    if (_openedRecords.containsKey(_key)) {
+      record = _openedRecords[_key]!;
+    } else {
+      record = await DHTRecordPool.instance.openRecordRead(
+          debugName: 'coag::read-to-watch',
+          Typed<FixedEncodedString43>.fromString(key),
+          crypto: const VeilidCryptoPublic());
+      _openedRecords[record.key] = record;
+    }
     final defaultSubkey = record.subkeyOrDefault(-1);
     await record.watch(subkeys: [ValueSubkeyRange.single(defaultSubkey)]);
-    await record.close();
-  }
-
-  @override
-  Future<bool> isUpToDateSharingDHT(CoagContact contact) async {
-    if (contact.dhtSettingsForSharing?.psk == null ||
-        contact.sharedProfile == null) {
-      return true;
-    }
-
-    final record = await readPasswordEncryptedDHTRecord(
-        recordKey: contact.dhtSettingsForSharing!.key,
-        secret: contact.dhtSettingsForSharing!.psk!);
-    return record != contact.sharedProfile;
   }
 
 // TODO: Can we update the sharedProfile here as well or not because we're lacking the profile contact?
   @override
-  Future<CoagContact> updateContactSharingDHT(CoagContact contact) async {
-    final cs = await DHTRecordPool.instance.veilid.bestCryptoSystem();
+  Future<CoagContact> updateContactSharingDHT(CoagContact contact,
+      {Future<String> Function()? pskGenerator}) async {
+    pskGenerator ??= () async {
+      final cs = await DHTRecordPool.instance.veilid.bestCryptoSystem();
+      return cs.randomSharedSecret().then((v) => v.toString());
+    };
 
     if (contact.dhtSettingsForSharing?.writer == null) {
       final (key, writer) = await createDHTRecord();
@@ -119,9 +126,7 @@ class VeilidDhtStorage extends DistributedStorage {
       final (key, writer) = await createDHTRecord();
       contact = contact.copyWith(
           dhtSettingsForReceiving: ContactDHTSettings(
-              key: key,
-              writer: writer,
-              psk: await cs.randomSharedSecret().then((v) => v.toString())));
+              key: key, writer: writer, psk: await pskGenerator()));
       // Write once, to make sure it's created and published on the network
       await updatePasswordEncryptedDHTRecord(
           recordKey: key,
@@ -132,8 +137,8 @@ class VeilidDhtStorage extends DistributedStorage {
 
     if (contact.dhtSettingsForSharing!.psk == null) {
       contact = contact.copyWith(
-          dhtSettingsForSharing: contact.dhtSettingsForSharing!.copyWith(
-              psk: await cs.randomSharedSecret().then((v) => v.toString())));
+          dhtSettingsForSharing: contact.dhtSettingsForSharing!
+              .copyWith(psk: await pskGenerator()));
     }
 
     if (contact.sharedProfile != null) {
@@ -156,22 +161,12 @@ class VeilidDhtStorage extends DistributedStorage {
     return contact;
   }
 
-  Future<bool> _isAvailableAndWritable(
-      ContactDHTSettings? dhtSettingsForSharing) async {
-    try {
-      // TODO: Try to open in write mode
-      return true;
-      // TODO: Which other exceptions are relevant?
-    } on VeilidAPIExceptionKeyNotFound {
-      return false;
-    }
-  }
-
   // TODO: Schema version check and migration for backwards compatibility
   // TODO: set last checked timestamp inside this function?
   @override
   Future<CoagContact> updateContactReceivingDHT(CoagContact contact) async {
-    if (contact.dhtSettingsForReceiving?.psk == null) {
+    if (contact.dhtSettingsForReceiving?.psk == null ||
+        contact.dhtSettingsForReceiving?.psk == null) {
       return contact;
     }
     try {
@@ -200,3 +195,5 @@ class VeilidDhtStorage extends DistributedStorage {
     }
   }
 }
+
+// TODO: Close all records before going to background / closing the app?

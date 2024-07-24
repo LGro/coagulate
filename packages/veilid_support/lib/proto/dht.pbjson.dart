@@ -30,6 +30,21 @@ final $typed_data.Uint8List dHTDataDescriptor = $convert.base64Decode(
     'gCIAEoCzIQLnZlaWxpZC5UeXBlZEtleVIEaGFzaBIUCgVjaHVuaxgDIAEoDVIFY2h1bmsSEgoE'
     'c2l6ZRgEIAEoDVIEc2l6ZQ==');
 
+@$core.Deprecated('Use dHTLogDescriptor instead')
+const DHTLog$json = {
+  '1': 'DHTLog',
+  '2': [
+    {'1': 'head', '3': 1, '4': 1, '5': 13, '10': 'head'},
+    {'1': 'tail', '3': 2, '4': 1, '5': 13, '10': 'tail'},
+    {'1': 'stride', '3': 3, '4': 1, '5': 13, '10': 'stride'},
+  ],
+};
+
+/// Descriptor for `DHTLog`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List dHTLogDescriptor = $convert.base64Decode(
+    'CgZESFRMb2cSEgoEaGVhZBgBIAEoDVIEaGVhZBISCgR0YWlsGAIgASgNUgR0YWlsEhYKBnN0cm'
+    'lkZRgDIAEoDVIGc3RyaWRl');
+
 @$core.Deprecated('Use dHTShortArrayDescriptor instead')
 const DHTShortArray$json = {
   '1': 'DHTShortArray',
@@ -44,39 +59,6 @@ const DHTShortArray$json = {
 final $typed_data.Uint8List dHTShortArrayDescriptor = $convert.base64Decode(
     'Cg1ESFRTaG9ydEFycmF5EiQKBGtleXMYASADKAsyEC52ZWlsaWQuVHlwZWRLZXlSBGtleXMSFA'
     'oFaW5kZXgYAiABKAxSBWluZGV4EhIKBHNlcXMYAyADKA1SBHNlcXM=');
-
-@$core.Deprecated('Use dHTLogDescriptor instead')
-const DHTLog$json = {
-  '1': 'DHTLog',
-  '2': [
-    {'1': 'keys', '3': 1, '4': 3, '5': 11, '6': '.veilid.TypedKey', '10': 'keys'},
-    {'1': 'back', '3': 2, '4': 1, '5': 11, '6': '.veilid.TypedKey', '10': 'back'},
-    {'1': 'subkey_counts', '3': 3, '4': 3, '5': 13, '10': 'subkeyCounts'},
-    {'1': 'total_subkeys', '3': 4, '4': 1, '5': 13, '10': 'totalSubkeys'},
-  ],
-};
-
-/// Descriptor for `DHTLog`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List dHTLogDescriptor = $convert.base64Decode(
-    'CgZESFRMb2cSJAoEa2V5cxgBIAMoCzIQLnZlaWxpZC5UeXBlZEtleVIEa2V5cxIkCgRiYWNrGA'
-    'IgASgLMhAudmVpbGlkLlR5cGVkS2V5UgRiYWNrEiMKDXN1YmtleV9jb3VudHMYAyADKA1SDHN1'
-    'YmtleUNvdW50cxIjCg10b3RhbF9zdWJrZXlzGAQgASgNUgx0b3RhbFN1YmtleXM=');
-
-@$core.Deprecated('Use dataReferenceDescriptor instead')
-const DataReference$json = {
-  '1': 'DataReference',
-  '2': [
-    {'1': 'dht_data', '3': 1, '4': 1, '5': 11, '6': '.veilid.TypedKey', '9': 0, '10': 'dhtData'},
-  ],
-  '8': [
-    {'1': 'kind'},
-  ],
-};
-
-/// Descriptor for `DataReference`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List dataReferenceDescriptor = $convert.base64Decode(
-    'Cg1EYXRhUmVmZXJlbmNlEi0KCGRodF9kYXRhGAEgASgLMhAudmVpbGlkLlR5cGVkS2V5SABSB2'
-    'RodERhdGFCBgoEa2luZA==');
 
 @$core.Deprecated('Use ownedDHTRecordPointerDescriptor instead')
 const OwnedDHTRecordPointer$json = {

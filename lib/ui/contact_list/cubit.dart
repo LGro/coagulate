@@ -48,8 +48,12 @@ class ContactListCubit extends Cubit<ContactListState> {
   ContactListCubit(this.contactsRepository)
       : super(const ContactListState(ContactListStatus.initial)) {
     _contactsSuscription =
-        contactsRepository.getContactUpdates().listen((contact) {
+        contactsRepository.getContactStream().listen((idUpdatedContact) {
       if (!isClosed) {
+        final contact = contactsRepository.getContact(idUpdatedContact);
+        if (contact == null) {
+          return;
+        }
         emit(ContactListState(ContactListStatus.success,
             circleMemberships: contactsRepository.getCircleMemberships(),
             contacts: filterAndSortContacts([
@@ -66,7 +70,7 @@ class ContactListCubit extends Cubit<ContactListState> {
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<CoagContact> _contactsSuscription;
+  late final StreamSubscription<String> _contactsSuscription;
 
   void filter(String filter) => emit(state.copyWith(
       status: ContactListStatus.success,

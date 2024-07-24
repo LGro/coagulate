@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -36,7 +35,7 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
       emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
 
   Future<void> qrCodeCaptured(BarcodeCapture capture) async {
-    emit(ReceiveRequestState(ReceiveRequestStatus.processing));
+    emit(const ReceiveRequestState(ReceiveRequestStatus.processing));
     for (final barcode in capture.barcodes) {
       if (barcode.rawValue?.startsWith('https://coagulate.social') ?? false) {
         final uri = barcode.rawValue!;
@@ -57,67 +56,63 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     }
   }
 
-  /// Link an existing contact that has requested sharing
-  Future<void> linkExistingContactRequested(CoagContact contact) async {
-    final updatedContact = contact.copyWith(
-      dhtSettingsForSharing: state.requestSettings,
-      sharedProfile: (contactsRepository.profileContactId == null)
-          ? null
-          : json.encode(removeNullOrEmptyValues(filterAccordingToSharingProfile(
-              profile: contactsRepository
-                  .getContact(contactsRepository.profileContactId!),
-              settings: contactsRepository.getProfileSharingSettings(),
-              activeCircles: contactsRepository
-                      .getCircleMemberships()[contact.coagContactId] ??
-                  [],
-              shareBackSettings: contact.dhtSettingsForReceiving,
-            ).toJson())),
-    );
-    await contactsRepository.updateContact(updatedContact);
-    if (!isClosed) {
-      emit(ReceiveRequestState(ReceiveRequestStatus.success,
-          profile: updatedContact));
-    }
-  }
-
-  /// Link an existing contact that has shared
-  Future<void> linkExistingContactSharing(CoagContact contact) async {
-    final updatedContact = contact.copyWith(
-        dhtSettingsForReceiving: state.profile?.dhtSettingsForReceiving,
-        details: state.profile?.details);
-    await contactsRepository.updateContact(updatedContact);
-    if (!isClosed) {
-      emit(ReceiveRequestState(ReceiveRequestStatus.success,
-          profile: updatedContact));
-    }
-  }
-
-  // TODO: Does having these five steps here make sense or should we refactor this into the contacts repository?
-  Future<void> createNewContact() async {
-    if (state.profile == null) {
+  /// Link the request of a contact for met to share to an existing contact
+  Future<void> linkExistingContactRequested(String coagContactId) async {
+    if (state.requestSettings == null) {
+      // TODO: more meaningful error handling? because this shouldn't happen
+      emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
       return;
     }
 
-    var contact = (state.profile?.details != null &&
-            await contactsRepository.systemContactsStorage.requestPermission())
-        ? state.profile!.copyWith(
-            systemContact: await contactsRepository.systemContactsStorage
-                .insertContact(state.profile!.details!.toSystemContact()))
-        : state.profile!;
-
-    // Save it already here, to be faster than the system contact update listener picking up on the new system contact
-    // TODO: Can we lock this somehow to ensure a bit more robustly
-    await contactsRepository.saveContact(contact);
-
-    contact = await contactsRepository.distributedStorage
-        .updateContactSharingDHT(contact);
-    contact = await contactsRepository.distributedStorage
-        .updateContactReceivingDHT(contact);
-
-    await contactsRepository.saveContact(contact);
+    await contactsRepository.updateContactSharingSettings(
+        coagContactId, state.requestSettings!);
 
     if (!isClosed) {
-      emit(ReceiveRequestState(ReceiveRequestStatus.success, profile: contact));
+      emit(ReceiveRequestState(ReceiveRequestStatus.success,
+          profile: contactsRepository.getContact(coagContactId)));
+    }
+  }
+
+  /// Link the request of a contact to share with me to an existing contact
+  Future<void> linkExistingContactSharing(String coagContactId) async {
+    if (state.requestSettings == null) {
+      // TODO: more meaningful error handling? because this shouldn't happen
+      emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+      return;
+    }
+
+    await contactsRepository.updateContactReceivingSettings(
+        coagContactId, state.requestSettings!);
+
+    if (!isClosed) {
+      emit(ReceiveRequestState(ReceiveRequestStatus.success,
+          profile: contactsRepository.getContact(coagContactId)));
+    }
+  }
+
+  Future<void> createNewContact() async {
+    if (state.requestSettings == null) {
+      return;
+    }
+
+    // Immediately signal ongoing processing; because otherwise the UI will not change until this finishes
+    // TODO: Add details about what processing means
+    emit(state.copyWith(status: ReceiveRequestStatus.processing));
+
+    final coagContactId = const Uuid().v4();
+    await contactsRepository.updateContactFromDHT(CoagContact(
+        coagContactId: coagContactId,
+        dhtSettingsForReceiving: state.requestSettings));
+
+    if (!isClosed) {
+      final contact = contactsRepository.getContact(coagContactId);
+      if (contact == null) {
+        // TODO: add error infos
+        emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+      } else {
+        emit(ReceiveRequestState(ReceiveRequestStatus.success,
+            profile: contact));
+      }
     }
   }
 
@@ -128,20 +123,22 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
         .values
         .where((c) =>
             (c.details != null || c.systemContact != null) &&
-            c.coagContactId != contactsRepository.profileContactId &&
+            c.coagContactId !=
+                contactsRepository.getProfileContact()?.coagContactId &&
             (value.isEmpty ||
                 (c.details?.displayName ?? c.systemContact?.displayName ?? '')
                     .toLowerCase()
                     .contains(value.toLowerCase())))
         .asList();
-    emit(ReceiveRequestState(ReceiveRequestStatus.receivedRequest,
+    emit(state.copyWith(
+        status: ReceiveRequestStatus.receivedRequest,
         profile: CoagContact(
             // TODO: Does it hurt to regenerate a new id each time?
             coagContactId: Uuid().v4(),
             details:
                 ContactDetails(displayName: value, name: Name(first: value)),
             dhtSettingsForSharing: state.requestSettings),
-        contactProporsalsForLinking: proposals));
+        contactProposalsForLinking: proposals));
   }
 
   Future<void> handleFragment(String fragment) async {
@@ -158,7 +155,9 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     final proposals = contactsRepository
         .getContacts()
         .values
-        .where((c) => c.coagContactId != contactsRepository.profileContactId)
+        .where((c) =>
+            c.coagContactId !=
+            contactsRepository.getProfileContact()?.coagContactId)
         .asList();
 
     final key = '${components[0]}:${components[1]}';
@@ -171,49 +170,31 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
         emit(ReceiveRequestState(ReceiveRequestStatus.receivedRequest,
             requestSettings:
                 ContactDHTSettings(key: key, psk: psk, writer: writer),
-            contactProporsalsForLinking: proposals));
+            contactProposalsForLinking: proposals));
       }
       return;
     }
 
-    // TODO: Refactor updateContactFromDHT to use here as well?
+    final initialContact = CoagContact(
+      coagContactId: const Uuid().v4(),
+      dhtSettingsForReceiving: ContactDHTSettings(key: key, psk: psk),
+    );
     try {
-      final raw = await contactsRepository.distributedStorage
-          .readPasswordEncryptedDHTRecord(recordKey: key, secret: psk);
-      print("Retrieved from DHT Record $key:\n$raw");
-      // TODO: Error handling
-      final contact = CoagContactDHTSchemaV1.fromJson(
-          json.decode(raw) as Map<String, dynamic>);
-      final coagContact = CoagContact(
-          coagContactId: const Uuid().v4(),
-          details: contact.details,
-          addressLocations: contact.addressLocations,
-          temporaryLocations: contact.temporaryLocations,
-          dhtSettingsForReceiving: ContactDHTSettings(key: key, psk: psk),
-          dhtSettingsForSharing: (contact.shareBackDHTKey == null ||
-                  contact.shareBackDHTWriter == null ||
-                  contact.shareBackPsk == null)
-              ? null
-              : ContactDHTSettings(
-                  key: contact.shareBackDHTKey!,
-                  psk: contact.shareBackPsk,
-                  writer: contact.shareBackDHTWriter));
+      // Just fetch the contact, do not integrate it into the repository yet
+      final contact = await contactsRepository.distributedStorage
+          .updateContactReceivingDHT(initialContact);
       if (!isClosed) {
-        emit(ReceiveRequestState(
-          ReceiveRequestStatus.receivedShare,
-          profile: coagContact,
-
-          // TODO: Intelligently sort depending on profile contact
-          contactProporsalsForLinking: proposals,
-        ));
-        return;
+        emit(ReceiveRequestState(ReceiveRequestStatus.receivedShare,
+            profile: contact,
+            requestSettings: contact.dhtSettingsForReceiving,
+            // TODO: Intelligently sort depending on profile contact details
+            contactProposalsForLinking: proposals));
       }
     } on Exception catch (e) {
       // TODO: Log properly / feedback?
       print('Error fetching DHT UPDATE: ${e}');
       if (!isClosed) {
         emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
-        return;
       }
     }
   }

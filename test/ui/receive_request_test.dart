@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:convert';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/repositories/contacts.dart';
@@ -71,17 +73,30 @@ void main() {
     );
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>('scan sharing qr code',
-        build: () => ReceiveRequestCubit(contactsRepository!),
+        build: () => ReceiveRequestCubit(ContactsRepository(
+            DummyPersistentStorage({}),
+            DummyDistributedStorage(initialDht: {
+              'VLD0:key': json.encode(CoagContactDHTSchemaV1(
+                      coagContactId: '',
+                      details: ContactDetails(
+                          displayName: 'From DHT',
+                          name: Name(first: 'From', last: 'DHT')))
+                  .toJson())
+            }),
+            DummySystemContacts([]))),
         act: (c) async => c.qrCodeCaptured(mobile_scanner.BarcodeCapture(
                 barcodes: [
                   const mobile_scanner.Barcode(
                       rawValue: 'https://coagulate.social#VLD0:key:psk')
                 ])),
-        verify: (c) async =>
-            c.state.status.isSuccess &&
-            c.state.profile!.details!.displayName == 'Contact From DHT' &&
-            c.state.profile!.dhtSettingsForReceiving ==
-                const ContactDHTSettings(key: 'VLD0:key', psk: 'psk'));
+        verify: (c) async {
+          expect(c.state.status, ReceiveRequestStatus.receivedShare);
+          expect(c.state.profile!.details!.displayName, 'From DHT');
+          expect(c.state.profile!.dhtSettingsForReceiving,
+              const ContactDHTSettings(key: 'VLD0:key', psk: 'psk'));
+          expect(c.state.requestSettings,
+              const ContactDHTSettings(key: 'VLD0:key', psk: 'psk'));
+        });
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
         'create coagulate contact for request, no system contact access',
@@ -96,76 +111,188 @@ void main() {
             return null;
           });
         },
-        build: () => ReceiveRequestCubit(contactsRepository!),
+        build: () => ReceiveRequestCubit(ContactsRepository(
+            DummyPersistentStorage({}),
+            DummyDistributedStorage(initialDht: {
+              'sharingOfferKey': json.encode(CoagContactDHTSchemaV1(
+                      coagContactId: '',
+                      details: ContactDetails(
+                          displayName: 'From DHT',
+                          name: Name(first: 'From', last: 'DHT')))
+                  .toJson())
+            }),
+            DummySystemContacts([]))),
         seed: () => const ReceiveRequestState(
             ReceiveRequestStatus.receivedRequest,
-            requestSettings:
-                ContactDHTSettings(key: 'key', psk: 'psk', writer: 'writer')),
+            requestSettings: ContactDHTSettings(
+                key: 'sharingOfferKey', psk: 'psk', writer: 'writer')),
         act: (c) async {
           c.updateNewRequesterContact('New Contact Name');
           await c.createNewContact();
         },
-        verify: (c) =>
-            c.state.status.isSuccess &&
-            c.state.profile!.details!.displayName == 'New Contact Name' &&
-            // TODO: We might actually want to already prep share back options here
-            c.state.profile!.dhtSettingsForReceiving == null &&
-            c.state.profile!.dhtSettingsForSharing ==
-                const ContactDHTSettings(
-                    key: 'key', psk: 'psk', writer: 'writer'));
+        verify: (c) {
+          expect(c.state.status, ReceiveRequestStatus.success);
+          expect(c.state.profile!.details!.displayName, 'From DHT');
+          expect(c.state.profile!.dhtSettingsForSharing, null,
+              reason:
+                  'They are not part of circles, no need for a DHT record.');
+          expect(
+              c.state.profile!.dhtSettingsForReceiving,
+              const ContactDHTSettings(
+                  key: 'sharingOfferKey', psk: 'psk', writer: 'writer'));
+        });
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
-        'link existing coagulate contact for request',
-        build: () => ReceiveRequestCubit(contactsRepository!),
+        'create coagulate contact from offer to share, no system contact access',
+        setUp: () {
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+              .setMockMethodCallHandler(
+                  const MethodChannel('github.com/QuisApp/flutter_contacts'),
+                  (methodCall) async {
+            if (methodCall.method == 'requestPermission') {
+              return false;
+            }
+            return null;
+          });
+        },
+        build: () => ReceiveRequestCubit(ContactsRepository(
+            DummyPersistentStorage({}),
+            DummyDistributedStorage(initialDht: {
+              'sharingOfferKey': json.encode(CoagContactDHTSchemaV1(
+                      coagContactId: '',
+                      details: ContactDetails(
+                          displayName: 'From DHT',
+                          name: Name(first: 'From', last: 'DHT')))
+                  .toJson())
+            }),
+            DummySystemContacts([]))),
+        seed: () => const ReceiveRequestState(
+            ReceiveRequestStatus.receivedShare,
+            requestSettings: ContactDHTSettings(
+                key: 'sharingOfferKey', psk: 'psk', writer: 'writer')),
+        act: (c) async => c.createNewContact(),
+        verify: (c) {
+          expect(c.state.status, ReceiveRequestStatus.success);
+          expect(c.state.profile!.details!.displayName, 'From DHT');
+          expect(
+              c.state.profile!.dhtSettingsForReceiving,
+              const ContactDHTSettings(
+                  key: 'sharingOfferKey', psk: 'psk', writer: 'writer'));
+        });
+
+    blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+        'link existing coagulate contact for a request for the user to share',
+        build: () => ReceiveRequestCubit(ContactsRepository(
+            DummyPersistentStorage({
+              '1': CoagContact(
+                  coagContactId: '1',
+                  details: ContactDetails(
+                      displayName: 'Existing Contact',
+                      name: Name(first: 'Existing', last: 'Contact')))
+            }),
+            DummyDistributedStorage(),
+            DummySystemContacts([
+              Contact(
+                  id: 'sysID0',
+                  displayName: 'Recent Sys Profile Name',
+                  name: Name(first: 'Profile'))
+            ]),
+            // Explicitly initialize during act to ensure it finished
+            initialize: false)),
         seed: () => const ReceiveRequestState(
             ReceiveRequestStatus.receivedRequest,
-            requestSettings:
-                ContactDHTSettings(key: 'key', psk: 'psk', writer: 'writer')),
-        act: (c) async => c.linkExistingContactRequested(CoagContact(
-            coagContactId: '1',
-            details: ContactDetails(
-                displayName: 'Existing Contact',
-                name: Name(first: 'Existing', last: 'Contact')))),
-        expect: () => [
-              ReceiveRequestState(ReceiveRequestStatus.success,
-                  profile: CoagContact(
-                      coagContactId: '1',
-                      // TODO: We might actually want to already prep share back options here
-                      dhtSettingsForReceiving: null,
-                      dhtSettingsForSharing: const ContactDHTSettings(
-                          key: 'key', psk: 'psk', writer: 'writer'),
-                      details: ContactDetails(
-                          displayName: 'Existing Contact',
-                          name: Name(first: 'Existing', last: 'Contact'))))
-            ]);
+            requestSettings: ContactDHTSettings(
+                key: 'requestedSharingKey', psk: 'psk', writer: 'writer')),
+        act: (c) async {
+          // Ensure profile contact is present, because it's required for
+          //  fulfilling the request
+          await c.contactsRepository.initialize();
+          // Add profile contact only now to ensure fetching the most recent
+          //  version happens also after initialize
+          await c.contactsRepository.saveContact(CoagContact(
+              coagContactId: '0',
+              systemContact: Contact(
+                  id: 'sysID0',
+                  displayName: 'Profile Contact',
+                  name: Name(first: 'Profile'))));
+          await c.contactsRepository.updateProfileContact('0');
+          // Link the request to share to an existing contact
+          await c.linkExistingContactRequested('1');
+        },
+        verify: (c) {
+          final dht = (c.contactsRepository.distributedStorage
+                  as DummyDistributedStorage)
+              .dht;
+          expect(dht.length, 2);
+          // The requested sharing key and a key auto generated for receiving
+          expect(dht.keys.toSet(), {'requestedSharingKey', 'key'});
+
+          expect(c.state.profile?.coagContactId, '1');
+          expect(c.state.profile?.dhtSettingsForReceiving?.key, 'key');
+          expect(c.state.profile?.dhtSettingsForSharing?.key,
+              'requestedSharingKey');
+          expect(
+              c.state.profile?.details,
+              ContactDetails(
+                  displayName: 'Existing Contact',
+                  name: Name(first: 'Existing', last: 'Contact')));
+        });
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
-        'link existing coagulate contact for sharing',
-        build: () => ReceiveRequestCubit(contactsRepository!),
-        seed: () => ReceiveRequestState(ReceiveRequestStatus.receivedShare,
-            profile: CoagContact(
-                coagContactId: 'randomly-generated',
-                dhtSettingsForReceiving:
-                    const ContactDHTSettings(key: 'key', psk: 'psk'),
-                details: ContactDetails(
-                    displayName: 'Sharing Contact',
-                    name: Name(first: 'Sharing', last: 'Contact'))),
-            requestSettings: const ContactDHTSettings(
-                key: 'key', psk: 'psk', writer: 'writer')),
-        act: (c) async => c.linkExistingContactSharing(CoagContact(
-            coagContactId: '1',
-            details: ContactDetails(
-                displayName: 'Existing Contact',
-                name: Name(first: 'Existing', last: 'Contact')))),
+        'link existing coagulate contact to sharing offer',
+        // Init with on existing contact and a DHT ready with one key
+        build: () => ReceiveRequestCubit(ContactsRepository(
+            DummyPersistentStorage({
+              '1': CoagContact(
+                  coagContactId: '1',
+                  details: ContactDetails(
+                      displayName: 'Existing Contact',
+                      name: Name(first: 'Existing', last: 'Contact')))
+            }),
+            DummyDistributedStorage(initialDht: {
+              'sharingOfferKey': json.encode(CoagContactDHTSchemaV1(
+                      coagContactId: '',
+                      details: ContactDetails(
+                          displayName: 'From DHT',
+                          name: Name(first: 'From', last: 'DHT')))
+                  .toJson())
+            }),
+            DummySystemContacts([]),
+            // Explicitly initialize during act to ensure it finished
+            initialize: false)),
+        // Seed with a contact offering to share via our prepared dht record
+        seed: () => const ReceiveRequestState(
+            ReceiveRequestStatus.receivedShare,
+            requestSettings:
+                ContactDHTSettings(key: 'sharingOfferKey', psk: 'psk')),
+        // Link the sharing offer to our one existing contact
+        act: (c) async => c.contactsRepository
+            .initialize()
+            .then((_) => c.linkExistingContactSharing('1')),
+        // Expect that contact to contain the dht settings for receiving more
+        //  updates as well as the details from the DHT
         expect: () => [
               ReceiveRequestState(ReceiveRequestStatus.success,
                   profile: CoagContact(
                       coagContactId: '1',
-                      dhtSettingsForReceiving:
-                          const ContactDHTSettings(key: 'key', psk: 'psk'),
+                      dhtSettingsForReceiving: const ContactDHTSettings(
+                          key: 'sharingOfferKey', psk: 'psk'),
                       details: ContactDetails(
-                          displayName: 'Sharing Contact',
-                          name: Name(first: 'Sharing', last: 'Contact'))))
-            ]);
+                          displayName: 'From DHT',
+                          name: Name(first: 'From', last: 'DHT'))))
+            ],
+        // Verify that this is also reflected in the repository with still only
+        //  one contact
+        verify: (c) {
+          expect(
+              (c.contactsRepository.distributedStorage
+                      as DummyDistributedStorage)
+                  .dht
+                  .length,
+              1);
+          final contacts = c.contactsRepository.getContacts();
+          expect(contacts.length, 1);
+          expect(contacts['1']?.details?.displayName, 'From DHT');
+        });
   });
 }

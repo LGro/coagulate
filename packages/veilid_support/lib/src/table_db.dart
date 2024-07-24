@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:async_tools/async_tools.dart';
+import 'package:meta/meta.dart';
 import 'package:veilid/veilid.dart';
 
 Future<T> tableScope<T>(
@@ -32,14 +35,19 @@ Future<T> transactionScope<T>(
   }
 }
 
-abstract mixin class TableDBBacked<T> {
+abstract mixin class TableDBBackedJson<T> {
+  @protected
   String tableName();
+  @protected
   String tableKeyName();
-  T valueFromJson(Object? obj);
-  Object? valueToJson(T val);
+  @protected
+  T? valueFromJson(Object? obj);
+  @protected
+  Object? valueToJson(T? val);
 
   /// Load things from storage
-  Future<T> load() async {
+  @protected
+  Future<T?> load() async {
     final obj = await tableScope(tableName(), (tdb) async {
       final objJson = await tdb.loadStringJson(0, tableKeyName());
       return valueFromJson(objJson);
@@ -48,28 +56,98 @@ abstract mixin class TableDBBacked<T> {
   }
 
   /// Store things to storage
+  @protected
   Future<T> store(T obj) async {
     await tableScope(tableName(), (tdb) async {
       await tdb.storeStringJson(0, tableKeyName(), valueToJson(obj));
     });
     return obj;
   }
+
+  /// Delete things from storage
+  @protected
+  Future<T?> delete() async {
+    final obj = await tableScope(tableName(), (tdb) async {
+      final objJson = await tdb.deleteStringJson(0, tableKeyName());
+      return valueFromJson(objJson);
+    });
+    return obj;
+  }
 }
 
-class TableDBValue<T> extends TableDBBacked<T> {
+abstract mixin class TableDBBackedFromBuffer<T> {
+  @protected
+  String tableName();
+  @protected
+  String tableKeyName();
+  @protected
+  T valueFromBuffer(Uint8List bytes);
+  @protected
+  Uint8List valueToBuffer(T val);
+
+  /// Load things from storage
+  @protected
+  Future<T?> load() async {
+    final obj = await tableScope(tableName(), (tdb) async {
+      final objBytes = await tdb.load(0, utf8.encode(tableKeyName()));
+      if (objBytes == null) {
+        return null;
+      }
+      return valueFromBuffer(objBytes);
+    });
+    return obj;
+  }
+
+  /// Store things to storage
+  @protected
+  Future<T> store(T obj) async {
+    await tableScope(tableName(), (tdb) async {
+      await tdb.store(0, utf8.encode(tableKeyName()), valueToBuffer(obj));
+    });
+    return obj;
+  }
+
+  /// Delete things from storage
+  @protected
+  Future<T?> delete() async {
+    final obj = await tableScope(tableName(), (tdb) async {
+      final objBytes = await tdb.delete(0, utf8.encode(tableKeyName()));
+      if (objBytes == null) {
+        return null;
+      }
+      return valueFromBuffer(objBytes);
+    });
+    return obj;
+  }
+}
+
+class TableDBValue<T> extends TableDBBackedJson<T> {
   TableDBValue({
     required String tableName,
     required String tableKeyName,
-    required T Function(Object? obj) valueFromJson,
-    required Object? Function(T obj) valueToJson,
+    required T? Function(Object? obj) valueFromJson,
+    required Object? Function(T? obj) valueToJson,
+    required T Function() makeInitialValue,
   })  : _tableName = tableName,
         _valueFromJson = valueFromJson,
         _valueToJson = valueToJson,
         _tableKeyName = tableKeyName,
-        _streamController = StreamController<T>.broadcast();
+        _makeInitialValue = makeInitialValue,
+        _streamController = StreamController<T>.broadcast() {
+    _initWait.add(() async {
+      await get();
+    });
+  }
 
-  AsyncData<T>? get value => _value;
-  T get requireValue => _value!.value;
+  Future<void> init() async {
+    await _initWait();
+  }
+
+  Future<void> close() async {
+    await _initWait();
+  }
+
+  T get value => _value!.value;
   Stream<T> get stream => _streamController.stream;
 
   Future<T> get() async {
@@ -77,7 +155,7 @@ class TableDBValue<T> extends TableDBBacked<T> {
     if (val != null) {
       return val.value;
     }
-    final loadedValue = await load();
+    final loadedValue = await load() ?? await store(_makeInitialValue());
     _value = AsyncData(loadedValue);
     return loadedValue;
   }
@@ -88,11 +166,13 @@ class TableDBValue<T> extends TableDBBacked<T> {
   }
 
   AsyncData<T>? _value;
+  final T Function() _makeInitialValue;
   final String _tableName;
   final String _tableKeyName;
-  final T Function(Object? obj) _valueFromJson;
-  final Object? Function(T obj) _valueToJson;
+  final T? Function(Object? obj) _valueFromJson;
+  final Object? Function(T? obj) _valueToJson;
   final StreamController<T> _streamController;
+  final WaitSet<void> _initWait = WaitSet();
 
   //////////////////////////////////////////////////////////////
   /// AsyncTableDBBacked
@@ -101,7 +181,7 @@ class TableDBValue<T> extends TableDBBacked<T> {
   @override
   String tableKeyName() => _tableKeyName;
   @override
-  T valueFromJson(Object? obj) => _valueFromJson(obj);
+  T? valueFromJson(Object? obj) => _valueFromJson(obj);
   @override
-  Object? valueToJson(T val) => _valueToJson(val);
+  Object? valueToJson(T? val) => _valueToJson(val);
 }

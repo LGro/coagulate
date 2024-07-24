@@ -43,11 +43,11 @@ class ScheduleCubit extends Cubit<ScheduleState> {
     }
 
     unawaited(contactsRepository
-        .updateContact(profileContact.copyWith(temporaryLocations: [
+        .updateProfileContactData(profileContact.copyWith(temporaryLocations: [
           ...profileContact.temporaryLocations
               .map((l) => l.copyWith(checkedIn: false)),
           ContactTemporaryLocation(
-              coagContactId: contactsRepository.profileContactId!,
+              coagContactId: profileContact.coagContactId,
               longitude: coordinates.longitude,
               latitude: coordinates.latitude,
               start: start,

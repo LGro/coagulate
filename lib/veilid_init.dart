@@ -13,7 +13,7 @@ class VeilidChatGlobalInit {
   Future<void> _initializeVeilid() async {
     // Init Veilid
     Veilid.instance.initializeVeilidCore(
-        getDefaultVeilidPlatformConfig(false, 'Coagulate'));
+        await getDefaultVeilidPlatformConfig(false, 'Coagulate'));
 
     // Veilid logging
     initVeilidLog(kDebugMode);

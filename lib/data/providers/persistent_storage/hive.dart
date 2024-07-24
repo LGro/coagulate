@@ -89,6 +89,10 @@ class HiveStorage extends PersistentStorage {
       (await _lazyGetSettingsBox()).get('profile_contact_id');
 
   @override
+  Future<void> removeProfileContactId() async =>
+      (await _lazyGetSettingsBox()).delete('profile_contact_id');
+
+  @override
   Future<void> removeContact(String coagContactId) async =>
       (await _lazyGetSettingsBox()).delete(coagContactId);
 

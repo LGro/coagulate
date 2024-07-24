@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
+import '../locations/schedule/widget.dart';
 import 'cubit.dart';
 
 class SliderExample extends StatefulWidget {
@@ -140,7 +141,8 @@ class MapPage extends StatelessWidget {
                             // TODO: Style profile contact locations differently
                             onTap: (context
                                             .read<ContactsRepository>()
-                                            .profileContactId ==
+                                            .getProfileContact()
+                                            ?.coagContactId ==
                                         location.coagContactId &&
                                     location.marker == MarkerType.address)
                                 ? null
@@ -161,14 +163,32 @@ class MapPage extends StatelessWidget {
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 mainAxisSize: MainAxisSize.min,
-                                                children: [Text(location.details)])))
+                                                children: [
+                                                  Text(location.details),
+                                                  // TODO: only display if not already scheduled this (or conflicting)
+                                                  Center(
+                                                      child: TextButton(
+                                                          child: const Text(
+                                                              'Add to my locations'),
+                                                          onPressed: () async =>
+                                                              Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute<
+                                                                          ScheduleWidget>(
+                                                                      builder:
+                                                                          (_) =>
+                                                                              ScheduleWidget())))),
+                                                ])))
                                     : () {
-                                        unawaited(Navigator.push(
-                                            context,
-                                            ContactPage.route(context
-                                                .read<ContactsRepository>()
-                                                .getContact(
-                                                    location.coagContactId))));
+                                        final contact = context
+                                            .read<ContactsRepository>()
+                                            .getContact(location.coagContactId);
+                                        if (contact == null) {
+                                          // TODO: display error?
+                                          return;
+                                        }
+                                        unawaited(Navigator.push(context,
+                                            ContactPage.route(contact)));
                                       }))
                         .toList();
 

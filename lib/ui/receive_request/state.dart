@@ -29,7 +29,7 @@ final class ReceiveRequestState extends Equatable {
     this.profile,
     this.requestSettings,
     this.fragment,
-    this.contactProporsalsForLinking = const [],
+    this.contactProposalsForLinking = const [],
   });
 
   factory ReceiveRequestState.fromJson(Map<String, dynamic> json) =>
@@ -38,12 +38,29 @@ final class ReceiveRequestState extends Equatable {
   final ReceiveRequestStatus status;
   final CoagContact? profile;
   final String? fragment;
+  // TODO: Consider renaming these if they really apply to both when a contact is requesting as well as sharing
   final ContactDHTSettings? requestSettings;
-  final List<CoagContact> contactProporsalsForLinking;
+  final List<CoagContact> contactProposalsForLinking;
 
   Map<String, dynamic> toJson() => _$ReceiveRequestStateToJson(this);
 
+  ReceiveRequestState copyWith({
+    ReceiveRequestStatus? status,
+    CoagContact? profile,
+    String? fragment,
+    ContactDHTSettings? requestSettings,
+    List<CoagContact>? contactProposalsForLinking,
+  }) =>
+      ReceiveRequestState(
+        status ?? this.status,
+        profile: profile ?? this.profile,
+        fragment: fragment ?? this.fragment,
+        requestSettings: requestSettings ?? this.requestSettings,
+        contactProposalsForLinking:
+            contactProposalsForLinking ?? this.contactProposalsForLinking,
+      );
+
   @override
   List<Object?> get props =>
-      [status, profile, requestSettings, fragment, contactProporsalsForLinking];
+      [status, profile, requestSettings, fragment, contactProposalsForLinking];
 }

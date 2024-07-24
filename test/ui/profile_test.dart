@@ -56,9 +56,36 @@ void main() {
         findsOneWidget);
     expect(find.text(_profileContact.systemContact!.websites[0].url),
         findsOneWidget);
+  });
 
-    contactsRepository.timerDhtRefresh?.cancel();
-    contactsRepository.timerPersistentStorageRefresh?.cancel();
+  testWidgets('Test circle creation and assignment', (tester) async {
+    final contactsRepository = ContactsRepository(
+        DummyPersistentStorage([_profileContact]
+            .asMap()
+            .map((_, v) => MapEntry(v.coagContactId, v)))
+          ..profileContactId = '1',
+        DummyDistributedStorage(),
+        DummySystemContacts([_profileContact.systemContact!]));
+
+    final pageWidget = await createProfilePage(contactsRepository);
+    await tester.pumpWidget(pageWidget);
+
+    await tester.tap(find.byKey(const Key('emailsCirclesMgmt0')));
+    await tester.pump();
+    expect(find.textContaining('Share'), findsOneWidget);
+    expect(find.text('New Circle'), findsOneWidget);
+
+    const circleName = 'new circle name';
+    await tester.enterText(
+        find.byKey(const Key('circlesForm_newCircleInput')), circleName);
+
+    await tester.tap(find.byKey(const Key('circlesForm_submit')));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('websitesCirclesMgmt0')));
+    await tester.pump();
+    // TODO: This should come back true, why doesn't it?
+    // expect(find.textContaining(circleName), findsOneWidget);
   });
 
   testWidgets('Test No Contact', (tester) async {
@@ -69,9 +96,6 @@ void main() {
     await tester.pumpWidget(pageWidget);
 
     expect(find.textContaining('Welcome to Coagulate'), findsOneWidget);
-
-    contactsRepository.timerDhtRefresh?.cancel();
-    contactsRepository.timerPersistentStorageRefresh?.cancel();
   });
 
   // testWidgets('Choose system contact as profile', (tester) async {

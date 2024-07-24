@@ -29,20 +29,6 @@ class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
     });
   }
 
-  // DHTRecordCubit.value({
-  //   required DHTRecord record,
-  //   required InitialStateFunction<T> initialStateFunction,
-  //   required StateFunction<T> stateFunction,
-  //   required WatchFunction watchFunction,
-  // })  : _record = record,
-  //       _stateFunction = stateFunction,
-  //       _wantsCloseRecord = false,
-  //       super(const AsyncValue.loading()) {
-  //   Future.delayed(Duration.zero, () async {
-  //     await _init(initialStateFunction, stateFunction, watchFunction);
-  //   });
-  // }
-
   Future<void> _init(
     InitialStateFunction<T> initialStateFunction,
     StateFunction<T> stateFunction,
@@ -93,7 +79,7 @@ class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
     for (final skr in subkeys) {
       for (var sk = skr.low; sk <= skr.high; sk++) {
         final data = await _record.get(
-            subkey: sk, forceRefresh: true, onlyUpdates: true);
+            subkey: sk, refreshMode: DHTRecordRefreshMode.update);
         if (data != null) {
           final newState = await _stateFunction(_record, updateSubkeys, data);
           if (newState != null) {
@@ -112,7 +98,7 @@ class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
   DHTRecord get record => _record;
 
   @protected
-  final WaitSet initWait = WaitSet();
+  final WaitSet<void> initWait = WaitSet();
 
   StreamSubscription<DHTRecordWatchChange>? _subscription;
   late DHTRecord _record;

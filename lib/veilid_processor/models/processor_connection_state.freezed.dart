@@ -19,7 +19,9 @@ mixin _$ProcessorConnectionState {
   VeilidStateAttachment get attachment => throw _privateConstructorUsedError;
   VeilidStateNetwork get network => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ProcessorConnectionState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ProcessorConnectionStateCopyWith<ProcessorConnectionState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -47,6 +49,8 @@ class _$ProcessorConnectionStateCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ProcessorConnectionState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -65,6 +69,8 @@ class _$ProcessorConnectionStateCopyWithImpl<$Res,
     ) as $Val);
   }
 
+  /// Create a copy of ProcessorConnectionState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $VeilidStateAttachmentCopyWith<$Res> get attachment {
@@ -73,6 +79,8 @@ class _$ProcessorConnectionStateCopyWithImpl<$Res,
     });
   }
 
+  /// Create a copy of ProcessorConnectionState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $VeilidStateNetworkCopyWith<$Res> get network {
@@ -109,6 +117,8 @@ class __$$ProcessorConnectionStateImplCopyWithImpl<$Res>
       $Res Function(_$ProcessorConnectionStateImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ProcessorConnectionState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -158,7 +168,9 @@ class _$ProcessorConnectionStateImpl extends _ProcessorConnectionState {
   @override
   int get hashCode => Object.hash(runtimeType, attachment, network);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ProcessorConnectionState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ProcessorConnectionStateImplCopyWith<_$ProcessorConnectionStateImpl>
@@ -177,8 +189,11 @@ abstract class _ProcessorConnectionState extends ProcessorConnectionState {
   VeilidStateAttachment get attachment;
   @override
   VeilidStateNetwork get network;
+
+  /// Create a copy of ProcessorConnectionState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ProcessorConnectionStateImplCopyWith<_$ProcessorConnectionStateImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

@@ -208,7 +208,9 @@ class _LocationFormState extends State<LocationForm> {
                     .circlesWithMembership(context
                         .read<LocationsCubit>()
                         .contactsRepository
-                        .profileContactId!),
+                        // TODO: Why can't this be null?
+                        .getProfileContact()!
+                        .coagContactId),
                 // TODO: add callback
                 callback: (circles) async => {throw Error()}),
             const SizedBox(height: 24),

@@ -20,11 +20,11 @@ part 'state.dart';
 class LocationsCubit extends Cubit<LocationsState> {
   LocationsCubit(this.contactsRepository) : super(const LocationsState()) {
     _contactsSuscription =
-        contactsRepository.getContactUpdates().listen((contact) async {
-      if (contact.coagContactId ==
-          contactsRepository.getProfileContact()?.coagContactId) {
+        contactsRepository.getContactStream().listen((idUpdatedContact) async {
+      final profileContact = contactsRepository.getProfileContact();
+      if (idUpdatedContact == profileContact?.coagContactId) {
         emit(LocationsState(
-            temporaryLocations: _sort(contact.temporaryLocations),
+            temporaryLocations: _sort(profileContact!.temporaryLocations),
             circleMembersips: contactsRepository.getCircleMemberships()));
       }
     });
@@ -37,38 +37,18 @@ class LocationsCubit extends Cubit<LocationsState> {
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<CoagContact> _contactsSuscription;
+  late final StreamSubscription<String> _contactsSuscription;
 
   List<ContactTemporaryLocation> _sort(
           List<ContactTemporaryLocation> locations) =>
       locations.sortedBy((l) => l.start).asList();
-
-  Future<void> addRandomLocation() async {
-    final randomLocation = ContactTemporaryLocation(
-        coagContactId: contactsRepository.profileContactId!,
-        longitude: Random().nextDouble() * 10,
-        latitude: Random().nextDouble() * 10,
-        name: 'Random Location',
-        start: DateTime.now(),
-        end: DateTime.now().add(Duration(hours: 2)),
-        details: '');
-    final profileContact = contactsRepository.getProfileContact();
-    if (profileContact == null) {
-      return;
-    }
-    await contactsRepository.updateContact(profileContact.copyWith(
-        temporaryLocations:
-            _sort([...profileContact.temporaryLocations, randomLocation])));
-    // Make sure to regenerate the sharing profiles and update DHT sharing records
-    await contactsRepository.updateProfileContact(profileContact.coagContactId);
-  }
 
   Future<void> removeLocation(ContactTemporaryLocation location) async {
     final profileContact = contactsRepository.getProfileContact();
     if (profileContact == null) {
       return;
     }
-    await contactsRepository.updateContact(profileContact.copyWith(
+    await contactsRepository.updateProfileContactData(profileContact.copyWith(
         temporaryLocations: profileContact.temporaryLocations
             .where((l) => l != location)
             .asList()));
@@ -88,7 +68,7 @@ class LocationsCubit extends Cubit<LocationsState> {
       return;
     }
     // TODO: Test that this is responsive also when location is shared with many contacts
-    await contactsRepository.updateContact(profileContact.copyWith(
+    await contactsRepository.updateProfileContactData(profileContact.copyWith(
         temporaryLocations: profileContact.temporaryLocations
             .map((l) => (l == location)
                 ? l.copyWith(checkedIn: !l.checkedIn)

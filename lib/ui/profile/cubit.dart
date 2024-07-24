@@ -20,17 +20,17 @@ part 'state.dart';
 class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit(this.contactsRepository) : super(const ProfileState()) {
     _contactsSubscription =
-        contactsRepository.getContactUpdates().listen((contact) {
-      if (contact.coagContactId == contactsRepository.profileContactId) {
+        contactsRepository.getContactStream().listen((idUpdatedContact) {
+      final profileContact = contactsRepository.getProfileContact();
+      if (idUpdatedContact == profileContact?.coagContactId) {
         emit(state.copyWith(
             status: ProfileStatus.success,
-            profileContact: contact,
+            profileContact: profileContact,
             circles: contactsRepository.getCircles(),
             circleMemberships: contactsRepository.getCircleMemberships(),
             sharingSettings: contactsRepository.getProfileSharingSettings()));
       }
     });
-    // TODO: Does only doing this here and not in the parent constructor call above cause flicker?
     final profileContact = contactsRepository.getProfileContact();
     if (profileContact != null) {
       emit(state.copyWith(
@@ -48,7 +48,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<CoagContact> _contactsSubscription;
+  late final StreamSubscription<String> _contactsSubscription;
   late final StreamSubscription<bool> _permissionsSubscription;
 
   Future<void> promptCreate() async {
@@ -73,7 +73,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   Future<void> setContact(String? systemContactId) async {
     final contact = (systemContactId == null)
         ? null
-        : contactsRepository.getCoagContactForSystemContactId(systemContactId);
+        : contactsRepository.getContactForSystemContactId(systemContactId);
 
     if (contact == null) {
       // Reset but keep the permission status
@@ -125,8 +125,8 @@ class ProfileCubit extends Cubit<ProfileState> {
         state.profileContact!.copyWith(addressLocations: updatedLocations);
     // TODO: Can we ensure somehow that we don't need to remember doing both steps but just push the update to the profile contact?
     // Also, ensure that the profile contact update really only happens after updateContact finished
-    unawaited(contactsRepository.updateContact(updatedContact).then((_) =>
-        contactsRepository
+    unawaited(contactsRepository.updateProfileContactData(updatedContact).then(
+        (_) => contactsRepository
             .updateProfileContact(state.profileContact!.coagContactId)));
 
     // Already emit what should also come in a bit later via the updated contacts repo
@@ -139,9 +139,9 @@ class ProfileCubit extends Cubit<ProfileState> {
     for (final (id, label) in circles) {
       if (!storedCircles.containsKey(id)) {
         storedCircles[id] = label;
+        await contactsRepository.addCircle(id, label);
       }
     }
-    await contactsRepository.updateCircles(storedCircles);
   }
 
   Future<void> updatePhoneSharingCircles(

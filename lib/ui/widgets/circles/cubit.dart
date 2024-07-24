@@ -17,7 +17,7 @@ class CirclesCubit extends Cubit<CirclesState> {
   CirclesCubit(this.contactsRepository, this.coagContactId)
       : super(CirclesState(
             contactsRepository.circlesWithMembership(coagContactId))) {
-    _circlesSubscription = contactsRepository.getCirclesUpdates().listen((c) {
+    _circlesSubscription = contactsRepository.getCirclesStream().listen((c) {
       if (!isClosed) {
         emit(CirclesState(
             contactsRepository.circlesWithMembership(coagContactId)));
@@ -35,20 +35,16 @@ class CirclesCubit extends Cubit<CirclesState> {
 
   Future<void> update(List<(String, String, bool)> circles) async {
     // Check if there is a new circle, add it
-    var storedCircles = contactsRepository.getCircles();
+    final storedCircles = contactsRepository.getCircles();
     for (final (id, label, _) in circles) {
       if (!storedCircles.containsKey(id)) {
         storedCircles[id] = label;
+        await contactsRepository.addCircle(id, label);
       }
     }
-    await contactsRepository.updateCircles(storedCircles);
 
-    // Update circle membership
-    final memberships = Map<String, List<String>>.from(
-        contactsRepository.getCircleMemberships());
-    memberships[coagContactId] =
-        circles.where((c) => c.$3).map((c) => c.$1).asList();
-    await contactsRepository.updateCircleMemberships(memberships);
+    await contactsRepository.updateCirclesForContact(
+        coagContactId, circles.where((c) => c.$3).map((c) => c.$1).asList());
 
     if (!isClosed) {
       emit(CirclesState(

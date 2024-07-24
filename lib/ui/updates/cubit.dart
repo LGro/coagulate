@@ -7,7 +7,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_update.dart';
 import '../../data/repositories/contacts.dart';
 
@@ -17,21 +16,21 @@ part 'cubit.g.dart';
 class UpdatesCubit extends Cubit<UpdatesState> {
   UpdatesCubit(this.contactsRepository)
       : super(const UpdatesState(UpdatesStatus.initial)) {
-    _contactsSubscription = contactsRepository.getContactUpdates().listen(
-        (contact) => emit(UpdatesState(UpdatesStatus.success,
-            updates: contactsRepository.updates.reversed)));
+    _updatesSubscription = contactsRepository.getUpdatesStream().listen((_) =>
+        emit(UpdatesState(UpdatesStatus.success,
+            updates: contactsRepository.getContactUpdates().reversed)));
     emit(UpdatesState(UpdatesStatus.success,
-        updates: contactsRepository.updates.reversed));
+        updates: contactsRepository.getContactUpdates().reversed));
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<CoagContact> _contactsSubscription;
+  late final StreamSubscription<ContactUpdate> _updatesSubscription;
 
   Future<void> refresh() => contactsRepository.updateAndWatchReceivingDHT();
 
   @override
   Future<void> close() {
-    _contactsSubscription.cancel();
+    _updatesSubscription.cancel();
     return super.close();
   }
 }

@@ -15,29 +15,29 @@ extension ContactDetailsStatusX on ContactDetailsStatus {
 
 @JsonSerializable()
 final class ContactDetailsState extends Equatable {
-  const ContactDetailsState(this.status, this.contact,
-      {this.circles = const []});
+  const ContactDetailsState(this.status,
+      {this.contact, this.circleNames = const []});
 
   factory ContactDetailsState.fromJson(Map<String, dynamic> json) =>
       _$ContactDetailsStateFromJson(json);
 
-  final CoagContact contact;
+  final CoagContact? contact;
   final ContactDetailsStatus status;
-  final List<String> circles;
+  final List<String> circleNames;
 
   Map<String, dynamic> toJson() => _$ContactDetailsStateToJson(this);
 
   ContactDetailsState copyWith({
     ContactDetailsStatus? status,
     CoagContact? contact,
-    List<String>? circles,
+    List<String>? circleNames,
   }) =>
       ContactDetailsState(
         status ?? this.status,
-        contact ?? this.contact,
-        circles: circles ?? this.circles,
+        contact: contact ?? this.contact,
+        circleNames: circleNames ?? this.circleNames,
       );
 
   @override
-  List<Object?> get props => [contact, status, circles];
+  List<Object?> get props => [contact, status, circleNames];
 }

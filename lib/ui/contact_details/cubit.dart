@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -17,54 +16,49 @@ part 'state.dart';
 class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   ContactDetailsCubit(this.contactsRepository, String coagContactId)
       : super(ContactDetailsState(ContactDetailsStatus.success,
-            contactsRepository.getContact(coagContactId),
-            circles:
-                (contactsRepository.getCircleMemberships()[coagContactId] ?? [])
-                    .map((id) => contactsRepository.getCircles()[id])
-                    .nonNulls
-                    .toList())) {
-    _circlesSubscription = contactsRepository.getCirclesUpdates().listen((c) {
+            contact: contactsRepository.getContact(coagContactId),
+            circleNames: contactsRepository
+                .getCirclesForContact(coagContactId)
+                .values
+                .toList())) {
+    _circlesSubscription = contactsRepository.getCirclesStream().listen((c) {
       if (!isClosed) {
         emit(state.copyWith(
-            circles:
-                (contactsRepository.getCircleMemberships()[coagContactId] ?? [])
-                    .map((id) => contactsRepository.getCircles()[id])
-                    .nonNulls
-                    .toList()));
+            circleNames: contactsRepository
+                .getCirclesForContact(coagContactId)
+                .values
+                .toList()));
       }
     });
-    _contactsSuscription = contactsRepository.getContactUpdates().listen((c) {
-      if (c.coagContactId == coagContactId && !isClosed) {
-        emit(state.copyWith(status: ContactDetailsStatus.success, contact: c));
+    _contactsSuscription =
+        contactsRepository.getContactStream().listen((updtedContactId) {
+      if (updtedContactId == coagContactId && !isClosed) {
+        final updatedContact = contactsRepository.getContact(updtedContactId);
+        if (updatedContact == null) {
+          // TODO: Add contact not found status?
+          emit(const ContactDetailsState(ContactDetailsStatus.initial));
+        } else {
+          emit(state.copyWith(
+              status: ContactDetailsStatus.success,
+              contact: updatedContact,
+              circleNames: contactsRepository
+                  .getCirclesForContact(coagContactId)
+                  .values
+                  .toList()));
+        }
       }
     });
 
     // Attempt to share straight await, when a contact details page is visited
-    final profileContact = contactsRepository.getProfileContact();
-    if (profileContact != null) {
-      unawaited(share(profileContact));
+    if (state.contact != null) {
+      unawaited(contactsRepository
+          .updateContactSharedProfile(state.contact!.coagContactId));
     }
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<CoagContact> _contactsSuscription;
+  late final StreamSubscription<String> _contactsSuscription;
   late final StreamSubscription<void> _circlesSubscription;
-
-  // TODO: Use a method from repo level instead
-  Future<void> share(CoagContact profileToShare) async {
-    final sharedProfile = json.encode(removeNullOrEmptyValues(
-        filterAccordingToSharingProfile(
-                profile: profileToShare,
-                settings: contactsRepository.getProfileSharingSettings(),
-                activeCircles: contactsRepository
-                        .getCircleMemberships()[state.contact.coagContactId] ??
-                    [],
-                shareBackSettings: state.contact.dhtSettingsForReceiving)
-            .toJson()));
-    final updatedContact = state.contact.copyWith(sharedProfile: sharedProfile);
-
-    await contactsRepository.updateContact(updatedContact);
-  }
 
   Future<void> delete(String coagContactId) async =>
       contactsRepository.removeContact(coagContactId);

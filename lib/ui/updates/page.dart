@@ -127,12 +127,15 @@ class UpdatesPage extends StatelessWidget {
                                 onTap: (u.coagContactId == null)
                                     ? null
                                     : () {
-                                        unawaited(Navigator.push(
-                                            context,
-                                            ContactPage.route(context
-                                                .read<ContactsRepository>()
-                                                .getContact(
-                                                    u.coagContactId!))));
+                                        final contact = context
+                                            .read<ContactsRepository>()
+                                            .getContact(u.coagContactId!);
+                                        if (contact == null) {
+                                          // TODO: display error?
+                                          return;
+                                        }
+                                        unawaited(Navigator.push(context,
+                                            ContactPage.route(contact)));
                                       }))
                             .toList(),
                     // updateTile(

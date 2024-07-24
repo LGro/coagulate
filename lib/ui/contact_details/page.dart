@@ -90,13 +90,17 @@ class ContactPage extends StatelessWidget {
               listener: (context, state) async {},
               builder: (context, state) => Scaffold(
                   appBar: AppBar(
-                    title:
-                        Text(displayName(state.contact) ?? 'Contact Details'),
+                    title: Text((state.contact == null)
+                        ? '???'
+                        : displayName(state.contact!) ?? 'Contact Details'),
                   ),
-                  body: _body(context, state.contact, state.circles))));
+                  body: (state.contact == null)
+                      ? const SingleChildScrollView(
+                          child: Text('Contact not found.'))
+                      : _body(context, state.contact!, state.circleNames))));
 
-  Widget _body(
-          BuildContext context, CoagContact contact, List<String> circles) =>
+  Widget _body(BuildContext context, CoagContact contact,
+          List<String> circleNames) =>
       SingleChildScrollView(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -119,22 +123,22 @@ class ContactPage extends StatelessWidget {
               }
             }),
 
-        if (!kReleaseMode)
-          Column(children: [
-            Text('DEBUG INFOS'),
-            if (contact.dhtSettingsForSharing != null)
-              Text(
-                  'SHR: ${json.encode(contact.dhtSettingsForSharing!.toJson())}'),
-            if (contact.dhtSettingsForReceiving != null)
-              Text(
-                  'RCV: ${json.encode(contact.dhtSettingsForReceiving!.toJson())}'),
-          ]),
+        // if (!kReleaseMode)
+        //   Column(children: [
+        //     Text('DEBUG INFOS'),
+        //     if (contact.dhtSettingsForSharing != null)
+        //       Text(
+        //           'SHR: ${json.encode(contact.dhtSettingsForSharing!.toJson())}'),
+        //     if (contact.dhtSettingsForReceiving != null)
+        //       Text(
+        //           'RCV: ${json.encode(contact.dhtSettingsForReceiving!.toJson())}'),
+        //   ]),
 
         // Receiving stuff
-        if (circles.isNotEmpty &&
+        if (circleNames.isNotEmpty &&
             contact.dhtSettingsForReceiving != null &&
-            contact.dhtSettingsForReceiving!.writer != null &&
-            contact.dhtSettingsForReceiving!.psk != null)
+            contact.dhtSettingsForReceiving?.writer != null &&
+            contact.dhtSettingsForReceiving?.psk != null)
           receivingCard(context, contact),
 
         // First phase?
@@ -183,17 +187,17 @@ class ContactPage extends StatelessWidget {
         if (contact.temporaryLocations.isNotEmpty)
           temporaryLocationsCard(contact.temporaryLocations),
 
-        circlesCard(context, contact.coagContactId, circles),
+        circlesCard(context, contact.coagContactId, circleNames),
 
         // Sharing stuff
-        if (circles.isNotEmpty &&
+        if (circleNames.isNotEmpty &&
             contact.dhtSettingsForSharing != null &&
-            contact.dhtSettingsForSharing!.writer != null &&
-            contact.dhtSettingsForSharing!.psk != null &&
+            contact.dhtSettingsForSharing?.writer != null &&
+            contact.dhtSettingsForSharing?.psk != null &&
             contact.sharedProfile != null &&
             contact.sharedProfile!.isNotEmpty)
           sharingCard(context, contact),
-        if (circles.isNotEmpty &&
+        if (circleNames.isNotEmpty &&
             contact.sharedProfile != null &&
             contact.sharedProfile!.isNotEmpty)
           ...displayDetails(CoagContactDHTSchemaV1.fromJson(
@@ -242,41 +246,45 @@ Widget receivingCard(BuildContext context, CoagContact contact) => Card(
                 'assets/images/down_arrow_bg.svg', // Path to your SVG file
                 fit: BoxFit.cover)),
       ),
-      Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-                'Ask ${displayName(contact) ?? 'them'} to start sharing with you:',
-                textScaler: const TextScaler.linear(1.2)),
-            const SizedBox(height: 4),
-            Center(
-                child: _qrCodeButton(context,
-                    buttonText: 'QR code to request',
-                    alertTitle:
-                        'Request from ${displayName(contact) ?? 'them'}',
-                    qrCodeData: _receiveUrl(
-                      key: contact.dhtSettingsForReceiving!.key,
-                      psk: contact.dhtSettingsForReceiving!.psk!,
-                      writer: contact.dhtSettingsForReceiving!.writer!,
-                    ).toString())),
-            const Center(child: Text('or')),
-            Center(
-                child: TextButton(
-              child:
-                  const Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                Icon(Icons.share),
-                SizedBox(width: 8),
-                Text('request via trusted channel'),
-                SizedBox(width: 4),
-              ]),
-              // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
-              onPressed: () async => Share.share(
-                  'Please share with me: ${_receiveUrl(key: contact.dhtSettingsForReceiving!.key, psk: contact.dhtSettingsForReceiving!.psk!, writer: contact.dhtSettingsForReceiving!.writer!)}\n'
-                  'Keep this link a secret, it\'s just for you.'),
-            )),
-            const SizedBox(height: 8),
-          ]))
+      if (contact.dhtSettingsForReceiving?.key != null &&
+          contact.dhtSettingsForReceiving?.psk != null &&
+          contact.dhtSettingsForReceiving?.writer != null)
+        Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(
+                  'Ask ${displayName(contact) ?? 'them'} to start sharing with you:',
+                  textScaler: const TextScaler.linear(1.2)),
+              const SizedBox(height: 4),
+              Center(
+                  child: _qrCodeButton(context,
+                      buttonText: 'QR code to request',
+                      alertTitle:
+                          'Request from ${displayName(contact) ?? 'them'}',
+                      qrCodeData: _receiveUrl(
+                        key: contact.dhtSettingsForReceiving!.key,
+                        psk: contact.dhtSettingsForReceiving!.psk!,
+                        writer: contact.dhtSettingsForReceiving!.writer!,
+                      ).toString())),
+              const Center(child: Text('or')),
+              Center(
+                  child: TextButton(
+                child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(Icons.share),
+                      SizedBox(width: 8),
+                      Text('request via trusted channel'),
+                      SizedBox(width: 4),
+                    ]),
+                // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
+                onPressed: () async => Share.share(
+                    'Please share with me: ${_receiveUrl(key: contact.dhtSettingsForReceiving!.key, psk: contact.dhtSettingsForReceiving!.psk!, writer: contact.dhtSettingsForReceiving!.writer!)}\n'
+                    'Keep this link a secret, it\'s just for you.'),
+              )),
+              const SizedBox(height: 8),
+            ]))
     ]));
 
 Widget temporaryLocationsCard(List<ContactTemporaryLocation> locations) => Card(
@@ -304,40 +312,44 @@ Widget sharingCard(BuildContext context, CoagContact contact) => Card(
                       : 0.8,
               child: SvgPicture.asset('assets/images/up_arrow_bg.svg',
                   fit: BoxFit.cover))),
-      Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-                'Start sharing your contact details with ${displayName(contact) ?? 'them'}:',
-                textScaler: const TextScaler.linear(1.2)),
-            const SizedBox(height: 4),
-            // TODO: Only show share back button when receiving key and psk but not writer are set i.e. is receiving updates and has share back settings
-            Center(
-                child: _qrCodeButton(context,
-                    buttonText: 'QR code to share',
-                    alertTitle: 'Share with ${displayName(contact) ?? 'them'}',
-                    qrCodeData: _shareUrl(
-                      key: contact.dhtSettingsForSharing!.key,
-                      psk: contact.dhtSettingsForSharing!.psk!,
-                    ).toString())),
-            const Center(child: Text('or')),
-            Center(
-                child: TextButton(
-              child:
-                  const Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                Icon(Icons.share),
-                SizedBox(width: 8),
-                Text('share link via trusted channel'),
-                SizedBox(width: 4),
-              ]),
-              // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
-              onPressed: () async => Share.share(
-                  'I\'d like to share with you: ${_shareUrl(key: contact.dhtSettingsForSharing!.key, psk: contact.dhtSettingsForSharing!.psk!)}\n'
-                  'Keep this link a secret, it\'s just for you.'),
-            )),
-            const SizedBox(height: 8),
-          ]))
+      if (contact.dhtSettingsForSharing?.key != null &&
+          contact.dhtSettingsForSharing?.psk != null)
+        Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(
+                  'Start sharing your contact details with ${displayName(contact) ?? 'them'}:',
+                  textScaler: const TextScaler.linear(1.2)),
+              const SizedBox(height: 4),
+              // TODO: Only show share back button when receiving key and psk but not writer are set i.e. is receiving updates and has share back settings
+              Center(
+                  child: _qrCodeButton(context,
+                      buttonText: 'QR code to share',
+                      alertTitle:
+                          'Share with ${displayName(contact) ?? 'them'}',
+                      qrCodeData: _shareUrl(
+                        key: contact.dhtSettingsForSharing!.key,
+                        psk: contact.dhtSettingsForSharing!.psk!,
+                      ).toString())),
+              const Center(child: Text('or')),
+              Center(
+                  child: TextButton(
+                child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(Icons.share),
+                      SizedBox(width: 8),
+                      Text('share link via trusted channel'),
+                      SizedBox(width: 4),
+                    ]),
+                // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
+                onPressed: () async => Share.share(
+                    'I\'d like to share with you: ${_shareUrl(key: contact.dhtSettingsForSharing!.key, psk: contact.dhtSettingsForSharing!.psk!)}\n'
+                    'Keep this link a secret, it\'s just for you.'),
+              )),
+              const SizedBox(height: 8),
+            ]))
     ]));
 
 // TODO: Move to widgets because it's used in two places at least
@@ -362,7 +374,7 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
     ];
 
 Card circlesCard(
-        BuildContext context, String coagContactId, List<String> circles) =>
+        BuildContext context, String coagContactId, List<String> circleNames) =>
     Card(
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
@@ -375,14 +387,15 @@ Card circlesCard(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                     const Text('circles', style: TextStyle(fontSize: 16)),
-                    if (circles.isEmpty)
+                    if (circleNames.isEmpty)
                       const Text('Add them to circles to start sharing.',
                           style: TextStyle(fontSize: 19))
                     else
-                      Text(circles.join(', '),
+                      Text(circleNames.join(', '),
                           style: const TextStyle(fontSize: 19)),
                   ])),
               IconButton(
+                  key: const Key('editCircleMembership'),
                   icon: const Icon(Icons.edit),
                   onPressed: () async => showModalBottomSheet<void>(
                       context: context,

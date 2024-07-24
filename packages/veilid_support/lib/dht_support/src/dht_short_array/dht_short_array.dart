@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:mutex/mutex.dart';
-import 'package:protobuf/protobuf.dart';
+import 'package:async_tools/async_tools.dart';
+import 'package:collection/collection.dart';
 
 import '../../../veilid_support.dart';
 import '../../proto/proto.dart' as proto;
@@ -13,12 +13,13 @@ part 'dht_short_array_write.dart';
 
 ///////////////////////////////////////////////////////////////////////
 
-class DHTShortArray {
+class DHTShortArray implements DHTDeleteable<DHTShortArray> {
   ////////////////////////////////////////////////////////////////
   // Constructors
 
   DHTShortArray._({required DHTRecord headRecord})
-      : _head = _DHTShortArrayHead(headRecord: headRecord) {
+      : _head = _DHTShortArrayHead(headRecord: headRecord),
+        _openCount = 1 {
     _head.onUpdatedHead = () {
       _watchController?.sink.add(null);
     };
@@ -32,26 +33,26 @@ class DHTShortArray {
       int stride = maxElements,
       VeilidRoutingContext? routingContext,
       TypedKey? parent,
-      DHTRecordCrypto? crypto,
-      KeyPair? smplWriter}) async {
+      VeilidCrypto? crypto,
+      KeyPair? writer}) async {
     assert(stride <= maxElements, 'stride too long');
     final pool = DHTRecordPool.instance;
 
     late final DHTRecord dhtRecord;
-    if (smplWriter != null) {
+    if (writer != null) {
       final schema = DHTSchema.smpl(
           oCnt: 0,
-          members: [DHTSchemaMember(mKey: smplWriter.key, mCnt: stride + 1)]);
-      dhtRecord = await pool.create(
+          members: [DHTSchemaMember(mKey: writer.key, mCnt: stride + 1)]);
+      dhtRecord = await pool.createRecord(
           debugName: debugName,
           parent: parent,
           routingContext: routingContext,
           schema: schema,
           crypto: crypto,
-          writer: smplWriter);
+          writer: writer);
     } else {
       final schema = DHTSchema.dflt(oCnt: stride + 1);
-      dhtRecord = await pool.create(
+      dhtRecord = await pool.createRecord(
           debugName: debugName,
           parent: parent,
           routingContext: routingContext,
@@ -69,7 +70,7 @@ class DHTShortArray {
       return dhtShortArray;
     } on Exception catch (_) {
       await dhtRecord.close();
-      await pool.delete(dhtRecord.key);
+      await pool.deleteRecord(dhtRecord.key);
       rethrow;
     }
   }
@@ -78,8 +79,8 @@ class DHTShortArray {
       {required String debugName,
       VeilidRoutingContext? routingContext,
       TypedKey? parent,
-      DHTRecordCrypto? crypto}) async {
-    final dhtRecord = await DHTRecordPool.instance.openRead(headRecordKey,
+      VeilidCrypto? crypto}) async {
+    final dhtRecord = await DHTRecordPool.instance.openRecordRead(headRecordKey,
         debugName: debugName,
         parent: parent,
         routingContext: routingContext,
@@ -100,9 +101,9 @@ class DHTShortArray {
     required String debugName,
     VeilidRoutingContext? routingContext,
     TypedKey? parent,
-    DHTRecordCrypto? crypto,
+    VeilidCrypto? crypto,
   }) async {
-    final dhtRecord = await DHTRecordPool.instance.openWrite(
+    final dhtRecord = await DHTRecordPool.instance.openRecordWrite(
         headRecordKey, writer,
         debugName: debugName,
         parent: parent,
@@ -119,15 +120,15 @@ class DHTShortArray {
   }
 
   static Future<DHTShortArray> openOwned(
-    OwnedDHTRecordPointer ownedDHTRecordPointer, {
+    OwnedDHTRecordPointer ownedShortArrayRecordPointer, {
     required String debugName,
     required TypedKey parent,
     VeilidRoutingContext? routingContext,
-    DHTRecordCrypto? crypto,
+    VeilidCrypto? crypto,
   }) =>
       openWrite(
-        ownedDHTRecordPointer.recordKey,
-        ownedDHTRecordPointer.owner,
+        ownedShortArrayRecordPointer.recordKey,
+        ownedShortArrayRecordPointer.owner,
         debugName: debugName,
         routingContext: routingContext,
         parent: parent,
@@ -135,106 +136,148 @@ class DHTShortArray {
       );
 
   ////////////////////////////////////////////////////////////////////////////
+  // DHTCloseable
+
+  /// Check if the shortarray is open
+  @override
+  bool get isOpen => _openCount > 0;
+
+  /// The type of the openable scope
+  @override
+  FutureOr<DHTShortArray> scoped() => this;
+
+  /// Add a reference to this shortarray
+  @override
+  Future<void> ref() async => _mutex.protect(() async {
+        _openCount++;
+      });
+
+  /// Free all resources for the DHTShortArray
+  @override
+  Future<bool> close() async => _mutex.protect(() async {
+        if (_openCount == 0) {
+          throw StateError('already closed');
+        }
+        _openCount--;
+        if (_openCount != 0) {
+          return false;
+        }
+
+        await _watchController?.close();
+        _watchController = null;
+        await _head.close();
+        return true;
+      });
+
+  /// Free all resources for the DHTShortArray and delete it from the DHT
+  /// Will wait until the short array is closed to delete it
+  @override
+  Future<void> delete() async {
+    await _head.delete();
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
   // Public API
 
   /// Get the record key for this shortarray
   TypedKey get recordKey => _head.recordKey;
 
+  /// Get the writer for the log
+  KeyPair? get writer => _head._headRecord.writer;
+
   /// Get the record pointer foir this shortarray
   OwnedDHTRecordPointer get recordPointer => _head.recordPointer;
 
-  /// Free all resources for the DHTShortArray
-  Future<void> close() async {
-    await _watchController?.close();
-    await _head.close();
-  }
-
-  /// Free all resources for the DHTShortArray and delete it from the DHT
-  Future<void> delete() async {
-    await close();
-    await DHTRecordPool.instance.delete(recordKey);
-  }
-
-  /// Runs a closure that guarantees the DHTShortArray
-  /// will be closed upon exit, even if an uncaught exception is thrown
-  Future<T> scope<T>(Future<T> Function(DHTShortArray) scopeFunction) async {
-    try {
-      return await scopeFunction(this);
-    } finally {
-      await close();
+  /// Refresh this DHTShortArray
+  /// Useful if you aren't 'watching' the array and want to poll for an update
+  Future<void> refresh() async {
+    if (!isOpen) {
+      throw StateError('short array is not open"');
     }
-  }
-
-  /// Runs a closure that guarantees the DHTShortArray
-  /// will be closed upon exit, and deleted if an an
-  /// uncaught exception is thrown
-  Future<T> deleteScope<T>(
-      Future<T> Function(DHTShortArray) scopeFunction) async {
-    try {
-      final out = await scopeFunction(this);
-      await close();
-      return out;
-    } on Exception catch (_) {
-      await delete();
-      rethrow;
-    }
+    await _head.operate((head) async {
+      await head._loadHead();
+    });
   }
 
   /// Runs a closure allowing read-only access to the shortarray
-  Future<T?> operate<T>(Future<T?> Function(DHTShortArrayRead) closure) async =>
-      _head.operate((head) async {
-        final reader = _DHTShortArrayRead._(head);
-        return closure(reader);
-      });
+  Future<T> operate<T>(
+      Future<T> Function(DHTShortArrayReadOperations) closure) async {
+    if (!isOpen) {
+      throw StateError('short array is not open"');
+    }
+
+    return _head.operate((head) async {
+      final reader = _DHTShortArrayRead._(head);
+      return closure(reader);
+    });
+  }
 
   /// Runs a closure allowing read-write access to the shortarray
   /// Makes only one attempt to consistently write the changes to the DHT
-  /// Returns (result, true) of the closure if the write could be performed
-  /// Returns (null, false) if the write could not be performed at this time
-  Future<(T?, bool)> operateWrite<T>(
-          Future<T?> Function(DHTShortArrayWrite) closure) async =>
-      _head.operateWrite((head) async {
-        final writer = _DHTShortArrayWrite._(head);
-        return closure(writer);
-      });
+  /// Returns result of the closure if the write could be performed
+  /// Throws DHTOperateException if the write could not be performed
+  /// at this time
+  Future<T> operateWrite<T>(
+      Future<T> Function(DHTShortArrayWriteOperations) closure) async {
+    if (!isOpen) {
+      throw StateError('short array is not open"');
+    }
+
+    return _head.operateWrite((head) async {
+      final writer = _DHTShortArrayWrite._(head);
+      return closure(writer);
+    });
+  }
 
   /// Runs a closure allowing read-write access to the shortarray
   /// Will execute the closure multiple times if a consistent write to the DHT
   /// is not achieved. Timeout if specified will be thrown as a
-  /// TimeoutException. The closure should return true if its changes also
-  /// succeeded, returning false will trigger another eventual consistency
-  /// attempt.
-  Future<void> operateWriteEventual(
-          Future<bool> Function(DHTShortArrayWrite) closure,
-          {Duration? timeout}) async =>
-      _head.operateWriteEventual((head) async {
-        final writer = _DHTShortArrayWrite._(head);
-        return closure(writer);
-      }, timeout: timeout);
+  /// TimeoutException. The closure should return a value if its changes also
+  /// succeeded, and throw DHTExceptionTryAgain to trigger another
+  /// eventual consistency pass.
+  Future<T> operateWriteEventual<T>(
+      Future<T> Function(DHTShortArrayWriteOperations) closure,
+      {Duration? timeout}) async {
+    if (!isOpen) {
+      throw StateError('short array is not open"');
+    }
 
+    return _head.operateWriteEventual((head) async {
+      final writer = _DHTShortArrayWrite._(head);
+      return closure(writer);
+    }, timeout: timeout);
+  }
+
+  /// Listen to and any all changes to the structure of this short array
+  /// regardless of where the changes are coming from
   Future<StreamSubscription<void>> listen(
     void Function() onChanged,
-  ) =>
-      _listenMutex.protect(() async {
-        // If don't have a controller yet, set it up
-        if (_watchController == null) {
-          // Set up watch requirements
-          _watchController = StreamController<void>.broadcast(onCancel: () {
-            // If there are no more listeners then we can get
-            // rid of the controller and drop our subscriptions
-            unawaited(_listenMutex.protect(() async {
-              // Cancel watches of head record
-              await _head.cancelWatch();
-              _watchController = null;
-            }));
-          });
+  ) {
+    if (!isOpen) {
+      throw StateError('short array is not open"');
+    }
 
-          // Start watching head record
-          await _head.watch();
-        }
-        // Return subscription
-        return _watchController!.stream.listen((_) => onChanged());
-      });
+    return _listenMutex.protect(() async {
+      // If don't have a controller yet, set it up
+      if (_watchController == null) {
+        // Set up watch requirements
+        _watchController = StreamController<void>.broadcast(onCancel: () {
+          // If there are no more listeners then we can get
+          // rid of the controller and drop our subscriptions
+          unawaited(_listenMutex.protect(() async {
+            // Cancel watches of head record
+            await _head.cancelWatch();
+            _watchController = null;
+          }));
+        });
+
+        // Start watching head record
+        await _head.watch();
+      }
+      // Return subscription
+      return _watchController!.stream.listen((_) => onChanged());
+    });
+  }
 
   ////////////////////////////////////////////////////////////////
   // Fields
@@ -243,6 +286,10 @@ class DHTShortArray {
 
   // Internal representation refreshed from head record
   final _DHTShortArrayHead _head;
+
+  // Openable
+  int _openCount;
+  final _mutex = Mutex();
 
   // Watch mutex to ensure we keep the representation valid
   final Mutex _listenMutex = Mutex();

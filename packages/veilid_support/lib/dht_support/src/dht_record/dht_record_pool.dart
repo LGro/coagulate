@@ -2,20 +2,24 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:async_tools/async_tools.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:mutex/mutex.dart';
 import 'package:protobuf/protobuf.dart';
 
 import '../../../../veilid_support.dart';
 
+export 'package:fast_immutable_collections/fast_immutable_collections.dart'
+    show Output;
+
 part 'dht_record_pool.freezed.dart';
 part 'dht_record_pool.g.dart';
 part 'dht_record.dart';
+part 'dht_record_pool_private.dart';
 
-const int watchBackoffMultiplier = 2;
-const int watchBackoffMax = 30;
+// Maximum number of concurrent DHT operations to perform on the network
+const int maxDHTConcurrency = 8;
 
 typedef DHTRecordPoolLogger = void Function(String message);
 
@@ -49,108 +53,17 @@ class OwnedDHTRecordPointer with _$OwnedDHTRecordPointer {
       _$OwnedDHTRecordPointerFromJson(json as Map<String, dynamic>);
 }
 
-/// Watch state
-@immutable
-class WatchState extends Equatable {
-  const WatchState(
-      {required this.subkeys,
-      required this.expiration,
-      required this.count,
-      this.realExpiration});
-  final List<ValueSubkeyRange>? subkeys;
-  final Timestamp? expiration;
-  final int? count;
-  final Timestamp? realExpiration;
+//////////////////////////////////////////////////////////////////////////////
 
-  @override
-  List<Object?> get props => [subkeys, expiration, count, realExpiration];
-}
-
-/// Data shared amongst all DHTRecord instances
-class SharedDHTRecordData {
-  SharedDHTRecordData(
-      {required this.recordDescriptor,
-      required this.defaultWriter,
-      required this.defaultRoutingContext});
-  DHTRecordDescriptor recordDescriptor;
-  KeyPair? defaultWriter;
-  VeilidRoutingContext defaultRoutingContext;
-  Map<int, int> subkeySeqCache = {};
-  bool needsWatchStateUpdate = false;
-  bool deleteOnClose = false;
-}
-
-// Per opened record data
-class OpenedRecordInfo {
-  OpenedRecordInfo(
-      {required DHTRecordDescriptor recordDescriptor,
-      required KeyPair? defaultWriter,
-      required VeilidRoutingContext defaultRoutingContext})
-      : shared = SharedDHTRecordData(
-            recordDescriptor: recordDescriptor,
-            defaultWriter: defaultWriter,
-            defaultRoutingContext: defaultRoutingContext);
-  SharedDHTRecordData shared;
-  Set<DHTRecord> records = {};
-
-  String get debugNames {
-    final r = records.toList()
-      ..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
-    return '[${r.map((x) => x.debugName).join(',')}]';
-  }
-
-  String get details {
-    final r = records.toList()
-      ..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
-    return '[${r.map((x) => "writer=${x._writer} "
-        "defaultSubkey=${x._defaultSubkey}").join(',')}]';
-  }
-
-  String get sharedDetails => shared.toString();
-}
-
-class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
+/// Allocator and management system for DHTRecord
+class DHTRecordPool with TableDBBackedJson<DHTRecordPoolAllocations> {
   DHTRecordPool._(Veilid veilid, VeilidRoutingContext routingContext)
       : _state = const DHTRecordPoolAllocations(),
         _mutex = Mutex(),
-        _opened = <TypedKey, OpenedRecordInfo>{},
+        _opened = <TypedKey, _OpenedRecordInfo>{},
+        _markedForDelete = <TypedKey>{},
         _routingContext = routingContext,
         _veilid = veilid;
-
-  // Logger
-  DHTRecordPoolLogger? _logger;
-
-  // Persistent DHT record list
-  DHTRecordPoolAllocations _state;
-  // Create/open Mutex
-  final Mutex _mutex;
-  // Which DHT records are currently open
-  final Map<TypedKey, OpenedRecordInfo> _opened;
-  // Default routing context to use for new keys
-  final VeilidRoutingContext _routingContext;
-  // Convenience accessor
-  final Veilid _veilid;
-  // If tick is already running or not
-  bool _inTick = false;
-  // Tick counter for backoff
-  int _tickCount = 0;
-  // Backoff timer
-  int _watchBackoffTimer = 1;
-
-  static DHTRecordPool? _singleton;
-
-  //////////////////////////////////////////////////////////////
-  /// AsyncTableDBBacked
-  @override
-  String tableName() => 'dht_record_pool';
-  @override
-  String tableKeyName() => 'pool_allocations';
-  @override
-  DHTRecordPoolAllocations valueFromJson(Object? obj) => obj != null
-      ? DHTRecordPoolAllocations.fromJson(obj)
-      : const DHTRecordPoolAllocations();
-  @override
-  Object? valueToJson(DHTRecordPoolAllocations val) => val.toJson();
 
   //////////////////////////////////////////////////////////////
 
@@ -161,24 +74,287 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
     final globalPool = DHTRecordPool._(Veilid.instance, routingContext);
     globalPool
       .._logger = logger
-      .._state = await globalPool.load();
+      .._state = await globalPool.load() ?? const DHTRecordPoolAllocations();
     _singleton = globalPool;
   }
 
-  Veilid get veilid => _veilid;
+  static Future<void> close() async {
+    if (_singleton != null) {
+      _singleton!._routingContext.close();
+      _singleton = null;
+    }
+  }
 
+  ////////////////////////////////////////////////////////////////////////////
+  // Public Interface
+
+  /// Create a root DHTRecord that has no dependent records
+  Future<DHTRecord> createRecord({
+    required String debugName,
+    VeilidRoutingContext? routingContext,
+    TypedKey? parent,
+    DHTSchema schema = const DHTSchema.dflt(oCnt: 1),
+    int defaultSubkey = 0,
+    VeilidCrypto? crypto,
+    KeyPair? writer,
+  }) async =>
+      _mutex.protect(() async {
+        final dhtctx = routingContext ?? _routingContext;
+
+        final openedRecordInfo = await _recordCreateInner(
+            debugName: debugName,
+            dhtctx: dhtctx,
+            schema: schema,
+            writer: writer,
+            parent: parent);
+
+        final rec = DHTRecord._(
+            debugName: debugName,
+            routingContext: dhtctx,
+            defaultSubkey: defaultSubkey,
+            sharedDHTRecordData: openedRecordInfo.shared,
+            writer: writer ??
+                openedRecordInfo.shared.recordDescriptor.ownerKeyPair(),
+            crypto: crypto ??
+                await privateCryptoFromTypedSecret(openedRecordInfo
+                    .shared.recordDescriptor
+                    .ownerTypedSecret()!));
+
+        openedRecordInfo.records.add(rec);
+
+        return rec;
+      });
+
+  /// Open a DHTRecord readonly
+  Future<DHTRecord> openRecordRead(TypedKey recordKey,
+          {required String debugName,
+          VeilidRoutingContext? routingContext,
+          TypedKey? parent,
+          int defaultSubkey = 0,
+          VeilidCrypto? crypto}) async =>
+      _mutex.protect(() async {
+        final dhtctx = routingContext ?? _routingContext;
+
+        final openedRecordInfo = await _recordOpenInner(
+            debugName: debugName,
+            dhtctx: dhtctx,
+            recordKey: recordKey,
+            parent: parent);
+
+        final rec = DHTRecord._(
+            debugName: debugName,
+            routingContext: dhtctx,
+            defaultSubkey: defaultSubkey,
+            sharedDHTRecordData: openedRecordInfo.shared,
+            writer: null,
+            crypto: crypto ?? const VeilidCryptoPublic());
+
+        openedRecordInfo.records.add(rec);
+
+        return rec;
+      });
+
+  /// Open a DHTRecord writable
+  Future<DHTRecord> openRecordWrite(
+    TypedKey recordKey,
+    KeyPair writer, {
+    required String debugName,
+    VeilidRoutingContext? routingContext,
+    TypedKey? parent,
+    int defaultSubkey = 0,
+    VeilidCrypto? crypto,
+  }) async =>
+      _mutex.protect(() async {
+        final dhtctx = routingContext ?? _routingContext;
+
+        final openedRecordInfo = await _recordOpenInner(
+            debugName: debugName,
+            dhtctx: dhtctx,
+            recordKey: recordKey,
+            parent: parent,
+            writer: writer);
+
+        final rec = DHTRecord._(
+            debugName: debugName,
+            routingContext: dhtctx,
+            defaultSubkey: defaultSubkey,
+            writer: writer,
+            sharedDHTRecordData: openedRecordInfo.shared,
+            crypto: crypto ??
+                await privateCryptoFromTypedSecret(
+                    TypedKey(kind: recordKey.kind, value: writer.secret)));
+
+        openedRecordInfo.records.add(rec);
+
+        return rec;
+      });
+
+  /// Open a DHTRecord owned
+  /// This is the same as writable but uses an OwnedDHTRecordPointer
+  /// for convenience and uses symmetric encryption on the key
+  /// This is primarily used for backing up private content on to the DHT
+  /// to synchronizing it between devices. Because it is 'owned', the correct
+  /// parent must be specified.
+  Future<DHTRecord> openRecordOwned(
+    OwnedDHTRecordPointer ownedDHTRecordPointer, {
+    required String debugName,
+    required TypedKey parent,
+    VeilidRoutingContext? routingContext,
+    int defaultSubkey = 0,
+    VeilidCrypto? crypto,
+  }) =>
+      openRecordWrite(
+        ownedDHTRecordPointer.recordKey,
+        ownedDHTRecordPointer.owner,
+        debugName: debugName,
+        routingContext: routingContext,
+        parent: parent,
+        defaultSubkey: defaultSubkey,
+        crypto: crypto,
+      );
+
+  /// Get the parent of a DHTRecord key if it exists
+  TypedKey? getParentRecordKey(TypedKey child) {
+    final childJson = child.toJson();
+    return _state.parentByChild[childJson];
+  }
+
+  /// Check if record is allocated
+  Future<bool> isValidRecordKey(TypedKey key) =>
+      _mutex.protect(() async => _isValidRecordKeyInner(key));
+
+  /// Check if record is marked for deletion or already gone
+  Future<bool> isDeletedRecordKey(TypedKey key) =>
+      _mutex.protect(() async => _isDeletedRecordKeyInner(key));
+
+  /// Delete a record and its children if they are all closed
+  /// otherwise mark that record for deletion eventually
+  /// Returns true if the deletion was processed immediately
+  /// Returns false if the deletion was marked for later
+  Future<bool> deleteRecord(TypedKey recordKey) async =>
+      _mutex.protect(() async => _deleteRecordInner(recordKey));
+
+  // If everything underneath is closed including itself, return the
+  // list of children (and itself) to finally actually delete
+  List<TypedKey> _readyForDeleteInner(TypedKey recordKey) {
+    final allDeps = _collectChildrenInner(recordKey);
+    for (final dep in allDeps) {
+      if (_opened.containsKey(dep)) {
+        return [];
+      }
+    }
+    return allDeps;
+  }
+
+  /// Collect all dependencies (including the record itself)
+  /// in reverse (bottom-up/delete order)
+  Future<List<TypedKey>> collectChildren(TypedKey recordKey) =>
+      _mutex.protect(() async => _collectChildrenInner(recordKey));
+
+  /// Print children
+  String debugChildren(TypedKey recordKey, {List<TypedKey>? allDeps}) {
+    allDeps ??= _collectChildrenInner(recordKey);
+    // ignore: avoid_print
+    var out =
+        'Parent: $recordKey (${_state.debugNames[recordKey.toString()]})\n';
+    for (final dep in allDeps) {
+      if (dep != recordKey) {
+        // ignore: avoid_print
+        out += '  Child: $dep (${_state.debugNames[dep.toString()]})\n';
+      }
+    }
+    return out;
+  }
+
+  /// Handle the DHT record updates coming from Veilid
+  void processRemoteValueChange(VeilidUpdateValueChange updateValueChange) {
+    if (updateValueChange.subkeys.isNotEmpty && updateValueChange.count != 0) {
+      // Change
+      for (final kv in _opened.entries) {
+        if (kv.key == updateValueChange.key) {
+          for (final rec in kv.value.records) {
+            rec._addRemoteValueChange(updateValueChange);
+          }
+          break;
+        }
+      }
+    } else {
+      final now = Veilid.instance.now().value;
+      // Expired, process renewal if desired
+      for (final entry in _opened.entries) {
+        final openedKey = entry.key;
+        final openedRecordInfo = entry.value;
+
+        if (openedKey == updateValueChange.key) {
+          // Renew watch state for each opened record
+          for (final rec in openedRecordInfo.records) {
+            // See if the watch had an expiration and if it has expired
+            // otherwise the renewal will keep the same parameters
+            final watchState = rec.watchState;
+            if (watchState != null) {
+              final exp = watchState.expiration;
+              if (exp != null && exp.value < now) {
+                // Has expiration, and it has expired, clear watch state
+                rec.watchState = null;
+              }
+            }
+          }
+          openedRecordInfo.shared.needsWatchStateUpdate = true;
+          break;
+        }
+      }
+    }
+  }
+
+  /// Log the current record allocations
+  void debugPrintAllocations() {
+    final sortedAllocations = _state.debugNames.entries.asList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+
+    log('DHTRecordPool Allocations: (count=${sortedAllocations.length})');
+
+    for (final entry in sortedAllocations) {
+      log('  ${entry.key}: ${entry.value}');
+    }
+  }
+
+  /// Log the current opened record details
+  void debugPrintOpened() {
+    final sortedOpened = _opened.entries.asList()
+      ..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
+
+    log('DHTRecordPool Opened Records: (count=${sortedOpened.length})');
+
+    for (final entry in sortedOpened) {
+      log('  ${entry.key}: \n'
+          '     debugNames=${entry.value.debugNames}\n'
+          '     details=${entry.value.details}\n'
+          '     sharedDetails=${entry.value.sharedDetails}\n');
+    }
+  }
+
+  /// Public interface to DHTRecordPool logger
   void log(String message) {
     _logger?.call(message);
   }
 
-  Future<OpenedRecordInfo> _recordCreateInner(
+  /// Generate default VeilidCrypto for a writer
+  static Future<VeilidCrypto> privateCryptoFromTypedSecret(
+          TypedKey typedSecret) async =>
+      VeilidCryptoPrivate.fromTypedKey(typedSecret, _cryptoDomainDHT);
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Private Implementation
+
+  Future<_OpenedRecordInfo> _recordCreateInner(
       {required String debugName,
       required VeilidRoutingContext dhtctx,
       required DHTSchema schema,
       KeyPair? writer,
       TypedKey? parent}) async {
-    assert(_mutex.isLocked, 'should be locked here');
-
+    if (!_mutex.isLocked) {
+      throw StateError('should be locked here');
+    }
     // Create the record
     final recordDescriptor = await dhtctx.createDHTRecord(schema);
 
@@ -189,7 +365,7 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
     if (writer != null) {
       await dhtctx.openDHTRecord(recordDescriptor.key, writer: writer);
     }
-    final openedRecordInfo = OpenedRecordInfo(
+    final openedRecordInfo = _OpenedRecordInfo(
         recordDescriptor: recordDescriptor,
         defaultWriter: writer ?? recordDescriptor.ownerKeyPair(),
         defaultRoutingContext: dhtctx);
@@ -205,14 +381,15 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
     return openedRecordInfo;
   }
 
-  Future<OpenedRecordInfo> _recordOpenInner(
+  Future<_OpenedRecordInfo> _recordOpenInner(
       {required String debugName,
       required VeilidRoutingContext dhtctx,
       required TypedKey recordKey,
       KeyPair? writer,
       TypedKey? parent}) async {
-    assert(_mutex.isLocked, 'should be locked here');
-
+    if (!_mutex.isLocked) {
+      throw StateError('should be locked here');
+    }
     log('openDHTRecord: debugName=$debugName key=$recordKey');
 
     // If we are opening a key that already exists
@@ -225,7 +402,7 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
       // Fresh open, just open the record
       final recordDescriptor =
           await dhtctx.openDHTRecord(recordKey, writer: writer);
-      final newOpenedRecordInfo = OpenedRecordInfo(
+      final newOpenedRecordInfo = _OpenedRecordInfo(
           recordDescriptor: recordDescriptor,
           defaultWriter: writer,
           defaultRoutingContext: dhtctx);
@@ -246,13 +423,11 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
     // See if we need to reopen the record with a default writer and possibly
     // a different routing context
     if (writer != null && openedRecordInfo.shared.defaultWriter == null) {
-      final newRecordDescriptor =
-          await dhtctx.openDHTRecord(recordKey, writer: writer);
+      await dhtctx.openDHTRecord(recordKey, writer: writer);
+      // New writer if we didn't specify one before
       openedRecordInfo.shared.defaultWriter = writer;
+      // New default routing context if we opened it again
       openedRecordInfo.shared.defaultRoutingContext = dhtctx;
-      if (openedRecordInfo.shared.recordDescriptor.ownerSecret == null) {
-        openedRecordInfo.shared.recordDescriptor = newRecordDescriptor;
-      }
     }
 
     // Register the dependency
@@ -265,6 +440,8 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
     return openedRecordInfo;
   }
 
+  // Called when a DHTRecord is closed
+  // Cleans up the opened record housekeeping and processes any late deletions
   Future<void> _recordClosed(DHTRecord record) async {
     await _mutex.protect(() async {
       final key = record.key;
@@ -277,20 +454,45 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
         throw StateError('record already closed');
       }
       if (openedRecordInfo.records.isEmpty) {
+        await _watchStateProcessors.remove(key);
         await _routingContext.closeDHTRecord(key);
-        if (openedRecordInfo.shared.deleteOnClose) {
-          await _deleteInner(key);
-        }
         _opened.remove(key);
+
+        await _checkForLateDeletesInner(key);
       }
     });
+  }
+
+  // Check to see if this key can finally be deleted
+  // If any parents are marked for deletion, try them first
+  Future<void> _checkForLateDeletesInner(TypedKey key) async {
+    // Get parent list in bottom up order including our own key
+    final parents = <TypedKey>[];
+    TypedKey? nextParent = key;
+    while (nextParent != null) {
+      parents.add(nextParent);
+      nextParent = getParentRecordKey(nextParent);
+    }
+
+    // If any parent is ready to delete all its children do it
+    for (final parent in parents) {
+      if (_markedForDelete.contains(parent)) {
+        final deleted = await _deleteRecordInner(parent);
+        if (!deleted) {
+          // If we couldn't delete a child then no 'marked for delete' parents
+          // above us will be ready to delete either
+          break;
+        }
+      }
+    }
   }
 
   // Collect all dependencies (including the record itself)
   // in reverse (bottom-up/delete order)
   List<TypedKey> _collectChildrenInner(TypedKey recordKey) {
-    assert(_mutex.isLocked, 'should be locked here');
-
+    if (!_mutex.isLocked) {
+      throw StateError('should be locked here');
+    }
     final allDeps = <TypedKey>[];
     final currentDeps = [recordKey];
     while (currentDeps.isNotEmpty) {
@@ -304,48 +506,35 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
     return allDeps.reversedView;
   }
 
-  void _debugPrintChildren(TypedKey recordKey, {List<TypedKey>? allDeps}) {
-    allDeps ??= _collectChildrenInner(recordKey);
-    // ignore: avoid_print
-    print('Parent: $recordKey (${_state.debugNames[recordKey.toString()]})');
-    for (final dep in allDeps) {
-      if (dep != recordKey) {
-        // ignore: avoid_print
-        print('  Child: $dep (${_state.debugNames[dep.toString()]})');
-      }
-    }
-  }
-
-  Future<void> _deleteInner(TypedKey recordKey) async {
-    log('deleteDHTRecord: key=$recordKey');
+  // Actual delete function
+  Future<void> _finalizeDeleteRecordInner(TypedKey recordKey) async {
+    log('_finalizeDeleteRecordInner: key=$recordKey');
 
     // Remove this child from parents
     await _removeDependenciesInner([recordKey]);
     await _routingContext.deleteDHTRecord(recordKey);
+    _markedForDelete.remove(recordKey);
   }
 
-  Future<void> delete(TypedKey recordKey) async {
-    await _mutex.protect(() async {
-      final allDeps = _collectChildrenInner(recordKey);
-
-      if (allDeps.singleOrNull != recordKey) {
-        _debugPrintChildren(recordKey, allDeps: allDeps);
-        assert(false, 'must delete children first');
+  // Deep delete mechanism inside mutex
+  Future<bool> _deleteRecordInner(TypedKey recordKey) async {
+    final toDelete = _readyForDeleteInner(recordKey);
+    if (toDelete.isNotEmpty) {
+      // delete now
+      for (final deleteKey in toDelete) {
+        await _finalizeDeleteRecordInner(deleteKey);
       }
-
-      final ori = _opened[recordKey];
-      if (ori != null) {
-        // delete after close
-        ori.shared.deleteOnClose = true;
-      } else {
-        // delete now
-        await _deleteInner(recordKey);
-      }
-    });
+      return true;
+    }
+    // mark for deletion
+    _markedForDelete.add(recordKey);
+    return false;
   }
 
   void _validateParentInner(TypedKey? parent, TypedKey child) {
-    assert(_mutex.isLocked, 'should be locked here');
+    if (!_mutex.isLocked) {
+      throw StateError('should be locked here');
+    }
 
     final childJson = child.toJson();
     final existingParent = _state.parentByChild[childJson];
@@ -365,7 +554,9 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
 
   Future<void> _addDependencyInner(TypedKey? parent, TypedKey child,
       {required String debugName}) async {
-    assert(_mutex.isLocked, 'should be locked here');
+    if (!_mutex.isLocked) {
+      throw StateError('should be locked here');
+    }
     if (parent == null) {
       if (_state.rootRecords.contains(child)) {
         // Dependency already added
@@ -390,8 +581,9 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
   }
 
   Future<void> _removeDependenciesInner(List<TypedKey> childList) async {
-    assert(_mutex.isLocked, 'should be locked here');
-
+    if (!_mutex.isLocked) {
+      throw StateError('should be locked here');
+    }
     var state = _state;
 
     for (final child in childList) {
@@ -425,141 +617,37 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////
+  bool _isValidRecordKeyInner(TypedKey key) {
+    if (_state.rootRecords.contains(key)) {
+      return true;
+    }
+    if (_state.childrenByParent.containsKey(key.toJson())) {
+      return true;
+    }
+    return false;
+  }
 
-  /// Create a root DHTRecord that has no dependent records
-  Future<DHTRecord> create({
-    required String debugName,
-    VeilidRoutingContext? routingContext,
-    TypedKey? parent,
-    DHTSchema schema = const DHTSchema.dflt(oCnt: 1),
-    int defaultSubkey = 0,
-    DHTRecordCrypto? crypto,
-    KeyPair? writer,
-  }) async =>
-      _mutex.protect(() async {
-        final dhtctx = routingContext ?? _routingContext;
+  bool _isDeletedRecordKeyInner(TypedKey key) {
+    // Is this key gone?
+    if (!_isValidRecordKeyInner(key)) {
+      return true;
+    }
 
-        final openedRecordInfo = await _recordCreateInner(
-            debugName: debugName,
-            dhtctx: dhtctx,
-            schema: schema,
-            writer: writer,
-            parent: parent);
+    // Is this key on its way out because it or one of its parents
+    // is scheduled to delete everything underneath it?
+    TypedKey? nextParent = key;
+    while (nextParent != null) {
+      if (_markedForDelete.contains(nextParent)) {
+        return true;
+      }
+      nextParent = getParentRecordKey(nextParent);
+    }
 
-        final rec = DHTRecord._(
-            debugName: debugName,
-            routingContext: dhtctx,
-            defaultSubkey: defaultSubkey,
-            sharedDHTRecordData: openedRecordInfo.shared,
-            writer: writer ??
-                openedRecordInfo.shared.recordDescriptor.ownerKeyPair(),
-            crypto: crypto ??
-                await DHTRecordCryptoPrivate.fromTypedKeyPair(openedRecordInfo
-                    .shared.recordDescriptor
-                    .ownerTypedKeyPair()!));
-
-        openedRecordInfo.records.add(rec);
-
-        return rec;
-      });
-
-  /// Open a DHTRecord readonly
-  Future<DHTRecord> openRead(TypedKey recordKey,
-          {required String debugName,
-          VeilidRoutingContext? routingContext,
-          TypedKey? parent,
-          int defaultSubkey = 0,
-          DHTRecordCrypto? crypto}) async =>
-      _mutex.protect(() async {
-        final dhtctx = routingContext ?? _routingContext;
-
-        final openedRecordInfo = await _recordOpenInner(
-            debugName: debugName,
-            dhtctx: dhtctx,
-            recordKey: recordKey,
-            parent: parent);
-
-        final rec = DHTRecord._(
-            debugName: debugName,
-            routingContext: dhtctx,
-            defaultSubkey: defaultSubkey,
-            sharedDHTRecordData: openedRecordInfo.shared,
-            writer: null,
-            crypto: crypto ?? const DHTRecordCryptoPublic());
-
-        openedRecordInfo.records.add(rec);
-
-        return rec;
-      });
-
-  /// Open a DHTRecord writable
-  Future<DHTRecord> openWrite(
-    TypedKey recordKey,
-    KeyPair writer, {
-    required String debugName,
-    VeilidRoutingContext? routingContext,
-    TypedKey? parent,
-    int defaultSubkey = 0,
-    DHTRecordCrypto? crypto,
-  }) async =>
-      _mutex.protect(() async {
-        final dhtctx = routingContext ?? _routingContext;
-
-        final openedRecordInfo = await _recordOpenInner(
-            debugName: debugName,
-            dhtctx: dhtctx,
-            recordKey: recordKey,
-            parent: parent,
-            writer: writer);
-
-        final rec = DHTRecord._(
-            debugName: debugName,
-            routingContext: dhtctx,
-            defaultSubkey: defaultSubkey,
-            writer: writer,
-            sharedDHTRecordData: openedRecordInfo.shared,
-            crypto: crypto ??
-                await DHTRecordCryptoPrivate.fromTypedKeyPair(
-                    TypedKeyPair.fromKeyPair(recordKey.kind, writer)));
-
-        openedRecordInfo.records.add(rec);
-
-        return rec;
-      });
-
-  /// Open a DHTRecord owned
-  /// This is the same as writable but uses an OwnedDHTRecordPointer
-  /// for convenience and uses symmetric encryption on the key
-  /// This is primarily used for backing up private content on to the DHT
-  /// to synchronizing it between devices. Because it is 'owned', the correct
-  /// parent must be specified.
-  Future<DHTRecord> openOwned(
-    OwnedDHTRecordPointer ownedDHTRecordPointer, {
-    required String debugName,
-    required TypedKey parent,
-    VeilidRoutingContext? routingContext,
-    int defaultSubkey = 0,
-    DHTRecordCrypto? crypto,
-  }) =>
-      openWrite(
-        ownedDHTRecordPointer.recordKey,
-        ownedDHTRecordPointer.owner,
-        debugName: debugName,
-        routingContext: routingContext,
-        parent: parent,
-        defaultSubkey: defaultSubkey,
-        crypto: crypto,
-      );
-
-  /// Get the parent of a DHTRecord key if it exists
-  TypedKey? getParentRecordKey(TypedKey child) {
-    final childJson = child.toJson();
-    return _state.parentByChild[childJson];
+    return false;
   }
 
   /// Handle the DHT record updates coming from internal to this app
-  void processLocalValueChange(TypedKey key, Uint8List data, int subkey) {
+  void _processLocalValueChange(TypedKey key, Uint8List data, int subkey) {
     // Change
     for (final kv in _opened.entries) {
       if (kv.key == key) {
@@ -571,51 +659,12 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
     }
   }
 
-  /// Handle the DHT record updates coming from Veilid
-  void processRemoteValueChange(VeilidUpdateValueChange updateValueChange) {
-    if (updateValueChange.subkeys.isNotEmpty) {
-      // Change
-      for (final kv in _opened.entries) {
-        if (kv.key == updateValueChange.key) {
-          for (final rec in kv.value.records) {
-            rec._addRemoteValueChange(updateValueChange);
-          }
-          break;
-        }
-      }
-    } else {
-      final now = Veilid.instance.now().value;
-      // Expired, process renewal if desired
-      for (final entry in _opened.entries) {
-        final openedKey = entry.key;
-        final openedRecordInfo = entry.value;
-
-        if (openedKey == updateValueChange.key) {
-          // Renew watch state for each opened recrod
-          for (final rec in openedRecordInfo.records) {
-            // See if the watch had an expiration and if it has expired
-            // otherwise the renewal will keep the same parameters
-            final watchState = rec.watchState;
-            if (watchState != null) {
-              final exp = watchState.expiration;
-              if (exp != null && exp.value < now) {
-                // Has expiration, and it has expired, clear watch state
-                rec.watchState = null;
-              }
-            }
-          }
-          openedRecordInfo.shared.needsWatchStateUpdate = true;
-          break;
-        }
-      }
-    }
-  }
-
-  WatchState? _collectUnionWatchState(Iterable<DHTRecord> records) {
+  static _WatchState? _collectUnionWatchState(Iterable<DHTRecord> records) {
     // Collect union of opened record watch states
     int? totalCount;
     Timestamp? maxExpiration;
     List<ValueSubkeyRange>? allSubkeys;
+    Timestamp? earliestRenewalTime;
 
     var noExpiration = false;
     var everySubkey = false;
@@ -648,6 +697,15 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
         } else {
           everySubkey = true;
         }
+        final wsRenewalTime = ws.renewalTime;
+        if (wsRenewalTime != null) {
+          earliestRenewalTime = earliestRenewalTime == null
+              ? wsRenewalTime
+              : Timestamp(
+                  value: (wsRenewalTime.value < earliestRenewalTime.value
+                      ? wsRenewalTime.value
+                      : earliestRenewalTime.value));
+        }
       }
     }
     if (noExpiration) {
@@ -660,146 +718,216 @@ class DHTRecordPool with TableDBBacked<DHTRecordPoolAllocations> {
       return null;
     }
 
-    return WatchState(
-        subkeys: allSubkeys, expiration: maxExpiration, count: totalCount);
+    return _WatchState(
+        subkeys: allSubkeys,
+        expiration: maxExpiration,
+        count: totalCount,
+        renewalTime: earliestRenewalTime);
   }
 
-  void _updateWatchRealExpirations(
-      Iterable<DHTRecord> records, Timestamp realExpiration) {
+  static void _updateWatchRealExpirations(Iterable<DHTRecord> records,
+      Timestamp realExpiration, Timestamp renewalTime) {
     for (final rec in records) {
       final ws = rec.watchState;
       if (ws != null) {
-        rec.watchState = WatchState(
+        rec.watchState = _WatchState(
             subkeys: ws.subkeys,
             expiration: ws.expiration,
             count: ws.count,
-            realExpiration: realExpiration);
+            realExpiration: realExpiration,
+            renewalTime: renewalTime);
       }
     }
+  }
+
+  Future<void> _watchStateChange(
+      TypedKey openedRecordKey, _WatchState? unionWatchState) async {
+    // Get the current state for this watch
+    final openedRecordInfo = _opened[openedRecordKey];
+    if (openedRecordInfo == null) {
+      // Record is gone, nothing to do
+      return;
+    }
+    final currentWatchState = openedRecordInfo.shared.unionWatchState;
+    final dhtctx = openedRecordInfo.shared.defaultRoutingContext;
+
+    // If it's the same as our desired state there is nothing to do here
+    if (currentWatchState == unionWatchState) {
+      return;
+    }
+
+    // Apply watch changes for record
+    if (unionWatchState == null) {
+      // Record needs watch cancel
+      // Only try this once, if it doesn't succeed then it can just expire
+      // on its own.
+      try {
+        final cancelled = await dhtctx.cancelDHTWatch(openedRecordKey);
+
+        log('cancelDHTWatch: key=$openedRecordKey, cancelled=$cancelled, '
+            'debugNames=${openedRecordInfo.debugNames}');
+
+        openedRecordInfo.shared.unionWatchState = null;
+        openedRecordInfo.shared.needsWatchStateUpdate = false;
+      } on VeilidAPIException catch (e) {
+        // Failed to cancel DHT watch, try again next tick
+        log('Exception in watch cancel: $e');
+      }
+      return;
+    }
+
+    // Record needs new watch
+    try {
+      final subkeys = unionWatchState.subkeys?.toList();
+      final count = unionWatchState.count;
+      final expiration = unionWatchState.expiration;
+      final now = veilid.now();
+
+      final realExpiration = await dhtctx.watchDHTValues(openedRecordKey,
+          subkeys: unionWatchState.subkeys?.toList(),
+          count: unionWatchState.count,
+          expiration: unionWatchState.expiration ??
+              (_defaultWatchDurationSecs == null
+                  ? null
+                  : veilid.now().offset(TimestampDuration.fromMillis(
+                      _defaultWatchDurationSecs! * 1000))));
+
+      final expirationDuration = realExpiration.diff(now);
+      final renewalTime = now.offset(TimestampDuration(
+          value: expirationDuration.value *
+              BigInt.from(_watchRenewalNumerator) ~/
+              BigInt.from(_watchRenewalDenominator)));
+
+      log('watchDHTValues: key=$openedRecordKey, subkeys=$subkeys, '
+          'count=$count, expiration=$expiration, '
+          'realExpiration=$realExpiration, '
+          'renewalTime=$renewalTime, '
+          'debugNames=${openedRecordInfo.debugNames}');
+
+      // Update watch states with real expiration
+      if (realExpiration.value != BigInt.zero) {
+        openedRecordInfo.shared.unionWatchState = unionWatchState;
+        _updateWatchRealExpirations(
+            openedRecordInfo.records, realExpiration, renewalTime);
+        openedRecordInfo.shared.needsWatchStateUpdate = false;
+      }
+    } on VeilidAPIException catch (e) {
+      // Failed to cancel DHT watch, try again next tick
+      log('Exception in watch update: $e');
+    }
+  }
+
+  void _pollWatch(TypedKey openedRecordKey, _OpenedRecordInfo openedRecordInfo,
+      _WatchState unionWatchState) {
+    singleFuture((this, _sfPollWatch, openedRecordKey), () async {
+      final dhtctx = openedRecordInfo.shared.defaultRoutingContext;
+
+      // Get single subkey to poll
+      // XXX: veilid api limits this for now until everyone supports
+      // inspectDHTRecord
+      final pollSubkey = unionWatchState.subkeys?.firstSubkey;
+      if (pollSubkey == null) {
+        return;
+      }
+      final pollSubkeys = [ValueSubkeyRange.single(pollSubkey)];
+
+      final currentReport =
+          await dhtctx.inspectDHTRecord(openedRecordKey, subkeys: pollSubkeys);
+      final currentSeq = currentReport.localSeqs.firstOrNull ?? -1;
+
+      final valueData = await dhtctx.getDHTValue(openedRecordKey, pollSubkey,
+          forceRefresh: true);
+      if (valueData == null) {
+        return;
+      }
+      if (valueData.seq > currentSeq) {
+        processRemoteValueChange(VeilidUpdateValueChange(
+            key: openedRecordKey,
+            subkeys: pollSubkeys,
+            count: 0xFFFFFFFF,
+            value: valueData));
+      }
+    });
   }
 
   /// Ticker to check watch state change requests
   Future<void> tick() async {
-    if (_tickCount < _watchBackoffTimer) {
-      _tickCount++;
-      return;
-    }
-    if (_inTick) {
-      return;
-    }
-    _inTick = true;
-    _tickCount = 0;
+    final now = veilid.now();
 
-    try {
-      final allSuccess = await _mutex.protect(() async {
-        // See if any opened records need watch state changes
-        final unord = <Future<bool> Function()>[];
+    await _mutex.protect(() async {
+      // See if any opened records need watch state changes
+      for (final kv in _opened.entries) {
+        final openedRecordKey = kv.key;
+        final openedRecordInfo = kv.value;
 
-        for (final kv in _opened.entries) {
-          final openedRecordKey = kv.key;
-          final openedRecordInfo = kv.value;
-          final dhtctx = openedRecordInfo.shared.defaultRoutingContext;
+        var wantsWatchStateUpdate =
+            openedRecordInfo.shared.needsWatchStateUpdate;
 
-          if (openedRecordInfo.shared.needsWatchStateUpdate) {
-            final watchState =
-                _collectUnionWatchState(openedRecordInfo.records);
-
-            // Apply watch changes for record
-            if (watchState == null) {
-              unord.add(() async {
-                // Record needs watch cancel
-                var success = false;
-                try {
-                  success = await dhtctx.cancelDHTWatch(openedRecordKey);
-
-                  log('cancelDHTWatch: key=$openedRecordKey, success=$success, '
-                      'debugNames=${openedRecordInfo.debugNames}');
-
-                  openedRecordInfo.shared.needsWatchStateUpdate = false;
-                } on VeilidAPIException catch (e) {
-                  // Failed to cancel DHT watch, try again next tick
-                  log('Exception in watch cancel: $e');
-                }
-                return success;
-              });
-            } else {
-              unord.add(() async {
-                // Record needs new watch
-                var success = false;
-                try {
-                  final subkeys = watchState.subkeys?.toList();
-                  final count = watchState.count;
-                  final expiration = watchState.expiration;
-
-                  final realExpiration = await dhtctx.watchDHTValues(
-                      openedRecordKey,
-                      subkeys: watchState.subkeys?.toList(),
-                      count: watchState.count,
-                      expiration: watchState.expiration);
-
-                  log('watchDHTValues: key=$openedRecordKey, subkeys=$subkeys, '
-                      'count=$count, expiration=$expiration, '
-                      'realExpiration=$realExpiration, '
-                      'debugNames=${openedRecordInfo.debugNames}');
-
-                  // Update watch states with real expiration
-                  if (realExpiration.value != BigInt.zero) {
-                    openedRecordInfo.shared.needsWatchStateUpdate = false;
-                    _updateWatchRealExpirations(
-                        openedRecordInfo.records, realExpiration);
-                    success = true;
-                  }
-                } on VeilidAPIException catch (e) {
-                  // Failed to cancel DHT watch, try again next tick
-                  log('Exception in watch update: $e');
-                }
-                return success;
-              });
-            }
-          }
+        // Check if we have reached renewal time for the watch
+        if (openedRecordInfo.shared.unionWatchState != null &&
+            openedRecordInfo.shared.unionWatchState!.renewalTime != null &&
+            now.value >
+                openedRecordInfo.shared.unionWatchState!.renewalTime!.value) {
+          wantsWatchStateUpdate = true;
         }
 
-        // Process all watch changes
-        return unord.isEmpty ||
-            (await unord.map((f) => f()).wait).reduce((a, b) => a && b);
-      });
+        if (wantsWatchStateUpdate) {
+          // Update union watch state
+          final unionWatchState =
+              _collectUnionWatchState(openedRecordInfo.records);
 
-      // If any watched did not success, back off the attempts to
-      // update the watches for a bit
+          final processed = _watchStateProcessors.updateState(
+              openedRecordKey,
+              unionWatchState,
+              (newState) =>
+                  _watchStateChange(openedRecordKey, unionWatchState));
 
-      if (!allSuccess) {
-        _watchBackoffTimer *= watchBackoffMultiplier;
-        _watchBackoffTimer = min(_watchBackoffTimer, watchBackoffMax);
-      } else {
-        _watchBackoffTimer = 1;
+          // In lieu of a completed watch, set off a polling operation
+          // on the first value of the watched range, which, due to current
+          // veilid limitations can only be one subkey at a time right now
+          if (!processed && unionWatchState != null) {
+            _pollWatch(openedRecordKey, openedRecordInfo, unionWatchState);
+          }
+        }
       }
-    } finally {
-      _inTick = false;
-    }
+    });
   }
 
-  void debugPrintAllocations() {
-    final sortedAllocations = _state.debugNames.entries.asList()
-      ..sort((a, b) => a.key.compareTo(b.key));
+  //////////////////////////////////////////////////////////////
+  // AsyncTableDBBacked
+  @override
+  String tableName() => 'dht_record_pool';
+  @override
+  String tableKeyName() => 'pool_allocations';
+  @override
+  DHTRecordPoolAllocations valueFromJson(Object? obj) => obj != null
+      ? DHTRecordPoolAllocations.fromJson(obj)
+      : const DHTRecordPoolAllocations();
+  @override
+  Object? valueToJson(DHTRecordPoolAllocations? val) => val?.toJson();
 
-    log('DHTRecordPool Allocations: (count=${sortedAllocations.length})');
+  ////////////////////////////////////////////////////////////////////////////
+  // Fields
 
-    for (final entry in sortedAllocations) {
-      log('  ${entry.key}: ${entry.value}');
-    }
-  }
+  // Logger
+  DHTRecordPoolLogger? _logger;
 
-  void debugPrintOpened() {
-    final sortedOpened = _opened.entries.asList()
-      ..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
+  // Persistent DHT record list
+  DHTRecordPoolAllocations _state;
+  // Create/open Mutex
+  final Mutex _mutex;
+  // Which DHT records are currently open
+  final Map<TypedKey, _OpenedRecordInfo> _opened;
+  // Which DHT records are marked for deletion
+  final Set<TypedKey> _markedForDelete;
+  // Default routing context to use for new keys
+  final VeilidRoutingContext _routingContext;
+  // Convenience accessor
+  final Veilid _veilid;
+  Veilid get veilid => _veilid;
+  // Watch state processors
+  final _watchStateProcessors =
+      SingleStateProcessorMap<TypedKey, _WatchState?>();
 
-    log('DHTRecordPool Opened Records: (count=${sortedOpened.length})');
-
-    for (final entry in sortedOpened) {
-      log('  ${entry.key}: \n'
-          '     debugNames=${entry.value.debugNames}\n'
-          '     details=${entry.value.details}\n'
-          '     sharedDetails=${entry.value.sharedDetails}\n');
-    }
-  }
+  static DHTRecordPool? _singleton;
 }

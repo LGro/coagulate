@@ -133,13 +133,6 @@ class _MyFormState extends State<MyForm> {
     }
   }
 
-  void _resetForm() {
-    _key.currentState!.reset();
-    _titleController.clear();
-    _detailsController.clear();
-    setState(() => _state = MyFormState());
-  }
-
   @override
   void initState() {
     super.initState();

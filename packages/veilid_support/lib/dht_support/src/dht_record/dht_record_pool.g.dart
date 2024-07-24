@@ -9,27 +9,27 @@ part of 'dht_record_pool.dart';
 _$DHTRecordPoolAllocationsImpl _$$DHTRecordPoolAllocationsImplFromJson(
         Map<String, dynamic> json) =>
     _$DHTRecordPoolAllocationsImpl(
-      childrenByParent: json['childrenByParent'] == null
+      childrenByParent: json['children_by_parent'] == null
           ? const IMapConst<String, ISet<TypedKey>>({})
           : IMap<String, ISet<Typed<FixedEncodedString43>>>.fromJson(
-              json['childrenByParent'] as Map<String, dynamic>,
+              json['children_by_parent'] as Map<String, dynamic>,
               (value) => value as String,
               (value) => ISet<Typed<FixedEncodedString43>>.fromJson(value,
                   (value) => Typed<FixedEncodedString43>.fromJson(value))),
-      parentByChild: json['parentByChild'] == null
+      parentByChild: json['parent_by_child'] == null
           ? const IMapConst<String, TypedKey>({})
           : IMap<String, Typed<FixedEncodedString43>>.fromJson(
-              json['parentByChild'] as Map<String, dynamic>,
+              json['parent_by_child'] as Map<String, dynamic>,
               (value) => value as String,
               (value) => Typed<FixedEncodedString43>.fromJson(value)),
-      rootRecords: json['rootRecords'] == null
+      rootRecords: json['root_records'] == null
           ? const ISetConst<TypedKey>({})
-          : ISet<Typed<FixedEncodedString43>>.fromJson(json['rootRecords'],
+          : ISet<Typed<FixedEncodedString43>>.fromJson(json['root_records'],
               (value) => Typed<FixedEncodedString43>.fromJson(value)),
-      debugNames: json['debugNames'] == null
+      debugNames: json['debug_names'] == null
           ? const IMapConst<String, String>({})
           : IMap<String, String>.fromJson(
-              json['debugNames'] as Map<String, dynamic>,
+              json['debug_names'] as Map<String, dynamic>,
               (value) => value as String,
               (value) => value as String),
     );
@@ -37,20 +37,20 @@ _$DHTRecordPoolAllocationsImpl _$$DHTRecordPoolAllocationsImplFromJson(
 Map<String, dynamic> _$$DHTRecordPoolAllocationsImplToJson(
         _$DHTRecordPoolAllocationsImpl instance) =>
     <String, dynamic>{
-      'childrenByParent': instance.childrenByParent.toJson(
+      'children_by_parent': instance.childrenByParent.toJson(
         (value) => value,
         (value) => value.toJson(
-          (value) => value,
+          (value) => value.toJson(),
         ),
       ),
-      'parentByChild': instance.parentByChild.toJson(
+      'parent_by_child': instance.parentByChild.toJson(
         (value) => value,
-        (value) => value,
+        (value) => value.toJson(),
       ),
-      'rootRecords': instance.rootRecords.toJson(
-        (value) => value,
+      'root_records': instance.rootRecords.toJson(
+        (value) => value.toJson(),
       ),
-      'debugNames': instance.debugNames.toJson(
+      'debug_names': instance.debugNames.toJson(
         (value) => value,
         (value) => value,
       ),
@@ -59,13 +59,13 @@ Map<String, dynamic> _$$DHTRecordPoolAllocationsImplToJson(
 _$OwnedDHTRecordPointerImpl _$$OwnedDHTRecordPointerImplFromJson(
         Map<String, dynamic> json) =>
     _$OwnedDHTRecordPointerImpl(
-      recordKey: Typed<FixedEncodedString43>.fromJson(json['recordKey']),
+      recordKey: Typed<FixedEncodedString43>.fromJson(json['record_key']),
       owner: KeyPair.fromJson(json['owner']),
     );
 
 Map<String, dynamic> _$$OwnedDHTRecordPointerImplToJson(
         _$OwnedDHTRecordPointerImpl instance) =>
     <String, dynamic>{
-      'recordKey': instance.recordKey,
-      'owner': instance.owner,
+      'record_key': instance.recordKey.toJson(),
+      'owner': instance.owner.toJson(),
     };

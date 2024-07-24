@@ -1,9 +1,17 @@
 import 'dart:io' show Platform;
 
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:veilid/veilid.dart';
 
-Map<String, dynamic> getDefaultVeilidPlatformConfig(
-    bool isWeb, String appName) {
+// ignore: do_not_use_environment
+const bool _kReleaseMode = bool.fromEnvironment('dart.vm.product');
+// ignore: do_not_use_environment
+const bool _kProfileMode = bool.fromEnvironment('dart.vm.profile');
+const bool _kDebugMode = !_kReleaseMode && !_kProfileMode;
+
+Future<Map<String, dynamic>> getDefaultVeilidPlatformConfig(
+    bool isWeb, String appName) async {
   final ignoreLogTargetsStr =
       // ignore: do_not_use_environment
       const String.fromEnvironment('IGNORE_LOG_TARGETS').trim();
@@ -11,12 +19,24 @@ Map<String, dynamic> getDefaultVeilidPlatformConfig(
       ? <String>[]
       : ignoreLogTargetsStr.split(',').map((e) => e.trim()).toList();
 
+  // ignore: do_not_use_environment
+  var flamePathStr = const String.fromEnvironment('FLAME').trim();
+  if (flamePathStr == '1') {
+    flamePathStr = p.join(
+        (await getApplicationSupportDirectory()).absolute.path,
+        '$appName.folded');
+    // ignore: avoid_print
+    print('Flame data logged to $flamePathStr');
+  }
+
   if (isWeb) {
     return VeilidWASMConfig(
             logging: VeilidWASMConfigLogging(
                 performance: VeilidWASMConfigLoggingPerformance(
                     enabled: true,
-                    level: VeilidConfigLogLevel.debug,
+                    level: _kDebugMode
+                        ? VeilidConfigLogLevel.debug
+                        : VeilidConfigLogLevel.info,
                     logsInTimings: true,
                     logsInConsole: false,
                     ignoreLogTargets: ignoreLogTargets),
@@ -29,8 +49,11 @@ Map<String, dynamic> getDefaultVeilidPlatformConfig(
   return VeilidFFIConfig(
           logging: VeilidFFIConfigLogging(
               terminal: VeilidFFIConfigLoggingTerminal(
-                  enabled: false,
-                  level: VeilidConfigLogLevel.debug,
+                  enabled:
+                      _kDebugMode && (Platform.isIOS || Platform.isAndroid),
+                  level: _kDebugMode
+                      ? VeilidConfigLogLevel.debug
+                      : VeilidConfigLogLevel.info,
                   ignoreLogTargets: ignoreLogTargets),
               otlp: VeilidFFIConfigLoggingOtlp(
                   enabled: false,
@@ -41,7 +64,9 @@ Map<String, dynamic> getDefaultVeilidPlatformConfig(
               api: VeilidFFIConfigLoggingApi(
                   enabled: true,
                   level: VeilidConfigLogLevel.info,
-                  ignoreLogTargets: ignoreLogTargets)))
+                  ignoreLogTargets: ignoreLogTargets),
+              flame: VeilidFFIConfigLoggingFlame(
+                  enabled: flamePathStr.isNotEmpty, path: flamePathStr)))
       .toJson();
 }
 

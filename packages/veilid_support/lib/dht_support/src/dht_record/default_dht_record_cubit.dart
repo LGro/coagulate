@@ -12,14 +12,6 @@ class DefaultDHTRecordCubit<T> extends DHTRecordCubit<T> {
             stateFunction: _makeStateFunction(decodeState),
             watchFunction: _makeWatchFunction());
 
-  // DefaultDHTRecordCubit.value({
-  //   required super.record,
-  //   required T Function(List<int> data) decodeState,
-  // }) : super.value(
-  //           initialStateFunction: _makeInitialStateFunction(decodeState),
-  //           stateFunction: _makeStateFunction(decodeState),
-  //           watchFunction: _makeWatchFunction());
-
   static InitialStateFunction<T> _makeInitialStateFunction<T>(
           T Function(List<int> data) decodeState) =>
       (record) async {
@@ -38,7 +30,8 @@ class DefaultDHTRecordCubit<T> extends DHTRecordCubit<T> {
           final Uint8List data;
           final firstSubkey = subkeys.firstOrNull!.low;
           if (firstSubkey != defaultSubkey || updatedata == null) {
-            final maybeData = await record.get(forceRefresh: true);
+            final maybeData =
+                await record.get(refreshMode: DHTRecordRefreshMode.network);
             if (maybeData == null) {
               return null;
             }

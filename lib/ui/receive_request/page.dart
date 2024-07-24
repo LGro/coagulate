@@ -93,16 +93,16 @@ class ReceiveRequestPage extends StatelessWidget {
                                       .createNewContact,
                           child: const Text(
                               'Create new contact & start sharing with them')),
-                      if (state.contactProporsalsForLinking.isNotEmpty)
+                      if (state.contactProposalsForLinking.isNotEmpty)
                         const Center(
                             child: Text(
                                 'or pick an existing contact to start sharing with')),
                       const SizedBox(height: 12),
-                      if (state.contactProporsalsForLinking.isNotEmpty)
+                      if (state.contactProposalsForLinking.isNotEmpty)
                         Expanded(
                             child: _pickExisting(
                                 context,
-                                state.contactProporsalsForLinking,
+                                state.contactProposalsForLinking,
                                 context
                                     .read<ReceiveRequestCubit>()
                                     .linkExistingContactRequested)),
@@ -140,15 +140,15 @@ class ReceiveRequestPage extends StatelessWidget {
                                     .read<ReceiveRequestCubit>()
                                     .createNewContact,
                                 child: const Text('Create new contact')),
-                            if (state.contactProporsalsForLinking.isNotEmpty)
+                            if (state.contactProposalsForLinking.isNotEmpty)
                               const Center(
                                   child:
                                       Text('or link to an existing contact')),
-                            if (state.contactProporsalsForLinking.isNotEmpty)
+                            if (state.contactProposalsForLinking.isNotEmpty)
                               Expanded(
                                   child: _pickExisting(
                                       context,
-                                      state.contactProporsalsForLinking,
+                                      state.contactProposalsForLinking,
                                       context
                                           .read<ReceiveRequestCubit>()
                                           .linkExistingContactSharing)),
@@ -172,7 +172,7 @@ class ReceiveRequestPage extends StatelessWidget {
 Widget _pickExisting(
         BuildContext context,
         Iterable<CoagContact> contactProporsalsForLinking,
-        Future<void> Function(CoagContact contact) linkExistingCallback) =>
+        Future<void> Function(String coagContactId) linkExistingCallback) =>
     ListView(
       children: contactProporsalsForLinking
           // TODO: Filter out the profile contact
@@ -183,6 +183,6 @@ Widget _pickExisting(
                   c.systemContact?.displayName ??
                   '???'),
               //trailing: Text(_contactSyncStatus(c)),
-              onTap: () => unawaited(linkExistingCallback(c))))
+              onTap: () => unawaited(linkExistingCallback(c.coagContactId))))
           .toList(),
     );

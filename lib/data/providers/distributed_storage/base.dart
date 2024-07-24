@@ -20,9 +20,8 @@ abstract class DistributedStorage {
 
   Future<void> watchDHTRecord(String key);
 
-  Future<bool> isUpToDateSharingDHT(CoagContact contact);
-
-  Future<CoagContact> updateContactSharingDHT(CoagContact contact);
+  Future<CoagContact> updateContactSharingDHT(CoagContact contact,
+      {Future<String> Function()? pskGenerator});
 
   Future<CoagContact> updateContactReceivingDHT(CoagContact contact);
 }

@@ -86,11 +86,12 @@ class CheckInCubit extends Cubit<CheckInState> {
           await Geolocator.getCurrentPosition(timeLimit: Duration(seconds: 30));
 
       unawaited(contactsRepository
-          .updateContact(profileContact.copyWith(temporaryLocations: [
+          .updateProfileContactData(
+              profileContact.copyWith(temporaryLocations: [
             ...profileContact.temporaryLocations
                 .map((l) => l.copyWith(checkedIn: false)),
             ContactTemporaryLocation(
-                coagContactId: contactsRepository.profileContactId!,
+                coagContactId: profileContact.coagContactId,
                 longitude: location.longitude,
                 latitude: location.latitude,
                 start: DateTime.now(),

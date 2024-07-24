@@ -1,9 +1,12 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:typed_data';
+
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_location.dart';
 import 'package:coagulate/data/models/profile_sharing_settings.dart';
+import 'package:coagulate/data/providers/system_contacts/base.dart';
 import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -113,5 +116,17 @@ void main() {
     expect(filtered.temporaryLocations[0].name, 'less than a day ago');
     expect(filtered.temporaryLocations[1].name, 'future');
     expect(filtered.temporaryLocations[1], contact.temporaryLocations[2]);
+  });
+
+  test('equate contacts with stripped photo', () {
+    final contact = Contact(
+        displayName: 'Exampe Contact',
+        name: Name(first: 'Example', last: 'Contact'),
+        phones: [Phone('12324')],
+        photo: Uint8List(64));
+    final contactJson = contact.toJson();
+    contactJson['photo'] = null;
+    final contactWithoutPhoto = Contact.fromJson(contactJson);
+    expect(systemContactsEqual(contact, contactWithoutPhoto), true);
   });
 }

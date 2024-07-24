@@ -1,6 +1,3 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
-// SPDX-License-Identifier: MPL-2.0
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -8,11 +5,10 @@ import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:rxdart/subjects.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:veilid/veilid.dart';
+import 'package:veilid/veilid_state.dart';
 
-import '../../veilid_processor/repository/processor_repository.dart';
+import '../../veilid_processor/veilid_processor.dart';
 import '../models/coag_contact.dart';
 import '../models/contact_location.dart';
 import '../models/contact_update.dart';
@@ -148,85 +144,71 @@ Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
   return json;
 }
 
-/// Entrypoint for application layer when it comes to [CoagContact]
 class ContactsRepository {
   ContactsRepository(this.persistentStorage, this.distributedStorage,
-      this.systemContactsStorage) {
-    unawaited(_init());
-
-    // Regularly check for updates from the persistent storage,
-    // e.g. in case it was updated from background processes.
-    timerPersistentStorageRefresh =
-        Timer.periodic(Duration(seconds: 5), (_) async => ()
-            // _updateFromPersistentStorage()
-            );
-
-    // TODO: Check if we can/should replace this with listening to the Veilid update stream
-    timerDhtRefresh = Timer.periodic(
-        Duration(seconds: 5), (_) async => updateAndWatchReceivingDHT());
+      this.systemContactsStorage,
+      {bool initialize = true}) {
+    if (initialize) {
+      unawaited(this.initialize());
+    }
   }
 
   final PersistentStorage persistentStorage;
   final DistributedStorage distributedStorage;
   final SystemContactsBase systemContactsStorage;
 
-  late final Timer? timerPersistentStorageRefresh;
-  late final Timer? timerDhtRefresh;
-  String? profileContactId;
+  Map<String, CoagContact> _contacts = {};
+  final _contactsStreamController = BehaviorSubject<String>();
+  Stream<String> getContactStream() =>
+      _contactsStreamController.asBroadcastStream();
 
-  /// Circles with IDs as keys and labels as values
-  Map<String, String> _circles = {};
+  /// Coagulate contact ID of the profile contact
+  String? _profileContactId;
 
   /// Profile contact sharing settings, specifying circles for each detail
   ProfileSharingSettings _profileSharingSettings =
       const ProfileSharingSettings();
 
+  /// Circles with IDs as keys and labels as values
+  Map<String, String> _circles = {};
+  final _circlesStreamController = BehaviorSubject<void>();
+
+  /// Update stream for changes affecting the available circles.
+  /// For contact circle membership related changes, subscribe to
+  /// getContactStream()
+  Stream<void> getCirclesStream() =>
+      _circlesStreamController.asBroadcastStream();
+
   /// Mapping of coagulate contact IDs to circle IDs
   Map<String, List<String>> _circleMemberships = {};
 
-  Map<String, CoagContact> _contacts = {};
-  final _contactsStreamController = BehaviorSubject<CoagContact>();
-
-  // TODO: Double check whether we actually need this second stream, i.e. when would an update be passed here but not on the contacts stream?
-  List<ContactUpdate> updates = [];
+  /// History of received contact updates
+  List<ContactUpdate> _contactUpdates = [];
   final _updatesStreamController = BehaviorSubject<ContactUpdate>();
+  Stream<ContactUpdate> getUpdatesStream() =>
+      _updatesStreamController.asBroadcastStream();
 
-  final _circlesStreamController = BehaviorSubject<void>();
-
+  // TODO: subscribe to this from a settings cubit to show the appropriate button in UI
   final _systemContactAccessGrantedStreamController =
       BehaviorSubject<bool>.seeded(false);
+  Stream<bool> isSystemContactAccessGranted() =>
+      _systemContactAccessGrantedStreamController.asBroadcastStream();
 
-  Future<void> _init() async {
-    // Load profile contact ID from persistent storage
-    profileContactId = await persistentStorage.getProfileContactId();
+  bool systemContactsChangedCallbackTemporarilyDisabled = false;
 
-    // Initialize circles, circle memberships and sharing settings from persistent storage
-    _profileSharingSettings =
-        await persistentStorage.getProfileSharingSettings();
-    _circleMemberships = await persistentStorage.getCircleMemberships();
-    _circles = await persistentStorage.getCircles();
-
-    // Load updates from persistent storage
-    updates = await persistentStorage.getUpdates();
-    for (final u in updates) {
-      _updatesStreamController.add(u);
-    }
-
-    // Load coagulate contacts from persistent storage
-    _contacts = await persistentStorage.getAllContacts();
-    for (final c in _contacts.values) {
-      _contactsStreamController.add(c);
-    }
+  Future<void> initialize() async {
+    await initializeFromPersistentStorage();
 
     await updateFromSystemContacts();
     FlutterContacts.addListener(_systemContactsChangedCallback);
 
     // Update the contacts from DHT and subscribe to future updates
     await updateAndWatchReceivingDHT();
+
     // TODO: This doesn't seem to work, double check; current workaround via timerDhtRefresh
-    // ProcessorRepository.instance
-    //     .streamUpdateValueChange()
-    //     .listen(_veilidUpdateValueChangeCallback);
+    ProcessorRepository.instance
+        .streamUpdateValueChange()
+        .listen(_veilidUpdateValueChangeCallback);
 
     // TODO: Only do this when online
     // for (final contact in _contacts.values) {
@@ -234,166 +216,125 @@ class ContactsRepository {
     // }
   }
 
-  Future<void> updateCircleMemberships(
-      Map<String, List<String>> memberships) async {
-    _circleMemberships = memberships;
-    _circlesStreamController.add(null);
-    await persistentStorage.updateCircleMemberships(memberships);
+  /////////////////////
+  // PERSISTENT STORAGE
+  Future<void> initializeFromPersistentStorage() async {
+    _profileContactId = await persistentStorage.getProfileContactId();
 
-    for (final contact in _contacts.values) {
-      final profileContact = getProfileContact();
-      if (contact.dhtSettingsForSharing == null || profileContact == null) {
-        continue;
-      }
+    // Initialize circles, circle memberships and sharing settings from persistent storage
+    _circles = await persistentStorage.getCircles();
+    _circleMemberships = await persistentStorage.getCircleMemberships();
+    _profileSharingSettings =
+        await persistentStorage.getProfileSharingSettings();
 
-      final sharedProfile = json.encode(removeNullOrEmptyValues(
-          filterAccordingToSharingProfile(
-                  profile: profileContact,
-                  settings: _profileSharingSettings,
-                  activeCircles:
-                      _circleMemberships[contact.coagContactId] ?? [],
-                  shareBackSettings: contact.dhtSettingsForReceiving)
-              .toJson()));
-      if (sharedProfile == contact.sharedProfile) {
-        continue;
-      }
+    // Load updates from persistent storage
+    _contactUpdates = await persistentStorage.getUpdates();
+    for (final u in _contactUpdates) {
+      _updatesStreamController.add(u);
+    }
 
-      // TODO: This seems too big of an action to trigger
-      // disentangle this to just updating the contact and letting the ui know
-      // push changes to dht async
-      await updateContact(contact.copyWith(sharedProfile: sharedProfile));
+    // Load coagulate contacts from persistent storage
+    _contacts = await persistentStorage.getAllContacts();
+    for (final c in _contacts.values) {
+      _contactsStreamController.add(c.coagContactId);
     }
   }
-
-  Future<void> updateCircles(Map<String, String> circles) async {
-    _circles = circles;
-    _circlesStreamController.add(null);
-    await persistentStorage.updateCircles(circles);
-  }
-
-  Future<void> setProfileSharingSettings(
-      ProfileSharingSettings settings) async {
-    _profileSharingSettings = settings;
-    await persistentStorage.updateProfileSharingSettings(settings);
-
-    final profileContact = getProfileContact();
-    if (profileContact == null) {
-      return;
-    }
-    for (final contact in _contacts.values) {
-      if (contact.dhtSettingsForSharing?.psk == null) {
-        continue;
-      }
-      await updateContact(contact.copyWith(
-          sharedProfile: json.encode(removeNullOrEmptyValues(
-              filterAccordingToSharingProfile(
-                      profile: profileContact,
-                      settings: _profileSharingSettings,
-                      activeCircles:
-                          _circleMemberships[contact.coagContactId] ?? [],
-                      shareBackSettings: contact.dhtSettingsForReceiving)
-                  .toJson()))));
-    }
-  }
-
-  ProfileSharingSettings getProfileSharingSettings() => _profileSharingSettings;
-
-  List<(String, String, bool, int)> circlesWithMembership(
-          String coagContactId) =>
-      _circles
-          .map((id, label) => MapEntry(id, (
-                id,
-                label,
-                (_circleMemberships[coagContactId] ?? []).contains(id),
-                _circleMemberships.values
-                    .where((circles) => circles.contains(id))
-                    .length
-              )))
-          .values
-          .toList();
 
   Future<void> saveContact(CoagContact coagContact) async {
     _contacts[coagContact.coagContactId] = coagContact;
-    _contactsStreamController.add(coagContact);
+    _contactsStreamController.add(coagContact.coagContactId);
     await persistentStorage.updateContact(coagContact);
   }
 
-  Future<void> _saveUpdate(ContactUpdate update) async {
-    updates.add(update);
-    _updatesStreamController.add(update);
-    // TODO: Have two persistent storages with different prefixes for updates and contacts?
-    await persistentStorage.addUpdate(update);
-  }
+  // update contacts from system address book (async)
+  // update contacts from dht (async)
 
-  Future<void> _updateFromSystemContact(CoagContact contact) async {
-    if (contact.systemContact == null) {
-      // TODO: Log
-      return;
-    }
-    // Try if permissions are granted
-    try {
-      final systemContact =
-          await systemContactsStorage.getContact(contact.systemContact!.id);
-      _systemContactAccessGrantedStreamController.add(true);
+  // update repo state (sync)
+  // update persistent storage (async)
+  // update system address book (async)
+  // update contacts in dht (async)
 
-      if (systemContact != contact.systemContact!) {
-        final updatedContact = contact.copyWith(systemContact: systemContact);
-        await saveContact(updatedContact);
-      }
-    } on MissingSystemContactsPermissionError {
-      _systemContactAccessGrantedStreamController.add(false);
-    }
-  }
-
-  Future<void> _systemContactsChangedCallback() async {
-    // Delay to avoid system update coming in before other updates
-    await Future.delayed(const Duration(milliseconds: 100));
-    final oldProfileContact = _contacts[profileContactId];
-    await updateFromSystemContacts();
-    if (oldProfileContact != null &&
-        oldProfileContact != _contacts[profileContactId]) {
-      // Trigger update of share profiles and all that jazz
-      await updateProfileContact(profileContactId!);
-    }
-  }
-
-  // TODO: Refactor redundancies with updateAndWatchReceivingDHT
-  Future<void> _veilidUpdateValueChangeCallback(
-      VeilidUpdateValueChange update) async {
-    final contact = _contacts.values.firstWhereOrNull(
-        (c) => c.dhtSettingsForReceiving!.key == update.key.toString());
-
-    // FIXME: Appropriate error handling
-    if (contact == null) {
-      return;
-    }
-
+  //////
+  // DHT
+  Future<void> updateContactFromDHT(CoagContact contact) async {
     final updatedContact =
         await distributedStorage.updateContactReceivingDHT(contact);
     if (updatedContact != contact) {
       // TODO: Use update time from when the update was sent not received
-      // TODO: Can it happen that details are null?
       // TODO: When temporary locations are updated, only record an update about added / updated locations / check-ins
       await _saveUpdate(ContactUpdate(
+          // TODO: contact details can be null; handle this more appropriately than the current workaround with empty details
           coagContactId: contact.coagContactId,
-          oldContact: contact.details!,
+          oldContact:
+              contact.details ?? ContactDetails(displayName: '', name: Name()),
+          // TODO: Can it happen that details are null?
           newContact: updatedContact.details!,
           timestamp: DateTime.now()));
-      await updateContact(updatedContact);
+
+      await saveContact(updatedContact);
+
+      // TODO: Allow creation of a new system contact via update contact as well; might require custom contact details schema
+      // Update system contact if linked and contact details changed
+      if (updatedContact.systemContact != null &&
+          contact.systemContact != updatedContact.systemContact) {
+        // TODO: How to reconsile system contacts if permission was removed intermittently and is then granted again?
+        try {
+          await systemContactsStorage
+              .updateContact(updatedContact.systemContact!);
+        } on MissingSystemContactsPermissionError {
+          _systemContactAccessGrantedStreamController.add(false);
+        }
+      }
+    }
+    if (contact.dhtSettingsForReceiving != null) {
+      await distributedStorage
+          .watchDHTRecord(contact.dhtSettingsForReceiving!.key);
     }
   }
 
-  Future<void> _updateFromPersistentStorage() async {
-    await (await SharedPreferences.getInstance()).reload();
-    final storedContacts = await persistentStorage.getAllContacts();
-    // TODO: Working with _contacts.values directly is prone to a ConcurrentModificationError; copying as a workaround
-    for (final contact in List<CoagContact>.from(_contacts.values)) {
-      // Update if there is no matching contact but is a corresponding ID
-      if (!storedContacts.containsValue(contact) &&
-          storedContacts.containsKey(contact.coagContactId)) {
-        // TODO: Check most recent update timestamp and make sure the on from persistent storag is more recent
-        await saveContact(storedContacts[contact.coagContactId]!);
+// TODO: Refactor redundancies with updateAndWatchReceivingDHT
+  Future<void> _veilidUpdateValueChangeCallback(
+      VeilidUpdateValueChange update) async {
+    final contact = _contacts.values.firstWhereOrNull(
+        (c) => c.dhtSettingsForReceiving?.key == update.key.toString());
+    if (contact == null) {
+      // TODO: log
+      return;
+    }
+    await updateContactFromDHT(contact);
+  }
+
+  Future<void> updateAndWatchReceivingDHT({bool shuffle = false}) async {
+    // TODO: Only do this when online; FIXME: This is a hack
+    // We could also move this check outside the function
+    if (!ProcessorRepository
+        .instance.processorConnectionState.attachment.publicInternetReady) {
+      return;
+    }
+    final contacts = _contacts.values.toList();
+    if (shuffle) {
+      contacts.shuffle();
+    }
+    for (final contact in contacts) {
+      // Check for incoming updates
+      if (contact.dhtSettingsForReceiving != null) {
+        await updateContactFromDHT(contact);
       }
+    }
+  }
+
+  //////////////////
+  // SYSTEM CONTACTS
+  Future<void> _systemContactsChangedCallback() async {
+    if (systemContactsChangedCallbackTemporarilyDisabled) {
+      return;
+    }
+    final oldProfileContact = getProfileContact();
+    await updateFromSystemContacts();
+    final newProfileContact = getProfileContact();
+    if (oldProfileContact != null && oldProfileContact != newProfileContact) {
+      // Trigger update of share profiles and all that jazz
+      await updateProfileContact(newProfileContact!.coagContactId);
     }
   }
 
@@ -402,26 +343,41 @@ class ContactsRepository {
   Future<void> updateFromSystemContacts() async {
     // Try if permissions are granted
     try {
-      var systemContacts = await systemContactsStorage.getContacts();
+      final systemContacts = await systemContactsStorage.getContacts();
       _systemContactAccessGrantedStreamController.add(true);
-      for (final coagContact in List<CoagContact>.from(_contacts.values)) {
-        // Skip coagulate contacts that are not associated with a system contact
-        if (coagContact.systemContact == null) {
+      // Copy contacts here to deal with interference with parallel contact updates
+      for (var coagContact in List<CoagContact>.from(_contacts.values)) {
+        // Create system contacts for coagulate contacts that are not associated with one yet
+        if (coagContact.systemContact == null &&
+            await systemContactsStorage.requestPermission()) {
+          // TODO: allow disabling this auto creation of system contacts?
+          // Temporarily disable auto update callback when system contacts signal changes to avoid interfering contact updates
+          // systemContactsChangedCallbackTemporarilyDisabled = true;
+          // coagContact = coagContact.copyWith(
+          //     systemContact: await systemContactsStorage
+          //         .insertContact(coagContact.details!.toSystemContact()));
+          // await saveContact(coagContact);
+          // systemContactsChangedCallbackTemporarilyDisabled = false;
           continue;
+        } else if (coagContact.systemContact != null) {
+          // Remove contacts from queue that did not change
+          // TODO: This could be coagContact.getSystemContactBasedOnSyncSettings
+          //       in case we want to keep the original system contact for reference
+          // NOTE: Object instance equals comparisons does not work, because we remove the photo / thumbnail
+          final iContact = systemContacts.indexWhere(
+              (c) => systemContactsEqual(c, coagContact.systemContact!));
+          if (iContact != -1) {
+            systemContacts.removeAt(iContact);
+            continue;
+          }
         }
-        // Remove contacts that did not change
-        // TODO: This could be coagContact.getSystemContactBasedOnSyncSettings
-        //  in case we want to keep the original system contact for reference
-        // FIXME: SystemContact comparisons might not work, because we remove the photo / thumbnail?
-        if (systemContacts.remove(coagContact.systemContact)) {
-          continue;
-        }
+
         // The remaining matches based on system contact ID need to be updated
         final iChangedContact = systemContacts.indexWhere((systemContact) =>
             systemContact.id == coagContact.systemContact!.id);
         final CoagContact updatedContact;
         if (iChangedContact == -1) {
-          // If after removing the system contact, nothing would be left, remove the contact entirely
+          // If after removing the system contact, nothing would be left, remove the contact from the app
           if (coagContact.details == null) {
             await removeContact(coagContact.coagContactId);
             continue;
@@ -445,6 +401,7 @@ class ContactsRepository {
         }
         await saveContact(updatedContact);
       }
+
       // The remaining system contacts are new
       for (final systemContact in systemContacts) {
         await saveContact(CoagContact(
@@ -455,144 +412,251 @@ class ContactsRepository {
     }
   }
 
-  // TODO: Rename for clarity?
-  Stream<CoagContact> getContactUpdates() =>
-      _contactsStreamController.asBroadcastStream();
+  ///////////
+  // CONTACTS
 
-  Stream<ContactUpdate> getUpdates() =>
-      _updatesStreamController.asBroadcastStream();
+  Map<String, CoagContact> getContacts() => _contacts;
 
-  Stream<void> getCirclesUpdates() =>
-      _circlesStreamController.asBroadcastStream();
+  CoagContact? getContact(String coagContactId) => _contacts[coagContactId];
 
-  // TODO: subscribe to this from a settings cubit to show the appropriate button in UI
-  Stream<bool> isSystemContactAccessGranted() =>
-      _systemContactAccessGrantedStreamController.asBroadcastStream();
+  CoagContact? getContactForSystemContactId(String systemContactId) =>
+      _contacts.values
+          .firstWhere((c) => c.systemContact?.id == systemContactId);
 
-  // TODO: Does that need to be separate depending on whether the update originated from the dht or not?
-  //       Or maybe separate depending on what part is updated (details, locations, dht stuff)
-  Future<void> updateContact(CoagContact contact) async {
-    final oldContact = _contacts[contact.coagContactId];
-    // Skip in case already up to date
-    if (oldContact == contact) {
-      return;
+  Future<void> removeContact(String coagContactId) async {
+    _contacts.remove(coagContactId);
+    _contactsStreamController.add(coagContactId);
+    _circleMemberships.remove(coagContactId);
+    final updateFutures = [
+      persistentStorage.removeContact(coagContactId),
+      persistentStorage.updateCircleMemberships(_circleMemberships)
+    ];
+
+    if (_profileContactId == coagContactId) {
+      updateFutures.add(unsetProfileContact());
     }
 
-    // Early save to not keep everyone waiting for the DHT update
-    await saveContact(contact);
+    // TODO: change updates stream to just trigger refresh instead of carry the updates; or give each update an id and only stream these ids for when an update was added / removed
+    _contactUpdates =
+        _contactUpdates.where((u) => u.coagContactId != coagContactId).toList();
 
-    // TODO: Allow creation of a new system contact via update contact as well; might require custom contact details schema
-    // Update system contact if linked and contact details changed
-    if (contact.systemContact != null &&
-        _contacts[contact.coagContactId]?.systemContact !=
-            contact.systemContact) {
-      // TODO: How to reconsile system contacts if permission was removed intermittently and is then granted again?
+    await Future.wait(updateFutures);
+  }
+
+  /// Ensure the most recent profile contact details are shared with the contact
+  /// identified by the given ID based on the current sharing settings and
+  /// circle memberships
+  Future<void> updateContactSharedProfile(String coagContactId) async {
+    var contact = _contacts[coagContactId];
+    final profileContact = getProfileContact();
+    if (contact == null || profileContact == null) {
+      // TODO: Raise error that can be handled downstream
+      return;
+    }
+    contact = contact.copyWith(
+        sharedProfile: json.encode(removeNullOrEmptyValues(
+            filterAccordingToSharingProfile(
+                    profile: profileContact,
+                    settings: _profileSharingSettings,
+                    activeCircles: _circleMemberships[coagContactId] ?? [],
+                    shareBackSettings: contact.dhtSettingsForReceiving)
+                .toJson())));
+    contact = await distributedStorage.updateContactSharingDHT(contact);
+    await saveContact(contact);
+  }
+
+  Future<void> updateContactSharingSettings(
+      String coagContactId, ContactDHTSettings sharingSettings) async {
+    if (!_contacts.containsKey(coagContactId)) {
+      // TODO: Log and/or raise error?
+      return;
+    }
+    // TODO: what if there were sharing settings before? do we clean up the old shared profile?
+    final updatedContact = _contacts[coagContactId]!
+        .copyWith(dhtSettingsForSharing: sharingSettings);
+    // Save updated contact first, before triggering update of sharing profile
+    // for the then already existing contact
+    await saveContact(updatedContact);
+    await updateContactSharedProfile(coagContactId);
+  }
+
+  Future<void> updateContactReceivingSettings(
+      String coagContactId, ContactDHTSettings receivingSettings) async {
+    if (!_contacts.containsKey(coagContactId)) {
+      // TODO: Log and/or raise error?
+      return;
+    }
+    final updatedContact = _contacts[coagContactId]!
+        .copyWith(dhtSettingsForReceiving: receivingSettings);
+    await saveContact(updatedContact);
+    await updateContactFromDHT(updatedContact);
+  }
+
+  //////////
+  // CIRCLES
+  Map<String, String> getCircles() => _circles;
+
+  Map<String, List<String>> getCircleMemberships() => _circleMemberships;
+
+  Map<String, String> getCirclesForContact(String coagContactId) =>
+      _circleMemberships[coagContactId]
+          ?.where((circleId) => _circles.containsKey(circleId))
+          .toList()
+          .asMap()
+          .map((_, circleId) => MapEntry(circleId, _circles[circleId]!)) ??
+      {};
+
+  List<String> getContactIdsForCircle(String circleId) => _circleMemberships
+      .map((coagContactId, circleIds) => MapEntry(
+          coagContactId, (circleIds.contains(circleId)) ? coagContactId : null))
+      .values
+      .whereType<String>()
+      .toList();
+
+  Future<void> addCircle(String circleId, String name) async {
+    // TODO: handle id collisions; maybe don't allow passing an id as an arg but generate it safely in here
+    _circles[circleId] = name;
+    _circlesStreamController.add(null);
+    await persistentStorage.updateCircles(_circles);
+  }
+
+  Future<void> updateCircleMemberships(
+      Map<String, List<String>> memberships) async {
+    _circleMemberships = memberships;
+
+    // Notify about potentially affected contacts
+    for (final coagContactId in memberships.keys) {
+      _contactsStreamController.add(coagContactId);
+    }
+
+    await persistentStorage.updateCircleMemberships(memberships);
+
+    await Future.wait([
+      for (final contact in _contacts.values
+          .where((c) => c.dhtSettingsForSharing?.psk != null))
+        updateContactSharedProfile(contact.coagContactId)
+    ]);
+  }
+
+  Future<void> updateCirclesForContact(
+      String coagContactId, List<String> circleIds) async {
+    _circleMemberships[coagContactId] = circleIds;
+    // Notify about the update
+    _contactsStreamController.add(coagContactId);
+    await Future.wait([
+      persistentStorage.updateCircleMemberships(_circleMemberships),
+      updateContactSharedProfile(coagContactId)
+    ]);
+  }
+
+  // TODO: Make this a pure utilities function instead for better testability?
+  List<(String, String, bool, int)> circlesWithMembership(
+          String coagContactId) =>
+      _circles
+          .map((id, label) => MapEntry(id, (
+                id,
+                label,
+                (_circleMemberships[coagContactId] ?? []).contains(id),
+                _circleMemberships.values
+                    .where((circles) => circles.contains(id))
+                    .length
+              )))
+          .values
+          .toList();
+
+  //////////////////
+  // PROFILE CONTACT
+
+  CoagContact? getProfileContact() =>
+      (_profileContactId == null) ? null : _contacts[_profileContactId!];
+
+  Future<void> unsetProfileContact() async {
+    _profileContactId = null;
+    _profileSharingSettings = const ProfileSharingSettings();
+    // TODO: updating all contacts' shared profile data to empty
+    await Future.wait([
+      persistentStorage.removeProfileContactId(),
+      persistentStorage.updateProfileSharingSettings(_profileSharingSettings)
+    ]);
+  }
+
+  Future<void> updateProfileContact(String coagContactId) async {
+    if (!_contacts.containsKey(coagContactId)) {
+      return unsetProfileContact();
+    }
+
+    // TODO: Do we need to enforce writing to disk to make it available to background straight away?
+    _profileContactId = coagContactId;
+    await persistentStorage.setProfileContactId(coagContactId);
+
+    final profileContact = getProfileContact();
+    if (profileContact != null) {
+      // Ensure all system contacts changes are in
+      // Try if permissions are granted
       try {
-        await systemContactsStorage.updateContact(contact.systemContact!);
+        final systemContact = await systemContactsStorage
+            .getContact(profileContact.systemContact!.id);
+        _systemContactAccessGrantedStreamController.add(true);
+
+        if (systemContact != profileContact.systemContact!) {
+          final updatedContact =
+              profileContact.copyWith(systemContact: systemContact);
+          await saveContact(updatedContact);
+        }
       } on MissingSystemContactsPermissionError {
         _systemContactAccessGrantedStreamController.add(false);
       }
     }
 
-    if (contact.sharedProfile != null) {
-      contact = await distributedStorage.updateContactSharingDHT(contact);
-    }
+    // TODO: With many contacts, can this run into parallel DHT write limitations?
+    await Future.wait([
+      for (final contact in _contacts.values
+          .where((c) => c.dhtSettingsForSharing?.psk != null))
+        updateContactSharedProfile(contact.coagContactId)
+    ]);
+  }
 
-    if (contact.dhtSettingsForReceiving != null) {
-      contact = await distributedStorage.updateContactReceivingDHT(contact);
-    }
-
-    // Final save after a potential dht update
+  Future<void> updateProfileContactData(CoagContact contact) async {
     await saveContact(contact);
+
+    await Future.wait([
+      for (final contact in _contacts.values
+          .where((c) => c.dhtSettingsForSharing?.psk != null))
+        updateContactSharedProfile(contact.coagContactId)
+    ]);
   }
 
-  Future<void> updateAndWatchReceivingDHT({bool shuffle = false}) async {
-    // TODO: Only do this when online; FIXME: This is a hack
-    if (!ProcessorRepository
-        .instance.processorConnectionState.attachment.publicInternetReady) {
-      return;
-    }
-    final contacts = _contacts.values.toList();
-    if (shuffle) {
-      contacts.shuffle();
-    }
-    for (final contact in contacts) {
-      // Check for incoming updates
-      if (contact.dhtSettingsForReceiving != null) {
-        final updatedContact =
-            await distributedStorage.updateContactReceivingDHT(contact);
-        if (updatedContact != contact) {
-          // TODO: Use update time from when the update was sent not received
-          // TODO: Can it happen that details are null?
-          // TODO: When temporary locations are updated, only record an update about added / updated locations / check-ins
-          await _saveUpdate(ContactUpdate(
-              // TODO: contact details can be null; handle this more appropriately than the current workaround with empty details
-              coagContactId: contact.coagContactId,
-              oldContact: contact.details ??
-                  ContactDetails(displayName: '', name: Name()),
-              newContact: updatedContact.details!,
-              timestamp: DateTime.now()));
-          await updateContact(updatedContact);
-        }
-        await distributedStorage
-            .watchDHTRecord(contact.dhtSettingsForReceiving!.key);
-      }
-    }
-  }
+  /////////////////////////
+  // PROFILE SHARE SETTINGS
 
-  CoagContact? getProfileContact() {
-    if (profileContactId == null) {
-      return null;
-    }
-    return _contacts[profileContactId!];
-  }
+  ProfileSharingSettings getProfileSharingSettings() => _profileSharingSettings;
 
-  Future<void> updateProfileContact(String coagContactId) async {
-    if (!_contacts.containsKey(coagContactId)) {
-      // TODO: Log / raise error
+  Future<void> setProfileSharingSettings(
+      ProfileSharingSettings settings) async {
+    _profileSharingSettings = settings;
+    await persistentStorage.updateProfileSharingSettings(settings);
+
+    if (getProfileContact() == null) {
       return;
     }
 
-    // TODO: Do we need to enforce writing to disk to make it available to background straight away?
-    profileContactId = coagContactId;
-    await persistentStorage.setProfileContactId(coagContactId);
-
-    // Ensure all system contacts changes are in
-    await _updateFromSystemContact(_contacts[coagContactId]!);
-
-    for (final contact in _contacts.values) {
-      if (contact.dhtSettingsForSharing?.psk == null) {
-        continue;
-      }
-      await updateContact(contact.copyWith(
-          sharedProfile: json.encode(removeNullOrEmptyValues(
-              filterAccordingToSharingProfile(
-                      profile: _contacts[coagContactId]!,
-                      settings: _profileSharingSettings,
-                      activeCircles:
-                          _circleMemberships[contact.coagContactId] ?? [],
-                      shareBackSettings: contact.dhtSettingsForReceiving)
-                  .toJson()))));
-    }
+    await Future.wait([
+      for (final contact in _contacts.values
+          .where((c) => c.dhtSettingsForSharing?.psk != null))
+        updateContactSharedProfile(contact.coagContactId)
+    ]);
   }
 
-  CoagContact? getCoagContactForSystemContactId(String systemContactId) =>
-      _contacts.values
-          .firstWhere((c) => c.systemContact?.id == systemContactId);
+  //////////
+  // UPDATES
 
-  String? getCoagContactIdForSystemContactId(String systemContactId) =>
-      getCoagContactForSystemContactId(systemContactId)?.coagContactId;
-
-  Map<String, CoagContact> getContacts() => _contacts;
-
-  // TODO: Proper error handling in case contact id not found or return nullable type
-  CoagContact getContact(String coagContactId) => _contacts[coagContactId]!;
-
-  Future<void> removeContact(String coagContactId) async {
-    _contacts.remove(coagContactId);
-    await persistentStorage.removeContact(coagContactId);
+  Future<void> _saveUpdate(ContactUpdate update) async {
+    _contactUpdates.add(update);
+    _updatesStreamController.add(update);
+    // TODO: Have two persistent storages with different prefixes for updates and contacts?
+    //       Because we might not need to migrate the updates on app updates, but def the contacts.
+    await persistentStorage.addUpdate(update);
   }
 
-  Map<String, String> getCircles() => _circles;
-  Map<String, List<String>> getCircleMemberships() => _circleMemberships;
+  List<ContactUpdate> getContactUpdates() => _contactUpdates;
 }

@@ -16,6 +16,8 @@ abstract class PersistentStorage {
 
   Future<String?> getProfileContactId();
 
+  Future<void> removeProfileContactId();
+
   Future<void> removeContact(String coagContactId);
 
   Future<List<ContactUpdate>> getUpdates();

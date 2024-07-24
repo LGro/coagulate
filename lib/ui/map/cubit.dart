@@ -43,10 +43,13 @@ class MapCubit extends Cubit<MapState> {
   MapCubit(this.contactsRepository)
       : super(const MapState([], MapStatus.initial)) {
     _contactsSuscription =
-        contactsRepository.getContactUpdates().listen((contact) {
+        contactsRepository.getContactStream().listen((coagContactId) {
+      final contact = contactsRepository.getContact(coagContactId);
+      if (contact == null) {
+        return;
+      }
       emit(MapState([
-        ...state.locations
-            .where((l) => l.coagContactId != contact.coagContactId),
+        ...state.locations.where((l) => l.coagContactId != coagContactId),
         ...contactToLocations(contact),
         ...contact.temporaryLocations
             .where((l) => l.end.isAfter(DateTime.now()))
@@ -71,7 +74,7 @@ class MapCubit extends Cubit<MapState> {
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<CoagContact> _contactsSuscription;
+  late final StreamSubscription<String> _contactsSuscription;
 
   @override
   Future<void> close() {

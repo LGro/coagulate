@@ -65,9 +65,6 @@ void main() {
       await tester.fling(find.byType(ListView), const Offset(0, -200), 3000);
       await tester.pumpAndSettle();
       expect(find.text('Contact 1'), findsNothing);
-
-      contactsRepository.timerDhtRefresh?.cancel();
-      contactsRepository.timerPersistentStorageRefresh?.cancel();
     });
   });
 }
