@@ -45,7 +45,7 @@ class _TableDBArrayBase {
     await _initWait();
   }
 
-  Future<void> _init() async {
+  Future<void> _init(_) async {
     // Load the array details
     await _mutex.protect(() async {
       _tableDB = await Veilid.instance.openTableDB(_table, 1);
@@ -259,10 +259,10 @@ class _TableDBArrayBase {
 
     for (var pos = start; pos < end;) {
       var batchLen = min(batchSize, end - pos);
-      final dws = DelayedWaitSet<Uint8List>();
+      final dws = DelayedWaitSet<Uint8List, void>();
       while (batchLen > 0) {
         final entry = await _getIndexEntry(pos);
-        dws.add(() async => (await _loadEntry(entry))!);
+        dws.add((_) async => (await _loadEntry(entry))!);
         pos++;
         batchLen--;
       }
@@ -613,7 +613,7 @@ class _TableDBArrayBase {
   var _open = true;
   var _initDone = false;
   final VeilidCrypto _crypto;
-  final WaitSet<void> _initWait = WaitSet();
+  final WaitSet<void, void> _initWait = WaitSet();
   final Mutex _mutex = Mutex();
 
   // Change tracking

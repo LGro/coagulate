@@ -134,7 +134,7 @@ class TableDBValue<T> extends TableDBBackedJson<T> {
         _tableKeyName = tableKeyName,
         _makeInitialValue = makeInitialValue,
         _streamController = StreamController<T>.broadcast() {
-    _initWait.add(() async {
+    _initWait.add((_) async {
       await get();
     });
   }
@@ -172,7 +172,7 @@ class TableDBValue<T> extends TableDBBackedJson<T> {
   final T? Function(Object? obj) _valueFromJson;
   final Object? Function(T? obj) _valueToJson;
   final StreamController<T> _streamController;
-  final WaitSet<void> _initWait = WaitSet();
+  final WaitSet<void, void> _initWait = WaitSet();
 
   //////////////////////////////////////////////////////////////
   /// AsyncTableDBBacked

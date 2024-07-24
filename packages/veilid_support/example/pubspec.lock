@@ -37,10 +37,10 @@ packages:
     dependency: "direct dev"
     description:
       name: async_tools
-      sha256: f35f5590711f1422c7eff990351e879c5433486f9b5be5df30818521bf6ab8d6
+      sha256: "375da1e5b51974a9e84469b7630f36d1361fb53d3fcc818a5a0121ab51fe0343"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.3"
+    version: "0.1.4"
   bloc:
     dependency: transitive
     description:
@@ -53,10 +53,10 @@ packages:
     dependency: transitive
     description:
       name: bloc_advanced_tools
-      sha256: "11f534f9e89561302de3bd07ab2dfe1c2dacaa8db9794ccdb57c55cfc02dffc6"
+      sha256: "0599d860eb096c5b12457c60bdf7f66bfcb7171bc94ccf2c7c752b6a716a79f9"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.3"
+    version: "0.1.4"
   boolean_selector:
     dependency: transitive
     description:

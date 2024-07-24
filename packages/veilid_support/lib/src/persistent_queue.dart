@@ -45,7 +45,7 @@ class PersistentQueue<T extends GeneratedMessage>
     }
   }
 
-  Future<void> _init() async {
+  Future<void> _init(_) async {
     // Start the processor
     unawaited(Future.delayed(Duration.zero, () async {
       await _initWait();
@@ -202,7 +202,7 @@ class PersistentQueue<T extends GeneratedMessage>
   final String _key;
   final T Function(Uint8List) _fromBuffer;
   final bool _deleteOnClose;
-  final WaitSet<void> _initWait = WaitSet();
+  final WaitSet<void, void> _initWait = WaitSet();
   final Mutex _queueMutex = Mutex();
   IList<T> _queue = IList<T>.empty();
   final StreamController<Iterable<T>> _syncAddController = StreamController();

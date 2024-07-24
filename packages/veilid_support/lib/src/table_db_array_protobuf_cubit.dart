@@ -46,7 +46,7 @@ class TableDBArrayProtobufCubit<T extends GeneratedMessage>
   TableDBArrayProtobufCubit({
     required Future<TableDBArrayProtobuf<T>> Function() open,
   }) : super(const BlocBusyState(AsyncValue.loading())) {
-    _initWait.add(() async {
+    _initWait.add((_) async {
       // Open table db array
       _array = await open();
       _wantsCloseArray = true;
@@ -180,7 +180,7 @@ class TableDBArrayProtobufCubit<T extends GeneratedMessage>
     return closure(_array);
   }
 
-  final WaitSet<void> _initWait = WaitSet();
+  final WaitSet<void, void> _initWait = WaitSet();
   late final TableDBArrayProtobuf<T> _array;
   StreamSubscription<void>? _subscription;
   bool _wantsCloseArray = false;

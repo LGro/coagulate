@@ -12,7 +12,7 @@ typedef StateFunction<T> = Future<T?> Function(
     DHTRecord, List<ValueSubkeyRange>, Uint8List?);
 typedef WatchFunction = Future<void> Function(DHTRecord);
 
-class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
+abstract class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
   DHTRecordCubit({
     required Future<DHTRecord> Function() open,
     required InitialStateFunction<T> initialStateFunction,
@@ -21,10 +21,24 @@ class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
   })  : _wantsCloseRecord = false,
         _stateFunction = stateFunction,
         super(const AsyncValue.loading()) {
-    initWait.add(() async {
-      // Do record open/create
-      _record = await open();
-      _wantsCloseRecord = true;
+    initWait.add((cancel) async {
+      try {
+        // Do record open/create
+        while (!cancel.isCompleted) {
+          try {
+            _record = await open();
+            _wantsCloseRecord = true;
+            break;
+          } on VeilidAPIExceptionKeyNotFound {
+          } on VeilidAPIExceptionTryAgain {
+            // Wait for a bit
+            await asyncSleep();
+          }
+        }
+      } on Exception catch (e, st) {
+        emit(AsyncValue.error(e, st));
+        return;
+      }
       await _init(initialStateFunction, stateFunction, watchFunction);
     });
   }
@@ -60,7 +74,7 @@ class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
 
   @override
   Future<void> close() async {
-    await initWait();
+    await initWait(cancelValue: true);
     await _record.cancelWatch();
     await _subscription?.cancel();
     _subscription = null;
@@ -98,7 +112,7 @@ class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
   DHTRecord get record => _record;
 
   @protected
-  final WaitSet<void> initWait = WaitSet();
+  final WaitSet<void, bool> initWait = WaitSet();
 
   StreamSubscription<DHTRecordWatchChange>? _subscription;
   late DHTRecord _record;

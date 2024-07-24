@@ -18,8 +18,11 @@ part 'dht_record_pool.g.dart';
 part 'dht_record.dart';
 part 'dht_record_pool_private.dart';
 
-// Maximum number of concurrent DHT operations to perform on the network
-const int maxDHTConcurrency = 8;
+/// Maximum number of concurrent DHT operations to perform on the network
+const int kMaxDHTConcurrency = 8;
+
+/// Number of times to retry a 'key not found'
+const int kDHTKeyNotFoundRetry = 3;
 
 typedef DHTRecordPoolLogger = void Function(String message);
 
@@ -60,6 +63,7 @@ class DHTRecordPool with TableDBBackedJson<DHTRecordPoolAllocations> {
   DHTRecordPool._(Veilid veilid, VeilidRoutingContext routingContext)
       : _state = const DHTRecordPoolAllocations(),
         _mutex = Mutex(),
+        _recordTagLock = AsyncTagLock(),
         _opened = <TypedKey, _OpenedRecordInfo>{},
         _markedForDelete = <TypedKey>{},
         _routingContext = routingContext,
@@ -132,24 +136,17 @@ class DHTRecordPool with TableDBBackedJson<DHTRecordPoolAllocations> {
           TypedKey? parent,
           int defaultSubkey = 0,
           VeilidCrypto? crypto}) async =>
-      _mutex.protect(() async {
+      _recordTagLock.protect(recordKey, closure: () async {
         final dhtctx = routingContext ?? _routingContext;
 
-        final openedRecordInfo = await _recordOpenInner(
+        final rec = await _recordOpenCommon(
             debugName: debugName,
             dhtctx: dhtctx,
             recordKey: recordKey,
-            parent: parent);
-
-        final rec = DHTRecord._(
-            debugName: debugName,
-            routingContext: dhtctx,
-            defaultSubkey: defaultSubkey,
-            sharedDHTRecordData: openedRecordInfo.shared,
+            crypto: crypto ?? const VeilidCryptoPublic(),
             writer: null,
-            crypto: crypto ?? const VeilidCryptoPublic());
-
-        openedRecordInfo.records.add(rec);
+            parent: parent,
+            defaultSubkey: defaultSubkey);
 
         return rec;
       });
@@ -164,27 +161,20 @@ class DHTRecordPool with TableDBBackedJson<DHTRecordPoolAllocations> {
     int defaultSubkey = 0,
     VeilidCrypto? crypto,
   }) async =>
-      _mutex.protect(() async {
+      _recordTagLock.protect(recordKey, closure: () async {
         final dhtctx = routingContext ?? _routingContext;
 
-        final openedRecordInfo = await _recordOpenInner(
-            debugName: debugName,
-            dhtctx: dhtctx,
-            recordKey: recordKey,
-            parent: parent,
-            writer: writer);
-
-        final rec = DHTRecord._(
-            debugName: debugName,
-            routingContext: dhtctx,
-            defaultSubkey: defaultSubkey,
-            writer: writer,
-            sharedDHTRecordData: openedRecordInfo.shared,
-            crypto: crypto ??
-                await privateCryptoFromTypedSecret(
-                    TypedKey(kind: recordKey.kind, value: writer.secret)));
-
-        openedRecordInfo.records.add(rec);
+        final rec = await _recordOpenCommon(
+          debugName: debugName,
+          dhtctx: dhtctx,
+          recordKey: recordKey,
+          crypto: crypto ??
+              await privateCryptoFromTypedSecret(
+                  TypedKey(kind: recordKey.kind, value: writer.secret)),
+          writer: writer,
+          parent: parent,
+          defaultSubkey: defaultSubkey,
+        );
 
         return rec;
       });
@@ -381,41 +371,72 @@ class DHTRecordPool with TableDBBackedJson<DHTRecordPoolAllocations> {
     return openedRecordInfo;
   }
 
-  Future<_OpenedRecordInfo> _recordOpenInner(
+  Future<DHTRecord> _recordOpenCommon(
       {required String debugName,
       required VeilidRoutingContext dhtctx,
       required TypedKey recordKey,
-      KeyPair? writer,
-      TypedKey? parent}) async {
-    if (!_mutex.isLocked) {
-      throw StateError('should be locked here');
-    }
+      required VeilidCrypto crypto,
+      required KeyPair? writer,
+      required TypedKey? parent,
+      required int defaultSubkey}) async {
     log('openDHTRecord: debugName=$debugName key=$recordKey');
 
-    // If we are opening a key that already exists
-    // make sure we are using the same parent if one was specified
-    _validateParentInner(parent, recordKey);
-
     // See if this has been opened yet
-    final openedRecordInfo = _opened[recordKey];
+    final openedRecordInfo = await _mutex.protect(() async {
+      // If we are opening a key that already exists
+      // make sure we are using the same parent if one was specified
+      _validateParentInner(parent, recordKey);
+
+      return _opened[recordKey];
+    });
+
     if (openedRecordInfo == null) {
       // Fresh open, just open the record
-      final recordDescriptor =
-          await dhtctx.openDHTRecord(recordKey, writer: writer);
+      var retry = kDHTKeyNotFoundRetry;
+      late final DHTRecordDescriptor recordDescriptor;
+      while (true) {
+        try {
+          recordDescriptor =
+              await dhtctx.openDHTRecord(recordKey, writer: writer);
+          break;
+        } on VeilidAPIExceptionKeyNotFound {
+          await asyncSleep();
+          retry--;
+          if (retry == 0) {
+            rethrow;
+          }
+        }
+      }
+
       final newOpenedRecordInfo = _OpenedRecordInfo(
           recordDescriptor: recordDescriptor,
           defaultWriter: writer,
           defaultRoutingContext: dhtctx);
-      _opened[recordDescriptor.key] = newOpenedRecordInfo;
 
-      // Register the dependency
-      await _addDependencyInner(
-        parent,
-        recordKey,
-        debugName: debugName,
-      );
+      final rec = DHTRecord._(
+          debugName: debugName,
+          routingContext: dhtctx,
+          defaultSubkey: defaultSubkey,
+          sharedDHTRecordData: newOpenedRecordInfo.shared,
+          writer: writer,
+          crypto: crypto);
 
-      return newOpenedRecordInfo;
+      await _mutex.protect(() async {
+        // Register the opened record
+        _opened[recordDescriptor.key] = newOpenedRecordInfo;
+
+        // Register the dependency
+        await _addDependencyInner(
+          parent,
+          recordKey,
+          debugName: debugName,
+        );
+
+        // Register the newly opened record
+        newOpenedRecordInfo.records.add(rec);
+      });
+
+      return rec;
     }
 
     // Already opened
@@ -430,37 +451,50 @@ class DHTRecordPool with TableDBBackedJson<DHTRecordPoolAllocations> {
       openedRecordInfo.shared.defaultRoutingContext = dhtctx;
     }
 
-    // Register the dependency
-    await _addDependencyInner(
-      parent,
-      recordKey,
-      debugName: debugName,
-    );
+    final rec = DHTRecord._(
+        debugName: debugName,
+        routingContext: dhtctx,
+        defaultSubkey: defaultSubkey,
+        sharedDHTRecordData: openedRecordInfo.shared,
+        writer: writer,
+        crypto: crypto);
 
-    return openedRecordInfo;
+    await _mutex.protect(() async {
+      // Register the dependency
+      await _addDependencyInner(
+        parent,
+        recordKey,
+        debugName: debugName,
+      );
+
+      openedRecordInfo.records.add(rec);
+    });
+
+    return rec;
   }
 
   // Called when a DHTRecord is closed
   // Cleans up the opened record housekeeping and processes any late deletions
   Future<void> _recordClosed(DHTRecord record) async {
-    await _mutex.protect(() async {
-      final key = record.key;
+    await _recordTagLock.protect(record.key,
+        closure: () => _mutex.protect(() async {
+              final key = record.key;
 
-      log('closeDHTRecord: debugName=${record.debugName} key=$key');
+              log('closeDHTRecord: debugName=${record.debugName} key=$key');
 
-      final openedRecordInfo = _opened[key];
-      if (openedRecordInfo == null ||
-          !openedRecordInfo.records.remove(record)) {
-        throw StateError('record already closed');
-      }
-      if (openedRecordInfo.records.isEmpty) {
-        await _watchStateProcessors.remove(key);
-        await _routingContext.closeDHTRecord(key);
-        _opened.remove(key);
+              final openedRecordInfo = _opened[key];
+              if (openedRecordInfo == null ||
+                  !openedRecordInfo.records.remove(record)) {
+                throw StateError('record already closed');
+              }
+              if (openedRecordInfo.records.isEmpty) {
+                await _watchStateProcessors.remove(key);
+                await _routingContext.closeDHTRecord(key);
+                _opened.remove(key);
 
-        await _checkForLateDeletesInner(key);
-      }
-    });
+                await _checkForLateDeletesInner(key);
+              }
+            }));
   }
 
   // Check to see if this key can finally be deleted
@@ -916,6 +950,8 @@ class DHTRecordPool with TableDBBackedJson<DHTRecordPoolAllocations> {
   DHTRecordPoolAllocations _state;
   // Create/open Mutex
   final Mutex _mutex;
+  // Record key tag lock
+  final AsyncTagLock<TypedKey> _recordTagLock;
   // Which DHT records are currently open
   final Map<TypedKey, _OpenedRecordInfo> _opened;
   // Which DHT records are marked for deletion

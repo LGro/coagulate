@@ -40,7 +40,7 @@ class _DHTShortArrayWrite extends _DHTShortArrayRead
       }
     }
     if (!success) {
-      throw DHTExceptionTryAgain();
+      throw DHTExceptionOutdated();
     }
   }
 
@@ -66,12 +66,12 @@ class _DHTShortArrayWrite extends _DHTShortArrayRead
       }
 
       // Write items in parallel
-      final dws = DelayedWaitSet<void>();
+      final dws = DelayedWaitSet<void, void>();
       for (var i = 0; i < values.length; i++) {
         final lookup = lookups[i];
         final value = values[i];
         final outSeqNum = outSeqNums[i];
-        dws.add(() async {
+        dws.add((_) async {
           final outValue = await lookup.record.tryWriteBytes(value,
               subkey: lookup.recordSubkey, outSeqNum: outSeqNum);
           if (outValue != null) {
@@ -80,7 +80,7 @@ class _DHTShortArrayWrite extends _DHTShortArrayRead
         });
       }
 
-      await dws(chunkSize: maxDHTConcurrency, onChunkDone: (_) => success);
+      await dws(chunkSize: kMaxDHTConcurrency, onChunkDone: (_) => success);
     } finally {
       // Update sequence numbers
       for (var i = 0; i < values.length; i++) {
@@ -97,7 +97,7 @@ class _DHTShortArrayWrite extends _DHTShortArrayRead
       }
     }
     if (!success) {
-      throw DHTExceptionTryAgain();
+      throw DHTExceptionOutdated();
     }
   }
 

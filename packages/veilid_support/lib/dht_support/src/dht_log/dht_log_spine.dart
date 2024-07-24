@@ -147,7 +147,7 @@ class _DHTLogSpine {
           if (!await writeSpineHead(old: (oldHead, oldTail))) {
             // Failed to write head means head got overwritten so write should
             // be considered failed
-            throw DHTExceptionTryAgain();
+            throw DHTExceptionOutdated();
           }
           return out;
         } on Exception {
@@ -187,7 +187,7 @@ class _DHTLogSpine {
             try {
               out = await closure(this);
               break;
-            } on DHTExceptionTryAgain {
+            } on DHTExceptionOutdated {
               // Failed to write in closure resets state
               _head = oldHead;
               _tail = oldTail;

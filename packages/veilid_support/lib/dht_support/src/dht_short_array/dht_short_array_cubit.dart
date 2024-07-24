@@ -30,13 +30,29 @@ class DHTShortArrayCubit<T> extends Cubit<DHTShortArrayBusyState<T>>
     required T Function(List<int> data) decodeElement,
   })  : _decodeElement = decodeElement,
         super(const BlocBusyState(AsyncValue.loading())) {
-    _initWait.add(() async {
-      // Open DHT record
-      _shortArray = await open();
-      _wantsCloseRecord = true;
+    _initWait.add((cancel) async {
+      try {
+        // Do record open/create
+        while (!cancel.isCompleted) {
+          try {
+            // Open DHT record
+            _shortArray = await open();
+            _wantsCloseRecord = true;
+            break;
+          } on VeilidAPIExceptionTryAgain {
+            // Wait for a bit
+            await asyncSleep();
+          }
+        }
+      } on Exception catch (e, st) {
+        emit(DHTShortArrayBusyState<T>(AsyncValue.error(e, st)));
+        return;
+      }
 
-      // Make initial state update
-      await _refreshNoWait();
+      // Kick off initial update
+      _update();
+
+      // Subscribe to changes
       _subscription = await _shortArray.listen(_update);
     });
   }
@@ -82,7 +98,8 @@ class DHTShortArrayCubit<T> extends Cubit<DHTShortArrayBusyState<T>>
   void _update() {
     // Run at most one background update process
     // Because this is async, we could get an update while we're
-    // still processing the last one. Only called after init future has run
+    // still processing the last one.
+    // Only called after init future has run, or during it
     // so we dont have to wait for that here.
     _sspUpdate.busyUpdate<T, DHTShortArrayState<T>>(
         busy, (emit) async => _refreshInner(emit));
@@ -90,7 +107,7 @@ class DHTShortArrayCubit<T> extends Cubit<DHTShortArrayBusyState<T>>
 
   @override
   Future<void> close() async {
-    await _initWait();
+    await _initWait(cancelValue: true);
     await _subscription?.cancel();
     _subscription = null;
     if (_wantsCloseRecord) {
@@ -118,7 +135,7 @@ class DHTShortArrayCubit<T> extends Cubit<DHTShortArrayBusyState<T>>
     return _shortArray.operateWriteEventual(closure, timeout: timeout);
   }
 
-  final WaitSet<void> _initWait = WaitSet();
+  final WaitSet<void, bool> _initWait = WaitSet();
   late final DHTShortArray _shortArray;
   final T Function(List<int> data) _decodeElement;
   StreamSubscription<void>? _subscription;

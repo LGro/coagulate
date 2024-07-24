@@ -22,7 +22,7 @@ abstract class AsyncTableDBBackedCubit<T> extends Cubit<AsyncValue<T?>>
     await super.close();
   }
 
-  Future<void> _build() async {
+  Future<void> _build(_) async {
     try {
       await _mutex.protect(() async {
         emit(AsyncValue.data(await load()));
@@ -42,6 +42,6 @@ abstract class AsyncTableDBBackedCubit<T> extends Cubit<AsyncValue<T?>>
     }
   }
 
-  final WaitSet<void> _initWait = WaitSet();
+  final WaitSet<void, void> _initWait = WaitSet();
   final Mutex _mutex = Mutex();
 }

@@ -43,13 +43,26 @@ class DHTLogCubit<T> extends Cubit<DHTLogBusyState<T>>
     required T Function(List<int> data) decodeElement,
   })  : _decodeElement = decodeElement,
         super(const BlocBusyState(AsyncValue.loading())) {
-    _initWait.add(() async {
-      // Open DHT record
-      _log = await open();
-      _wantsCloseRecord = true;
-
+    _initWait.add((cancel) async {
+      try {
+        // Do record open/create
+        while (!cancel.isCompleted) {
+          try {
+            // Open DHT record
+            _log = await open();
+            _wantsCloseRecord = true;
+            break;
+          } on VeilidAPIExceptionTryAgain {
+            // Wait for a bit
+            await asyncSleep();
+          }
+        }
+      } on Exception catch (e, st) {
+        emit(DHTLogBusyState(AsyncValue.error(e, st)));
+        return;
+      }
       // Make initial state update
-      await _refreshNoWait();
+      _initialUpdate();
       _subscription = await _log.listen(_update);
     });
   }
@@ -156,7 +169,7 @@ class DHTLogCubit<T> extends Cubit<DHTLogBusyState<T>>
     // Run at most one background update process
     // Because this is async, we could get an update while we're
     // still processing the last one. Only called after init future has run
-    // so we dont have to wait for that here.
+    // or during it, so we dont have to wait for that here.
 
     // Accumulate head and tail deltas
     _headDelta += upd.headDelta;
@@ -188,9 +201,15 @@ class DHTLogCubit<T> extends Cubit<DHTLogBusyState<T>>
     });
   }
 
+  void _initialUpdate() {
+    _sspUpdate.busyUpdate<T, DHTLogState<T>>(busy, (emit) async {
+      await _refreshInner(emit);
+    });
+  }
+
   @override
   Future<void> close() async {
-    await _initWait();
+    await _initWait(cancelValue: true);
     await _subscription?.cancel();
     _subscription = null;
     if (_wantsCloseRecord) {
@@ -217,7 +236,7 @@ class DHTLogCubit<T> extends Cubit<DHTLogBusyState<T>>
     return _log.operateAppendEventual(closure, timeout: timeout);
   }
 
-  final WaitSet<void> _initWait = WaitSet();
+  final WaitSet<void, bool> _initWait = WaitSet();
   late final DHTLog _log;
   final T Function(List<int> data) _decodeElement;
   StreamSubscription<void>? _subscription;

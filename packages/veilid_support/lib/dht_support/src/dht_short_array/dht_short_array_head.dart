@@ -91,7 +91,7 @@ class _DHTShortArrayHead {
           if (!await _writeHead()) {
             // Failed to write head means head got overwritten so write should
             // be considered failed
-            throw DHTExceptionTryAgain();
+            throw DHTExceptionOutdated();
           }
 
           onUpdatedHead?.call();
@@ -143,7 +143,7 @@ class _DHTShortArrayHead {
             try {
               out = await closure(this);
               break;
-            } on DHTExceptionTryAgain {
+            } on DHTExceptionOutdated {
               // Failed to write in closure resets state
               _linkedRecords = List.of(oldLinkedRecords);
               _index = List.of(oldIndex);

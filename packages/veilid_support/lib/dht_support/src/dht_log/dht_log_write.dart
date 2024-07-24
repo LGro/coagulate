@@ -26,10 +26,10 @@ class _DHTLogWrite extends _DHTLogRead implements DHTLogWriteOperations {
             final success =
                 await write.tryWriteItem(lookup.pos, newValue, output: output);
             if (!success) {
-              throw DHTExceptionTryAgain();
+              throw DHTExceptionOutdated();
             }
           }));
-    } on DHTExceptionTryAgain {
+    } on DHTExceptionOutdated {
       return false;
     }
     return true;
@@ -71,14 +71,14 @@ class _DHTLogWrite extends _DHTLogRead implements DHTLogWriteOperations {
                     final success = await bWrite
                         .tryWriteItem(bLookup.pos, aItem, output: bItem);
                     if (!success) {
-                      throw DHTExceptionTryAgain();
+                      throw DHTExceptionOutdated();
                     }
                   });
                 }
                 final success =
                     await aWrite.tryWriteItem(aLookup.pos, bItem.value!);
                 if (!success) {
-                  throw DHTExceptionTryAgain();
+                  throw DHTExceptionOutdated();
                 }
               })));
     }
@@ -114,7 +114,7 @@ class _DHTLogWrite extends _DHTLogRead implements DHTLogWriteOperations {
     _spine.allocateTail(values.length);
 
     // Look up the first position and shortarray
-    final dws = DelayedWaitSet<void>();
+    final dws = DelayedWaitSet<void, void>();
 
     var success = true;
     for (var valueIdx = 0; valueIdx < values.length;) {
@@ -128,7 +128,7 @@ class _DHTLogWrite extends _DHTLogRead implements DHTLogWriteOperations {
       final sacount = min(remaining, DHTShortArray.maxElements - lookup.pos);
       final sublistValues = values.sublist(valueIdx, valueIdx + sacount);
 
-      dws.add(() async {
+      dws.add((_) async {
         try {
           await lookup.scope((sa) async => sa.operateWrite((write) async {
                 // If this a new segment, then clear it in
@@ -141,7 +141,7 @@ class _DHTLogWrite extends _DHTLogRead implements DHTLogWriteOperations {
                 }
                 return write.addAll(sublistValues);
               }));
-        } on DHTExceptionTryAgain {
+        } on DHTExceptionOutdated {
           success = false;
         }
       });
@@ -152,7 +152,7 @@ class _DHTLogWrite extends _DHTLogRead implements DHTLogWriteOperations {
     await dws();
 
     if (!success) {
-      throw DHTExceptionTryAgain();
+      throw DHTExceptionOutdated();
     }
   }
 

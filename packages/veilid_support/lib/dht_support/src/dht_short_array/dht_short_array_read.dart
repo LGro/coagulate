@@ -54,8 +54,9 @@ class _DHTShortArrayRead implements DHTShortArrayReadOperations {
     final out = <Uint8List>[];
     (start, length) = _clampStartLen(start, length);
 
-    final chunks = Iterable<int>.generate(length).slices(maxDHTConcurrency).map(
-        (chunk) =>
+    final chunks = Iterable<int>.generate(length)
+        .slices(kMaxDHTConcurrency)
+        .map((chunk) =>
             chunk.map((pos) => get(pos + start, forceRefresh: forceRefresh)));
 
     for (final chunk in chunks) {
