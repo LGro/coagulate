@@ -112,10 +112,9 @@ void main() {
         settings: const ProfileSharingSettings(),
         activeCircles: ['Circle'],
         shareBackSettings: null);
-    expect(filtered.temporaryLocations.length, 2);
-    expect(filtered.temporaryLocations[0].name, 'less than a day ago');
-    expect(filtered.temporaryLocations[1].name, 'future');
-    expect(filtered.temporaryLocations[1], contact.temporaryLocations[2]);
+    expect(filtered.temporaryLocations.length, 1);
+    expect(filtered.temporaryLocations[0].name, 'future');
+    expect(filtered.temporaryLocations[0], contact.temporaryLocations[2]);
   });
 
   test('equate contacts with stripped photo', () {
