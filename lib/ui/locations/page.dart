@@ -355,15 +355,6 @@ Widget locationTile(ContactTemporaryLocation location,
                 ? const Icon(Icons.pin_drop_outlined)
                 : null);
 
-// TODO: This will fail with different font sizes when e.g. in big text mode for accessibility
-double locationsScrollOffset(Iterable<ContactTemporaryLocation> locations) {
-  final oldLocations = locations.where((l) => l.end.isBefore(DateTime.now()));
-  if (oldLocations.isEmpty) {
-    return 0;
-  }
-  return 20 + 100.0 * oldLocations.length;
-}
-
 class LocationsPage extends StatelessWidget {
   const LocationsPage({super.key});
 
@@ -377,87 +368,59 @@ class LocationsPage extends StatelessWidget {
               body: Column(children: [
                 // SingleChildScrollView(child: LocationForm())
                 Expanded(
-                    child: ListView(
-                        controller: ScrollController(
-                            initialScrollOffset: locationsScrollOffset(
-                                state.temporaryLocations)),
-                        children: [
-                      // Past locations
-                      ...state.temporaryLocations
-                          .where((l) => l.end.isBefore(DateTime.now()))
-                          .map((l) => Dismissible(
-                              key: UniqueKey(),
-                              onDismissed: (_) async => context
-                                  .read<LocationsCubit>()
-                                  .removeLocation(l),
-                              background: Container(color: Colors.red),
-                              child: Padding(
-                                  padding: EdgeInsets.only(left: 16, right: 16),
-                                  child: locationTile(l,
-                                      circleMembersips:
-                                          state.circleMembersips))))
-                          .asList(),
-                      if (state.temporaryLocations
-                          .where((l) => l.end.isBefore(DateTime.now()))
-                          .isNotEmpty)
-                        const Row(children: [
-                          Expanded(child: Divider(indent: 8, endIndent: 8)),
-                          Text('past locations'),
-                          Expanded(child: Divider(indent: 8, endIndent: 8))
-                        ]),
-                      // Current locations // TODO: maybe allow checking in 5-10min earlier?
-                      ...state.temporaryLocations
-                          .where((l) =>
-                              !l.end.isBefore(DateTime.now()) &&
-                              l.start.isBefore(DateTime.now()))
-                          .map((l) => Dismissible(
-                              key: UniqueKey(),
-                              onDismissed: (_) async => context
-                                  .read<LocationsCubit>()
-                                  .removeLocation(l),
-                              background: Container(color: Colors.red),
-                              child: Padding(
-                                  padding: EdgeInsets.only(left: 16, right: 16),
-                                  child: locationTile(l,
-                                      circleMembersips: state.circleMembersips,
-                                      onTap: () async => context
-                                          .read<LocationsCubit>()
-                                          .toggleCheckInExisting(l)))))
-                          .asList(),
-                      // Future locations
-                      ...state.temporaryLocations
-                          .where((l) =>
-                              !l.end.isBefore(DateTime.now()) &&
-                              !l.start.isBefore(DateTime.now()))
-                          .map((l) => Dismissible(
-                              key: UniqueKey(),
-                              onDismissed: (_) async => context
-                                  .read<LocationsCubit>()
-                                  .removeLocation(l),
-                              background: Container(color: Colors.red),
-                              child: Padding(
-                                  padding: EdgeInsets.only(left: 16, right: 16),
-                                  child: locationTile(l,
-                                      circleMembersips:
-                                          state.circleMembersips))))
-                          .asList(),
-                      // If no future locations
-                      if (state.temporaryLocations
-                          .where((l) => !l.end.isBefore(DateTime.now()))
-                          .isEmpty)
-                        Container(
-                            padding: const EdgeInsets.all(20),
-                            child: const Text(
-                                'Nothing coming up, check-in now or schedule a future stay.',
-                                style: TextStyle(fontSize: 16))),
-                      if (state.circleMembersips.isEmpty)
-                        Container(
-                            padding: const EdgeInsets.only(
-                                left: 20, right: 20, bottom: 20),
-                            child: const Text(
-                                'Before you can share your location, add some contacts to circles.',
-                                style: TextStyle(fontSize: 16))),
-                    ])),
+                    child: ListView(children: [
+                  // Current locations // TODO: maybe allow checking in 5-10min earlier?
+                  ...state.temporaryLocations
+                      .where((l) =>
+                          !l.end.isBefore(DateTime.now()) &&
+                          l.start.isBefore(DateTime.now()))
+                      .map((l) => Dismissible(
+                          key: UniqueKey(),
+                          onDismissed: (_) async =>
+                              context.read<LocationsCubit>().removeLocation(l),
+                          background: Container(color: Colors.red),
+                          child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 16, right: 16),
+                              child: locationTile(l,
+                                  circleMembersips: state.circleMembersips,
+                                  onTap: () async => context
+                                      .read<LocationsCubit>()
+                                      .toggleCheckInExisting(l)))))
+                      .asList(),
+                  // Future locations
+                  ...state.temporaryLocations
+                      .where((l) =>
+                          !l.end.isBefore(DateTime.now()) &&
+                          !l.start.isBefore(DateTime.now()))
+                      .map((l) => Dismissible(
+                          key: UniqueKey(),
+                          onDismissed: (_) async =>
+                              context.read<LocationsCubit>().removeLocation(l),
+                          background: Container(color: Colors.red),
+                          child: Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 16, right: 16),
+                              child: locationTile(l,
+                                  circleMembersips: state.circleMembersips))))
+                      .asList(),
+                  // If no future locations
+                  if (state.temporaryLocations
+                      .where((l) => !l.end.isBefore(DateTime.now()))
+                      .isEmpty)
+                    Container(
+                        padding: const EdgeInsets.all(20),
+                        child: const Text(
+                            'Nothing coming up, check-in now or schedule a future stay.',
+                            style: TextStyle(fontSize: 16))),
+                  if (state.circleMembersips.isEmpty)
+                    Container(
+                        padding: const EdgeInsets.only(
+                            left: 20, right: 20, bottom: 20),
+                        child: const Text(
+                            'Before you can share your location, add some contacts to circles.',
+                            style: TextStyle(fontSize: 16))),
+                ])),
                 const SizedBox(height: 8),
                 Row(children: [
                   const Expanded(child: SizedBox()),
