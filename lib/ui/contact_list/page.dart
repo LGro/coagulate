@@ -65,84 +65,7 @@ class _ContactListPageState extends State<ContactListPage> {
                         builder: (_, profileContactState) => Container(
                             padding: const EdgeInsets.all(10),
                             child: Column(children: [
-                              Row(children: [
-                                Expanded(
-                                    child: TextField(
-                                  onChanged:
-                                      context.read<ContactListCubit>().filter,
-                                  autocorrect: false,
-                                  decoration: InputDecoration(
-                                      labelText: 'Search',
-                                      prefixIcon: const Icon(Icons.search),
-                                      // TODO: Clear the actual text as well
-                                      suffixIcon: IconButton(
-                                        onPressed: () async => context
-                                            .read<ContactListCubit>()
-                                            .filter(''),
-                                        icon: const Icon(Icons.clear),
-                                      ),
-                                      border: const OutlineInputBorder()),
-                                )),
-                                if (state.selectedCircle != null)
-                                  TextButton(
-                                      onPressed: context
-                                          .read<ContactListCubit>()
-                                          .unselectCircle,
-                                      child: Text(
-                                          'Circle: ${state.circles[state.selectedCircle]}'))
-                                else
-                                  IconButton(
-                                      onPressed: () async => showModalBottomSheet<
-                                              void>(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          builder: (modalContext) => Padding(
-                                              padding: EdgeInsets.only(
-                                                  left: 24,
-                                                  top: 24,
-                                                  right: 24,
-                                                  bottom: 16 +
-                                                      MediaQuery.of(
-                                                              modalContext)
-                                                          .viewInsets
-                                                          .bottom),
-                                              child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    const Text(
-                                                        'Only display contacts from circle:',
-                                                        textScaler:
-                                                            TextScaler.linear(
-                                                                1.2)),
-                                                    const SizedBox(height: 16),
-                                                    Wrap(
-                                                        spacing: 8,
-                                                        runSpacing: 6,
-                                                        children: [
-                                                          for (final circle
-                                                              in state.circles
-                                                                  .entries)
-                                                            OutlinedButton(
-                                                                onPressed: () {
-                                                                  context
-                                                                      .read<
-                                                                          ContactListCubit>()
-                                                                      .selectCircle(
-                                                                          circle
-                                                                              .key);
-                                                                  Navigator.pop(
-                                                                      context);
-                                                                },
-                                                                child: Text(
-                                                                    circle
-                                                                        .value))
-                                                        ])
-                                                  ]))),
-                                      icon: const Icon(Icons.circle_outlined))
-                              ]),
+                              _searchBar(context, state),
                               const SizedBox(height: 10),
                               Expanded(
                                   child: _body(
@@ -156,6 +79,62 @@ class _ContactListPageState extends State<ContactListPage> {
                             ])));
                 }
               })));
+
+  Widget _searchBar(BuildContext context, ContactListState state) =>
+      Row(children: [
+        Expanded(
+            child: TextField(
+          onChanged: context.read<ContactListCubit>().filter,
+          autocorrect: false,
+          decoration: InputDecoration(
+              labelText: 'Search',
+              prefixIcon: const Icon(Icons.search),
+              // TODO: Clear the actual text as well
+              suffixIcon: IconButton(
+                onPressed: () async =>
+                    context.read<ContactListCubit>().filter(''),
+                icon: const Icon(Icons.clear),
+              ),
+              border: const OutlineInputBorder()),
+        )),
+        if (state.circleMemberships.values.expand((c) => c).isNotEmpty)
+          if (state.selectedCircle != null)
+            TextButton(
+                onPressed: context.read<ContactListCubit>().unselectCircle,
+                child: Text('Circle: ${state.circles[state.selectedCircle]}'))
+          else
+            IconButton(
+                onPressed: () async => showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (modalContext) => Padding(
+                        padding: EdgeInsets.only(
+                            left: 24,
+                            top: 24,
+                            right: 24,
+                            bottom: 16 +
+                                MediaQuery.of(modalContext).viewInsets.bottom),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('Only display contacts from circle:',
+                                  textScaler: TextScaler.linear(1.2)),
+                              const SizedBox(height: 16),
+                              Wrap(spacing: 8, runSpacing: 6, children: [
+                                for (final circle in state.circles.entries)
+                                  OutlinedButton(
+                                      onPressed: () {
+                                        context
+                                            .read<ContactListCubit>()
+                                            .selectCircle(circle.key);
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text(circle.value))
+                              ])
+                            ]))),
+                icon: const Icon(Icons.circle_outlined))
+      ]);
 
   Widget _body(List<CoagContact> contacts,
           Map<String, List<String>> circleMemberships) =>
