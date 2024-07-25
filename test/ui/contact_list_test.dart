@@ -40,8 +40,8 @@ void main() {
             details: ContactDetails(
                 displayName: 'Daisy', name: Name(first: 'Daisy'))),
       ];
-      expect(filterAndSortContacts(contacts, filter: 'name').length, 0);
-      expect(filterAndSortContacts(contacts, filter: 'dai').length, 1);
+      expect(filterAndSortContacts(contacts, 'name').length, 0);
+      expect(filterAndSortContacts(contacts, 'dai').length, 1);
     });
   });
   group('Contact List Page Widget Tests', () {

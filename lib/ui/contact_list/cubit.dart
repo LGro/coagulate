@@ -25,8 +25,8 @@ String extractAllValuesToString(dynamic value) {
   }
 }
 
-Iterable<CoagContact> filterAndSortContacts(Iterable<CoagContact> contacts,
-        {String filter = ''}) =>
+Iterable<CoagContact> filterAndSortContacts(
+        Iterable<CoagContact> contacts, String filter) =>
     ((filter.isEmpty)
             ? contacts
             : contacts.where((c) =>
@@ -47,6 +47,7 @@ Iterable<CoagContact> filterAndSortContacts(Iterable<CoagContact> contacts,
 class ContactListCubit extends Cubit<ContactListState> {
   ContactListCubit(this.contactsRepository)
       : super(const ContactListState(ContactListStatus.initial)) {
+    // TODO: Also listen to circle updates?
     _contactsSuscription =
         contactsRepository.getContactStream().listen((idUpdatedContact) {
       if (!isClosed) {
@@ -54,18 +55,18 @@ class ContactListCubit extends Cubit<ContactListState> {
         if (contact == null) {
           return;
         }
-        emit(ContactListState(ContactListStatus.success,
+        emit(state.copyWith(
             circleMemberships: contactsRepository.getCircleMemberships(),
-            contacts: filterAndSortContacts([
-              ...state.contacts
-                  .where((c) => c.coagContactId != contact.coagContactId),
-              contact
-            ])));
+            circles: contactsRepository.getCircles(),
+            contacts: filterAndSortContactsInSelectedCircles(
+                state.filter, state.selectedCircle)));
       }
     });
+
     emit(ContactListState(ContactListStatus.success,
-        contacts:
-            filterAndSortContacts(contactsRepository.getContacts().values),
+        contacts: filterAndSortContactsInSelectedCircles(
+            state.filter, state.selectedCircle),
+        circles: contactsRepository.getCircles(),
         circleMemberships: contactsRepository.getCircleMemberships()));
   }
 
@@ -73,9 +74,34 @@ class ContactListCubit extends Cubit<ContactListState> {
   late final StreamSubscription<String> _contactsSuscription;
 
   void filter(String filter) => emit(state.copyWith(
-      status: ContactListStatus.success,
-      contacts: filterAndSortContacts(contactsRepository.getContacts().values,
-          filter: filter)));
+      // FIXME: Needing to pass "filter" to two places feels awkward
+      filter: filter,
+      contacts: filterAndSortContactsInSelectedCircles(
+          filter, state.selectedCircle)));
+
+  void selectCircle(String circleId) => emit(state.copyWith(
+      selectedCircle: circleId,
+      contacts:
+          filterAndSortContactsInSelectedCircles(state.filter, circleId)));
+
+  // TODO: Explicitly re-initializing the state instead of a copy with is erroneous
+  //       do something about it like moving unselect circle to state
+  void unselectCircle() => emit(ContactListState(state.status,
+      filter: state.filter,
+      circleMemberships: state.circleMemberships,
+      circles: state.circles,
+      contacts: filterAndSortContactsInSelectedCircles(state.filter, null)));
+
+  Iterable<CoagContact> filterAndSortContactsInSelectedCircles(
+          String filter, String? selectedCircle) =>
+      filterAndSortContacts(
+          contactsRepository.getContacts().values.where((contact) =>
+              selectedCircle == null ||
+              contactsRepository
+                  .getContactIdsForCircle(selectedCircle)
+                  .toSet()
+                  .contains(contact.coagContactId)),
+          filter);
 
   @override
   Future<void> close() {

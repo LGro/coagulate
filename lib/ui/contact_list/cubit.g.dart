@@ -18,12 +18,21 @@ ContactListState _$ContactListStateFromJson(Map<String, dynamic> json) =>
                     k, (e as List<dynamic>).map((e) => e as String).toList()),
               ) ??
               const {},
+      filter: json['filter'] as String? ?? '',
+      selectedCircle: json['selected_circle'] as String?,
+      circles: (json['circles'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
     );
 
 Map<String, dynamic> _$ContactListStateToJson(ContactListState instance) =>
     <String, dynamic>{
       'circle_memberships': instance.circleMemberships,
       'contacts': instance.contacts.map((e) => e.toJson()).toList(),
+      'selected_circle': instance.selectedCircle,
+      'circles': instance.circles,
+      'filter': instance.filter,
       'status': _$ContactListStatusEnumMap[instance.status]!,
     };
 
