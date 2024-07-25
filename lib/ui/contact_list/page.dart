@@ -123,14 +123,18 @@ class _ContactListPageState extends State<ContactListPage> {
                               const SizedBox(height: 16),
                               Wrap(spacing: 8, runSpacing: 6, children: [
                                 for (final circle in state.circles.entries)
-                                  OutlinedButton(
-                                      onPressed: () {
-                                        context
-                                            .read<ContactListCubit>()
-                                            .selectCircle(circle.key);
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text(circle.value))
+                                  if (state.circleMemberships.values
+                                      .expand((c) => c)
+                                      .contains(circle.key))
+                                    OutlinedButton(
+                                        onPressed: () {
+                                          context
+                                              .read<ContactListCubit>()
+                                              .selectCircle(circle.key);
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text(
+                                            '${circle.value} (${state.circleMemberships.values.where((ids) => ids.contains(circle.key)).length})'))
                               ])
                             ]))),
                 icon: const Icon(Icons.circle_outlined))
