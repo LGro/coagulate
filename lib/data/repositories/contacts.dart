@@ -229,7 +229,11 @@ class ContactsRepository {
         await persistentStorage.getProfileSharingSettings();
 
     // Load updates from persistent storage
-    _contactUpdates = await persistentStorage.getUpdates();
+    // TODO: Actually delete old updates from persistent storage
+    _contactUpdates = (await persistentStorage.getUpdates())
+        .where((u) => u.timestamp
+            .isAfter(DateTime.now().subtract(const Duration(days: 30))))
+        .toList();
     for (final u in _contactUpdates) {
       _updatesStreamController.add(u);
     }
