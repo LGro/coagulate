@@ -115,7 +115,7 @@ List<ContactTemporaryLocation> filterTemporaryLocations(
         List<ContactTemporaryLocation> locations, List<String> activeCircles) =>
     locations
         .where((l) =>
-            !l.end.add(const Duration(days: 1)).isBefore(DateTime.now()) &&
+            l.end.isAfter(DateTime.now()) &&
             l.circles.toSet().intersectsWith(activeCircles.toSet()))
         .asList();
 
