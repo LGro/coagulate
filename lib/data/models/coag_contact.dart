@@ -151,6 +151,8 @@ class CoagContact extends Equatable {
     this.dhtSettingsForSharing,
     this.dhtSettingsForReceiving,
     this.sharedProfile,
+    this.mostRecentUpdate,
+    this.mostRecentChange,
   });
 
   final String coagContactId;
@@ -163,6 +165,8 @@ class CoagContact extends Equatable {
   final ContactDHTSettings? dhtSettingsForReceiving;
   // TODO: Make this a proper type with toJson?
   final String? sharedProfile;
+  final DateTime? mostRecentUpdate;
+  final DateTime? mostRecentChange;
 
   factory CoagContact.fromJson(Map<String, dynamic> json) {
     // This is just a hack because somehow the pictures list representation
@@ -193,25 +197,31 @@ class CoagContact extends Equatable {
     return json;
   }
 
-  CoagContact copyWith(
-          {Contact? systemContact,
-          ContactDetails? details,
-          Map<int, ContactAddressLocation>? addressLocations,
-          List<ContactTemporaryLocation>? temporaryLocations,
-          ContactDHTSettings? dhtSettingsForSharing,
-          ContactDHTSettings? dhtSettingsForReceiving,
-          String? sharedProfile}) =>
+  CoagContact copyWith({
+    Contact? systemContact,
+    ContactDetails? details,
+    Map<int, ContactAddressLocation>? addressLocations,
+    List<ContactTemporaryLocation>? temporaryLocations,
+    ContactDHTSettings? dhtSettingsForSharing,
+    ContactDHTSettings? dhtSettingsForReceiving,
+    String? sharedProfile,
+    DateTime? mostRecentUpdate,
+    DateTime? mostRecentChange,
+  }) =>
       CoagContact(
-          coagContactId: coagContactId,
-          details: details ?? this.details,
-          systemContact: systemContact ?? this.systemContact,
-          addressLocations: addressLocations ?? this.addressLocations,
-          temporaryLocations: temporaryLocations ?? this.temporaryLocations,
-          dhtSettingsForSharing:
-              dhtSettingsForSharing ?? this.dhtSettingsForSharing,
-          dhtSettingsForReceiving:
-              dhtSettingsForReceiving ?? this.dhtSettingsForReceiving,
-          sharedProfile: sharedProfile ?? this.sharedProfile);
+        coagContactId: coagContactId,
+        details: details ?? this.details,
+        systemContact: systemContact ?? this.systemContact,
+        addressLocations: addressLocations ?? this.addressLocations,
+        temporaryLocations: temporaryLocations ?? this.temporaryLocations,
+        dhtSettingsForSharing:
+            dhtSettingsForSharing ?? this.dhtSettingsForSharing,
+        dhtSettingsForReceiving:
+            dhtSettingsForReceiving ?? this.dhtSettingsForReceiving,
+        sharedProfile: sharedProfile ?? this.sharedProfile,
+        mostRecentUpdate: mostRecentUpdate ?? this.mostRecentUpdate,
+        mostRecentChange: mostRecentChange ?? this.mostRecentChange,
+      );
 
   @override
   List<Object?> get props => [
@@ -223,6 +233,8 @@ class CoagContact extends Equatable {
         sharedProfile,
         addressLocations,
         temporaryLocations,
+        mostRecentUpdate,
+        mostRecentChange,
       ];
 }
 

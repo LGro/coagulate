@@ -99,9 +99,14 @@ class _ContactListPageState extends State<ContactListPage> {
         )),
         if (state.circleMemberships.values.expand((c) => c).isNotEmpty)
           if (state.selectedCircle != null)
-            TextButton(
-                onPressed: context.read<ContactListCubit>().unselectCircle,
-                child: Text('Circle: ${state.circles[state.selectedCircle]}'))
+            ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 100),
+                child: TextButton(
+                    onPressed: context.read<ContactListCubit>().unselectCircle,
+                    child: Text(
+                      'Circle: ${state.circles[state.selectedCircle]}',
+                      overflow: TextOverflow.ellipsis,
+                    )))
           else
             IconButton(
                 onPressed: () async => showModalBottomSheet<void>(

@@ -36,8 +36,6 @@ class VeilidDhtStorage extends DistributedStorage {
           debugName: 'coag::read',
           Typed<FixedEncodedString43>.fromString(recordKey),
           crypto: const VeilidCryptoPublic());
-      final defaultSubkey = record.subkeyOrDefault(-1);
-      await record.watch(subkeys: [ValueSubkeyRange.single(defaultSubkey)]);
       _openedRecords[record.key] = record;
     }
     final raw = await record.get(refreshMode: DHTRecordRefreshMode.network);

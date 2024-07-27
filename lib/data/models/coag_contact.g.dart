@@ -99,6 +99,12 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
           : ContactDHTSettings.fromJson(
               json['dht_settings_for_receiving'] as Map<String, dynamic>),
       sharedProfile: json['shared_profile'] as String?,
+      mostRecentUpdate: json['most_recent_update'] == null
+          ? null
+          : DateTime.parse(json['most_recent_update'] as String),
+      mostRecentChange: json['most_recent_change'] == null
+          ? null
+          : DateTime.parse(json['most_recent_change'] as String),
     );
 
 Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
@@ -113,6 +119,8 @@ Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
       'dht_settings_for_sharing': instance.dhtSettingsForSharing?.toJson(),
       'dht_settings_for_receiving': instance.dhtSettingsForReceiving?.toJson(),
       'shared_profile': instance.sharedProfile,
+      'most_recent_update': instance.mostRecentUpdate?.toIso8601String(),
+      'most_recent_change': instance.mostRecentChange?.toIso8601String(),
     };
 
 CoagContactDHTSchemaV1 _$CoagContactDHTSchemaV1FromJson(

@@ -124,15 +124,38 @@ class ContactPage extends StatelessWidget {
             }),
 
         // if (!kReleaseMode)
-        //   Column(children: [
-        //     Text('DEBUG INFOS'),
-        //     if (contact.dhtSettingsForSharing != null)
-        //       Text(
-        //           'SHR: ${json.encode(contact.dhtSettingsForSharing!.toJson())}'),
-        //     if (contact.dhtSettingsForReceiving != null)
-        //       Text(
-        //           'RCV: ${json.encode(contact.dhtSettingsForReceiving!.toJson())}'),
-        //   ]),
+        // Debug output about update timestamps and receive / share DHT records
+        Column(children: [
+          Text('Updated: ${contact.mostRecentUpdate}'),
+          Text('Changed: ${contact.mostRecentChange}'),
+          if (contact.dhtSettingsForReceiving?.key != null)
+            const Padding(
+                padding: EdgeInsets.only(left: 16, right: 16),
+                child: Divider(color: Colors.grey)),
+          if (contact.dhtSettingsForReceiving?.key != null)
+            Text(
+                'DHT Rcv Key: ${contact.dhtSettingsForReceiving!.key.substring(5, 25)}...'),
+          if (contact.dhtSettingsForReceiving?.psk != null)
+            Text(
+                'DHT Rcv Sec: ${contact.dhtSettingsForReceiving!.psk!.substring(0, 20)}...'),
+          if (contact.dhtSettingsForReceiving?.writer != null)
+            Text(
+                'DHT Rcv Wrt: ${contact.dhtSettingsForReceiving!.writer!.substring(0, 20)}...'),
+          if (contact.dhtSettingsForSharing?.key != null)
+            const Padding(
+                padding: EdgeInsets.only(left: 16, right: 16),
+                child: Divider(color: Colors.grey)),
+          if (contact.dhtSettingsForSharing?.key != null)
+            Text(
+                'DHT Shr Key: ${contact.dhtSettingsForSharing!.key.substring(5, 25)}...'),
+          if (contact.dhtSettingsForSharing?.psk != null)
+            Text(
+                'DHT Shr Sec: ${contact.dhtSettingsForSharing!.psk!.substring(0, 20)}...'),
+          if (contact.dhtSettingsForSharing?.writer != null)
+            Text(
+                'DHT Shr Wrt: ${contact.dhtSettingsForSharing!.writer!.substring(0, 20)}...'),
+          const SizedBox(height: 16),
+        ]),
 
         // Receiving stuff
         if (circleNames.isNotEmpty &&

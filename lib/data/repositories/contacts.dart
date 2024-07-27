@@ -197,6 +197,8 @@ class ContactsRepository {
 
   bool systemContactsChangedCallbackTemporarilyDisabled = false;
 
+  bool veilidNetworkAvailable = false;
+
   Future<void> initialize() async {
     await initializeFromPersistentStorage();
 
@@ -205,6 +207,10 @@ class ContactsRepository {
 
     // Update the contacts from DHT and subscribe to future updates
     await updateAndWatchReceivingDHT();
+
+    ProcessorRepository.instance
+        .streamProcessorConnectionState()
+        .listen(_veilidConnectionStateChangeCallback);
 
     // TODO: This doesn't seem to work, double check; current workaround via timerDhtRefresh
     ProcessorRepository.instance
@@ -264,7 +270,10 @@ class ContactsRepository {
   Future<void> updateContactFromDHT(CoagContact contact) async {
     final updatedContact =
         await distributedStorage.updateContactReceivingDHT(contact);
-    if (updatedContact != contact) {
+    final updateTime = DateTime.now();
+    if (updatedContact == contact) {
+      await saveContact(updatedContact.copyWith(mostRecentUpdate: updateTime));
+    } else {
       // TODO: Use update time from when the update was sent not received
       // TODO: When temporary locations are updated, only record an update about added / updated locations / check-ins
       await _saveUpdate(ContactUpdate(
@@ -276,7 +285,8 @@ class ContactsRepository {
           newContact: updatedContact.details!,
           timestamp: DateTime.now()));
 
-      await saveContact(updatedContact);
+      await saveContact(updatedContact.copyWith(
+          mostRecentUpdate: updateTime, mostRecentChange: updateTime));
 
       // TODO: Allow creation of a new system contact via update contact as well; might require custom contact details schema
       // Update system contact if linked and contact details changed
@@ -297,7 +307,15 @@ class ContactsRepository {
     }
   }
 
-// TODO: Refactor redundancies with updateAndWatchReceivingDHT
+  void _veilidConnectionStateChangeCallback(ProcessorConnectionState event) {
+    if (event.isPublicInternetReady &&
+        event.isAttached &&
+        !veilidNetworkAvailable) {
+      veilidNetworkAvailable = true;
+      unawaited(updateAndWatchReceivingDHT());
+    }
+  }
+
   Future<void> _veilidUpdateValueChangeCallback(
       VeilidUpdateValueChange update) async {
     final contact = _contacts.values.firstWhereOrNull(
@@ -314,8 +332,10 @@ class ContactsRepository {
     // We could also move this check outside the function
     if (!ProcessorRepository
         .instance.processorConnectionState.attachment.publicInternetReady) {
+      veilidNetworkAvailable = false;
       return;
     }
+    veilidNetworkAvailable = true;
     final contacts = _contacts.values.toList();
     if (shuffle) {
       contacts.shuffle();
