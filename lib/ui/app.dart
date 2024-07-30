@@ -1,6 +1,9 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
+import 'package:background_fetch/background_fetch.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -164,10 +167,91 @@ class AppRouter {
   GoRouter get router => _router;
 }
 
-class CoagulateApp extends StatelessWidget {
-  const CoagulateApp({required this.contactsRepositoryPath, super.key});
+class CoagulateApp extends StatefulWidget {
+  @override
+  _CoagulateAppState createState() => _CoagulateAppState();
+}
 
-  final String contactsRepositoryPath;
+class _CoagulateAppState extends State<CoagulateApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Configure background fetch
+    // TODO: https://github.com/transistorsoft/flutter_background_fetch/blob/master/help/INSTALL-IOS.md
+    BackgroundFetch.configure(
+        BackgroundFetchConfig(
+          minimumFetchInterval: 15,
+          stopOnTerminate: false,
+          enableHeadless: true,
+          requiredNetworkType: NetworkType.ANY,
+          requiresBatteryNotLow: true,
+        ), (String taskId) async {
+      // This is the callback function that will be called periodically
+      print("[BackgroundFetch] Event received: $taskId");
+
+      final log = <String>[];
+      final startTime = DateTime.now();
+      log.add('Start update to and from DHT at $startTime');
+
+      final repo = ContactsRepository(
+          SqliteStorage(), VeilidDhtStorage(), SystemContacts(),
+          initialize: false);
+
+      // Await initialization with potential initial DHT updates unless it
+      // exceeds 25s to respect the background task limit of 30s on iOS
+      try {
+        await repo.initialize().timeout(const Duration(seconds: 25));
+      } on TimeoutException {
+        await BackgroundFetch.finish(taskId);
+        return;
+      }
+
+      log.add('Initialization finished at at ${DateTime.now()}');
+
+      await Future<void>.delayed(
+          const Duration(seconds: 25) - DateTime.now().difference(startTime));
+
+      log.add('Returning successfully after waiting until ${DateTime.now()}');
+
+      print('[BackgroundFetch] $log');
+
+      // Signal completion of your task
+      await BackgroundFetch.finish(taskId);
+      return;
+    }).then((int status) {
+      print('[BackgroundFetch] configure success: $status');
+    }).catchError((e) {
+      print('[BackgroundFetch] configure ERROR: $e');
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // App goes to background
+      BackgroundFetch.start().then((int status) {
+        print('[BackgroundFetch] start success: $status');
+      }).catchError((e) {
+        print('[BackgroundFetch] start ERROR: $e');
+      });
+    } else if (state == AppLifecycleState.resumed) {
+      // App comes to foreground
+      BackgroundFetch.stop().then((int status) {
+        print('[BackgroundFetch] stop success: $status');
+      }).catchError((e) {
+        print('[BackgroundFetch] stop ERROR: $e');
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) => FutureProvider<VeilidChatGlobalInit?>(
@@ -204,14 +288,3 @@ class CoagulateApp extends StatelessWidget {
         ));
       });
 }
-
-
-//   @override
-//   void didChangeAppLifecycleState(AppLifecycleState state) {
-//     // Only activate background tasks when app is not open
-//     // if (state == AppLifecycleState.paused) {
-//     //   unawaited(registerBackgroundTasks());
-//     // } else if (state == AppLifecycleState.resumed) {
-//     //   unawaited(Workmanager().cancelAll());
-//     // }
-// }

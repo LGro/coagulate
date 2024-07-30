@@ -165,6 +165,7 @@ class CoagContact extends Equatable {
   final ContactDHTSettings? dhtSettingsForReceiving;
   // TODO: Make this a proper type with toJson?
   final String? sharedProfile;
+  // TODO: Move these two to contact details to also have the same for the system contact
   final DateTime? mostRecentUpdate;
   final DateTime? mostRecentChange;
 

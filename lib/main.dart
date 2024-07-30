@@ -6,11 +6,8 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:workmanager/workmanager.dart';
 
 import 'bloc_observer.dart';
-import 'data/providers/background.dart';
 import 'tools/loggy.dart';
 import 'ui/app.dart';
 
@@ -25,13 +22,8 @@ void main() async {
     // Observer for logging Bloc related things
     Bloc.observer = const CoagulateBlocObserver();
 
-    await Workmanager()
-        .initialize(callbackDispatcher, isInDebugMode: kDebugMode);
-
-    final appStorage = await getApplicationDocumentsDirectory();
-
     // Let's coagulate :)
-    runApp(CoagulateApp(contactsRepositoryPath: appStorage.path));
+    runApp(CoagulateApp());
   }
 
   if (kDebugMode) {
