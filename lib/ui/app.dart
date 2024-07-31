@@ -180,7 +180,6 @@ class _CoagulateAppState extends State<CoagulateApp>
     WidgetsBinding.instance.addObserver(this);
 
     // Configure background fetch
-    // TODO: https://github.com/transistorsoft/flutter_background_fetch/blob/master/help/INSTALL-IOS.md
     BackgroundFetch.configure(
         BackgroundFetchConfig(
           minimumFetchInterval: 15,
