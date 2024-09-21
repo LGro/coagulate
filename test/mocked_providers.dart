@@ -7,15 +7,12 @@ import 'dart:convert';
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_update.dart';
 import 'package:coagulate/data/models/profile_sharing_settings.dart';
-import 'package:coagulate/data/providers/distributed_storage/base.dart';
 import 'package:coagulate/data/providers/distributed_storage/dht.dart';
 import 'package:coagulate/data/providers/persistent_storage/base.dart';
 import 'package:coagulate/data/providers/system_contacts/base.dart';
 import 'package:coagulate/data/providers/system_contacts/system_contacts.dart';
-import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:uuid/v4.dart';
 
 class DummyPersistentStorage extends PersistentStorage {
   DummyPersistentStorage(this.contacts, {this.profileContactId});
@@ -127,7 +124,7 @@ class DummyDistributedStorage extends VeilidDhtStorage {
   @override
   Future<(String, String)> createDHTRecord() async {
     log.add('createDHTRecord');
-    return ('key', 'writer');
+    return ('VLD0:DUMMYwPaM1X1-d45IYDGLAAKQRpW2bf8cNKCIPNuW0M', 'writer');
   }
 
   @override

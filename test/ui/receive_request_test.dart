@@ -225,10 +225,14 @@ void main() {
               .dht;
           expect(dht.length, 2);
           // The requested sharing key and a key auto generated for receiving
-          expect(dht.keys.toSet(), {'requestedSharingKey', 'key'});
+          expect(dht.keys.toSet(), {
+            'requestedSharingKey',
+            'VLD0:DUMMYwPaM1X1-d45IYDGLAAKQRpW2bf8cNKCIPNuW0M'
+          });
 
           expect(c.state.profile?.coagContactId, '1');
-          expect(c.state.profile?.dhtSettingsForReceiving?.key, 'key');
+          expect(c.state.profile?.dhtSettingsForReceiving?.key,
+              'VLD0:DUMMYwPaM1X1-d45IYDGLAAKQRpW2bf8cNKCIPNuW0M');
           expect(c.state.profile?.dhtSettingsForSharing?.key,
               'requestedSharingKey');
           expect(
@@ -269,21 +273,20 @@ void main() {
         act: (c) async => c.contactsRepository
             .initialize()
             .then((_) => c.linkExistingContactSharing('1')),
-        // Expect that contact to contain the dht settings for receiving more
-        //  updates as well as the details from the DHT
-        expect: () => [
-              ReceiveRequestState(ReceiveRequestStatus.success,
-                  profile: CoagContact(
-                      coagContactId: '1',
-                      dhtSettingsForReceiving: const ContactDHTSettings(
-                          key: 'sharingOfferKey', psk: 'psk'),
-                      details: ContactDetails(
-                          displayName: 'From DHT',
-                          name: Name(first: 'From', last: 'DHT'))))
-            ],
-        // Verify that this is also reflected in the repository with still only
-        //  one contact
         verify: (c) {
+          // Verify that contact to contain the dht settings for receiving more
+          //  updates as well as the details from the DHT
+          expect(c.state.status, ReceiveRequestStatus.success);
+          expect(c.state.profile?.coagContactId, '1');
+          expect(c.state.profile?.dhtSettingsForReceiving,
+              const ContactDHTSettings(key: 'sharingOfferKey', psk: 'psk'));
+          expect(
+              c.state.profile?.details,
+              ContactDetails(
+                  displayName: 'From DHT',
+                  name: Name(first: 'From', last: 'DHT')));
+          // Verify that this is also reflected in the repository with still only
+          //  one contact
           expect(
               (c.contactsRepository.distributedStorage
                       as DummyDistributedStorage)

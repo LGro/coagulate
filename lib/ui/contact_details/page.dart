@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
@@ -137,10 +138,10 @@ class ContactPage extends StatelessWidget {
                 'DHT Rcv Key: ${contact.dhtSettingsForReceiving!.key.substring(5, 25)}...'),
           if (contact.dhtSettingsForReceiving?.psk != null)
             Text(
-                'DHT Rcv Sec: ${contact.dhtSettingsForReceiving!.psk!.substring(0, 20)}...'),
+                'DHT Rcv Sec: ${contact.dhtSettingsForReceiving!.psk!.substring(0, min(20, contact.dhtSettingsForReceiving!.psk!.length))}...'),
           if (contact.dhtSettingsForReceiving?.writer != null)
             Text(
-                'DHT Rcv Wrt: ${contact.dhtSettingsForReceiving!.writer!.substring(0, 20)}...'),
+                'DHT Rcv Wrt: ${contact.dhtSettingsForReceiving!.writer!.substring(0, min(20, contact.dhtSettingsForReceiving!.writer!.length))}...'),
           if (contact.dhtSettingsForSharing?.key != null)
             const Padding(
                 padding: EdgeInsets.only(left: 16, right: 16),
@@ -150,10 +151,10 @@ class ContactPage extends StatelessWidget {
                 'DHT Shr Key: ${contact.dhtSettingsForSharing!.key.substring(5, 25)}...'),
           if (contact.dhtSettingsForSharing?.psk != null)
             Text(
-                'DHT Shr Sec: ${contact.dhtSettingsForSharing!.psk!.substring(0, 20)}...'),
+                'DHT Shr Sec: ${contact.dhtSettingsForSharing!.psk!.substring(0, min(20, contact.dhtSettingsForSharing!.psk!.length))}...'),
           if (contact.dhtSettingsForSharing?.writer != null)
             Text(
-                'DHT Shr Wrt: ${contact.dhtSettingsForSharing!.writer!.substring(0, 20)}...'),
+                'DHT Shr Wrt: ${contact.dhtSettingsForSharing!.writer!.substring(0, min(20, contact.dhtSettingsForSharing!.writer!.length))}...'),
           const SizedBox(height: 16),
         ]),
 
