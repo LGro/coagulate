@@ -128,4 +128,25 @@ void main() {
     final contactWithoutPhoto = Contact.fromJson(contactJson);
     expect(systemContactsEqual(contact, contactWithoutPhoto), true);
   });
+
+  test('filter addresses', () {
+    const locations = {
+      0: ContactAddressLocation(
+          coagContactId: '1', longitude: 10, latitude: 12, name: 'loc0'),
+      2: ContactAddressLocation(
+          coagContactId: '1', longitude: 10, latitude: 12, name: 'loc2'),
+      3: ContactAddressLocation(
+          coagContactId: '1', longitude: 10, latitude: 12, name: 'loc3'),
+    };
+    const settings = ProfileSharingSettings(addresses: {
+      '0|home': ['circle1'],
+      '3|work': ['circle2', 'circle3'],
+    });
+    const activeCircles = ['circle1'];
+    final filteredLocations =
+        filterAddressLocations(locations, settings, activeCircles);
+    expect(filteredLocations.length, 1);
+    expect(filteredLocations.keys.first, 0);
+    expect(filteredLocations.values.first.name, 'loc0');
+  });
 }

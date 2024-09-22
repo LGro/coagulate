@@ -103,12 +103,24 @@ ContactDetails filterDetails(ContactDetails details,
           details.events, settings.events, activeCircles),
     );
 
-// TODO: Implement me; but maybe switch for address locations to a similar indexing scheme like with the other details for circles?
 Map<int, ContactAddressLocation> filterAddressLocations(
         Map<int, ContactAddressLocation> locations,
         ProfileSharingSettings settings,
         List<String> activeCircles) =>
-    locations;
+    {
+      // TODO: If we were also using "index|label" style keys for "locations", this could be simplified
+      for (final location in locations.entries)
+        if (({
+                  for (final addressSetting in settings.addresses.entries)
+                    int.parse(addressSetting.key.split('|').first):
+                        addressSetting.value
+                }[location.key]
+                    ?.toSet() ??
+                {})
+            .intersection(activeCircles.toSet())
+            .isNotEmpty)
+          location.key: location.value
+    };
 
 /// Remove locations that ended longer than a day ago, or aren't shared with the given circles
 List<ContactTemporaryLocation> filterTemporaryLocations(
