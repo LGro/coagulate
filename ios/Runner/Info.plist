@@ -35,20 +35,21 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera is required for QR code scanning and video chat</string>
+	<string>Camera is required for QR code scanning</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Coagulation requires people</string>
+	<string>Integrate your existing contacts</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Display contacts near you on a map</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Microphone is required for voice chat</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photos access is required to send images and get QR codes from photo library</string>
+	<string>Check in at locations, share your location, or display contacts near you on a map</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Check in at locations, share your location, or display contacts near you on a map</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
+	</array>
+	<key>NSBonjourServices</key>
+	<array>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
