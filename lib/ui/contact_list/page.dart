@@ -10,6 +10,7 @@ import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
 import '../../utils.dart';
 import '../contact_details/page.dart';
+import '../create_new_contact/page.dart';
 import '../receive_request/page.dart';
 import '../widgets/avatar.dart';
 import 'cubit.dart';
@@ -24,19 +25,7 @@ class ContactListPage extends StatefulWidget {
 class _ContactListPageState extends State<ContactListPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(
-        title: const Text('Contacts'),
-        actions: [
-          IconButton(
-              icon: const Icon(Icons.qr_code_scanner),
-              onPressed: () async {
-                await Navigator.push(
-                    context,
-                    MaterialPageRoute<ReceiveRequestPage>(
-                        builder: (_) => const ReceiveRequestPage()));
-              }),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Contacts')),
       body: MultiBlocProvider(
           providers: [
             BlocProvider(
@@ -75,7 +64,55 @@ class _ContactListPageState extends State<ContactListPage> {
                                               profileContactState.profileContact
                                                   ?.coagContactId)
                                           .toList(),
-                                      state.circleMemberships))
+                                      state.circleMemberships)),
+                              Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 4, left: 4, right: 4),
+                                  child: Row(children: [
+                                    const Text('Create invite:'),
+                                    TextButton(
+                                        child: const Row(children: [
+                                          Icon(Icons.person_add),
+                                          SizedBox(width: 8),
+                                          Text('invite someone')
+                                        ]),
+                                        onPressed: () async {
+                                          await Navigator.push(
+                                              context,
+                                              MaterialPageRoute<
+                                                      CreateNewContactPage>(
+                                                  builder: (_) =>
+                                                      const CreateNewContactPage()));
+                                        }),
+                                  ])),
+                              Padding(
+                                  padding:
+                                      const EdgeInsets.only(left: 4, right: 4),
+                                  child: Row(children: [
+                                    const Text('Receive invite:'),
+                                    TextButton(
+                                        child: const Row(children: [
+                                          Icon(Icons.qr_code_scanner),
+                                          SizedBox(width: 8),
+                                          Text('scan QR code')
+                                        ]),
+                                        onPressed: () async {
+                                          await Navigator.push(
+                                              context,
+                                              MaterialPageRoute<
+                                                      ReceiveRequestPage>(
+                                                  builder: (_) =>
+                                                      const ReceiveRequestPage()));
+                                        }),
+                                    // TODO: Add option to copy & paste link
+                                    // TextButton(
+                                    //     child: const Row(children: [
+                                    //       Icon(Icons.add_link),
+                                    //       SizedBox(width: 8),
+                                    //       Text('paste link')
+                                    //     ]),
+                                    //     onPressed: () async {}),
+                                  ])),
                             ])));
                 }
               })));

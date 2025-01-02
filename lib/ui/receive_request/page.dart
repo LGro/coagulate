@@ -100,8 +100,7 @@ class ReceiveRequestPage extends StatelessWidget {
                       const SizedBox(height: 12),
                       if (state.contactProposalsForLinking.isNotEmpty)
                         Expanded(
-                            child: _pickExisting(
-                                context,
+                            child: pickExistingContact(
                                 state.contactProposalsForLinking,
                                 context
                                     .read<ReceiveRequestCubit>()
@@ -146,8 +145,7 @@ class ReceiveRequestPage extends StatelessWidget {
                                       Text('or link to an existing contact')),
                             if (state.contactProposalsForLinking.isNotEmpty)
                               Expanded(
-                                  child: _pickExisting(
-                                      context,
+                                  child: pickExistingContact(
                                       state.contactProposalsForLinking,
                                       context
                                           .read<ReceiveRequestCubit>()
@@ -169,9 +167,7 @@ class ReceiveRequestPage extends StatelessWidget {
       }));
 }
 
-Widget _pickExisting(
-        BuildContext context,
-        Iterable<CoagContact> contactProporsalsForLinking,
+Widget pickExistingContact(Iterable<CoagContact> contactProporsalsForLinking,
         Future<void> Function(String coagContactId) linkExistingCallback) =>
     ListView(
       children: contactProporsalsForLinking

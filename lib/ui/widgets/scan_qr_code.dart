@@ -90,6 +90,6 @@ class _BarcodeScannerPageViewState extends State<BarcodeScannerPageView> {
   Future<void> dispose() async {
     pageController.dispose();
     super.dispose();
-    controller.dispose();
+    await controller.dispose();
   }
 }
