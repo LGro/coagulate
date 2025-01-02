@@ -84,7 +84,7 @@ class _MyFormState extends State<MyForm> {
           end: DateTime.now()
               .add(Duration(hours: _state.hours, minutes: _state.minutes)));
       _state = _state.copyWith(status: FormzSubmissionStatus.success);
-      Navigator.pop(context);
+      // Navigator.pop(context);
     } catch (e) {
       _state = _state.copyWith(status: FormzSubmissionStatus.failure);
     }
@@ -326,6 +326,20 @@ class CheckInWidget extends StatelessWidget {
                       child: Text(
                           'Location services seem to be disabled, GPS based check-in is not possible.')));
             }
+            if (state.status.isLocationTimeout) {
+              // TODO: Display error and leave filled out form in place
+              // optionally, switch form to manual location choice
+              return SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: const Padding(
+                      padding: EdgeInsets.only(
+                          left: 16, right: 16, bottom: 32, top: 8),
+                      child: Text(
+                          'Could not determine GPS location, please try again.')));
+            }
+
+            // TODO: What to do on success?
+            // Navigator.pop(context);
 
             return MyForm(
                 circles: state.circles,

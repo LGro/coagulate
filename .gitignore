@@ -64,3 +64,6 @@ app.*.map.json
 /web/wasm/
 
 android/key.properties
+
+# FVM Version Cache
+.fvm/

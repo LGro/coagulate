@@ -15,8 +15,7 @@ extension SettingsStatusX on SettingsStatus {
 @JsonSerializable()
 final class SettingsState extends Equatable {
   const SettingsState(
-      {required this.backgroundPermission,
-      required this.darkMode,
+      {required this.darkMode,
       required this.mapProvider,
       required this.autoAddressResolution,
       required this.status,
@@ -27,7 +26,6 @@ final class SettingsState extends Equatable {
 
   final SettingsStatus status;
   final String message;
-  final BackgroundRefreshPermissionState backgroundPermission;
   final bool darkMode;
   final String mapProvider;
   final bool autoAddressResolution;
@@ -35,12 +33,6 @@ final class SettingsState extends Equatable {
   Map<String, dynamic> toJson() => _$SettingsStateToJson(this);
 
   @override
-  List<Object?> get props => [
-        status,
-        message,
-        backgroundPermission,
-        darkMode,
-        mapProvider,
-        autoAddressResolution
-      ];
+  List<Object?> get props =>
+      [status, message, darkMode, mapProvider, autoAddressResolution];
 }

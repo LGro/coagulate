@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:rxdart/subjects.dart';
 import 'package:veilid_support/veilid_support.dart';
 
 import '../../tools/tools.dart';
@@ -10,14 +9,14 @@ import '../models/models.dart';
 class ProcessorRepository {
   ProcessorRepository._()
       : startedUp = false,
-        _updateValueChangeStreamController =
-            BehaviorSubject<VeilidUpdateValueChange>(),
         _controllerConnectionState = StreamController.broadcast(sync: true),
         processorConnectionState = ProcessorConnectionState(
-            attachment: const VeilidStateAttachment(
+            attachment: VeilidStateAttachment(
                 state: AttachmentState.detached,
                 publicInternetReady: false,
-                localNetworkReady: false),
+                localNetworkReady: false,
+                uptime: TimestampDuration(value: BigInt.zero),
+                attachedUptime: null),
             network: VeilidStateNetwork(
                 started: false,
                 bpsDown: BigInt.zero,
@@ -89,9 +88,6 @@ class ProcessorRepository {
     startedUp = false;
   }
 
-  Stream<VeilidUpdateValueChange> streamUpdateValueChange() =>
-      _updateValueChangeStreamController.asBroadcastStream();
-
   Stream<ProcessorConnectionState> streamProcessorConnectionState() =>
       _controllerConnectionState.stream;
 
@@ -101,7 +97,9 @@ class ProcessorRepository {
         attachment: VeilidStateAttachment(
             state: updateAttachment.state,
             publicInternetReady: updateAttachment.publicInternetReady,
-            localNetworkReady: updateAttachment.localNetworkReady));
+            localNetworkReady: updateAttachment.localNetworkReady,
+            uptime: updateAttachment.uptime,
+            attachedUptime: updateAttachment.attachedUptime));
   }
 
   void processUpdateConfig(VeilidUpdateConfig updateConfig) {
@@ -128,16 +126,12 @@ class ProcessorRepository {
 
     // Send value updates to DHTRecordPool
     DHTRecordPool.instance.processRemoteValueChange(updateValueChange);
-    _updateValueChangeStreamController.add(updateValueChange);
   }
 
   ////////////////////////////////////////////
 
   StreamSubscription<VeilidUpdate>? _updateSubscription;
   final StreamController<ProcessorConnectionState> _controllerConnectionState;
-
-  final BehaviorSubject<VeilidUpdateValueChange>
-      _updateValueChangeStreamController;
   bool startedUp;
   ProcessorConnectionState processorConnectionState;
 }

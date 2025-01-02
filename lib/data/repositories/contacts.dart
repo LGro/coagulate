@@ -226,11 +226,6 @@ class ContactsRepository {
     ProcessorRepository.instance
         .streamProcessorConnectionState()
         .listen(_veilidConnectionStateChangeCallback);
-
-    // TODO: This doesn't seem to work, double check; current workaround via timerDhtRefresh
-    ProcessorRepository.instance
-        .streamUpdateValueChange()
-        .listen(_veilidUpdateValueChangeCallback);
   }
 
   /////////////////////
@@ -312,8 +307,8 @@ class ContactsRepository {
       }
     }
     if (contact.dhtSettingsForReceiving != null) {
-      await distributedStorage
-          .watchDHTRecord(contact.dhtSettingsForReceiving!.key);
+      await distributedStorage.watchDHTRecord(
+          contact.dhtSettingsForReceiving!.key, _dhtRecordUpdateCallback);
     }
   }
 
@@ -325,6 +320,7 @@ class ContactsRepository {
       unawaited(updateAndWatchReceivingDHT());
       unawaited(updateSharingDHT());
     }
+    // TODO: Also handle network unavailable changes?
   }
 
   Future<void> _veilidUpdateValueChangeCallback(
@@ -578,6 +574,14 @@ class ContactsRepository {
         .copyWith(dhtSettingsForReceiving: receivingSettings);
     await saveContact(updatedContact);
     await updateContactFromDHT(updatedContact);
+  }
+
+  Future<void> _dhtRecordUpdateCallback(String key) async {
+    for (final contact in _contacts.values) {
+      if (key == contact.dhtSettingsForReceiving?.key) {
+        return updateContactFromDHT(contact);
+      }
+    }
   }
 
   //////////

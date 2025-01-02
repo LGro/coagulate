@@ -89,7 +89,8 @@ class VeilidDhtStorage extends DistributedStorage {
   }
 
   @override
-  Future<void> watchDHTRecord(String key) async {
+  Future<void> watchDHTRecord(
+      String key, Future<void> Function(String key) onNetworkUpdate) async {
     final _key = Typed<FixedEncodedString43>.fromString(key);
     final DHTRecord record;
     if (_openedRecords.containsKey(_key)) {
@@ -103,6 +104,9 @@ class VeilidDhtStorage extends DistributedStorage {
     }
     final defaultSubkey = record.subkeyOrDefault(-1);
     await record.watch(subkeys: [ValueSubkeyRange.single(defaultSubkey)]);
+    await record.listen(
+        (record, data, subkeys) => onNetworkUpdate(record.key.toString()),
+        localChanges: false);
   }
 
 // TODO: Can we update the sharedProfile here as well or not because we're lacking the profile contact?

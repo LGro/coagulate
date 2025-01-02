@@ -18,7 +18,8 @@ abstract class DistributedStorage {
       required String secret,
       required String content});
 
-  Future<void> watchDHTRecord(String key);
+  Future<void> watchDHTRecord(
+      String key, Future<void> Function(String key) onNetworkUpdate);
 
   Future<CoagContact> updateContactSharingDHT(CoagContact contact,
       {Future<String> Function()? pskGenerator});

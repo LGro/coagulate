@@ -5,21 +5,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:workmanager/workmanager.dart';
 
 import '../../veilid_processor/views/signal_strength_meter.dart';
 import 'cubit.dart';
 import 'licenses/page.dart';
-
-// TODO: Move to cubit?
-Future<Widget> _backgroundPermissionStatus() async {
-  final hasPermission = await Workmanager().checkBackgroundRefreshPermission();
-  if (hasPermission != BackgroundRefreshPermissionState.available) {
-    return Text('Background app refresh is disabled, please enable in '
-        'App settings. Status ${hasPermission.name}');
-  }
-  return const Text('Background app refresh is enabled :)');
-}
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});

@@ -119,7 +119,7 @@ class DummyDistributedStorage extends VeilidDhtStorage {
   }
   List<String> log = [];
   Map<String, String> dht = {};
-  Set<String> watchedRecordKeys = {};
+  Map<String, Future<void> Function(String key)> watchedRecords = {};
 
   @override
   Future<(String, String)> createDHTRecord() async {
@@ -159,9 +159,11 @@ class DummyDistributedStorage extends VeilidDhtStorage {
   }
 
   @override
-  Future<void> watchDHTRecord(String key) async {
+  Future<void> watchDHTRecord(
+      String key, Future<void> Function(String key) onNetworkUpdate) async {
     log.add('watchDHTRecord:$key');
-    watchedRecordKeys.add(key);
+    // TODO: Also call the updates when updates happen
+    watchedRecords[key] = onNetworkUpdate;
   }
 }
 

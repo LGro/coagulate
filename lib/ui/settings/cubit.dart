@@ -4,7 +4,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:workmanager/workmanager.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
@@ -14,7 +13,6 @@ class SettingsCubit extends Cubit<SettingsState> {
       : super(const SettingsState(
             message: '',
             status: SettingsStatus.initial,
-            backgroundPermission: BackgroundRefreshPermissionState.unknown,
             darkMode: false,
             autoAddressResolution: true,
             mapProvider: 'mapbox'));
