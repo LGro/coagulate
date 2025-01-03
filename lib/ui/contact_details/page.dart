@@ -8,7 +8,6 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -158,13 +157,6 @@ class ContactPage extends StatelessWidget {
           const SizedBox(height: 16),
         ]),
 
-        // Receiving stuff
-        if (circleNames.isNotEmpty &&
-            contact.dhtSettingsForReceiving != null &&
-            contact.dhtSettingsForReceiving?.writer != null &&
-            contact.dhtSettingsForReceiving?.psk != null)
-          receivingCard(context, contact),
-
         // First phase?
         // for all incoming ones, show as synced to local
         // for all local ones that don't match incoming ones, show as local
@@ -211,32 +203,16 @@ class ContactPage extends StatelessWidget {
         if (contact.temporaryLocations.isNotEmpty)
           temporaryLocationsCard(contact.temporaryLocations),
 
-        circlesCard(context, contact.coagContactId, circleNames),
-
         // Sharing stuff
-        if (circleNames.isNotEmpty &&
-            contact.dhtSettingsForSharing != null &&
-            contact.dhtSettingsForSharing?.writer != null &&
-            contact.dhtSettingsForSharing?.psk != null &&
-            contact.sharedProfile != null &&
-            contact.sharedProfile!.isNotEmpty)
-          sharingCard(context, contact),
-        if (circleNames.isNotEmpty &&
-            contact.sharedProfile != null &&
-            contact.sharedProfile!.isNotEmpty)
-          ...displayDetails(CoagContactDHTSchemaV1.fromJson(
-                  json.decode(contact.sharedProfile!) as Map<String, dynamic>)
-              .details),
-        // TODO: Switch to a schema instance instead of a string as the sharedProfile? Or at least offer a method to conveniently get it
-        if (contact.sharedProfile != null &&
-            contact.sharedProfile!.isNotEmpty &&
-            CoagContactDHTSchemaV1.fromJson(
-                    json.decode(contact.sharedProfile!) as Map<String, dynamic>)
-                .temporaryLocations
-                .isNotEmpty)
-          temporaryLocationsCard(CoagContactDHTSchemaV1.fromJson(
-                  json.decode(contact.sharedProfile!) as Map<String, dynamic>)
-              .temporaryLocations),
+        const Padding(
+            padding: EdgeInsets.only(left: 12, top: 16, right: 12),
+            child: Text('Connection settings',
+                textScaler: TextScaler.linear(1.2),
+                style: TextStyle(fontWeight: FontWeight.w600))),
+        Padding(
+            padding:
+                const EdgeInsets.only(left: 4, top: 4, bottom: 4, right: 4),
+            child: sharingStuff(context, contact, circleNames)),
 
         Center(
             child: TextButton(
@@ -252,203 +228,199 @@ class ContactPage extends StatelessWidget {
                     child: Text(
                       'Delete from Coagulate',
                       style: TextStyle(color: Colors.black),
-                    )))),
+                    ))))
       ]));
 }
 
-Widget receivingCard(BuildContext context, CoagContact contact) => Card(
-    shape: const RoundedRectangleBorder(),
-    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-    child: Stack(children: [
-      Positioned.fill(
-        child: Opacity(
-            opacity:
-                (MediaQuery.of(context).platformBrightness == Brightness.dark)
-                    ? 0.2
-                    : 0.8,
-            child: SvgPicture.asset(
-                'assets/images/down_arrow_bg.svg', // Path to your SVG file
-                fit: BoxFit.cover)),
-      ),
-      if (contact.dhtSettingsForReceiving?.key != null &&
-          contact.dhtSettingsForReceiving?.psk != null &&
-          contact.dhtSettingsForReceiving?.writer != null)
-        Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
-                  'Ask ${displayName(contact) ?? 'them'} to start sharing with you:',
-                  textScaler: const TextScaler.linear(1.2)),
-              const SizedBox(height: 4),
-              Center(
-                  child: _qrCodeButton(context,
-                      buttonText: 'QR code to request',
-                      alertTitle:
-                          'Request from ${displayName(contact) ?? 'them'}',
-                      qrCodeData: _receiveUrl(
-                        key: contact.dhtSettingsForReceiving!.key,
-                        psk: contact.dhtSettingsForReceiving!.psk!,
-                        writer: contact.dhtSettingsForReceiving!.writer!,
-                      ).toString())),
-              const Center(child: Text('or')),
-              Center(
-                  child: TextButton(
-                child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Icon(Icons.share),
-                      SizedBox(width: 8),
-                      Text('request via trusted channel'),
-                      SizedBox(width: 4),
-                    ]),
-                // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
-                onPressed: () async => Share.share(
-                    'Please share with me: ${_receiveUrl(key: contact.dhtSettingsForReceiving!.key, psk: contact.dhtSettingsForReceiving!.psk!, writer: contact.dhtSettingsForReceiving!.writer!)}\n'
-                    'Keep this link a secret, it\'s just for you.'),
-              )),
-              const SizedBox(height: 8),
-            ]))
+Widget _paddedDivider() => const Padding(
+    padding: EdgeInsets.only(left: 16, right: 16), child: Divider());
+
+Widget sharingStuff(
+        BuildContext context, CoagContact contact, List<String> circleNames) =>
+    Card(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      circlesCard(context, contact.coagContactId, circleNames),
+
+      if (circleNames.isNotEmpty &&
+          contact.dhtSettingsForSharing != null &&
+          contact.dhtSettingsForSharing?.writer != null &&
+          contact.dhtSettingsForSharing?.psk != null &&
+          contact.sharedProfile != null &&
+          contact.sharedProfile!.isNotEmpty) ...[
+        _paddedDivider(),
+        connectingCard(context, contact),
+      ],
+
+      if (circleNames.isNotEmpty &&
+          contact.sharedProfile != null &&
+          contact.sharedProfile!.isNotEmpty) ...[
+        _paddedDivider(),
+        ...displayDetails(CoagContactDHTSchemaV1.fromJson(
+                json.decode(contact.sharedProfile!) as Map<String, dynamic>)
+            .details),
+      ],
+      // TODO: Switch to a schema instance instead of a string as the sharedProfile? Or at least offer a method to conveniently get it
+      if (contact.sharedProfile != null &&
+          contact.sharedProfile!.isNotEmpty &&
+          CoagContactDHTSchemaV1.fromJson(
+                  json.decode(contact.sharedProfile!) as Map<String, dynamic>)
+              .temporaryLocations
+              .isNotEmpty) ...[
+        _paddedDivider(),
+        temporaryLocationsCard(CoagContactDHTSchemaV1.fromJson(
+                json.decode(contact.sharedProfile!) as Map<String, dynamic>)
+            .temporaryLocations),
+      ],
     ]));
 
-Widget temporaryLocationsCard(List<ContactTemporaryLocation> locations) => Card(
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-    child: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
+Widget temporaryLocationsCard(List<ContactTemporaryLocation> locations) =>
+    Padding(
+        padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('locations', style: TextStyle(fontSize: 16)),
+          const Row(children: [
+            Icon(Icons.share_location),
+            SizedBox(width: 8),
+            Text('Shared locations', textScaler: TextScaler.linear(1.2))
+          ]),
           ...locations
               .where((l) => l.end.isAfter(DateTime.now()))
-              .map(locationTile)
-              .asList()
-        ])));
+              .map((l) => Padding(
+                  padding: const EdgeInsets.only(left: 8, right: 8),
+                  child: locationTile(l)))
+              .asList(),
+          const Text(
+              'These current and future locations are available to them based '
+              'on the circles you shared the locations with.'),
+        ]));
 
-Widget sharingCard(BuildContext context, CoagContact contact) => Card(
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-    child: Stack(children: [
-      Positioned.fill(
-          child: Opacity(
-              opacity:
-                  (MediaQuery.of(context).platformBrightness == Brightness.dark)
-                      ? 0.2
-                      : 0.8,
-              child: SvgPicture.asset('assets/images/up_arrow_bg.svg',
-                  fit: BoxFit.cover))),
+Widget connectingCard(BuildContext context, CoagContact contact) =>
+    Stack(children: [
       if (contact.dhtSettingsForSharing?.key != null &&
           contact.dhtSettingsForSharing?.psk != null)
         Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 8),
+            padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
-                  'Start sharing your contact details with ${displayName(contact) ?? 'them'}:',
-                  textScaler: const TextScaler.linear(1.2)),
+              Row(children: [
+                const Icon(Icons.private_connectivity),
+                const SizedBox(width: 4),
+                Text(
+                    'Connect with ${displayName(contact) ?? 'them'} by either:',
+                    textScaler: const TextScaler.linear(1.2))
+              ]),
               const SizedBox(height: 4),
               // TODO: Only show share back button when receiving key and psk but not writer are set i.e. is receiving updates and has share back settings
-              Center(
-                  child: _qrCodeButton(context,
-                      buttonText: 'QR code to share',
-                      alertTitle:
-                          'Share with ${displayName(contact) ?? 'them'}',
-                      qrCodeData: _shareUrl(
-                        key: contact.dhtSettingsForSharing!.key,
-                        psk: contact.dhtSettingsForSharing!.psk!,
-                      ).toString())),
-              const Center(child: Text('or')),
-              Center(
-                  child: TextButton(
+              _qrCodeButton(context,
+                  buttonText: 'letting them scan this QR code',
+                  alertTitle: 'Show to ${displayName(contact) ?? 'them'}',
+                  qrCodeData: _shareUrl(
+                    key: contact.dhtSettingsForSharing!.key,
+                    psk: contact.dhtSettingsForSharing!.psk!,
+                  ).toString()),
+              TextButton(
                 child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Icon(Icons.share),
                       SizedBox(width: 8),
-                      Text('share link via trusted channel'),
+                      Text('sending this personalized & secret link'),
                       SizedBox(width: 4),
                     ]),
                 // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
                 onPressed: () async => Share.share(
-                    'I\'d like to share with you: ${_shareUrl(key: contact.dhtSettingsForSharing!.key, psk: contact.dhtSettingsForSharing!.psk!)}\n'
-                    'Keep this link a secret, it\'s just for you.'),
-              )),
+                    "I'd like to connect with you via Coagulate: "
+                    '${_shareUrl(key: contact.dhtSettingsForSharing!.key, psk: contact.dhtSettingsForSharing!.psk!)}\n'
+                    "Keep this link a secret, it's just for you."),
+              ),
+
+              const SizedBox(height: 4),
+              Text(
+                  'This QR code and link are both specifically for ${displayName(contact) ?? 'this contact'}. '
+                  'If you want to connect with someone else, go to their '
+                  'contact or add a new contact first.'),
               const SizedBox(height: 8),
             ]))
-    ]));
+    ]);
 
 // TODO: Move to widgets because it's used in two places at least
 Iterable<Widget> displayDetails(ContactDetails details) => [
       const Padding(
-          padding: EdgeInsets.only(top: 12, left: 8, right: 8, bottom: 8),
-          child:
-              Text('Shared with this contact based on the selected circles:')),
-      Card(
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-          margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-          child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Text(details.displayName,
-                  textScaler: const TextScaler.linear(1.2),
-                  style: const TextStyle(fontWeight: FontWeight.normal)))),
+          padding: EdgeInsets.only(top: 8, left: 12, right: 12, bottom: 8),
+          child: Row(children: [
+            Icon(Icons.contact_page),
+            SizedBox(width: 4),
+            Text('Shared profile', textScaler: TextScaler.linear(1.2))
+          ])),
+      Padding(
+          padding: const EdgeInsets.only(left: 24, right: 24),
+          child: Text(details.displayName,
+              textScaler: const TextScaler.linear(1.2),
+              style: const TextStyle(fontWeight: FontWeight.normal))),
       if (details.phones.isNotEmpty) phones(details.phones),
       if (details.emails.isNotEmpty) emails(details.emails),
       if (details.addresses.isNotEmpty) addresses(details.addresses),
       if (details.websites.isNotEmpty) websites(details.websites),
       if (details.socialMedias.isNotEmpty) socialMedias(details.socialMedias),
+      const Padding(
+          padding: EdgeInsets.only(left: 12, right: 12, bottom: 8),
+          child: Text(
+              'Once connected, they see the above information based on the '
+              'circles you added them to.')),
     ];
 
-Card circlesCard(
+Widget circlesCard(
         BuildContext context, String coagContactId, List<String> circleNames) =>
-    Card(
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-        child: Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 12),
-            child: Row(children: [
-              Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                    const Text('circles', style: TextStyle(fontSize: 16)),
-                    if (circleNames.isEmpty)
-                      const Text('Add them to circles to start sharing.',
-                          style: TextStyle(fontSize: 19))
-                    else
-                      Text(circleNames.join(', '),
-                          style: const TextStyle(fontSize: 19)),
-                  ])),
-              IconButton(
-                  key: const Key('editCircleMembership'),
-                  icon: const Icon(Icons.edit),
-                  onPressed: () async => showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (modalContext) => Padding(
-                          padding: EdgeInsets.only(
-                              left: 16,
-                              top: 16,
-                              right: 16,
-                              bottom: MediaQuery.of(modalContext)
-                                  .viewInsets
-                                  .bottom),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              BlocProvider(
-                                  create: (context) => CirclesCubit(
-                                      context.read<ContactsRepository>(),
-                                      coagContactId),
-                                  child:
-                                      BlocConsumer<CirclesCubit, CirclesState>(
-                                          listener: (context, state) async {},
-                                          builder: (context, state) =>
-                                              CirclesForm(
-                                                  circles: state.circles,
-                                                  callback: context
-                                                      .read<CirclesCubit>()
-                                                      .update)))
-                            ],
-                          ))))
-            ])));
+    Padding(
+        padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Row(children: [
+            Icon(Icons.circle),
+            SizedBox(width: 4),
+            Text('Circle memberships', textScaler: TextScaler.linear(1.2))
+          ]),
+          Row(children: [
+            Expanded(
+              child: Padding(
+                  padding: const EdgeInsets.only(
+                      left: 8, right: 8, top: 12, bottom: 12),
+                  child: (circleNames.isEmpty)
+                      ? const Text('Add them to circles to start sharing.',
+                          textScaler: TextScaler.linear(1.2))
+                      : Text(circleNames.join(', '),
+                          textScaler: const TextScaler.linear(1.2))),
+            ),
+            IconButton(
+                key: const Key('editCircleMembership'),
+                icon: const Icon(Icons.edit),
+                onPressed: () async => showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (modalContext) => Padding(
+                        padding: EdgeInsets.only(
+                            left: 16,
+                            top: 16,
+                            right: 16,
+                            bottom:
+                                MediaQuery.of(modalContext).viewInsets.bottom),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            BlocProvider(
+                                create: (context) => CirclesCubit(
+                                    context.read<ContactsRepository>(),
+                                    coagContactId),
+                                child: BlocConsumer<CirclesCubit, CirclesState>(
+                                    listener: (context, state) async {},
+                                    builder: (context, state) => CirclesForm(
+                                        circles: state.circles,
+                                        callback: context
+                                            .read<CirclesCubit>()
+                                            .update)))
+                          ],
+                        )))),
+          ]),
+          const Text(
+              'The selected circles determine which of your contact details '
+              'and locations they can see.'),
+        ]));
