@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -18,7 +17,6 @@ import '../../ui/profile/cubit.dart';
 import '../../utils.dart';
 import '../locations/page.dart';
 import '../profile/page.dart';
-import '../widgets/avatar.dart';
 import '../widgets/circles/cubit.dart';
 import '../widgets/circles/widget.dart';
 import 'cubit.dart';
@@ -105,10 +103,6 @@ class ContactPage extends StatelessWidget {
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const SizedBox(height: 24),
-        Center(
-            child: Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: avatar(contact.systemContact))),
 
         BlocConsumer<ProfileCubit, ProfileState>(
             listener: (context, state) async {},
@@ -122,40 +116,6 @@ class ContactPage extends StatelessWidget {
                 return Container();
               }
             }),
-
-        // if (!kReleaseMode)
-        // Debug output about update timestamps and receive / share DHT records
-        Column(children: [
-          Text('Updated: ${contact.mostRecentUpdate}'),
-          Text('Changed: ${contact.mostRecentChange}'),
-          if (contact.dhtSettingsForReceiving?.key != null)
-            const Padding(
-                padding: EdgeInsets.only(left: 16, right: 16),
-                child: Divider(color: Colors.grey)),
-          if (contact.dhtSettingsForReceiving?.key != null)
-            Text(
-                'DHT Rcv Key: ${contact.dhtSettingsForReceiving!.key.substring(5, 25)}...'),
-          if (contact.dhtSettingsForReceiving?.psk != null)
-            Text(
-                'DHT Rcv Sec: ${contact.dhtSettingsForReceiving!.psk!.substring(0, min(20, contact.dhtSettingsForReceiving!.psk!.length))}...'),
-          if (contact.dhtSettingsForReceiving?.writer != null)
-            Text(
-                'DHT Rcv Wrt: ${contact.dhtSettingsForReceiving!.writer!.substring(0, min(20, contact.dhtSettingsForReceiving!.writer!.length))}...'),
-          if (contact.dhtSettingsForSharing?.key != null)
-            const Padding(
-                padding: EdgeInsets.only(left: 16, right: 16),
-                child: Divider(color: Colors.grey)),
-          if (contact.dhtSettingsForSharing?.key != null)
-            Text(
-                'DHT Shr Key: ${contact.dhtSettingsForSharing!.key.substring(5, 25)}...'),
-          if (contact.dhtSettingsForSharing?.psk != null)
-            Text(
-                'DHT Shr Sec: ${contact.dhtSettingsForSharing!.psk!.substring(0, min(20, contact.dhtSettingsForSharing!.psk!.length))}...'),
-          if (contact.dhtSettingsForSharing?.writer != null)
-            Text(
-                'DHT Shr Wrt: ${contact.dhtSettingsForSharing!.writer!.substring(0, min(20, contact.dhtSettingsForSharing!.writer!.length))}...'),
-          const SizedBox(height: 16),
-        ]),
 
         // First phase?
         // for all incoming ones, show as synced to local
@@ -228,7 +188,44 @@ class ContactPage extends StatelessWidget {
                     child: Text(
                       'Delete from Coagulate',
                       style: TextStyle(color: Colors.black),
-                    ))))
+                    )))),
+
+        // if (!kReleaseMode)
+        // Debug output about update timestamps and receive / share DHT records
+        Column(children: [
+          const SizedBox(height: 16),
+          const Text('Developer debug information', textScaleFactor: 1.2),
+          const SizedBox(height: 8),
+          Text('Updated: ${contact.mostRecentUpdate}'),
+          Text('Changed: ${contact.mostRecentChange}'),
+          if (contact.dhtSettingsForReceiving?.key != null)
+            const Padding(
+                padding: EdgeInsets.only(left: 16, right: 16),
+                child: Divider(color: Colors.grey)),
+          if (contact.dhtSettingsForReceiving?.key != null)
+            Text(
+                'DHT Rcv Key: ${contact.dhtSettingsForReceiving!.key.substring(5, 25)}...'),
+          if (contact.dhtSettingsForReceiving?.psk != null)
+            Text(
+                'DHT Rcv Sec: ${contact.dhtSettingsForReceiving!.psk!.substring(0, min(20, contact.dhtSettingsForReceiving!.psk!.length))}...'),
+          if (contact.dhtSettingsForReceiving?.writer != null)
+            Text(
+                'DHT Rcv Wrt: ${contact.dhtSettingsForReceiving!.writer!.substring(0, min(20, contact.dhtSettingsForReceiving!.writer!.length))}...'),
+          if (contact.dhtSettingsForSharing?.key != null)
+            const Padding(
+                padding: EdgeInsets.only(left: 16, right: 16),
+                child: Divider(color: Colors.grey)),
+          if (contact.dhtSettingsForSharing?.key != null)
+            Text(
+                'DHT Shr Key: ${contact.dhtSettingsForSharing!.key.substring(5, 25)}...'),
+          if (contact.dhtSettingsForSharing?.psk != null)
+            Text(
+                'DHT Shr Sec: ${contact.dhtSettingsForSharing!.psk!.substring(0, min(20, contact.dhtSettingsForSharing!.psk!.length))}...'),
+          if (contact.dhtSettingsForSharing?.writer != null)
+            Text(
+                'DHT Shr Wrt: ${contact.dhtSettingsForSharing!.writer!.substring(0, min(20, contact.dhtSettingsForSharing!.writer!.length))}...'),
+          const SizedBox(height: 16),
+        ]),
       ]));
 }
 
