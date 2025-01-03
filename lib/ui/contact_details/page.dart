@@ -28,15 +28,6 @@ Uri _shareUrl({required String key, required String psk}) => Uri(
     path: 'en/c',
     fragment: '$key:$psk');
 
-Uri _receiveUrl(
-        {required String key, required String psk, required String writer}) =>
-    Uri(
-        scheme: 'https',
-        host: 'coagulate.social',
-        // TODO: Make language dependent on local language setting?
-        path: 'en/c',
-        fragment: '$key:$psk:$writer');
-
 Widget _qrCodeButton(BuildContext context,
         {required String buttonText,
         required String alertTitle,
@@ -60,7 +51,6 @@ Widget _qrCodeButton(BuildContext context,
                     width: 200,
                     child: Center(
                         child: QrImageView(
-                            // TODO: This needs to be receive URL because it needs to include the writer
                             data: qrCodeData,
                             backgroundColor: Colors.white,
                             size: 200))))));
@@ -102,8 +92,6 @@ class ContactPage extends StatelessWidget {
       SingleChildScrollView(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const SizedBox(height: 24),
-
         BlocConsumer<ProfileCubit, ProfileState>(
             listener: (context, state) async {},
             builder: (context, state) {
@@ -117,51 +105,18 @@ class ContactPage extends StatelessWidget {
               }
             }),
 
-        // First phase?
-        // for all incoming ones, show as synced to local
-        // for all local ones that don't match incoming ones, show as local
-        // match by index when linking for the first time
-
-        // TODO: Display merged view of contact details and system contact second phase, where
-        // if a matching name with the same value is present
-        //   - show entry with managed or unmanaged indicator
-        // if a matching name with a different value is present
-        //   - if managed, override, collapse to same
-        //   - if not managed, display side by side, show option to enable dht management
-        // if no matching name and value is present
-        //   - add as new entry to system contact, mark managed
-        // if no matching name but matching value is present, think about displaying them next to each other still
-
         // Contact details
-        if (contact.details?.phones.isNotEmpty ?? false)
-          phones(contact.details!.phones)
-        else if (contact.systemContact?.phones.isNotEmpty ?? false)
-          phones(contact.systemContact!.phones),
-
-        if (contact.details?.emails.isNotEmpty ?? false)
-          emails(contact.details!.emails)
-        else if (contact.systemContact != null &&
-            contact.systemContact!.emails.isNotEmpty)
-          emails(contact.systemContact!.emails),
-
-        if (contact.details?.addresses.isNotEmpty ?? false)
-          addresses(contact.details!.addresses)
-        else if (contact.systemContact?.addresses.isNotEmpty ?? false)
-          addresses(contact.systemContact!.addresses),
-
-        if (contact.details?.websites.isNotEmpty ?? false)
-          websites(contact.details!.websites)
-        else if (contact.systemContact?.websites.isNotEmpty ?? false)
-          websites(contact.systemContact!.websites),
-
-        if (contact.details?.socialMedias.isNotEmpty ?? false)
-          socialMedias(contact.details!.socialMedias)
-        else if (contact.systemContact?.socialMedias.isNotEmpty ?? false)
-          socialMedias(contact.systemContact!.socialMedias),
-
-        // Locations
-        if (contact.temporaryLocations.isNotEmpty)
-          temporaryLocationsCard(contact.temporaryLocations),
+        const Padding(
+            padding: EdgeInsets.only(left: 12, top: 16, right: 12, bottom: 8),
+            child: Text('Contact details',
+                textScaler: TextScaler.linear(1.2),
+                style: TextStyle(fontWeight: FontWeight.w600))),
+        ...contactDetailsAndLocations(context, contact),
+        const Padding(
+            padding: EdgeInsets.only(left: 12, right: 12),
+            child: Text(
+                'The details and locations above are either already available '
+                'from your system address book or were shared with you via Coagulate.')),
 
         // Sharing stuff
         const Padding(
@@ -172,7 +127,7 @@ class ContactPage extends StatelessWidget {
         Padding(
             padding:
                 const EdgeInsets.only(left: 4, top: 4, bottom: 4, right: 4),
-            child: sharingStuff(context, contact, circleNames)),
+            child: sharingSettings(context, contact, circleNames)),
 
         Center(
             child: TextButton(
@@ -229,10 +184,60 @@ class ContactPage extends StatelessWidget {
       ]));
 }
 
+List<Widget> contactDetailsAndLocations(
+        BuildContext context, CoagContact contact) =>
+    [
+      // First phase?
+      // for all incoming ones, show as synced to local
+      // for all local ones that don't match incoming ones, show as local
+      // match by index when linking for the first time
+
+      // TODO: Display merged view of contact details and system contact second phase, where
+      // if a matching name with the same value is present
+      //   - show entry with managed or unmanaged indicator
+      // if a matching name with a different value is present
+      //   - if managed, override, collapse to same
+      //   - if not managed, display side by side, show option to enable dht management
+      // if no matching name and value is present
+      //   - add as new entry to system contact, mark managed
+      // if no matching name but matching value is present, think about displaying them next to each other still
+
+      // Contact details
+      if (contact.details?.phones.isNotEmpty ?? false)
+        phones(contact.details!.phones)
+      else if (contact.systemContact?.phones.isNotEmpty ?? false)
+        phones(contact.systemContact!.phones),
+
+      if (contact.details?.emails.isNotEmpty ?? false)
+        emails(contact.details!.emails)
+      else if (contact.systemContact != null &&
+          contact.systemContact!.emails.isNotEmpty)
+        emails(contact.systemContact!.emails),
+
+      if (contact.details?.addresses.isNotEmpty ?? false)
+        addresses(contact.details!.addresses)
+      else if (contact.systemContact?.addresses.isNotEmpty ?? false)
+        addresses(contact.systemContact!.addresses),
+
+      if (contact.details?.websites.isNotEmpty ?? false)
+        websites(contact.details!.websites)
+      else if (contact.systemContact?.websites.isNotEmpty ?? false)
+        websites(contact.systemContact!.websites),
+
+      if (contact.details?.socialMedias.isNotEmpty ?? false)
+        socialMedias(contact.details!.socialMedias)
+      else if (contact.systemContact?.socialMedias.isNotEmpty ?? false)
+        socialMedias(contact.systemContact!.socialMedias),
+
+      // Locations
+      if (contact.temporaryLocations.isNotEmpty)
+        temporaryLocationsCard(contact.temporaryLocations),
+    ];
+
 Widget _paddedDivider() => const Padding(
     padding: EdgeInsets.only(left: 16, right: 16), child: Divider());
 
-Widget sharingStuff(
+Widget sharingSettings(
         BuildContext context, CoagContact contact, List<String> circleNames) =>
     Card(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -267,12 +272,17 @@ Widget sharingStuff(
         temporaryLocationsCard(CoagContactDHTSchemaV1.fromJson(
                 json.decode(contact.sharedProfile!) as Map<String, dynamic>)
             .temporaryLocations),
+        const Padding(
+            padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
+            child: Text(
+                'These current and future locations are available to them based '
+                'on the circles you shared the locations with.')),
       ],
     ]));
 
 Widget temporaryLocationsCard(List<ContactTemporaryLocation> locations) =>
     Padding(
-        padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 8),
+        padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Row(children: [
             Icon(Icons.share_location),
@@ -285,9 +295,6 @@ Widget temporaryLocationsCard(List<ContactTemporaryLocation> locations) =>
                   padding: const EdgeInsets.only(left: 8, right: 8),
                   child: locationTile(l)))
               .asList(),
-          const Text(
-              'These current and future locations are available to them based '
-              'on the circles you shared the locations with.'),
         ]));
 
 Widget connectingCard(BuildContext context, CoagContact contact) =>
