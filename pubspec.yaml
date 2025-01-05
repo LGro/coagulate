@@ -1,7 +1,7 @@
 name: coagulate
 description: Staying in contact, with privacy friendly contact synchronization powered by Veilid.
 publish_to: 'none'
-version: "0.0.1+16"
+version: "0.0.1+18"
 
 environment:
   sdk: '>=3.0.5 <4.0.0'  
@@ -58,8 +58,6 @@ dependencies:
     path: ../veilid/veilid-flutter
   veilid_support:
     path: packages/veilid_support
-  # NOTE: There are new iOS features available from source that aren't release yet
-  workmanager: ^0.5.2
 
 dev_dependencies:
   bloc_test: ^9.1.7
