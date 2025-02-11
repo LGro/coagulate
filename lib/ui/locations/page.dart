@@ -376,9 +376,16 @@ class LocationsPage extends StatelessWidget {
                           l.start.isBefore(DateTime.now()))
                       .map((l) => Dismissible(
                           key: UniqueKey(),
+                          direction: DismissDirection.endToStart,
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
-                          background: Container(color: Colors.red),
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child:
+                                const Icon(Icons.delete, color: Colors.white),
+                          ),
                           child: Padding(
                               padding:
                                   const EdgeInsets.only(left: 16, right: 16),
@@ -395,9 +402,16 @@ class LocationsPage extends StatelessWidget {
                           !l.start.isBefore(DateTime.now()))
                       .map((l) => Dismissible(
                           key: UniqueKey(),
+                          direction: DismissDirection.endToStart,
                           onDismissed: (_) async =>
                               context.read<LocationsCubit>().removeLocation(l),
-                          background: Container(color: Colors.red),
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child:
+                                const Icon(Icons.delete, color: Colors.white),
+                          ),
                           child: Padding(
                               padding:
                                   const EdgeInsets.only(left: 16, right: 16),
@@ -422,48 +436,51 @@ class LocationsPage extends StatelessWidget {
                             style: TextStyle(fontSize: 16))),
                 ])),
                 const SizedBox(height: 8),
-                Row(children: [
-                  const Expanded(child: SizedBox()),
-                  ElevatedButton(
-                      onPressed: () async => showModalBottomSheet<void>(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (modalContext) => Padding(
-                              padding: EdgeInsets.only(
-                                  left: 16,
-                                  top: 16,
-                                  right: 16,
-                                  bottom: MediaQuery.of(modalContext)
-                                      .viewInsets
-                                      .bottom),
-                              child: const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [CheckInWidget()]))),
-                      child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.pin_drop),
-                            SizedBox(width: 8),
-                            Text('check-in')
-                          ])),
-                  const Expanded(child: SizedBox()),
-                  ElevatedButton(
-                      onPressed: (state.circleMembersips.isEmpty)
-                          ? null
-                          : () async => Navigator.push(
-                              context,
-                              MaterialPageRoute<ScheduleWidget>(
-                                  builder: (_) => const ScheduleWidget())),
-                      child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.calendar_month),
-                            SizedBox(width: 8),
-                            Text('schedule')
-                          ])),
-                  const Expanded(child: SizedBox()),
-                ]),
-                const SizedBox(height: 4),
+                Padding(
+                    padding:
+                        const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+                    child: Row(children: [
+                      const Expanded(child: SizedBox()),
+                      FilledButton(
+                          onPressed: () async => showModalBottomSheet<void>(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (modalContext) => Padding(
+                                  padding: EdgeInsets.only(
+                                      left: 16,
+                                      top: 16,
+                                      right: 16,
+                                      bottom: MediaQuery.of(modalContext)
+                                          .viewInsets
+                                          .bottom),
+                                  child: const Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [CheckInWidget()]))),
+                          child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.pin_drop),
+                                SizedBox(width: 8),
+                                Text('check-in')
+                              ])),
+                      const Expanded(child: SizedBox()),
+                      FilledButton(
+                          onPressed: (state.circleMembersips.isEmpty)
+                              ? null
+                              : () async => Navigator.push(
+                                  context,
+                                  MaterialPageRoute<ScheduleWidget>(
+                                      builder: (_) => const ScheduleWidget())),
+                          child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.calendar_month),
+                                SizedBox(width: 8),
+                                Text('schedule')
+                              ])),
+                      const Expanded(child: SizedBox()),
+                    ])),
               ]))));
 }

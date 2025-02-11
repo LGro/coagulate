@@ -29,9 +29,7 @@ String formatTimeDifference(Duration d) {
 String compareContacts(ContactDetails oldContact, ContactDetails newContact) {
   final results = <String>[];
 
-  if (oldContact.displayName != newContact.displayName) {
-    results.add('name');
-  } else if (oldContact.name != newContact.name) {
+  if (oldContact.names != newContact.names) {
     results.add('name');
   }
 
@@ -105,7 +103,17 @@ class UpdatesPage extends StatelessWidget {
           child: BlocConsumer<UpdatesCubit, UpdatesState>(
               listener: (context, state) async {},
               builder: (context, state) => RefreshIndicator(
-                  onRefresh: context.read<UpdatesCubit>().refresh,
+                  onRefresh: () => context.read<UpdatesCubit>().refresh().then(
+                      (success) => context.mounted
+                          ? (success
+                              ? ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Successfully refreshed!')))
+                              : ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Refreshing failed, try again later!'))))
+                          : null),
                   child: ListView(
                     children: (state.updates.isEmpty)
                         ? [
@@ -117,9 +125,9 @@ class UpdatesPage extends StatelessWidget {
                           ]
                         : state.updates
                             .map((u) => updateTile(
-                                (u.oldContact.displayName.isNotEmpty)
-                                    ? u.oldContact.displayName
-                                    : u.newContact.displayName,
+                                (u.oldContact.names.isNotEmpty)
+                                    ? u.oldContact.names.values.join(',')
+                                    : u.newContact.names.values.join(', '),
                                 formatTimeDifference(
                                     DateTime.now().difference(u.timestamp)),
                                 compareContacts(u.oldContact, u.newContact),

@@ -10,7 +10,11 @@ part 'coag_contact.g.dart';
 @JsonSerializable()
 class ContactDHTSettings extends Equatable {
   const ContactDHTSettings(
-      {required this.key, this.writer, this.psk, this.lastUpdated});
+      {required this.key,
+      this.writer,
+      this.psk,
+      this.pubKey,
+      this.lastUpdated});
 
   final String key;
   // Optional writer keypair in case I shared first and offered a DHT record for
@@ -19,6 +23,7 @@ class ContactDHTSettings extends Equatable {
   // Optional pre-shared secret in case I shared first and did not yet have
   // their public key
   final String? psk;
+  final String? pubKey;
   final DateTime? lastUpdated;
 
   factory ContactDHTSettings.fromJson(Map<String, dynamic> json) =>
@@ -26,22 +31,28 @@ class ContactDHTSettings extends Equatable {
 
   Map<String, dynamic> toJson() => _$ContactDHTSettingsToJson(this);
 
-  ContactDHTSettings copyWith({String? key, String? writer, String? psk}) =>
+  ContactDHTSettings copyWith(
+          {String? key,
+          String? writer,
+          String? psk,
+          String? pubKey,
+          DateTime? lastUpdated}) =>
       ContactDHTSettings(
         key: key ?? this.key,
         writer: writer ?? this.writer,
         psk: psk ?? this.psk,
+        pubKey: pubKey ?? this.pubKey,
+        lastUpdated: lastUpdated ?? this.lastUpdated,
       );
 
   @override
-  List<Object?> get props => [key, writer, psk];
+  List<Object?> get props => [key, writer, psk, pubKey];
 }
 
 @JsonSerializable()
 class ContactDetails extends Equatable {
   const ContactDetails({
-    required this.displayName,
-    required this.name,
+    this.names = const {},
     this.phones = const [],
     this.emails = const [],
     this.addresses = const [],
@@ -51,9 +62,9 @@ class ContactDetails extends Equatable {
     this.events = const [],
   });
 
+  // TODO: Can it backfire if we drop all names but the display name?
   ContactDetails.fromSystemContact(Contact c)
-      : displayName = c.displayName,
-        name = c.name,
+      : names = {'0': c.displayName},
         phones = c.phones,
         emails = c.emails,
         addresses = c.addresses,
@@ -62,9 +73,8 @@ class ContactDetails extends Equatable {
         socialMedias = c.socialMedias,
         events = c.events;
 
-  Contact toSystemContact() => Contact(
+  Contact toSystemContact(String displayName) => Contact(
       displayName: displayName,
-      name: name,
       phones: phones,
       emails: emails,
       addresses: addresses,
@@ -76,10 +86,8 @@ class ContactDetails extends Equatable {
   factory ContactDetails.fromJson(Map<String, dynamic> json) =>
       _$ContactDetailsFromJson(json);
 
-  final String displayName;
-
-  /// Structured name.
-  final Name name;
+  /// Names with unique key
+  final Map<String, String> names;
 
   /// Phone numbers.
   final List<Phone> phones;
@@ -105,8 +113,7 @@ class ContactDetails extends Equatable {
   Map<String, dynamic> toJson() => _$ContactDetailsToJson(this);
 
   ContactDetails copyWith(
-          {String? displayName,
-          Name? name,
+          {Map<String, String>? names,
           List<Phone>? phones,
           List<Email>? emails,
           List<Address>? addresses,
@@ -115,8 +122,7 @@ class ContactDetails extends Equatable {
           List<SocialMedia>? socialMedias,
           List<Event>? events}) =>
       ContactDetails(
-        displayName: displayName ?? this.displayName,
-        name: name ?? this.name,
+        names: names ?? this.names,
         phones: phones ?? this.phones,
         emails: emails ?? this.emails,
         addresses: addresses ?? this.addresses,
@@ -128,8 +134,7 @@ class ContactDetails extends Equatable {
 
   @override
   List<Object?> get props => [
-        displayName,
-        name,
+        names,
         phones,
         emails,
         addresses,
@@ -151,6 +156,7 @@ class CoagContact extends Equatable {
     this.dhtSettingsForSharing,
     this.dhtSettingsForReceiving,
     this.sharedProfile,
+    this.publicKey,
     this.mostRecentUpdate,
     this.mostRecentChange,
   });
@@ -165,6 +171,7 @@ class CoagContact extends Equatable {
   final ContactDHTSettings? dhtSettingsForReceiving;
   // TODO: Make this a proper type with toJson?
   final String? sharedProfile;
+  final String? publicKey;
   // TODO: Move these two to contact details to also have the same for the system contact
   final DateTime? mostRecentUpdate;
   final DateTime? mostRecentChange;
@@ -199,6 +206,7 @@ class CoagContact extends Equatable {
   }
 
   CoagContact copyWith({
+    String? coagContactId,
     Contact? systemContact,
     ContactDetails? details,
     Map<int, ContactAddressLocation>? addressLocations,
@@ -206,11 +214,12 @@ class CoagContact extends Equatable {
     ContactDHTSettings? dhtSettingsForSharing,
     ContactDHTSettings? dhtSettingsForReceiving,
     String? sharedProfile,
+    String? publicKey,
     DateTime? mostRecentUpdate,
     DateTime? mostRecentChange,
   }) =>
       CoagContact(
-        coagContactId: coagContactId,
+        coagContactId: coagContactId ?? this.coagContactId,
         details: details ?? this.details,
         systemContact: systemContact ?? this.systemContact,
         addressLocations: addressLocations ?? this.addressLocations,
@@ -220,6 +229,7 @@ class CoagContact extends Equatable {
         dhtSettingsForReceiving:
             dhtSettingsForReceiving ?? this.dhtSettingsForReceiving,
         sharedProfile: sharedProfile ?? this.sharedProfile,
+        publicKey: publicKey ?? this.publicKey,
         mostRecentUpdate: mostRecentUpdate ?? this.mostRecentUpdate,
         mostRecentChange: mostRecentChange ?? this.mostRecentChange,
       );
@@ -232,6 +242,7 @@ class CoagContact extends Equatable {
         dhtSettingsForSharing,
         dhtSettingsForReceiving,
         sharedProfile,
+        publicKey,
         addressLocations,
         temporaryLocations,
         mostRecentUpdate,
@@ -239,7 +250,6 @@ class CoagContact extends Equatable {
       ];
 }
 
-// TODO: Add most recent update timestamp that is not part of props
 @JsonSerializable()
 class CoagContactDHTSchemaV1 extends Equatable {
   const CoagContactDHTSchemaV1({
@@ -252,8 +262,10 @@ class CoagContactDHTSchemaV1 extends Equatable {
     this.temporaryLocations = const [],
   });
 
+  factory CoagContactDHTSchemaV1.fromJson(Map<String, dynamic> json) =>
+      _$CoagContactDHTSchemaV1FromJson(json);
+
   final int schemaVersion = 1;
-  // TODO: Consider removing this one again if we just try all available private keys on the receiving side
   final String coagContactId;
   final ContactDetails details;
   final Map<int, ContactAddressLocation> addressLocations;
@@ -261,9 +273,6 @@ class CoagContactDHTSchemaV1 extends Equatable {
   final String? shareBackDHTKey;
   final String? shareBackDHTWriter;
   final String? shareBackPsk;
-
-  factory CoagContactDHTSchemaV1.fromJson(Map<String, dynamic> json) =>
-      _$CoagContactDHTSchemaV1FromJson(json);
 
   Map<String, dynamic> toJson() => _$CoagContactDHTSchemaV1ToJson(this);
 
@@ -297,3 +306,77 @@ class CoagContactDHTSchemaV1 extends Equatable {
         temporaryLocations,
       ];
 }
+
+@JsonSerializable()
+class CoagContactDHTSchemaV2 extends Equatable {
+  CoagContactDHTSchemaV2({
+    required this.details,
+    required this.shareBackDHTKey,
+    required this.shareBackPubKey,
+    this.shareBackDHTWriter,
+    this.addressLocations = const {},
+    this.temporaryLocations = const [],
+    DateTime? mostRecentUpdate,
+  }) {
+    this.mostRecentUpdate = mostRecentUpdate ?? DateTime.now();
+  }
+  factory CoagContactDHTSchemaV2.fromJson(Map<String, dynamic> json) {
+    try {
+      return _$CoagContactDHTSchemaV2FromJson(json);
+    } on FormatException {
+      return schemaV1toV2(_$CoagContactDHTSchemaV1FromJson(json));
+    }
+  }
+
+  final int schemaVersion = 2;
+  final ContactDetails details;
+  final Map<int, ContactAddressLocation> addressLocations;
+  final List<ContactTemporaryLocation> temporaryLocations;
+  final String? shareBackDHTKey;
+  final String? shareBackDHTWriter;
+  final String? shareBackPubKey;
+  late final DateTime? mostRecentUpdate;
+
+  Map<String, dynamic> toJson() => _$CoagContactDHTSchemaV2ToJson(this);
+
+  CoagContactDHTSchemaV2 copyWith({
+    ContactDetails? details,
+    String? shareBackDHTKey,
+    String? shareBackDHTWriter,
+    String? shareBackPubKey,
+    Map<int, ContactAddressLocation>? addressLocations,
+    List<ContactTemporaryLocation>? temporaryLocations,
+  }) =>
+      CoagContactDHTSchemaV2(
+        details: details ?? this.details,
+        shareBackDHTKey: shareBackDHTKey ?? this.shareBackDHTKey,
+        shareBackPubKey: shareBackPubKey ?? this.shareBackPubKey,
+        shareBackDHTWriter: shareBackDHTWriter ?? this.shareBackDHTWriter,
+        addressLocations: addressLocations ?? this.addressLocations,
+        temporaryLocations: temporaryLocations ?? this.temporaryLocations,
+      );
+
+  // Differences in mostRecentUpdate timestamp will still caus equality
+  @override
+  List<Object?> get props => [
+        schemaVersion,
+        details,
+        shareBackDHTKey,
+        shareBackPubKey,
+        shareBackDHTWriter,
+        addressLocations,
+        temporaryLocations,
+      ];
+}
+
+CoagContactDHTSchemaV2 schemaV1toV2(CoagContactDHTSchemaV1 old) =>
+    CoagContactDHTSchemaV2(
+        details: old.details,
+        shareBackDHTKey: old.shareBackDHTKey,
+        shareBackDHTWriter: old.shareBackDHTWriter,
+        // NOTE: This will cause downstream errors when trying to decrypt
+        shareBackPubKey: old.shareBackPsk,
+        addressLocations: old.addressLocations,
+        temporaryLocations: old.temporaryLocations);
+
+typedef CoagContactDHTSchema = CoagContactDHTSchemaV2;

@@ -52,8 +52,6 @@ class LocationsCubit extends Cubit<LocationsState> {
         temporaryLocations: profileContact.temporaryLocations
             .where((l) => l != location)
             .asList()));
-    // Make sure to regenerate the sharing profiles and update DHT sharing records
-    await contactsRepository.updateProfileContact(profileContact.coagContactId);
   }
 
   @override
@@ -74,7 +72,5 @@ class LocationsCubit extends Cubit<LocationsState> {
                 ? l.copyWith(checkedIn: !l.checkedIn)
                 : l.copyWith(checkedIn: false))
             .toList()));
-    // Make sure to regenerate the sharing profiles and update DHT sharing records
-    await contactsRepository.updateProfileContact(profileContact.coagContactId);
   }
 }

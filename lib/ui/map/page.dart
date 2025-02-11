@@ -58,49 +58,50 @@ class _SliderExampleState extends State<SliderExample> {
 String mapboxToken() =>
     const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN');
 
-Marker _buildMarker(
-        {required Location location,
-        required GestureTapCallback? onTap,
-        bool isDarkMode = false}) =>
-    Marker(
-        height: 90,
-        width: 100,
-        point: LatLng(location.latitude, location.longitude),
-        alignment: Alignment.topCenter,
-        child: GestureDetector(
-            onTap: onTap,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Container(
-                  padding: const EdgeInsets.only(
-                      bottom: 4, left: 8, right: 8, top: 3),
-                  decoration: BoxDecoration(
-                      color: (isDarkMode ? Colors.black : Colors.white)
-                          .withAlpha(240),
-                      borderRadius: const BorderRadius.all(Radius.circular(5))),
-                  child: Column(children: [
-                    Text(
-                      location.label,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 12),
-                    ),
-                    Text(
-                      location.subLabel,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 10),
-                    ),
-                  ])),
-              Icon(
-                  (location.marker == MarkerType.address)
-                      ? Icons.house
-                      : Icons.location_pin,
-                  size: 50,
-                  color: Colors.deepPurple),
-            ])));
-
 class MapPage extends StatelessWidget {
   const MapPage({super.key});
+
+  Marker _buildMarker(BuildContext context,
+          {required Location location,
+          required GestureTapCallback? onTap,
+          bool isDarkMode = false}) =>
+      Marker(
+          height: 90,
+          width: 100,
+          point: LatLng(location.latitude, location.longitude),
+          alignment: Alignment.topCenter,
+          child: GestureDetector(
+              onTap: onTap,
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Container(
+                    padding: const EdgeInsets.only(
+                        bottom: 4, left: 8, right: 8, top: 3),
+                    decoration: BoxDecoration(
+                        color: (isDarkMode ? Colors.black : Colors.white)
+                            .withAlpha(240),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(5))),
+                    child: Column(children: [
+                      Text(
+                        location.label,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 12),
+                      ),
+                      Text(
+                        location.subLabel,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 10),
+                      ),
+                    ])),
+                Icon(
+                    (location.marker == MarkerType.address)
+                        ? Icons.home_rounded
+                        : Icons.location_pin,
+                    size: 50,
+                    color: Theme.of(context).colorScheme.primary),
+              ])));
 
   @override
   Widget build(BuildContext context) => FlutterMap(
@@ -133,7 +134,7 @@ class MapPage extends StatelessWidget {
                   listener: (context, state) async {},
                   builder: (context, state) {
                     final markers = state.locations
-                        .map((location) => _buildMarker(
+                        .map((location) => _buildMarker(context,
                             location: location,
                             isDarkMode:
                                 MediaQuery.of(context).platformBrightness ==
@@ -167,7 +168,7 @@ class MapPage extends StatelessWidget {
                                                   Text(location.details),
                                                   // TODO: only display if not already scheduled this (or conflicting)
                                                   Center(
-                                                      child: TextButton(
+                                                      child: FilledButton.tonal(
                                                           child: const Text(
                                                               'Add to my locations'),
                                                           onPressed: () async =>

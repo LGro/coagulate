@@ -3,11 +3,12 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:rxdart/subjects.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:veilid/veilid_state.dart';
+import 'package:veilid_support/veilid_support.dart';
 
 import '../../veilid_processor/veilid_processor.dart';
 import '../models/coag_contact.dart';
@@ -17,52 +18,66 @@ import '../models/profile_sharing_settings.dart';
 import '../providers/distributed_storage/base.dart';
 import '../providers/persistent_storage/base.dart';
 import '../providers/system_contacts/base.dart';
-import '../providers/system_contacts/system_contacts.dart';
 
-String contactDetailKey<T>(int i, T detail) {
+const String defaultEveryoneCircleId = 'coag::everyone';
+
+String contactDetailKey<T>(T detail) {
   if (detail is Organization) {
-    return '$i|${detail.company}';
+    return detail.company;
   }
 
   if (detail is Phone) {
     final label = (detail.label.name == 'custom')
         ? detail.customLabel
         : detail.label.name;
-    return '$i|$label';
+    return label;
   }
   if (detail is Email) {
     final label = (detail.label.name == 'custom')
         ? detail.customLabel
         : detail.label.name;
-    return '$i|$label';
+    return label;
   }
   if (detail is Address) {
     final label = (detail.label.name == 'custom')
         ? detail.customLabel
         : detail.label.name;
-    return '$i|$label';
+    return label;
   }
   if (detail is Website) {
     final label = (detail.label.name == 'custom')
         ? detail.customLabel
         : detail.label.name;
-    return '$i|$label';
+    return label;
   }
   if (detail is SocialMedia) {
     final label = (detail.label.name == 'custom')
         ? detail.customLabel
         : detail.label.name;
-    return '$i|$label';
+    return label;
   }
   if (detail is Event) {
     final label = (detail.label.name == 'custom')
         ? detail.customLabel
         : detail.label.name;
-    return '$i|$label';
+    return label;
   }
 
   // TODO: Return null or i instead?
   return '';
+}
+
+Map<String, String> filterNames(
+  Map<String, String> names,
+  Map<String, List<String>> settings,
+  List<String> activeCircles,
+) {
+  if (activeCircles.isEmpty) {
+    return {};
+  }
+  final updatedValues = {...names}..removeWhere((i, n) =>
+      !(settings[i]?.asSet().intersectsWith(activeCircles.asSet()) ?? false));
+  return updatedValues;
 }
 
 List<T> filterContactDetailsList<T>(
@@ -73,20 +88,18 @@ List<T> filterContactDetailsList<T>(
   if (activeCircles.isEmpty) {
     return [];
   }
-  final updatedValues = Map<int, T>.from(values.asMap())
-    ..removeWhere((i, e) => !(settings[contactDetailKey(i, e)]
-            ?.asSet()
-            .intersectsWith(activeCircles.asSet()) ??
-        false));
+  final updatedValues = {...values.asMap()}..removeWhere((i, e) =>
+      !(settings[contactDetailKey(e)]
+              ?.asSet()
+              .intersectsWith(activeCircles.asSet()) ??
+          false));
   return updatedValues.values.asList();
 }
 
 ContactDetails filterDetails(ContactDetails details,
         ProfileSharingSettings settings, List<String> activeCircles) =>
     ContactDetails(
-      // TODO: filter the names as well
-      displayName: details.displayName,
-      name: details.name,
+      names: filterNames(details.names, settings.names, activeCircles),
       phones: filterContactDetailsList(
           details.phones, settings.phones, activeCircles),
       emails: filterContactDetailsList(
@@ -108,7 +121,7 @@ Map<int, ContactAddressLocation> filterAddressLocations(
         ProfileSharingSettings settings,
         List<String> activeCircles) =>
     {
-      // TODO: If we were also using "index|label" style keys for "locations", this could be simplified
+      // TODO: If we were also using "label" style keys for "locations", this could be simplified
       for (final location in locations.entries)
         if (({
                   for (final addressSetting in settings.addresses.entries)
@@ -131,17 +144,13 @@ List<ContactTemporaryLocation> filterTemporaryLocations(
             l.circles.toSet().intersectsWith(activeCircles.toSet()))
         .asList();
 
-CoagContactDHTSchemaV1 filterAccordingToSharingProfile(
+CoagContactDHTSchema filterAccordingToSharingProfile(
         {required CoagContact profile,
         required ProfileSharingSettings settings,
         required List<String> activeCircles,
         required ContactDHTSettings? shareBackSettings}) =>
-    CoagContactDHTSchemaV1(
-      coagContactId: profile.coagContactId,
-      details: filterDetails(
-          ContactDetails.fromSystemContact(profile.systemContact!),
-          settings,
-          activeCircles),
+    CoagContactDHTSchema(
+      details: filterDetails(profile.details!, settings, activeCircles),
       // Only share locations up to 1 day ago
       temporaryLocations:
           filterTemporaryLocations(profile.temporaryLocations, activeCircles),
@@ -149,7 +158,7 @@ CoagContactDHTSchemaV1 filterAccordingToSharingProfile(
           profile.addressLocations, settings, activeCircles),
       shareBackDHTKey: shareBackSettings?.key,
       shareBackDHTWriter: shareBackSettings?.writer,
-      shareBackPsk: shareBackSettings?.psk,
+      shareBackPubKey: shareBackSettings?.pubKey,
     );
 
 Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
@@ -157,14 +166,33 @@ Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
   return json;
 }
 
+// TODO: This feels like it should live somewhere else
+Future<TypedKeyPair> getAppUserKeyPair() async {
+  const spKey = 'coag_app_user_key_pair';
+  final sp = await SharedPreferences.getInstance();
+  var keyPairString = sp.getString(spKey);
+  if (keyPairString == null) {
+    final keyPair = await DHTRecordPool.instance.veilid.bestCryptoSystem().then(
+        (cs) => cs
+            .generateKeyPair()
+            .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)));
+    keyPairString = keyPair.toString();
+    await sp.setString(spKey, keyPairString);
+  }
+  return TypedKeyPair.fromString(keyPairString);
+  // TODO: Upgrade keypair to newer crypto system once available
+}
+
 class ContactsRepository {
   ContactsRepository(this.persistentStorage, this.distributedStorage,
-      this.systemContactsStorage,
+      this.systemContactsStorage, this.initialName,
       {bool initialize = true}) {
     if (initialize) {
       unawaited(this.initialize());
     }
   }
+
+  final String initialName;
 
   final PersistentStorage persistentStorage;
   final DistributedStorage distributedStorage;
@@ -212,10 +240,36 @@ class ContactsRepository {
   bool veilidNetworkAvailable = false;
 
   Future<void> initialize() async {
+    // Ensure it is initialized
+    await getAppUserKeyPair();
+
     await initializeFromPersistentStorage();
 
-    await updateFromSystemContacts();
-    FlutterContacts.addListener(_systemContactsChangedCallback);
+    if (getProfileContact() == null && initialName.isNotEmpty) {
+      final initialDetails = ContactDetails(names: {Uuid().v4(): initialName});
+      final minimalProfileContact =
+          CoagContact(coagContactId: Uuid().v4(), details: initialDetails);
+      // Needs to be saved before setting
+      await saveContact(minimalProfileContact);
+      await setProfileContact(minimalProfileContact.coagContactId);
+      // Add initial name to share with everyone, opt out possible later
+      await setProfileSharingSettings(ProfileSharingSettings(names: {
+        initialDetails.names.keys.first: const [defaultEveryoneCircleId]
+      }));
+    }
+
+    // Ensure that everyone is part of the default circle
+    if (!getCircles().containsKey(defaultEveryoneCircleId)) {
+      // TODO: Localize
+      await addCircle(defaultEveryoneCircleId, 'Everyone');
+    }
+    final circleMemberships = {...getCircleMemberships()};
+    circleMemberships[defaultEveryoneCircleId] = [...getContacts().keys];
+    await updateCircleMemberships(circleMemberships);
+
+    // FIXME: System contact sync is disabled
+    //await updateFromSystemContacts();
+    //FlutterContacts.addListener(_systemContactsChangedCallback);
 
     // Update the contacts from DHT and subscribe to future updates
     await updateAndWatchReceivingDHT();
@@ -262,52 +316,34 @@ class ContactsRepository {
     await persistentStorage.updateContact(coagContact);
   }
 
-  // update contacts from system address book (async)
-  // update contacts from dht (async)
-
-  // update repo state (sync)
-  // update persistent storage (async)
-  // update system address book (async)
-  // update contacts in dht (async)
-
   //////
   // DHT
   Future<void> updateContactFromDHT(CoagContact contact) async {
     final updatedContact =
-        await distributedStorage.updateContactReceivingDHT(contact);
-    final updateTime = DateTime.now();
-    if (updatedContact == contact) {
-      await saveContact(updatedContact.copyWith(mostRecentUpdate: updateTime));
-    } else {
-      // TODO: Use update time from when the update was sent not received
-      // TODO: When temporary locations are updated, only record an update about added / updated locations / check-ins
-      await _saveUpdate(ContactUpdate(
-          // TODO: contact details can be null; handle this more appropriately than the current workaround with empty details
-          coagContactId: contact.coagContactId,
-          oldContact:
-              contact.details ?? ContactDetails(displayName: '', name: Name()),
-          // TODO: Can it happen that details are null?
-          newContact: updatedContact.details!,
-          timestamp: DateTime.now()));
+        await distributedStorage.getContact(contact, await getAppUserKeyPair());
 
-      await saveContact(updatedContact.copyWith(
-          mostRecentUpdate: updateTime, mostRecentChange: updateTime));
+    if (updatedContact != null) {
+      final updateTime = DateTime.now();
+      if (updatedContact == contact) {
+        await saveContact(
+            updatedContact.copyWith(mostRecentUpdate: updateTime));
+      } else {
+        // TODO: Use update time from when the update was sent not received
+        // TODO: When temporary locations are updated, only record an update about added / updated locations / check-ins
+        await _saveUpdate(ContactUpdate(
+            // TODO: contact details can be null; handle this more appropriately than the current workaround with empty details
+            coagContactId: contact.coagContactId,
+            oldContact: contact.details ?? const ContactDetails(),
+            newContact: updatedContact.details ?? const ContactDetails(),
+            timestamp: DateTime.now()));
 
-      // TODO: Allow creation of a new system contact via update contact as well; might require custom contact details schema
-      // Update system contact if linked and contact details changed
-      if (updatedContact.systemContact != null &&
-          contact.systemContact != updatedContact.systemContact) {
-        // TODO: How to reconsile system contacts if permission was removed intermittently and is then granted again?
-        try {
-          await systemContactsStorage
-              .updateContact(updatedContact.systemContact!);
-        } on MissingSystemContactsPermissionError {
-          _systemContactAccessGrantedStreamController.add(false);
-        }
+        await saveContact(updatedContact.copyWith(
+            mostRecentUpdate: updateTime, mostRecentChange: updateTime));
       }
     }
+
     if (contact.dhtSettingsForReceiving != null) {
-      await distributedStorage.watchDHTRecord(
+      await distributedStorage.watchRecord(
           contact.dhtSettingsForReceiving!.key, _dhtRecordUpdateCallback);
     }
   }
@@ -334,25 +370,98 @@ class ContactsRepository {
     await updateContactFromDHT(contact);
   }
 
-  Future<void> updateAndWatchReceivingDHT({bool shuffle = false}) async {
+  Future<bool> updateAndWatchReceivingDHT({bool shuffle = false}) async {
     if (!ProcessorRepository
         .instance.processorConnectionState.attachment.publicInternetReady) {
       veilidNetworkAvailable = false;
-      return;
+      return false;
     }
     veilidNetworkAvailable = true;
     final contacts = _contacts.values.toList();
     if (shuffle) {
       contacts.shuffle();
     }
+
+    // TODO: Can we parallelize this? with Future.wait([])?
     for (final contact in contacts) {
       // Check for incoming updates
       if (contact.dhtSettingsForReceiving != null) {
         await updateContactFromDHT(contact);
       }
     }
+
+    return true;
   }
 
+  /// Update the "me-to-them" record for a given contact and update dht settings
+  Future<void> tryShareWithContactDHT(CoagContact contact,
+      {bool initializeReceivingSettings = false, String? contactPubKey}) async {
+    try {
+      if (contact.dhtSettingsForSharing?.writer == null) {
+        final (shareKey, shareWriter) = await distributedStorage.createRecord();
+        final dhtSettingsForSharing = ContactDHTSettings(
+            key: shareKey,
+            writer: shareWriter,
+            // TODO: Get specific cryptosystem version? also, move veilid specific stuff elsewhere
+            psk: (contactPubKey == null)
+                ? await Veilid.instance.bestCryptoSystem().then(
+                    (cs) => cs.randomSharedSecret().then((v) => v.toString()))
+                : null,
+            pubKey: contactPubKey);
+
+        // TODO: Is a refresh of the contact before updating necessary?
+        contact = getContact(contact.coagContactId)!
+            .copyWith(dhtSettingsForSharing: dhtSettingsForSharing);
+        await saveContact(contact);
+      }
+      if (initializeReceivingSettings) {
+        final (receiveKey, receiveWriter) =
+            await distributedStorage.createRecord();
+        final dhtSettingsForReceiving = ContactDHTSettings(
+            key: receiveKey,
+            writer: receiveWriter,
+            pubKey: await getAppUserKeyPair()
+                .then((kp) => '${cryptoKindToString(kp.kind)}:${kp.key}'));
+        // Write to it once to populate it
+        try {
+          await distributedStorage.updateRecord(
+              content: '',
+              key: dhtSettingsForReceiving!.key,
+              writer: dhtSettingsForReceiving!.writer!,
+              publicKey: dhtSettingsForReceiving?.pubKey,
+              psk: dhtSettingsForReceiving?.psk);
+        } on VeilidAPIException catch (e) {
+          // TODO: Proper logging / other handling strategy / retry?
+          if (kDebugMode) {
+            print(e);
+          }
+        }
+
+        // TODO: Is a refresh of the contact before updating necessary?
+        contact = getContact(contact.coagContactId)!
+            .copyWith(dhtSettingsForReceiving: dhtSettingsForReceiving);
+        await saveContact(contact);
+
+        // Ensure shared profile contains all the updated share and share back
+        await updateContactSharedProfile(contact.coagContactId);
+        contact = getContact(contact.coagContactId)!;
+      }
+
+      await distributedStorage.updateRecord(
+          content: contact.sharedProfile ?? '',
+          key: contact.dhtSettingsForSharing!.key,
+          writer: contact.dhtSettingsForSharing!.writer!,
+          publicKey: contact.dhtSettingsForSharing?.pubKey,
+          psk: contact.dhtSettingsForSharing?.psk);
+    } on VeilidAPIException catch (e) {
+      // TODO: Proper logging / other handling strategy / retry?
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+  }
+
+  /// Update the DHT "me-to-them" records for all contacts
   Future<void> updateSharingDHT() async {
     if (!ProcessorRepository
         .instance.processorConnectionState.attachment.publicInternetReady) {
@@ -360,137 +469,13 @@ class ContactsRepository {
       return;
     }
     veilidNetworkAvailable = true;
-    if (_profileContactId != null) {
-      await updateFromSystemContact(_profileContactId!);
-    }
-    // TODO: With many contacts, can this run into parallel DHT write limitations?
+
+    // With many contacts, can this run into parallel DHT write limitations?
     await Future.wait([
-      for (final contact in _contacts.values
-          .where((c) => c.dhtSettingsForSharing?.psk != null))
-        updateContactSharedProfile(contact.coagContactId)
+      for (final contact
+          in _contacts.values.where((c) => c.sharedProfile != null))
+        tryShareWithContactDHT(contact)
     ]);
-  }
-
-  //////////////////
-  // SYSTEM CONTACTS
-  Future<void> _systemContactsChangedCallback() async {
-    if (systemContactsChangedCallbackTemporarilyDisabled) {
-      return;
-    }
-    final oldProfileContact = getProfileContact();
-    await updateFromSystemContacts();
-    final newProfileContact = getProfileContact();
-    if (oldProfileContact != null && oldProfileContact != newProfileContact) {
-      // Trigger update of share profiles and all that jazz
-      await updateProfileContact(newProfileContact!.coagContactId);
-    }
-  }
-
-  // TODO: This method handles too many cases as indicated by the odd arguments; separate out into multiple
-  Future<void> updateFromSystemContact(String coagContactId,
-      {Contact? systemContact, bool tryRetrievingSystemContact = true}) async {
-    final contact = getContact(coagContactId);
-    if (contact?.systemContact == null) {
-      return;
-    }
-
-    if (systemContact == null) {
-      if (tryRetrievingSystemContact) {
-        // Try if permissions are granted
-        try {
-          final systemContacts = await systemContactsStorage.getContacts();
-          _systemContactAccessGrantedStreamController.add(true);
-
-          systemContact = systemContacts
-              .where((sc) => sc.id == contact!.systemContact!.id)
-              .firstOrNull;
-        } on MissingSystemContactsPermissionError {
-          _systemContactAccessGrantedStreamController.add(false);
-          return;
-        }
-      }
-
-      // In case we neither got handed a system contact nor could we find one,
-      // despite we have the permissions to check, remove the association
-      if (systemContact == null) {
-        // or in case there would not be any details left, fully remove contact
-        if (contact!.details == null) {
-          return removeContact(contact.coagContactId);
-        }
-        // TODO: This is prone to missing new schema fields; offer a copyWithoutSystemContact instead?!
-        return saveContact(CoagContact(
-          coagContactId: contact.coagContactId,
-          details: contact.details,
-          addressLocations: contact.addressLocations,
-          temporaryLocations: contact.temporaryLocations,
-          dhtSettingsForSharing: contact.dhtSettingsForSharing,
-          dhtSettingsForReceiving: contact.dhtSettingsForReceiving,
-          sharedProfile: contact.sharedProfile,
-          mostRecentUpdate: contact.mostRecentUpdate,
-          mostRecentChange: contact.mostRecentChange,
-        ));
-      } else {
-        // TODO: Any more advanced updating magic needs to go here!
-        return saveContact(contact!.copyWith(systemContact: systemContact));
-      }
-    }
-  }
-
-  /// Update all system contacts in case they changed and add missing ones
-  // TODO: Test that there can be coagulate contacts with a system contact that isn't actually in the system
-  Future<void> updateFromSystemContacts() async {
-    // Try if permissions are granted
-    try {
-      final systemContacts = await systemContactsStorage.getContacts();
-      _systemContactAccessGrantedStreamController.add(true);
-      // Copy contacts here to deal with interference with parallel contact updates
-      for (var coagContact in List<CoagContact>.from(_contacts.values)) {
-        // Create system contacts for coagulate contacts that are not associated with one yet
-        if (coagContact.systemContact == null &&
-            await systemContactsStorage.requestPermission()) {
-          // TODO: allow disabling this auto creation of system contacts?
-          // Temporarily disable auto update callback when system contacts signal changes to avoid interfering contact updates
-          // systemContactsChangedCallbackTemporarilyDisabled = true;
-          // coagContact = coagContact.copyWith(
-          //     systemContact: await systemContactsStorage
-          //         .insertContact(coagContact.details!.toSystemContact()));
-          // await saveContact(coagContact);
-          // systemContactsChangedCallbackTemporarilyDisabled = false;
-          continue;
-        } else if (coagContact.systemContact != null) {
-          // Remove contacts from queue that did not change
-          // TODO: This could be coagContact.getSystemContactBasedOnSyncSettings
-          //       in case we want to keep the original system contact for reference
-          // NOTE: Object instance equals comparisons does not work, because we remove the photo / thumbnail
-          final iContact = systemContacts.indexWhere(
-              (c) => systemContactsEqual(c, coagContact.systemContact!));
-          if (iContact != -1) {
-            systemContacts.removeAt(iContact);
-            continue;
-          }
-        }
-
-        // The remaining matches based on system contact ID need to be updated
-        final iChangedContact = systemContacts.indexWhere((systemContact) =>
-            systemContact.id == coagContact.systemContact!.id);
-        await updateFromSystemContact(coagContact.coagContactId,
-            systemContact: (iChangedContact == -1)
-                ? null
-                : systemContacts[iChangedContact],
-            tryRetrievingSystemContact: false);
-        if (iChangedContact != -1) {
-          systemContacts.removeAt(iChangedContact);
-        }
-      }
-
-      // The remaining system contacts are new
-      for (final systemContact in systemContacts) {
-        await saveContact(CoagContact(
-            coagContactId: const Uuid().v4(), systemContact: systemContact));
-      }
-    } on MissingSystemContactsPermissionError {
-      _systemContactAccessGrantedStreamController.add(false);
-    }
   }
 
   ///////////
@@ -528,25 +513,25 @@ class ContactsRepository {
   /// identified by the given ID based on the current sharing settings and
   /// circle memberships
   Future<void> updateContactSharedProfile(String coagContactId) async {
-    var contact = _contacts[coagContactId];
-    final profileContact = getProfileContact();
+    final contact = _contacts[coagContactId];
     if (contact == null) {
       // TODO: Raise error that can be handled downstream
       return;
     }
-    contact = contact.copyWith(
+
+    final profileContact = getProfileContact();
+    if (profileContact?.details == null) {
+      return;
+    }
+
+    await saveContact(contact.copyWith(
         sharedProfile: json.encode(removeNullOrEmptyValues(
             filterAccordingToSharingProfile(
-                    // TODO: Double check what we set the shared profile to for an empty profile
-                    profile: profileContact ??
-                        CoagContact(
-                            coagContactId: '', systemContact: Contact()),
+                    profile: profileContact!,
                     settings: _profileSharingSettings,
                     activeCircles: _circleMemberships[coagContactId] ?? [],
                     shareBackSettings: contact.dhtSettingsForReceiving)
-                .toJson())));
-    contact = await distributedStorage.updateContactSharingDHT(contact);
-    await saveContact(contact);
+                .toJson()))));
   }
 
   Future<void> updateContactSharingSettings(
@@ -573,7 +558,7 @@ class ContactsRepository {
     final updatedContact = _contacts[coagContactId]!
         .copyWith(dhtSettingsForReceiving: receivingSettings);
     await saveContact(updatedContact);
-    await updateContactFromDHT(updatedContact);
+    unawaited(updateContactFromDHT(updatedContact));
   }
 
   Future<void> _dhtRecordUpdateCallback(String key) async {
@@ -582,6 +567,27 @@ class ContactsRepository {
         return updateContactFromDHT(contact);
       }
     }
+  }
+
+  /// Creating contact from just a name or from a profile link, i.e. with name
+  /// and public key
+  Future<CoagContact> createContactForInvite(String name,
+      {String? pubKey}) async {
+    // Create contact
+    final contact = CoagContact(
+        coagContactId: Uuid().v4(),
+        details: ContactDetails(names: {Uuid().v4(): name}));
+    await saveContact(contact);
+
+    // Add to default circle and update shared profile
+    await updateCirclesForContact(
+        contact.coagContactId, [defaultEveryoneCircleId]);
+
+    // Trigger sharing, incl. DHT record creation
+    unawaited(tryShareWithContactDHT(contact,
+        initializeReceivingSettings: true, contactPubKey: pubKey));
+
+    return contact;
   }
 
   //////////
@@ -672,56 +678,21 @@ class ContactsRepository {
     ]);
   }
 
-  Future<void> updateProfileContact(String coagContactId) async {
+  Future<void> setProfileContact(String coagContactId) async {
     if (!_contacts.containsKey(coagContactId)) {
       return unsetProfileContact();
     }
-
     // TODO: Do we need to enforce writing to disk to make it available to background straight away?
     _profileContactId = coagContactId;
     await persistentStorage.setProfileContactId(coagContactId);
 
-    if (_profileContactId != null) {
-      // Ensure all system contacts changes are in
-      await updateFromSystemContact(_profileContactId!);
-
-      final profileContact = getProfileContact()!;
-      final systemContact = await systemContactsStorage
-          .getContact(profileContact.systemContact!.id);
-      _systemContactAccessGrantedStreamController.add(true);
-
-      // Automatically resolve addresses to coordinates
-      // TODO: Only do this when enabled in the settings
-      // TODO: Detect which addresses changed, and refetch more intelligently
-      final addressLocations = <int, ContactAddressLocation>{};
-      for (var i = 0; i < systemContact.addresses.length; i++) {
-        final address = systemContact.addresses[i];
-        // TODO: Also add some status indicator per address to show when unfetched, fetching, failed, fetched
-        try {
-          final locations = await locationFromAddress(address.address);
-          final chosenLocation = locations[0];
-          addressLocations[i] = ContactAddressLocation(
-              coagContactId: profileContact.coagContactId,
-              longitude: chosenLocation.longitude,
-              latitude: chosenLocation.latitude,
-              name: (address.label == AddressLabel.custom)
-                  ? address.customLabel
-                  : address.label.name);
-        } on NoResultFoundException catch (e) {}
-      }
-
-      if (systemContact != profileContact.systemContact! ||
-          addressLocations != profileContact.addressLocations) {
-        final updatedContact = profileContact.copyWith(
-            systemContact: systemContact, addressLocations: addressLocations);
-        await saveContact(updatedContact);
-      }
-    }
-
-    await updateSharingDHT();
+    // Ensure the profile page refreshes; might warrant a separate even stream?
+    _contactsStreamController.add(coagContactId);
   }
 
   Future<void> updateProfileContactData(CoagContact contact) async {
+    // TODO: Validity checks that id matches current profile contact?
+
     await saveContact(contact);
 
     await Future.wait([
@@ -729,6 +700,8 @@ class ContactsRepository {
           .where((c) => c.dhtSettingsForSharing?.psk != null))
         updateContactSharedProfile(contact.coagContactId)
     ]);
+
+    unawaited(updateSharingDHT());
   }
 
   /////////////////////////

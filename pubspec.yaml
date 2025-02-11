@@ -9,9 +9,7 @@ environment:
 
 dependencies:
   ansicolor: ^2.0.2
-  awesome_extensions: ^2.0.16
   background_fetch: ^1.3.7
-  basic_utils: ^5.7.0
   bloc: ^8.1.4
   bloc_advanced_tools: ^0.1.4
   charcode: ^1.3.1
@@ -24,14 +22,14 @@ dependencies:
   flutter_contacts: ^1.1.8
   flutter_localizations:
     sdk: flutter
-  flutter_map: ^6.1.0
-  flutter_map_marker_cluster: ^1.3.6
+  flutter_map: ^7.0.2
+  flutter_map_marker_cluster: ^1.4.0
   flutter_platform_widgets: ^7.0.1
   flutter_svg: ^2.0.10
   formz: ^0.7.0
   freezed_annotation: ^2.4.4
   geocoding: ^3.0.0
-  geolocator: ^10.1.1
+  geolocator: ^13.0.2
   go_router: ^14.2.1
   hive: ^2.2.3
   intl: any
@@ -39,19 +37,19 @@ dependencies:
   latlong2: ^0.9.1
   location_picker_flutter_map: ^3.0.1
   loggy: ^2.0.3
-  mobile_scanner: ^5.1.1 # TODO: Replace with privacy friendlier alternative
+  mobile_scanner: ^6.0.3 # TODO: Replace with privacy friendlier alternative
   path: ^1.9.0
   path_provider: ^2.1.3
+  permission_handler: ^11.3.1
   provider: ^6.1.2
   qr_flutter: ^4.1.0
   quickalert: ^1.1.0
-  radix_colors: ^1.0.4
   rxdart: ^0.28.0
-  share_plus: ^9.0.0
+  share_plus: ^10.1.4
   shared_preferences: ^2.2.3
   signal_strength_indicator: ^0.4.1
-  sqflite: ^2.3.3
-  url_launcher: ^6.3.0
+  sqflite: ^2.4.1
+  url_launcher: ^6.3.1
   uuid: ^4.4.2
   veilid:
     #   veilid: ^0.0.1

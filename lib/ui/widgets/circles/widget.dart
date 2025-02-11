@@ -54,9 +54,9 @@ class _CirclesFormState extends State<CirclesForm> {
   }
 
   void _updateCircleMembership(int i, bool state) {
+    final circles = List<(String, String, bool, int)>.from(_state.circles);
+    circles[i] = (circles[i].$1, circles[i].$2, state, circles[i].$4);
     setState(() {
-      var circles = List<(String, String, bool, int)>.from(_state.circles);
-      circles[i] = (circles[i].$1, circles[i].$2, state, circles[i].$4);
       _state = _state.copyWith(circles: circles);
     });
   }
@@ -156,6 +156,7 @@ class _CirclesFormState extends State<CirclesForm> {
                   icon: const Icon(Icons.add),
                 ),
               ])),
+        // If we don't need wrapping but go for a list, use CheckboxListTile
         Wrap(
             spacing: 8,
             runSpacing: 6,
@@ -163,13 +164,17 @@ class _CirclesFormState extends State<CirclesForm> {
                 .asMap()
                 .map((i, c) => MapEntry(
                     i,
-                    c.$3
-                        ? FilledButton.tonal(
-                            onPressed: () => _updateCircleMembership(i, false),
-                            child: Text('${c.$2} (${c.$4})'))
-                        : ElevatedButton(
-                            onPressed: () => _updateCircleMembership(i, true),
-                            child: Text('${c.$2} (${c.$4})'))))
+                    GestureDetector(
+                        onTap: () => _updateCircleMembership(i, !c.$3),
+                        behavior: HitTestBehavior.opaque,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Checkbox(value: c.$3, onChanged: (_) {}),
+                            Text('${c.$2} (${c.$4})'),
+                            const SizedBox(width: 4),
+                          ],
+                        ))))
                 .values
                 .asList()),
         const SizedBox(height: 8, width: double.maxFinite),

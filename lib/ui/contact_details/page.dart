@@ -7,8 +7,8 @@ import 'dart:math';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_contacts/flutter_contacts.dart' as flutterContacts;
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
@@ -19,6 +19,8 @@ import '../locations/page.dart';
 import '../profile/page.dart';
 import '../widgets/circles/cubit.dart';
 import '../widgets/circles/widget.dart';
+import '../widgets/dht_status/widget.dart';
+import '../widgets/veilid_status/widget.dart';
 import 'cubit.dart';
 
 Uri _shareUrl({required String key, required String psk}) => Uri(
@@ -43,9 +45,9 @@ Widget _qrCodeButton(BuildContext context,
             context: context,
             builder: (_) => AlertDialog(
                 titlePadding:
-                    const EdgeInsets.only(left: 20, right: 20, top: 16),
-                title: Text(alertTitle),
-                shape: const RoundedRectangleBorder(),
+                    const EdgeInsets.only(left: 16, right: 16, top: 16),
+                title: Center(child: Text(alertTitle)),
+                // shape: const RoundedRectangleBorder(),
                 content: SizedBox(
                     height: 200,
                     width: 200,
@@ -106,24 +108,16 @@ class ContactPage extends StatelessWidget {
             }),
 
         // Contact details
-        const Padding(
-            padding: EdgeInsets.only(left: 12, top: 16, right: 12, bottom: 8),
-            child: Text('Contact details',
-                textScaler: TextScaler.linear(1.2),
-                style: TextStyle(fontWeight: FontWeight.w600))),
         ...contactDetailsAndLocations(context, contact),
-        const Padding(
-            padding: EdgeInsets.only(left: 12, right: 12),
-            child: Text(
-                'The details and locations above are either already available '
-                'from your system address book or were shared with you via Coagulate.')),
 
         // Sharing stuff
-        const Padding(
-            padding: EdgeInsets.only(left: 12, top: 16, right: 12),
+        Padding(
+            padding: const EdgeInsets.only(left: 12, top: 16, right: 12),
             child: Text('Connection settings',
-                textScaler: TextScaler.linear(1.2),
-                style: TextStyle(fontWeight: FontWeight.w600))),
+                textScaler: const TextScaler.linear(1.2),
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary))),
         Padding(
             padding:
                 const EdgeInsets.only(left: 4, top: 4, bottom: 4, right: 4),
@@ -131,9 +125,11 @@ class ContactPage extends StatelessWidget {
 
         Center(
             child: TextButton(
-                onPressed: () => context
+                onPressed: () async => context
                     .read<ContactDetailsCubit>()
-                    .delete(contact.coagContactId),
+                    .delete(contact.coagContactId)
+                    .then((_) =>
+                        (context.mounted) ? Navigator.of(context).pop() : null),
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
                 ),
@@ -149,7 +145,21 @@ class ContactPage extends StatelessWidget {
         // Debug output about update timestamps and receive / share DHT records
         Column(children: [
           const SizedBox(height: 16),
-          const Text('Developer debug information', textScaleFactor: 1.2),
+          const Text('Developer debug information',
+              textScaler: TextScaler.linear(1.2)),
+          const SizedBox(height: 8),
+          const VeilidStatusWidget(statusWidgets: {}),
+          const SizedBox(height: 8),
+          if (contact.dhtSettingsForSharing?.key != null)
+            DhtStatusWidget(
+              dhtSettings: contact.dhtSettingsForSharing!,
+              statusWidgets: const {},
+            ),
+          if (contact.dhtSettingsForReceiving?.key != null)
+            DhtStatusWidget(
+              dhtSettings: contact.dhtSettingsForReceiving!,
+              statusWidgets: const {},
+            ),
           const SizedBox(height: 8),
           Text('Updated: ${contact.mostRecentUpdate}'),
           Text('Changed: ${contact.mostRecentChange}'),
@@ -166,6 +176,9 @@ class ContactPage extends StatelessWidget {
           if (contact.dhtSettingsForReceiving?.writer != null)
             Text(
                 'DHT Rcv Wrt: ${contact.dhtSettingsForReceiving!.writer!.substring(0, min(20, contact.dhtSettingsForReceiving!.writer!.length))}...'),
+          if (contact.dhtSettingsForReceiving?.pubKey != null)
+            Text(
+                'DHT Rcv Pub: ${contact.dhtSettingsForReceiving!.pubKey!.substring(0, min(20, contact.dhtSettingsForReceiving!.pubKey!.length))}...'),
           if (contact.dhtSettingsForSharing?.key != null)
             const Padding(
                 padding: EdgeInsets.only(left: 16, right: 16),
@@ -179,11 +192,15 @@ class ContactPage extends StatelessWidget {
           if (contact.dhtSettingsForSharing?.writer != null)
             Text(
                 'DHT Shr Wrt: ${contact.dhtSettingsForSharing!.writer!.substring(0, min(20, contact.dhtSettingsForSharing!.writer!.length))}...'),
+          if (contact.dhtSettingsForSharing?.pubKey != null)
+            Text(
+                'DHT Shr Pub: ${contact.dhtSettingsForSharing!.pubKey!.substring(0, min(20, contact.dhtSettingsForSharing!.pubKey!.length))}...'),
           const SizedBox(height: 16),
         ]),
       ]));
 }
 
+// NOTE: This is also used in receive requests page
 List<Widget> contactDetailsAndLocations(
         BuildContext context, CoagContact contact) =>
     [
@@ -202,36 +219,75 @@ List<Widget> contactDetailsAndLocations(
       //   - add as new entry to system contact, mark managed
       // if no matching name but matching value is present, think about displaying them next to each other still
 
+      Padding(
+          padding:
+              const EdgeInsets.only(left: 12, top: 8, right: 12, bottom: 8),
+          child: Text('Contact details',
+              textScaler: const TextScaler.linear(1.2),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary))),
+
       // Contact details
+      if (contact.details?.names.isNotEmpty ?? false)
+        detailsList<String>(
+          contact.details!.names.values.toList(),
+          title: Text('Names'),
+          getValue: (v) => v,
+          // This doesn't do anything when hideLabel, maybe it can be optional
+          getLabel: (v) => v,
+          hideLabel: true,
+        ),
       if (contact.details?.phones.isNotEmpty ?? false)
-        phones(contact.details!.phones)
-      else if (contact.systemContact?.phones.isNotEmpty ?? false)
-        phones(contact.systemContact!.phones),
-
+        detailsList<flutterContacts.Phone>(
+          contact.details!.phones,
+          title: Text('Phone numbers'),
+          getLabel: (v) =>
+              (v.label.name != 'custom') ? v.label.name : v.customLabel,
+          getValue: (v) => v.number,
+        ),
       if (contact.details?.emails.isNotEmpty ?? false)
-        emails(contact.details!.emails)
-      else if (contact.systemContact != null &&
-          contact.systemContact!.emails.isNotEmpty)
-        emails(contact.systemContact!.emails),
-
+        detailsList<flutterContacts.Email>(
+          contact.details!.emails,
+          title: Text('E-Mail addresses'),
+          getLabel: (v) =>
+              (v.label.name != 'custom') ? v.label.name : v.customLabel,
+          getValue: (v) => v.address,
+        ),
       if (contact.details?.addresses.isNotEmpty ?? false)
-        addresses(contact.details!.addresses)
-      else if (contact.systemContact?.addresses.isNotEmpty ?? false)
-        addresses(contact.systemContact!.addresses),
-
-      if (contact.details?.websites.isNotEmpty ?? false)
-        websites(contact.details!.websites)
-      else if (contact.systemContact?.websites.isNotEmpty ?? false)
-        websites(contact.systemContact!.websites),
-
+        detailsList<flutterContacts.Address>(
+          contact.details!.addresses,
+          title: Text('Addresses'),
+          getLabel: (v) =>
+              (v.label.name != 'custom') ? v.label.name : v.customLabel,
+          getValue: (v) => v.address,
+        ),
       if (contact.details?.socialMedias.isNotEmpty ?? false)
-        socialMedias(contact.details!.socialMedias)
-      else if (contact.systemContact?.socialMedias.isNotEmpty ?? false)
-        socialMedias(contact.systemContact!.socialMedias),
+        detailsList<flutterContacts.SocialMedia>(
+          contact.details!.socialMedias,
+          title: Text('Social media profiles'),
+          getLabel: (v) =>
+              (v.label.name != 'custom') ? v.label.name : v.customLabel,
+          getValue: (v) => v.userName,
+        ),
+      if (contact.details?.websites.isNotEmpty ?? false)
+        detailsList<flutterContacts.Website>(
+          contact.details!.websites,
+          title: Text('Websites'),
+          getLabel: (v) =>
+              (v.label.name != 'custom') ? v.label.name : v.customLabel,
+          getValue: (v) => v.url,
+        ),
 
       // Locations
       if (contact.temporaryLocations.isNotEmpty)
-        temporaryLocationsCard(contact.temporaryLocations),
+        temporaryLocationsCard(
+            Text('Locations',
+                textScaler: const TextScaler.linear(1.2),
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary)),
+            contact.temporaryLocations),
     ];
 
 Widget _paddedDivider() => const Padding(
@@ -257,21 +313,27 @@ Widget sharingSettings(
           contact.sharedProfile != null &&
           contact.sharedProfile!.isNotEmpty) ...[
         _paddedDivider(),
-        ...displayDetails(CoagContactDHTSchemaV1.fromJson(
+        ...displayDetails(CoagContactDHTSchema.fromJson(
                 json.decode(contact.sharedProfile!) as Map<String, dynamic>)
             .details),
       ],
       // TODO: Switch to a schema instance instead of a string as the sharedProfile? Or at least offer a method to conveniently get it
       if (contact.sharedProfile != null &&
           contact.sharedProfile!.isNotEmpty &&
-          CoagContactDHTSchemaV1.fromJson(
+          CoagContactDHTSchema.fromJson(
                   json.decode(contact.sharedProfile!) as Map<String, dynamic>)
               .temporaryLocations
               .isNotEmpty) ...[
         _paddedDivider(),
-        temporaryLocationsCard(CoagContactDHTSchemaV1.fromJson(
-                json.decode(contact.sharedProfile!) as Map<String, dynamic>)
-            .temporaryLocations),
+        temporaryLocationsCard(
+            const Row(children: [
+              Icon(Icons.share_location),
+              SizedBox(width: 8),
+              Text('Shared locations', textScaler: TextScaler.linear(1.2))
+            ]),
+            CoagContactDHTSchema.fromJson(
+                    json.decode(contact.sharedProfile!) as Map<String, dynamic>)
+                .temporaryLocations),
         const Padding(
             padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
             child: Text(
@@ -280,15 +342,12 @@ Widget sharingSettings(
       ],
     ]));
 
-Widget temporaryLocationsCard(List<ContactTemporaryLocation> locations) =>
+Widget temporaryLocationsCard(
+        Widget title, List<ContactTemporaryLocation> locations) =>
     Padding(
         padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Row(children: [
-            Icon(Icons.share_location),
-            SizedBox(width: 8),
-            Text('Shared locations', textScaler: TextScaler.linear(1.2))
-          ]),
+          title,
           ...locations
               .where((l) => l.end.isAfter(DateTime.now()))
               .map((l) => Padding(
@@ -308,45 +367,40 @@ Widget connectingCard(BuildContext context, CoagContact contact) =>
               Row(children: [
                 const Icon(Icons.private_connectivity),
                 const SizedBox(width: 4),
-                Text(
-                    'Connect with ${displayName(contact) ?? 'them'} by either:',
+                Text('To connect with ${displayName(contact) ?? 'them'}:',
                     textScaler: const TextScaler.linear(1.2))
               ]),
               const SizedBox(height: 4),
               // TODO: Only show share back button when receiving key and psk but not writer are set i.e. is receiving updates and has share back settings
               _qrCodeButton(context,
-                  buttonText: 'letting them scan this QR code',
+                  buttonText: 'Show them this QR code',
                   alertTitle: 'Show to ${displayName(contact) ?? 'them'}',
                   qrCodeData: _shareUrl(
                     key: contact.dhtSettingsForSharing!.key,
                     psk: contact.dhtSettingsForSharing!.psk!,
                   ).toString()),
-              TextButton(
-                child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Icon(Icons.share),
-                      SizedBox(width: 8),
-                      Text('sending this personalized & secret link'),
-                      SizedBox(width: 4),
-                    ]),
-                // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
-                onPressed: () async => Share.share(
-                    "I'd like to connect with you via Coagulate: "
-                    '${_shareUrl(key: contact.dhtSettingsForSharing!.key, psk: contact.dhtSettingsForSharing!.psk!)}\n'
-                    "Keep this link a secret, it's just for you."),
-              ),
-
+              // TextButton(
+              //   child: const Row(
+              //       mainAxisSize: MainAxisSize.min,
+              //       children: <Widget>[
+              //         Icon(Icons.share),
+              //         SizedBox(width: 8),
+              //         Text('Paste their profile link'),
+              //         SizedBox(width: 4),
+              //       ]),
+              //       // TODO: Paste from clipboard and generate invite text to share
+              //   onPressed: () {},
+              // ),
               const SizedBox(height: 4),
+              // TODO: Link "create an invite" to the corresponding page, and maybe also "contact page" to contacts list?
               Text(
-                  'This QR code and link are both specifically for ${displayName(contact) ?? 'this contact'}. '
+                  'This QR code is specifically for ${displayName(contact) ?? 'this contact'}. '
                   'If you want to connect with someone else, go to their '
-                  'contact or add a new contact first.'),
+                  'contact details or create an invite.'),
               const SizedBox(height: 8),
             ]))
     ]);
 
-// TODO: Move to widgets because it's used in two places at least
 Iterable<Widget> displayDetails(ContactDetails details) => [
       const Padding(
           padding: EdgeInsets.only(top: 8, left: 12, right: 12, bottom: 8),
@@ -355,18 +409,57 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
             SizedBox(width: 4),
             Text('Shared profile', textScaler: TextScaler.linear(1.2))
           ])),
-      Padding(
-          padding: const EdgeInsets.only(left: 24, right: 24),
-          child: Text(details.displayName,
-              textScaler: const TextScaler.linear(1.2),
-              style: const TextStyle(fontWeight: FontWeight.normal))),
-      if (details.phones.isNotEmpty) phones(details.phones),
-      if (details.emails.isNotEmpty) emails(details.emails),
-      if (details.addresses.isNotEmpty) addresses(details.addresses),
-      if (details.websites.isNotEmpty) websites(details.websites),
-      if (details.socialMedias.isNotEmpty) socialMedias(details.socialMedias),
+      if (details.names.isNotEmpty)
+        detailsList<String>(
+          details.names.values.toList(),
+          title: Text('Names'),
+          getValue: (v) => v,
+          // This doesn't do anything when hideLabel, maybe it can be optional
+          getLabel: (v) => v,
+          hideLabel: true,
+        ),
+      if (details.phones.isNotEmpty)
+        detailsList<flutterContacts.Phone>(
+          details.phones,
+          title: Text('Phone numbers'),
+          getLabel: (v) =>
+              (v.label.name != 'custom') ? v.label.name : v.customLabel,
+          getValue: (v) => v.number,
+        ),
+      if (details.emails.isNotEmpty)
+        detailsList<flutterContacts.Email>(
+          details.emails,
+          title: Text('E-Mail addresses'),
+          getLabel: (v) =>
+              (v.label.name != 'custom') ? v.label.name : v.customLabel,
+          getValue: (v) => v.address,
+        ),
+      if (details.addresses.isNotEmpty)
+        detailsList<flutterContacts.Address>(
+          details.addresses,
+          title: Text('Addresses'),
+          getLabel: (v) =>
+              (v.label.name != 'custom') ? v.label.name : v.customLabel,
+          getValue: (v) => v.address,
+        ),
+      if (details.socialMedias.isNotEmpty)
+        detailsList<flutterContacts.SocialMedia>(
+          details.socialMedias,
+          title: Text('Social media profiles'),
+          getLabel: (v) =>
+              (v.label.name != 'custom') ? v.label.name : v.customLabel,
+          getValue: (v) => v.userName,
+        ),
+      if (details.websites.isNotEmpty)
+        detailsList<flutterContacts.Website>(
+          details.websites,
+          title: Text('Websites'),
+          getLabel: (v) =>
+              (v.label.name != 'custom') ? v.label.name : v.customLabel,
+          getValue: (v) => v.url,
+        ),
       const Padding(
-          padding: EdgeInsets.only(left: 12, right: 12, bottom: 8),
+          padding: EdgeInsets.only(left: 12, right: 12, bottom: 8, top: 4),
           child: Text(
               'Once connected, they see the above information based on the '
               'circles you added them to.')),
@@ -378,7 +471,7 @@ Widget circlesCard(
         padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Row(children: [
-            Icon(Icons.circle),
+            Icon(Icons.bubble_chart),
             SizedBox(width: 4),
             Text('Circle memberships', textScaler: TextScaler.linear(1.2))
           ]),

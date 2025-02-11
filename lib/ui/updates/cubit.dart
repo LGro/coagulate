@@ -26,7 +26,7 @@ class UpdatesCubit extends Cubit<UpdatesState> {
   final ContactsRepository contactsRepository;
   late final StreamSubscription<ContactUpdate> _updatesSubscription;
 
-  Future<void> refresh() => contactsRepository.updateAndWatchReceivingDHT();
+  Future<bool> refresh() => contactsRepository.updateAndWatchReceivingDHT();
 
   @override
   Future<void> close() {

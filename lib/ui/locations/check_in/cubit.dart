@@ -87,25 +87,21 @@ class CheckInCubit extends Cubit<CheckInState> {
       final location =
           await Geolocator.getCurrentPosition(timeLimit: Duration(seconds: 30));
 
-      unawaited(contactsRepository
-          .updateProfileContactData(
-              profileContact.copyWith(temporaryLocations: [
-            ...profileContact.temporaryLocations
-                .map((l) => l.copyWith(checkedIn: false)),
-            ContactTemporaryLocation(
-                coagContactId: profileContact.coagContactId,
-                longitude: location.longitude,
-                latitude: location.latitude,
-                start: DateTime.now(),
-                name: name,
-                details: details,
-                end: end,
-                circles: circles,
-                checkedIn: true)
-          ]))
-          // Make sure to regenerate the sharing profiles and update DHT sharing records
-          .then((_) => contactsRepository
-              .updateProfileContact(profileContact.coagContactId)));
+      await contactsRepository.updateProfileContactData(
+          profileContact.copyWith(temporaryLocations: [
+        ...profileContact.temporaryLocations
+            .map((l) => l.copyWith(checkedIn: false)),
+        ContactTemporaryLocation(
+            coagContactId: profileContact.coagContactId,
+            longitude: location.longitude,
+            latitude: location.latitude,
+            start: DateTime.now(),
+            name: name,
+            details: details,
+            end: end,
+            circles: circles,
+            checkedIn: true)
+      ]));
 
       // TODO: Emit success status?
       // if (!isClosed) {

@@ -3,8 +3,8 @@ import 'data/models/coag_contact.dart';
 /// Find a name to display; mostly required because on iOS the default
 /// displayName seems to be empty when only an email address is present
 String? displayName(CoagContact contact) {
-  if (contact.details?.displayName.isNotEmpty ?? false) {
-    return contact.details!.displayName;
+  if (contact.details?.names.isNotEmpty ?? false) {
+    return contact.details!.names.values.join(', ');
   }
   if (contact.systemContact?.displayName.isNotEmpty ?? false) {
     return contact.systemContact!.displayName;

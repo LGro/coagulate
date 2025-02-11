@@ -11,6 +11,7 @@ ContactDHTSettings _$ContactDHTSettingsFromJson(Map<String, dynamic> json) =>
       key: json['key'] as String,
       writer: json['writer'] as String?,
       psk: json['psk'] as String?,
+      pubKey: json['pub_key'] as String?,
       lastUpdated: json['last_updated'] == null
           ? null
           : DateTime.parse(json['last_updated'] as String),
@@ -21,13 +22,16 @@ Map<String, dynamic> _$ContactDHTSettingsToJson(ContactDHTSettings instance) =>
       'key': instance.key,
       'writer': instance.writer,
       'psk': instance.psk,
+      'pub_key': instance.pubKey,
       'last_updated': instance.lastUpdated?.toIso8601String(),
     };
 
 ContactDetails _$ContactDetailsFromJson(Map<String, dynamic> json) =>
     ContactDetails(
-      displayName: json['display_name'] as String,
-      name: Name.fromJson(json['name'] as Map<String, dynamic>),
+      names: (json['names'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
       phones: (json['phones'] as List<dynamic>?)
               ?.map((e) => Phone.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -60,8 +64,7 @@ ContactDetails _$ContactDetailsFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ContactDetailsToJson(ContactDetails instance) =>
     <String, dynamic>{
-      'display_name': instance.displayName,
-      'name': instance.name.toJson(),
+      'names': instance.names,
       'phones': instance.phones.map((e) => e.toJson()).toList(),
       'emails': instance.emails.map((e) => e.toJson()).toList(),
       'addresses': instance.addresses.map((e) => e.toJson()).toList(),
@@ -99,6 +102,7 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
           : ContactDHTSettings.fromJson(
               json['dht_settings_for_receiving'] as Map<String, dynamic>),
       sharedProfile: json['shared_profile'] as String?,
+      publicKey: json['public_key'] as String?,
       mostRecentUpdate: json['most_recent_update'] == null
           ? null
           : DateTime.parse(json['most_recent_update'] as String),
@@ -119,6 +123,7 @@ Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
       'dht_settings_for_sharing': instance.dhtSettingsForSharing?.toJson(),
       'dht_settings_for_receiving': instance.dhtSettingsForReceiving?.toJson(),
       'shared_profile': instance.sharedProfile,
+      'public_key': instance.publicKey,
       'most_recent_update': instance.mostRecentUpdate?.toIso8601String(),
       'most_recent_change': instance.mostRecentChange?.toIso8601String(),
     };
@@ -156,4 +161,41 @@ Map<String, dynamic> _$CoagContactDHTSchemaV1ToJson(
       'share_back_d_h_t_key': instance.shareBackDHTKey,
       'share_back_d_h_t_writer': instance.shareBackDHTWriter,
       'share_back_psk': instance.shareBackPsk,
+    };
+
+CoagContactDHTSchemaV2 _$CoagContactDHTSchemaV2FromJson(
+        Map<String, dynamic> json) =>
+    CoagContactDHTSchemaV2(
+      details: ContactDetails.fromJson(json['details'] as Map<String, dynamic>),
+      shareBackDHTKey: json['share_back_d_h_t_key'] as String?,
+      shareBackPubKey: json['share_back_pub_key'] as String?,
+      shareBackDHTWriter: json['share_back_d_h_t_writer'] as String?,
+      addressLocations:
+          (json['address_locations'] as Map<String, dynamic>?)?.map(
+                (k, e) => MapEntry(int.parse(k),
+                    ContactAddressLocation.fromJson(e as Map<String, dynamic>)),
+              ) ??
+              const {},
+      temporaryLocations: (json['temporary_locations'] as List<dynamic>?)
+              ?.map((e) =>
+                  ContactTemporaryLocation.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      mostRecentUpdate: json['most_recent_update'] == null
+          ? null
+          : DateTime.parse(json['most_recent_update'] as String),
+    );
+
+Map<String, dynamic> _$CoagContactDHTSchemaV2ToJson(
+        CoagContactDHTSchemaV2 instance) =>
+    <String, dynamic>{
+      'details': instance.details.toJson(),
+      'address_locations': instance.addressLocations
+          .map((k, e) => MapEntry(k.toString(), e.toJson())),
+      'temporary_locations':
+          instance.temporaryLocations.map((e) => e.toJson()).toList(),
+      'share_back_d_h_t_key': instance.shareBackDHTKey,
+      'share_back_d_h_t_writer': instance.shareBackDHTWriter,
+      'share_back_pub_key': instance.shareBackPubKey,
+      'most_recent_update': instance.mostRecentUpdate?.toIso8601String(),
     };

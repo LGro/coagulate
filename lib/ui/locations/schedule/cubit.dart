@@ -42,23 +42,20 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       return;
     }
 
-    unawaited(contactsRepository
+    await contactsRepository
         .updateProfileContactData(profileContact.copyWith(temporaryLocations: [
-          ...profileContact.temporaryLocations
-              .map((l) => l.copyWith(checkedIn: false)),
-          ContactTemporaryLocation(
-              coagContactId: profileContact.coagContactId,
-              longitude: coordinates.longitude,
-              latitude: coordinates.latitude,
-              start: start,
-              name: name,
-              details: details,
-              end: end,
-              circles: circles)
-        ]))
-        // Make sure to regenerate the sharing profiles and update DHT sharing records
-        .then((_) => contactsRepository
-            .updateProfileContact(profileContact.coagContactId)));
+      ...profileContact.temporaryLocations
+          .map((l) => l.copyWith(checkedIn: false)),
+      ContactTemporaryLocation(
+          coagContactId: profileContact.coagContactId,
+          longitude: coordinates.longitude,
+          latitude: coordinates.latitude,
+          start: start,
+          name: name,
+          details: details,
+          end: end,
+          circles: circles)
+    ]));
 
     if (!isClosed) {
       emit(state.copyWith(checkingIn: false));

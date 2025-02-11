@@ -43,6 +43,4 @@ Map<String, dynamic> _$ProfileStateToJson(ProfileState instance) =>
 const _$ProfileStatusEnumMap = {
   ProfileStatus.initial: 'initial',
   ProfileStatus.success: 'success',
-  ProfileStatus.create: 'create',
-  ProfileStatus.pick: 'pick',
 };

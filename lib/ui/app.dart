@@ -11,6 +11,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/providers/distributed_storage/dht.dart';
 import '../data/providers/persistent_storage/sqlite.dart';
@@ -27,6 +28,7 @@ import 'receive_request/cubit.dart';
 import 'receive_request/page.dart';
 import 'settings/page.dart';
 import 'updates/page.dart';
+import 'welcome.dart';
 
 class Splash extends StatelessWidget {
   const Splash({super.key});
@@ -34,31 +36,9 @@ class Splash extends StatelessWidget {
   @override
   Widget build(BuildContext context) => PopScope(
       canPop: false,
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: <Color>[
-              Colors.white,
-              Colors.white,
-            ])),
-        child: Center(
-            child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 300),
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                          flex: 2,
-                          child: SvgPicture.asset(
-                            'assets/images/icon.svg',
-                          )),
-                      Expanded(
-                          child: SvgPicture.asset(
-                        'assets/images/title.svg',
-                      ))
-                    ]))),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [SvgPicture.asset('assets/images/icon.svg')],
       ));
 }
 
@@ -106,6 +86,7 @@ class AppRouter {
                 bottomNavigationBar: BottomNavigationBar(
                   items: navBarItems.map((i) => i.$3).asList(),
                   type: BottomNavigationBarType.fixed,
+                  selectedItemColor: Theme.of(context).colorScheme.primary,
                   selectedFontSize: 12,
                   // Use index of the first level path member (also for nested paths)
                   currentIndex: (state.topRoute?.name == null)
@@ -113,53 +94,52 @@ class AppRouter {
                       : navBarItems.indexWhere(
                           (i) => i.$2.contains(state.topRoute?.name)),
                   showUnselectedLabels: true,
-                  onTap: (i) async =>
-                      context.pushReplacement(navBarItems[i].$1),
+                  onTap: (i) => context.go(navBarItems[i].$1),
                 ),
               ),
           routes: [
             GoRoute(
-                path: '/',
-                name: 'profile',
-                builder: (_, __) => const ProfilePage(),
+              path: '/',
+              name: 'profile',
+              builder: (_, __) => const ProfilePage(),
+            ),
+            GoRoute(
+                path: '/locations',
+                name: 'locations',
+                builder: (_, __) => const LocationsPage()),
+            GoRoute(
+                path: '/updates',
+                name: 'updates',
+                builder: (_, __) => const UpdatesPage()),
+            GoRoute(
+                path: '/contacts',
+                name: 'contacts',
+                builder: (_, __) => const ContactListPage(),
                 routes: [
                   GoRoute(
-                      path: 'locations',
-                      name: 'locations',
-                      builder: (_, __) => const LocationsPage()),
-                  GoRoute(
-                      path: 'updates',
-                      name: 'updates',
-                      builder: (_, __) => const UpdatesPage()),
-                  GoRoute(
-                      path: 'contacts',
-                      name: 'contacts',
-                      builder: (_, __) => const ContactListPage(),
-                      routes: [
-                        GoRoute(
-                            path: 'details/:coagContactId',
-                            name: 'contactDetails',
-                            builder: (_, state) => ContactPage(
-                                coagContactId:
-                                    state.pathParameters['coagContactId']!)),
-                      ]),
-                  GoRoute(
-                      path: 'map',
-                      name: 'map',
-                      builder: (_, __) => const MapPage()),
-                  GoRoute(
-                      path: 'settings',
-                      name: 'settings',
-                      builder: (_, __) => const SettingsPage()),
-                  GoRoute(
-                      // TODO: Figure out how to handle language on coagulate.social so that we don't need to add the language to the links
-                      path: 'en/c',
-                      name: 'receiveRequest',
-                      builder: (_, state) => ReceiveRequestPage(
-                          initialState: ReceiveRequestState(
-                              ReceiveRequestStatus.receivedUriFragment,
-                              fragment: state.uri.fragment))),
-                ])
+                      path: 'details/:coagContactId',
+                      name: 'contactDetails',
+                      builder: (_, state) => ContactPage(
+                          coagContactId:
+                              state.pathParameters['coagContactId']!)),
+                ]),
+            GoRoute(
+              path: '/map',
+              name: 'map',
+              builder: (_, __) => const MapPage(),
+            ),
+            GoRoute(
+                path: '/settings',
+                name: 'settings',
+                builder: (_, __) => const SettingsPage()),
+            GoRoute(
+                // TODO: Figure out how to handle language on coagulate.social so that we don't need to add the language to the links
+                path: '/en/c',
+                name: 'receiveRequest',
+                builder: (_, state) => ReceiveRequestPage(
+                    initialState: ReceiveRequestState(
+                        ReceiveRequestStatus.receivedUriFragment,
+                        fragment: state.uri.fragment))),
           ])
     ],
   );
@@ -174,10 +154,14 @@ class CoagulateApp extends StatefulWidget {
 
 class _CoagulateAppState extends State<CoagulateApp>
     with WidgetsBindingObserver {
+  String? _providedNameOnFirstLaunch;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    unawaited(_checkFirstLaunch());
 
     // Configure background fetch
     BackgroundFetch.configure(
@@ -195,8 +179,9 @@ class _CoagulateAppState extends State<CoagulateApp>
       final startTime = DateTime.now();
       log.add('Start update to and from DHT at $startTime');
 
+      // TODO: Passing an empty string for initial name seems hacky
       final repo = ContactsRepository(
-          SqliteStorage(), VeilidDhtStorage(), SystemContacts(),
+          SqliteStorage(), VeilidDhtStorage(), SystemContacts(), '',
           initialize: false);
 
       // Await initialization with potential initial DHT updates unless it
@@ -224,6 +209,22 @@ class _CoagulateAppState extends State<CoagulateApp>
       print('[BackgroundFetch] configure success: $status');
     }).catchError((e) {
       print('[BackgroundFetch] configure ERROR: $e');
+    });
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final sharedPreferences = await SharedPreferences.getInstance();
+    setState(() {
+      _providedNameOnFirstLaunch =
+          sharedPreferences.getString('providedNameOnFirstLaunch');
+    });
+  }
+
+  Future<void> _setFirstLaunchComplete(String name) async {
+    await SharedPreferences.getInstance()
+        .then((p) => p.setString('providedNameOnFirstLaunch', name));
+    setState(() {
+      _providedNameOnFirstLaunch = name;
     });
   }
 
@@ -263,16 +264,40 @@ class _CoagulateAppState extends State<CoagulateApp>
           return const Splash();
         }
 
+        if (_providedNameOnFirstLaunch == null ||
+            _providedNameOnFirstLaunch!.isEmpty) {
+          return MaterialApp(
+              title: 'Welcome to Coagulate',
+              themeMode: ThemeMode.system,
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+                useMaterial3: true,
+              ),
+              darkTheme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(
+                    seedColor: Colors.indigo, brightness: Brightness.dark),
+                useMaterial3: true,
+              ),
+              home: WelcomeScreen(_setFirstLaunchComplete));
+        }
+
         // Once init is done, we proceed with the app
         return BackgroundTicker(
             child: RepositoryProvider.value(
-          value: ContactsRepository(
-              SqliteStorage(), VeilidDhtStorage(), SystemContacts()),
+          value: ContactsRepository(SqliteStorage(), VeilidDhtStorage(),
+              SystemContacts(), _providedNameOnFirstLaunch!),
           child: MaterialApp.router(
             title: 'Coagulate',
             themeMode: ThemeMode.system,
-            theme: ThemeData.light(),
-            darkTheme: ThemeData.dark(),
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+              useMaterial3: true,
+            ),
+            darkTheme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                  seedColor: Colors.indigo, brightness: Brightness.dark),
+              useMaterial3: true,
+            ),
             routerDelegate: AppRouter().router.routerDelegate,
             routeInformationProvider:
                 AppRouter().router.routeInformationProvider,

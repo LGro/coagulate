@@ -47,10 +47,43 @@ class ReceiveRequestPage extends StatelessWidget {
 
           case ReceiveRequestStatus.qrcode:
             return Scaffold(
-                appBar: AppBar(title: const Text('Scan QR Code')),
-                body: BarcodeScannerPageView(
-                    onDetectCallback:
-                        context.read<ReceiveRequestCubit>().qrCodeCaptured));
+                appBar: AppBar(title: const Text('Accept personal invite')),
+                body: Padding(
+                    padding: EdgeInsets.only(
+                        top: 16,
+                        left: MediaQuery.sizeOf(context).width * 0.1,
+                        right: MediaQuery.sizeOf(context).width * 0.1),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // TODO: Instructions / re-request access if denied previously
+                          const Text('Scan QR code:'),
+                          const SizedBox(height: 8),
+                          Align(
+                              alignment: Alignment.center,
+                              child: SizedBox.square(
+                                  dimension:
+                                      MediaQuery.sizeOf(context).width * 0.8,
+                                  child: BarcodeScannerPageView(
+                                      onDetectCallback: context
+                                          .read<ReceiveRequestCubit>()
+                                          .qrCodeCaptured))),
+                          const SizedBox(height: 8),
+                          const Text(
+                              'Scan only QR codes that were specifically generated for you.'),
+                          const SizedBox(height: 32),
+                          const Text(
+                              'Or if you have copied an invite to your clipboard:'),
+                          const SizedBox(height: 8),
+                          FilledButton(
+                              onPressed: context
+                                  .read<ReceiveRequestCubit>()
+                                  .pasteInvite,
+                              child: const Text('Paste invite')),
+                          const SizedBox(height: 8),
+                          const Text(
+                              'Only paste invites that were specifically generated for you.'),
+                        ])));
 
           case ReceiveRequestStatus.receivedRequest:
             return Scaffold(
@@ -85,8 +118,7 @@ class ReceiveRequestPage extends StatelessWidget {
                                   .updateNewRequesterContact)),
                       TextButton(
                           onPressed:
-                              (state.profile?.details?.displayName.isEmpty ??
-                                      true)
+                              (state.profile?.details?.names.isEmpty ?? true)
                                   ? null
                                   : context
                                       .read<ReceiveRequestCubit>()
@@ -104,7 +136,7 @@ class ReceiveRequestPage extends StatelessWidget {
                                 state.contactProposalsForLinking,
                                 context
                                     .read<ReceiveRequestCubit>()
-                                    .linkExistingContactRequested)),
+                                    .linkExistingContact)),
                     ])));
 
           case ReceiveRequestStatus.receivedShare:
@@ -126,15 +158,16 @@ class ReceiveRequestPage extends StatelessWidget {
                             kBottomNavigationBarHeight,
                         child: Column(
                           mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             const SizedBox(height: 8),
                             if (state.profile?.details != null)
                               Expanded(
                                   child: ListView(children: [
-                                ...displayDetails(state.profile!.details!)
+                                ...contactDetailsAndLocations(
+                                    context, state.profile!)
                               ])),
-                            TextButton(
+                            FilledButton(
                                 onPressed: context
                                     .read<ReceiveRequestCubit>()
                                     .createNewContact,
@@ -149,8 +182,8 @@ class ReceiveRequestPage extends StatelessWidget {
                                       state.contactProposalsForLinking,
                                       context
                                           .read<ReceiveRequestCubit>()
-                                          .linkExistingContactSharing)),
-                            TextButton(
+                                          .linkExistingContact)),
+                            FilledButton(
                                 onPressed: context
                                     .read<ReceiveRequestCubit>()
                                     .scanQrCode,
@@ -175,7 +208,7 @@ Widget pickExistingContact(Iterable<CoagContact> contactProporsalsForLinking,
           .where((c) => c.details != null || c.systemContact != null)
           .map((c) => ListTile(
               leading: avatar(c.systemContact, radius: 18),
-              title: Text(c.details?.displayName ??
+              title: Text(c.details?.names.values.join(', ') ??
                   c.systemContact?.displayName ??
                   '???'),
               //trailing: Text(_contactSyncStatus(c)),

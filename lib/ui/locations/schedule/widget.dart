@@ -294,8 +294,6 @@ class _MyFormState extends State<MyForm> {
                   initPosition: _state.location?.latLong ??
                       const LatLong(48.8575, 2.3514),
                   searchBarBackgroundColor: Colors.white,
-                  selectedLocationButtonTextstyle:
-                      const TextStyle(fontSize: 18),
                   mapLanguage: 'en',
                   onError: (e) => print(e),
                   selectLocationButtonLeadingIcon: const Icon(Icons.check),
@@ -313,7 +311,7 @@ class _MyFormState extends State<MyForm> {
             if (_state.status.isInProgress)
               const CircularProgressIndicator()
             else
-              ElevatedButton(
+              FilledButton(
                 key: const Key('myForm_submit'),
                 onPressed:
                     (_state.circles.firstWhereOrNull((c) => c.$3) != null &&
@@ -385,6 +383,7 @@ class ScheduleWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                    const SizedBox(height: 4),
                     MyForm(
                         circles: state.circles,
                         circleMemberships: state.circleMemberships,

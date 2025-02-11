@@ -3,13 +3,11 @@
 
 part of 'cubit.dart';
 
-enum ProfileStatus { initial, success, create, pick }
+enum ProfileStatus { initial, success }
 
 extension ProfileStatusX on ProfileStatus {
   bool get isInitial => this == ProfileStatus.initial;
   bool get isSuccess => this == ProfileStatus.success;
-  bool get isCreate => this == ProfileStatus.create;
-  bool get isPick => this == ProfileStatus.pick;
 }
 
 @JsonSerializable()

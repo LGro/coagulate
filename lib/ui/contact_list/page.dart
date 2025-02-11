@@ -3,7 +3,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
@@ -37,23 +36,57 @@ class _ContactListPageState extends State<ContactListPage> {
           ],
           child: BlocConsumer<ContactListCubit, ContactListState>(
               listener: (context, state) async {},
-              builder: (context, state) {
-                switch (state.status) {
-                  // TODO: This is barely ever shown, remove
-                  case ContactListStatus.initial:
-                    return const Center(child: CircularProgressIndicator());
-                  // TODO: This is never shown; but we want to see it at least when e.g. the contact list is empty
-                  case ContactListStatus.denied:
-                    return const Center(
-                        child: TextButton(
-                            onPressed: FlutterContacts.requestPermission,
-                            child: Text('Grant access to contacts')));
-                  case ContactListStatus.success:
-                    return BlocConsumer<ProfileCubit, ProfileState>(
-                        listener: (_, __) async {},
-                        builder: (_, profileContactState) => Container(
-                            padding: const EdgeInsets.all(10),
-                            child: Column(children: [
+              builder: (context, state) => BlocConsumer<ProfileCubit,
+                      ProfileState>(
+                  listener: (_, __) async {},
+                  builder: (_, profileContactState) => Container(
+                      padding: const EdgeInsets.all(10),
+                      child: (state.contacts
+                              .where((c) =>
+                                  c.coagContactId !=
+                                  profileContactState
+                                      .profileContact?.coagContactId)
+                              .isEmpty)
+                          ? Padding(
+                              padding: const EdgeInsets.only(left: 8, right: 8),
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                        'You do not have any contacts yet.',
+                                        textScaler: TextScaler.linear(1.2)),
+                                    const SizedBox(height: 24),
+                                    const Text('Invite someone'),
+                                    const SizedBox(height: 8),
+                                    Align(
+                                        alignment: Alignment.center,
+                                        child: FilledButton(
+                                            child: const Text('Create invite'),
+                                            onPressed: () async {
+                                              await Navigator.of(context).push(
+                                                  MaterialPageRoute<
+                                                          CreateNewContactPage>(
+                                                      builder: (_) =>
+                                                          CreateNewContactPage()));
+                                            })),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                        'or accept an invite you received'),
+                                    const SizedBox(height: 8),
+                                    Align(
+                                        alignment: Alignment.center,
+                                        child: FilledButton(
+                                            child: const Text('Accept invite'),
+                                            onPressed: () async {
+                                              await Navigator.of(context).push(
+                                                  MaterialPageRoute<
+                                                          ReceiveRequestPage>(
+                                                      builder: (_) =>
+                                                          const ReceiveRequestPage()));
+                                            })),
+                                  ]))
+                          : Column(children: [
                               _searchBar(context, state),
                               const SizedBox(height: 10),
                               Expanded(
@@ -65,57 +98,30 @@ class _ContactListPageState extends State<ContactListPage> {
                                                   ?.coagContactId)
                                           .toList(),
                                       state.circleMemberships)),
-                              Padding(
-                                  padding: const EdgeInsets.only(
-                                      top: 4, left: 4, right: 4),
-                                  child: Row(children: [
-                                    const Text('Create invite:'),
-                                    TextButton(
-                                        child: const Row(children: [
-                                          Icon(Icons.person_add),
-                                          SizedBox(width: 8),
-                                          Text('invite someone')
-                                        ]),
+                              Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    FilledButton(
+                                        child: const Text('Create invite'),
                                         onPressed: () async {
-                                          await Navigator.push(
-                                              context,
+                                          await Navigator.of(context).push(
                                               MaterialPageRoute<
                                                       CreateNewContactPage>(
                                                   builder: (_) =>
-                                                      const CreateNewContactPage()));
+                                                      CreateNewContactPage()));
                                         }),
-                                  ])),
-                              Padding(
-                                  padding:
-                                      const EdgeInsets.only(left: 4, right: 4),
-                                  child: Row(children: [
-                                    const Text('Receive invite:'),
-                                    TextButton(
-                                        child: const Row(children: [
-                                          Icon(Icons.qr_code_scanner),
-                                          SizedBox(width: 8),
-                                          Text('scan QR code')
-                                        ]),
+                                    FilledButton(
+                                        child: const Text('Accept invite'),
                                         onPressed: () async {
-                                          await Navigator.push(
-                                              context,
+                                          await Navigator.of(context).push(
                                               MaterialPageRoute<
                                                       ReceiveRequestPage>(
                                                   builder: (_) =>
                                                       const ReceiveRequestPage()));
                                         }),
-                                    // TODO: Add option to copy & paste link
-                                    // TextButton(
-                                    //     child: const Row(children: [
-                                    //       Icon(Icons.add_link),
-                                    //       SizedBox(width: 8),
-                                    //       Text('paste link')
-                                    //     ]),
-                                    //     onPressed: () async {}),
-                                  ])),
-                            ])));
-                }
-              })));
+                                  ]),
+                            ]))))));
 
   Widget _searchBar(BuildContext context, ContactListState state) =>
       Row(children: [
@@ -179,7 +185,7 @@ class _ContactListPageState extends State<ContactListPage> {
                                             '${circle.value} (${state.circleMemberships.values.where((ids) => ids.contains(circle.key)).length})'))
                               ])
                             ]))),
-                icon: const Icon(Icons.circle_outlined))
+                icon: const Icon(Icons.bubble_chart))
       ]);
 
   Widget _body(List<CoagContact> contacts,

@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -20,8 +21,8 @@ Iterable<Location> contactToLocations(CoagContact contact) =>
         coagContactId: contact.coagContactId,
         longitude: l.longitude,
         latitude: l.latitude,
-        label:
-            contact.details?.displayName ?? contact.systemContact!.displayName,
+        label: contact.details?.names.values.first ??
+            contact.systemContact!.displayName,
         subLabel: l.name,
         details: '',
         marker: MarkerType.address));
@@ -30,13 +31,15 @@ Location temporaryLocationToLocation(
         CoagContact contact, ContactTemporaryLocation l) =>
     Location(
         coagContactId: contact.coagContactId,
-        label: contact.details?.displayName ??
+        label: contact.details?.names.values.first ??
             contact.systemContact?.displayName ??
             'unknown',
         subLabel: l.name,
         longitude: l.longitude,
         latitude: l.latitude,
-        details: '${l.start} - ${l.end}\nDetails: ${l.details}',
+        details: '${DateFormat("yyyy-MM-dd HH:mm").format(l.start)} - '
+            '${DateFormat("yyyy-MM-dd HH:mm").format(l.end)}'
+            '\nDetails: ${l.details}',
         marker: MarkerType.temporary);
 
 class MapCubit extends Cubit<MapState> {
