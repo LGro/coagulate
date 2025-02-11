@@ -2,48 +2,84 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/models/coag_contact.dart';
-import '../receive_request/page.dart';
+import '../../data/repositories/contacts.dart';
+import '../batch_invites/page.dart';
+import '../contact_details/page.dart';
 
-class CreateNewContactPage extends StatelessWidget {
-  const CreateNewContactPage({super.key});
+class CreateNewContactPage extends StatefulWidget {
+  @override
+  _CreateNewContactPageState createState() => _CreateNewContactPageState();
+}
+
+class _CreateNewContactPageState extends State<CreateNewContactPage> {
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(
-        title: const Text('Invite someone'),
+        title: const Text('Create invite'),
       ),
       body: Padding(
           padding: const EdgeInsets.only(left: 16, right: 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Who would you like to invite?'),
+              // const Text('Already have them in your address book?'),
+              // const SizedBox(height: 4),
+              // Align(
+              //     alignment: Alignment.center,
+              //     child: FilledButton(
+              //         onPressed: () {}, child: Text('Pick from address book'))),
+              // const SizedBox(height: 16),
+              // const Text('or provide their Coagulate link'),
+              // const SizedBox(height: 4),
+              // On submit also use createContactForInvite but include pubkey
+              // TextField(
+              //   controller: TextEditingController(text: ''),
+              //   onChanged: (value) {},
+              //   autofocus: true,
+              //   autocorrect: false,
+              //   decoration: const InputDecoration(border: OutlineInputBorder()),
+              // ),
+              // const SizedBox(height: 16),
+              const Text('Just provide their name'),
               const SizedBox(height: 4),
               TextField(
-                controller: TextEditingController(text: ''),
+                controller: _nameController,
                 autofocus: true,
                 autocorrect: false,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
               ),
               const SizedBox(height: 4),
-              FilledButton(
-                  onPressed: () => {}, child: const Text('prepare invite')),
-              // If there are any after typing in the first character
+              Align(
+                  alignment: Alignment.center,
+                  child: FilledButton(
+                      onPressed: () async {
+                        final contact = await context
+                            .read<ContactsRepository>()
+                            .createContactForInvite(_nameController.text);
+                        if (context.mounted) {
+                          await Navigator.of(context).pushReplacement(
+                              MaterialPageRoute<ContactPage>(
+                                  builder: (context) => ContactPage(
+                                      coagContactId: contact.coagContactId)));
+                        }
+                      },
+                      child: const Text('Prepare invite'))),
               const SizedBox(height: 8),
-              const Text('or pick an existing contact with a matching name:'),
-              const SizedBox(height: 4),
-              Expanded(
-                  child: pickExistingContact([
-                CoagContact(
-                    coagContactId: 'dummy1',
-                    systemContact: Contact(displayName: 'Dummy 1')),
-                CoagContact(
-                    coagContactId: 'dummy2',
-                    systemContact: Contact(displayName: 'Dummy 2')),
-              ], (cId) async => {})),
+              const Expanded(child: SizedBox()),
+              // TODO: Add on tap action only to "Batch Invites"?
+              GestureDetector(
+                  onTap: () async => Navigator.of(context).push(
+                      MaterialPageRoute<BatchInvitesPage>(
+                          builder: (_) => BatchInvitesPage())),
+                  child: const Text(
+                      'Do you want to invite a bunch of folks from an existing '
+                      'community who already know each other? '
+                      'Use Batch Invites')),
+              const SizedBox(height: 16),
             ],
           )));
 }

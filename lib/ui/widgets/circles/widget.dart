@@ -127,6 +127,10 @@ class _CirclesFormState extends State<CirclesForm> {
   Widget build(BuildContext context) => Form(
       key: _key,
       child: Column(children: [
+        const Align(
+            alignment: Alignment.centerLeft,
+            child:
+                Text('Circle memberships', textScaler: TextScaler.linear(1.2))),
         if (widget.customHeader != null) widget.customHeader!,
         if (widget.allowCreateNew)
           Container(
@@ -160,10 +164,10 @@ class _CirclesFormState extends State<CirclesForm> {
                 .map((i, c) => MapEntry(
                     i,
                     c.$3
-                        ? FilledButton(
+                        ? FilledButton.tonal(
                             onPressed: () => _updateCircleMembership(i, false),
                             child: Text('${c.$2} (${c.$4})'))
-                        : OutlinedButton(
+                        : ElevatedButton(
                             onPressed: () => _updateCircleMembership(i, true),
                             child: Text('${c.$2} (${c.$4})'))))
                 .values
@@ -172,7 +176,7 @@ class _CirclesFormState extends State<CirclesForm> {
         if (_state.status.isInProgress)
           const CircularProgressIndicator()
         else
-          ElevatedButton(
+          FilledButton(
             key: const Key('circlesForm_submit'),
             onPressed: _onSubmit,
             child: const Text('Save'),
