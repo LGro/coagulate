@@ -170,7 +170,11 @@ class _CirclesFormState extends State<CirclesForm> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Checkbox(value: c.$3, onChanged: (_) {}),
+                            Checkbox(
+                                value: c.$3,
+                                onChanged: (value) => (value == null)
+                                    ? null
+                                    : _updateCircleMembership(i, value)),
                             Text('${c.$2} (${c.$4})'),
                             const SizedBox(width: 4),
                           ],

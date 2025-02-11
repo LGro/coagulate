@@ -153,7 +153,10 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Checkbox(
-                              value: _circles[index].$3, onChanged: (_) {}),
+                              value: _circles[index].$3,
+                              onChanged: (value) => (value == null)
+                                  ? null
+                                  : _updateCircleMembership(index, value)),
                           Text('${_circles[index].$2} (${_circles[index].$4})'),
                           const SizedBox(width: 4),
                         ],
@@ -182,11 +185,16 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                   onPressed: Navigator.of(context).pop,
                   child: const Text('Cancel'),
                 ),
+                // TODO: Give hints that label and text need to be filled out?
                 FilledButton(
-                  onPressed: () => widget.onAddOrSave(
-                      widget.labelController?.text ?? '',
-                      widget.valueController.text,
-                      _circles.map((e) => (e.$1, e.$2, e.$3)).toList()),
+                  onPressed: () => (widget.valueController.text.isEmpty ||
+                          (!widget.hideLabel &&
+                              (widget.labelController?.text.isEmpty ?? false)))
+                      ? null
+                      : widget.onAddOrSave(
+                          widget.labelController?.text ?? '',
+                          widget.valueController.text,
+                          _circles.map((e) => (e.$1, e.$2, e.$3)).toList()),
                   child: const Text('Save'),
                 ),
               ],
