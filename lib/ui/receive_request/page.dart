@@ -26,8 +26,8 @@ class ReceiveRequestPage extends StatelessWidget {
           initialState: initialState),
       child: BlocConsumer<ReceiveRequestCubit, ReceiveRequestState>(
           listener: (context, state) async {
-        if (state.status.isSuccess) {
-          context.goNamed('contactDetails',
+        if (state.status.isSuccess && state.profile != null) {
+          context.pushReplacementNamed('contactDetails',
               pathParameters: {'coagContactId': state.profile!.coagContactId});
         }
       }, builder: (context, state) {

@@ -19,6 +19,7 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
+// TODO: Revisit which statuses we still need
 // NOTE: When we make this a hydrated cubit again, we need to find a way how to reset to the initial state after success
 class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
   ReceiveRequestCubit(this.contactsRepository,
@@ -104,8 +105,6 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
         .values
         .where((c) =>
             (c.details != null || c.systemContact != null) &&
-            c.coagContactId !=
-                contactsRepository.getProfileContact()?.coagContactId &&
             (value.isEmpty ||
                 (c.details?.names.values.join() ??
                         c.systemContact?.displayName ??
@@ -113,80 +112,64 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
                     .toLowerCase()
                     .contains(value.toLowerCase())))
         .asList();
-    // TODO: Slim down this state to what it actually needs to have
-    emit(state.copyWith(
-        status: ReceiveRequestStatus.receivedRequest,
-        profile: CoagContact(
-            // TODO: Does it hurt to regenerate a new id each time?
-            coagContactId: Uuid().v4(),
-            details: ContactDetails(names: {Uuid().v4(): value}),
-            dhtSettingsForSharing: state.requestSettings),
-        contactProposalsForLinking: proposals));
+    // FIXME: Do something with the proposals
   }
 
   Future<void> handleFragment(String fragment) async {
     final components = fragment.split(':');
-    if (![3, 5].contains(components.length)) {
+    if (![3, 4].contains(components.length)) {
       // TODO: Log / feedback?
-      print('Payload malformed, not three or five long, but ${fragment}');
+      print('Payload malformed, not three or four long, but $fragment');
       if (!isClosed) {
         emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
       }
       return;
     }
 
-    final proposals = contactsRepository
-        .getContacts()
-        .values
-        .where((c) =>
-            c.coagContactId !=
-            contactsRepository.getProfileContact()?.coagContactId)
-        .asList();
-
-    final key = '${components[0]}:${components[1]}';
-    final psk = components[2];
+    final name = components.getOrNull(-4);
+    final dhtSettingsForReceiving = ContactDHTSettings(
+        key: '${components[-3]}:${components[-2]}',
+        psk: components[-1],
+        pubKey: await getAppUserKeyPair()
+            .then((kp) => '${cryptoKindToString(kp.kind)}:${kp.key}'));
+    var contact = CoagContact(
+        coagContactId: Uuid().v4(),
+        // TODO: localize default to language
+        name: name ?? 'unknown',
+        dhtSettingsForReceiving: dhtSettingsForReceiving);
 
     try {
       // Just fetch the contact, do not integrate it into the repository yet
       // TODO: Should this live somewhere else? this can be refactored using distributedStorage.getContact
       final contactJson = await contactsRepository.distributedStorage
-          .readRecord(recordKey: key, psk: psk);
+          .readRecord(
+              recordKey: dhtSettingsForReceiving.key,
+              psk: dhtSettingsForReceiving.psk);
       if (contactJson.isNotEmpty) {
         final dhtContact = CoagContactDHTSchema.fromJson(
             json.decode(contactJson) as Map<String, dynamic>);
-        final contact = CoagContact(
-            // TODO: Does it make sense to receive a uuid, to allow unique ID?
-            //       Or do it via their pubkey instead?
-            coagContactId: Uuid().v4(),
+        contact = contact.copyWith(
+            // TODO: Use email address if provided instead?
+            name: dhtContact.details.names.values.firstOrNull,
             details: dhtContact.details,
             addressLocations: dhtContact.addressLocations,
             temporaryLocations: dhtContact.temporaryLocations,
-            dhtSettingsForReceiving: ContactDHTSettings(
-                key: key,
-                psk: psk,
-                pubKey: await getAppUserKeyPair()
-                    .then((kp) => '${cryptoKindToString(kp.kind)}:${kp.key}')),
             dhtSettingsForSharing: (dhtContact.shareBackDHTKey == null)
                 ? null
                 : ContactDHTSettings(
                     key: dhtContact.shareBackDHTKey!,
                     writer: dhtContact.shareBackDHTWriter,
-                    pubKey: dhtContact.shareBackPubKey));
-
-        if (!isClosed) {
-          emit(ReceiveRequestState(ReceiveRequestStatus.receivedShare,
-              profile: contact,
-              requestSettings: contact.dhtSettingsForReceiving,
-              // TODO: Intelligently sort depending on profile contact details
-              contactProposalsForLinking: proposals));
-        }
+                    pubKey: dhtContact.shareBackPubKey,
+                  ));
       }
     } on Exception catch (e) {
-      // TODO: Log properly / feedback?
-      print('Error fetching DHT UPDATE: ${e}');
-      if (!isClosed) {
-        emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
-      }
+      // Log or display?
+    }
+
+    await contactsRepository.saveContact(contact);
+    if (!isClosed) {
+      return emit(state.copyWith(
+          status: ReceiveRequestStatus.success, profile: contact));
     }
   }
 }

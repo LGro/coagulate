@@ -26,6 +26,19 @@ class ContactUpdate extends Equatable {
 
   Map<String, dynamic> toJson() => _$ContactUpdateToJson(this);
 
+  ContactUpdate copyWith({
+    String? coagContactId,
+    ContactDetails? oldContact,
+    ContactDetails? newContact,
+    DateTime? timestamp,
+  }) =>
+      ContactUpdate(
+        coagContactId: coagContactId ?? this.coagContactId,
+        oldContact: oldContact ?? this.oldContact,
+        newContact: newContact ?? this.newContact,
+        timestamp: timestamp ?? this.timestamp,
+      );
+
   @override
   List<Object?> get props => [coagContactId, oldContact, newContact, timestamp];
 }

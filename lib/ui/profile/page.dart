@@ -2,13 +2,16 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -27,6 +30,146 @@ class Name extends Equatable {
   final String label;
   @override
   List<Object?> get props => [name, label];
+}
+
+class CirclesWithAvatarWidget extends StatefulWidget {
+  const CirclesWithAvatarWidget({
+    super.key,
+    required this.circles,
+    required this.title,
+    required this.pictures,
+    required this.circleMemberCount,
+    this.editCallback,
+    this.deleteCallback,
+  });
+
+  final Text title;
+  final Map<String, Uint8List> pictures;
+  final Map<String, String> circles;
+  final Map<String, int> circleMemberCount;
+  final void Function(String circleId, Uint8List picture)? editCallback;
+  final void Function(String circleId)? deleteCallback;
+
+  @override
+  State<CirclesWithAvatarWidget> createState() =>
+      _CirclesWithAvatarWidgetState();
+}
+
+class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
+  late final TextEditingController _newCircleNameController;
+  Map<String, Uint8List> _pictures = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _pictures = widget.pictures;
+    _newCircleNameController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _newCircleNameController.dispose();
+    super.dispose();
+  }
+
+  // TODO: Add option to add circle via add button?
+  // void _addNewCircle() {
+  //   if (_newCircleNameController.text.isNotEmpty &&
+  //       !_circles.any((e) => e.$2 == _newCircleNameController.text)) {
+  //     setState(() {
+  //       _circles.insert(0, (const Uuid().v4(), _newCircleNameController.text));
+  //     });
+  //     _newCircleNameController.clear();
+  //   }
+  // }
+
+  @override
+  Widget build(BuildContext context) => _card(
+      widget.title,
+      widget.circles
+              .map((circleId, circleLabel) => MapEntry<String, Widget>(
+                  circleId,
+                  Dismissible(
+                      key: Key('avatar|$circleId'),
+                      direction: (widget.deleteCallback != null)
+                          ? DismissDirection.endToStart
+                          : DismissDirection.none,
+                      confirmDismiss: (widget.deleteCallback != null)
+                          ? (_) async {
+                              widget.deleteCallback!(circleId);
+                              // TODO: Is local state management even necessary?
+                              setState(() {
+                                _pictures = _pictures..remove(circleId);
+                              });
+                              // Ensure the UI element is not actually removed
+                              return false;
+                            }
+                          : null,
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () async {
+                            try {
+                              final pickedFile = await ImagePicker().pickImage(
+                                source: ImageSource.gallery,
+                                maxWidth: 400,
+                                maxHeight: 400,
+                                imageQuality: 90,
+                              );
+                              if (context.mounted && pickedFile != null) {
+                                final p = await pickedFile.readAsBytes();
+                                final _updatedPictures = {..._pictures};
+                                _updatedPictures[circleId] = p;
+                                if (context.mounted) {
+                                  await context
+                                      .read<ProfileCubit>()
+                                      .updateAvatar(circleId, p);
+                                }
+                                // TODO: Is local state management even necessary?
+                                setState(() {
+                                  _pictures = _updatedPictures;
+                                });
+                              }
+                            } catch (e) {
+                              // TODO: Handle
+                              print(e);
+                            }
+                          },
+                          child: Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Row(children: [
+                                if (!_pictures.containsKey(circleId))
+                                  const CircleAvatar(
+                                      radius: 48, child: Icon(Icons.person)),
+                                if (_pictures.containsKey(circleId))
+                                  CircleAvatar(
+                                    backgroundImage:
+                                        MemoryImage(_pictures[circleId]!),
+                                    radius: 48,
+                                  ),
+                                Padding(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    //FIXME: Overflow / wrapping for long circle names
+                                    child: Expanded(
+                                        child: Text(
+                                            '$circleLabel (${widget.circleMemberCount[circleId] ?? 0} '
+                                            'contact${(widget.circleMemberCount[circleId] == 1) ? '' : 's'})',
+                                            softWrap: true))),
+                              ]))))))
+              .values
+              .asList() +
+          [
+            const SizedBox(height: 8),
+            const Text('You can set one avatar per circle. Contacts that '
+                'belong to several circles where avatars are available will '
+                'see the one avatar of the smallest circle.'),
+            const SizedBox(height: 4),
+          ]);
 }
 
 // TODO: Pass other labels to prevent duplicates
@@ -59,28 +202,29 @@ class EditOrAddWidget extends StatefulWidget {
 
 class _EditOrAddWidgetState extends State<EditOrAddWidget> {
   late List<(String, String, bool, int)> _circles;
-  late final TextEditingController _titleController;
+  late final TextEditingController _newCircleNameController;
 
   @override
   void initState() {
     super.initState();
-    _circles = List.from(widget.circles);
-    _titleController = TextEditingController();
+    _circles = [...widget.circles];
+    _newCircleNameController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
+    _newCircleNameController.dispose();
     super.dispose();
   }
 
   void _addNewCircle() {
-    if (_titleController.text.isNotEmpty &&
-        !_circles.any((e) => e.$2 == _titleController.text)) {
+    if (_newCircleNameController.text.isNotEmpty &&
+        !_circles.any((e) => e.$2 == _newCircleNameController.text)) {
       setState(() {
-        _circles.insert(0, (const Uuid().v4(), _titleController.text, true, 0));
+        _circles.insert(
+            0, (const Uuid().v4(), _newCircleNameController.text, true, 0));
       });
-      _titleController.clear();
+      _newCircleNameController.clear();
     }
   }
 
@@ -133,6 +277,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                 border: OutlineInputBorder(),
               ),
             ),
+
             const SizedBox(height: 16),
             Text(
               'and share with circles',
@@ -166,7 +311,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
             Row(children: [
               Expanded(
                   child: TextField(
-                controller: _titleController,
+                controller: _newCircleNameController,
                 decoration: const InputDecoration(
                   labelText: 'add circle',
                   border: OutlineInputBorder(),
@@ -203,55 +348,6 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
         ),
       );
 }
-
-Future<void> showPickCirclesBottomSheet(
-        {required BuildContext context,
-        required String value,
-        required String label,
-        required String coagContactId,
-        required List<(String, String, bool, int)> circles,
-        required void Function(List<(String, String)> selectedCircles)
-            callback}) async =>
-    showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        builder: (modalContext) => Padding(
-            padding: EdgeInsets.only(
-                left: 16,
-                top: 16,
-                right: 16,
-                bottom: MediaQuery.of(modalContext).viewInsets.bottom),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  BlocProvider(
-                      create: (context) => CirclesCubit(
-                          context.read<ContactsRepository>(), coagContactId),
-                      child: BlocConsumer<CirclesCubit, CirclesState>(
-                          listener: (context, state) async {},
-                          builder: (context, state) => CirclesForm(
-                              customHeader: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 4, bottom: 12),
-                                  child: Row(children: [
-                                    const Text('Share "',
-                                        textScaler: TextScaler.linear(1.4)),
-                                    Flexible(
-                                        child: Text(value,
-                                            overflow: TextOverflow.ellipsis,
-                                            textScaler:
-                                                const TextScaler.linear(1.4))),
-                                    const Text('" with',
-                                        textScaler: TextScaler.linear(1.4)),
-                                  ])),
-                              allowCreateNew: true,
-                              circles: circles,
-                              callback: (circles) async => callback(circles
-                                  .where((c) => c.$3)
-                                  .map((c) => (c.$1, c.$2))
-                                  .asList()))))
-                ])));
 
 Card _card(Text title, List<Widget> children) => Card(
     margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
@@ -524,39 +620,36 @@ Future<void> onAddDetail(
             onAdd}) async =>
     showModalBottomSheet<void>(
         context: context,
-        isDismissible: false,
+        isDismissible: true,
         isScrollControlled: true,
-        builder: (buildContext) => FractionallySizedBox(
-            heightFactor: 0.9,
-            child: DraggableScrollableSheet(
-                expand: false,
-                maxChildSize: 1,
-                minChildSize: 1,
-                initialChildSize: 1,
-                builder: (_, scrollController) => SingleChildScrollView(
-                    controller: scrollController,
-                    child: EditOrAddWidget(
-                        isEditing: false,
-                        circles: circles
-                            .map((cId, cLabel) => MapEntry(cId, (
-                                  cId,
-                                  cLabel,
-                                  false,
-                                  circleMemberships.values
-                                      .where((circles) => circles.contains(cId))
-                                      .length
-                                )))
-                            .values
-                            .toList(),
-                        headlineSuffix: headlineSuffix,
-                        labelController: TextEditingController(),
-                        valueController: TextEditingController(),
-                        onAddOrSave:
-                            (label, number, circlesWithSelection) async =>
-                                onAdd(label, number, circlesWithSelection).then(
-                                    (_) => (buildContext.mounted)
-                                        ? Navigator.of(buildContext).pop()
-                                        : {}))))));
+        builder: (buildContext) => DraggableScrollableSheet(
+            expand: false,
+            maxChildSize: 0.9,
+            minChildSize: 0.3,
+            initialChildSize: 0.9,
+            builder: (_, scrollController) => SingleChildScrollView(
+                controller: scrollController,
+                child: EditOrAddWidget(
+                    isEditing: false,
+                    circles: circles
+                        .map((cId, cLabel) => MapEntry(cId, (
+                              cId,
+                              cLabel,
+                              false,
+                              circleMemberships.values
+                                  .where((circles) => circles.contains(cId))
+                                  .length
+                            )))
+                        .values
+                        .toList(),
+                    headlineSuffix: headlineSuffix,
+                    labelController: TextEditingController(),
+                    valueController: TextEditingController(),
+                    onAddOrSave: (label, number, circlesWithSelection) async =>
+                        onAdd(label, number, circlesWithSelection).then((_) =>
+                            (buildContext.mounted)
+                                ? Navigator.of(buildContext).pop()
+                                : {})))));
 
 Future<void> onEditDetail({
   required BuildContext context,
@@ -566,60 +659,55 @@ Future<void> onEditDetail({
   required Map<String, String> circles,
   required Map<String, List<String>> circleMemberships,
   required Map<String, List<String>> detailSharingSettings,
-  required int i,
-  required Future<void> Function(int i, String label, String number,
+  required Future<void> Function(String label, String number,
           List<(String, String, bool)> circlesWithSelection)
       onSave,
-  required Future<void> Function(int i) onDelete,
+  required Future<void> Function() onDelete,
   bool hideLabel = false,
 }) async =>
     showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
-        isDismissible: false,
-        builder: (buildContext) => FractionallySizedBox(
-            heightFactor: 0.9,
-            child: DraggableScrollableSheet(
-                expand: false,
-                maxChildSize: 1,
-                minChildSize: 1,
-                initialChildSize: 1,
-                builder: (_, scrollController) => SingleChildScrollView(
-                    controller: scrollController,
-                    child: EditOrAddWidget(
-                        isEditing: true,
-                        circles: circles
-                            .map((cId, cLabel) => MapEntry(cId, (
-                                  cId,
-                                  cLabel,
-                                  detailSharingSettings[label]?.contains(cId) ??
-                                      false,
-                                  circleMemberships.values
-                                      .where((circles) => circles.contains(cId))
-                                      .length
-                                )))
-                            .values
-                            .toList(),
-                        headlineSuffix: headlineSuffix,
-                        hideLabel: hideLabel,
-                        labelController: TextEditingController(text: label),
-                        valueController: TextEditingController(text: value),
-                        onDelete: () async => onDelete(i).then((_) =>
+        builder: (buildContext) => DraggableScrollableSheet(
+            expand: false,
+            maxChildSize: 0.9,
+            minChildSize: 0.3,
+            initialChildSize: 0.9,
+            builder: (_, scrollController) => SingleChildScrollView(
+                controller: scrollController,
+                child: EditOrAddWidget(
+                    isEditing: true,
+                    circles: circles
+                        .map((cId, cLabel) => MapEntry(cId, (
+                              cId,
+                              cLabel,
+                              detailSharingSettings[label]?.contains(cId) ??
+                                  false,
+                              circleMemberships.values
+                                  .where((circles) => circles.contains(cId))
+                                  .length
+                            )))
+                        .values
+                        .toList(),
+                    headlineSuffix: headlineSuffix,
+                    hideLabel: hideLabel,
+                    labelController: TextEditingController(text: label),
+                    valueController: TextEditingController(text: value),
+                    onDelete: () async => onDelete().then((_) =>
+                        (buildContext.mounted)
+                            ? Navigator.of(buildContext).pop()
+                            : null),
+                    onAddOrSave: (label, value, circlesWithSelection) async =>
+                        onSave(label, value, circlesWithSelection).then((_) =>
                             (buildContext.mounted)
                                 ? Navigator.of(buildContext).pop()
-                                : null),
-                        onAddOrSave:
-                            (label, value, circlesWithSelection) async =>
-                                onSave(i, label, value, circlesWithSelection)
-                                    .then((_) => (buildContext.mounted)
-                                        ? Navigator.of(buildContext).pop()
-                                        : null))))));
+                                : null)))));
 
 class ProfileViewState extends State<ProfileView> {
   Widget buildProfileScrollView(
-          {required String coagContactId,
-          required ContactDetails contact,
+          {required ContactDetails contact,
           required List<ContactAddressLocation> addressLocations,
+          required Map<String, Uint8List> pictures,
           required Map<String, String> circles,
           required Map<String, List<String>> circleMemberships,
           required ProfileSharingSettings profileSharingSettings}) =>
@@ -648,33 +736,33 @@ class ProfileViewState extends State<ProfileView> {
                       Map.fromEntries([...contact.names.entries]..removeAt(i)),
                 )),
             editCallback: (i) async => onEditDetail(
-                context: context,
-                headlineSuffix: 'name',
-                hideLabel: true,
-                label: contact.names.entries.elementAt(i).key,
-                value: contact.names.entries.elementAt(i).value,
-                circles: circles,
-                circleMemberships: circleMemberships,
-                detailSharingSettings: profileSharingSettings.names,
-                onSave: context.read<ProfileCubit>().editName,
-                onDelete: (i) async =>
-                    context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                          names: Map.fromEntries(
-                              [...contact.names.entries]..removeAt(i)),
-                        )),
-                i: i),
+                  context: context,
+                  headlineSuffix: 'name',
+                  hideLabel: true,
+                  label: contact.names.entries.elementAt(i).key,
+                  value: contact.names.entries.elementAt(i).value,
+                  circles: circles,
+                  circleMemberships: circleMemberships,
+                  detailSharingSettings: profileSharingSettings.names,
+                  onSave: (id, name, circlesWithSelection) async => context
+                      .read<ProfileCubit>()
+                      .updateName(name, circlesWithSelection, id: id),
+                  onDelete: () async => context
+                      .read<ProfileCubit>()
+                      .updateDetails(contact.copyWith(
+                        names: Map.fromEntries(
+                            [...contact.names.entries]..removeAt(i)),
+                      )),
+                ),
             // TODO: Can this also be unified, using the same as other details?
             addCallback: () async => showModalBottomSheet<void>(
                 context: context,
                 isScrollControlled: true,
-                isDismissible: false,
-                builder: (buildContext) => FractionallySizedBox(
-                    heightFactor: 0.9,
-                    child: DraggableScrollableSheet(
+                builder: (buildContext) => DraggableScrollableSheet(
                       expand: false,
-                      maxChildSize: 1,
-                      minChildSize: 1,
-                      initialChildSize: 1,
+                      maxChildSize: 0.9,
+                      minChildSize: 0.3,
+                      initialChildSize: 0.9,
                       builder: (_, scrollController) => SingleChildScrollView(
                           controller: scrollController,
                           child: EditOrAddWidget(
@@ -695,11 +783,11 @@ class ProfileViewState extends State<ProfileView> {
                                   .toList(),
                               onAddOrSave: (_, name, circles) async => context
                                   .read<ProfileCubit>()
-                                  .addName(name, circles)
+                                  .updateName(name, circles)
                                   .then((_) => (buildContext.mounted)
                                       ? Navigator.of(buildContext).pop()
                                       : null))),
-                    )))),
+                    ))),
         // PHONES
         detailsList<Phone>(
           contact.phones,
@@ -719,21 +807,26 @@ class ProfileViewState extends State<ProfileView> {
                     phones: [...contact.phones]..removeAt(i),
                   )),
           editCallback: (i) async => onEditDetail(
-              context: context,
-              headlineSuffix: 'phone number',
-              label: (contact.phones[i].label.name != 'custom')
-                  ? contact.phones[i].label.name
-                  : contact.phones[i].customLabel,
-              value: contact.phones[i].number,
-              circles: circles,
-              circleMemberships: circleMemberships,
-              detailSharingSettings: profileSharingSettings.phones,
-              onSave: context.read<ProfileCubit>().editPhone,
-              onDelete: (i) async =>
-                  context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                        phones: [...contact.phones]..removeAt(i),
-                      )),
-              i: i),
+            context: context,
+            headlineSuffix: 'phone number',
+            label: (contact.phones[i].label.name != 'custom')
+                ? contact.phones[i].label.name
+                : contact.phones[i].customLabel,
+            value: contact.phones[i].number,
+            circles: circles,
+            circleMemberships: circleMemberships,
+            detailSharingSettings: profileSharingSettings.phones,
+            onSave: (label, value, circlesWithSelection) async => context
+                .read<ProfileCubit>()
+                .updatePhone(
+                    Phone(value, label: PhoneLabel.custom, customLabel: label),
+                    circlesWithSelection,
+                    i: i),
+            onDelete: () async =>
+                context.read<ProfileCubit>().updateDetails(contact.copyWith(
+                      phones: [...contact.phones]..removeAt(i),
+                    )),
+          ),
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'phone number',
@@ -741,7 +834,7 @@ class ProfileViewState extends State<ProfileView> {
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
                   .read<ProfileCubit>()
-                  .addPhone(
+                  .updatePhone(
                       Phone(value,
                           label: PhoneLabel.custom, customLabel: label),
                       circles)),
@@ -765,21 +858,26 @@ class ProfileViewState extends State<ProfileView> {
                     emails: [...contact.emails]..removeAt(i),
                   )),
           editCallback: (i) async => onEditDetail(
-              context: context,
-              headlineSuffix: 'e-mail address',
-              label: (contact.emails[i].label.name != 'custom')
-                  ? contact.emails[i].label.name
-                  : contact.emails[i].customLabel,
-              value: contact.emails[i].address,
-              circles: circles,
-              circleMemberships: circleMemberships,
-              detailSharingSettings: profileSharingSettings.emails,
-              onSave: context.read<ProfileCubit>().editEmail,
-              onDelete: (i) async =>
-                  context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                        emails: [...contact.emails]..removeAt(i),
-                      )),
-              i: i),
+            context: context,
+            headlineSuffix: 'e-mail address',
+            label: (contact.emails[i].label.name != 'custom')
+                ? contact.emails[i].label.name
+                : contact.emails[i].customLabel,
+            value: contact.emails[i].address,
+            circles: circles,
+            circleMemberships: circleMemberships,
+            detailSharingSettings: profileSharingSettings.emails,
+            onSave: (label, value, circlesWithSelection) async => context
+                .read<ProfileCubit>()
+                .updateEmail(
+                    Email(value, label: EmailLabel.custom, customLabel: label),
+                    circlesWithSelection,
+                    i: i),
+            onDelete: () async =>
+                context.read<ProfileCubit>().updateDetails(contact.copyWith(
+                      emails: [...contact.emails]..removeAt(i),
+                    )),
+          ),
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'e-mail address',
@@ -787,7 +885,7 @@ class ProfileViewState extends State<ProfileView> {
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
                   .read<ProfileCubit>()
-                  .addEmail(
+                  .updateEmail(
                       Email(value,
                           label: EmailLabel.custom, customLabel: label),
                       circles)),
@@ -812,21 +910,27 @@ class ProfileViewState extends State<ProfileView> {
                     addresses: [...contact.addresses]..removeAt(i),
                   )),
           editCallback: (i) async => onEditDetail(
-              context: context,
-              headlineSuffix: 'address',
-              label: (contact.addresses[i].label.name != 'custom')
-                  ? contact.addresses[i].label.name
-                  : contact.addresses[i].customLabel,
-              value: contact.addresses[i].address,
-              circles: circles,
-              circleMemberships: circleMemberships,
-              detailSharingSettings: profileSharingSettings.addresses,
-              onSave: context.read<ProfileCubit>().editAddress,
-              onDelete: (i) async =>
-                  context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                        addresses: [...contact.addresses]..removeAt(i),
-                      )),
-              i: i),
+            context: context,
+            headlineSuffix: 'address',
+            label: (contact.addresses[i].label.name != 'custom')
+                ? contact.addresses[i].label.name
+                : contact.addresses[i].customLabel,
+            value: contact.addresses[i].address,
+            circles: circles,
+            circleMemberships: circleMemberships,
+            detailSharingSettings: profileSharingSettings.addresses,
+            onSave: (label, value, circlesWithSelection) async => context
+                .read<ProfileCubit>()
+                .updateAddress(
+                    Address(value,
+                        label: AddressLabel.custom, customLabel: label),
+                    circlesWithSelection,
+                    i: i),
+            onDelete: () async =>
+                context.read<ProfileCubit>().updateDetails(contact.copyWith(
+                      addresses: [...contact.addresses]..removeAt(i),
+                    )),
+          ),
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'address',
@@ -834,7 +938,7 @@ class ProfileViewState extends State<ProfileView> {
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
                   .read<ProfileCubit>()
-                  .addAddress(
+                  .updateAddress(
                       Address(value,
                           label: AddressLabel.custom, customLabel: label),
                       circles)),
@@ -859,21 +963,27 @@ class ProfileViewState extends State<ProfileView> {
                     socialMedias: [...contact.socialMedias]..removeAt(i),
                   )),
           editCallback: (i) async => onEditDetail(
-              context: context,
-              headlineSuffix: 'social media profile',
-              label: (contact.socialMedias[i].label.name != 'custom')
-                  ? contact.socialMedias[i].label.name
-                  : contact.socialMedias[i].customLabel,
-              value: contact.socialMedias[i].userName,
-              circles: circles,
-              circleMemberships: circleMemberships,
-              detailSharingSettings: profileSharingSettings.socialMedias,
-              onSave: context.read<ProfileCubit>().editSocialMedia,
-              onDelete: (i) async =>
-                  context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                        socialMedias: [...contact.socialMedias]..removeAt(i),
-                      )),
-              i: i),
+            context: context,
+            headlineSuffix: 'social media profile',
+            label: (contact.socialMedias[i].label.name != 'custom')
+                ? contact.socialMedias[i].label.name
+                : contact.socialMedias[i].customLabel,
+            value: contact.socialMedias[i].userName,
+            circles: circles,
+            circleMemberships: circleMemberships,
+            detailSharingSettings: profileSharingSettings.socialMedias,
+            onSave: (label, value, circlesWithSelection) async => context
+                .read<ProfileCubit>()
+                .updateSocialMedia(
+                    SocialMedia(value,
+                        label: SocialMediaLabel.custom, customLabel: label),
+                    circlesWithSelection,
+                    i: i),
+            onDelete: () async =>
+                context.read<ProfileCubit>().updateDetails(contact.copyWith(
+                      socialMedias: [...contact.socialMedias]..removeAt(i),
+                    )),
+          ),
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'social media profile',
@@ -881,7 +991,7 @@ class ProfileViewState extends State<ProfileView> {
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
                   .read<ProfileCubit>()
-                  .addSocialMedia(
+                  .updateSocialMedia(
                       SocialMedia(value,
                           label: SocialMediaLabel.custom, customLabel: label),
                       circles)),
@@ -905,21 +1015,27 @@ class ProfileViewState extends State<ProfileView> {
                     websites: [...contact.websites]..removeAt(i),
                   )),
           editCallback: (i) async => onEditDetail(
-              context: context,
-              headlineSuffix: 'website',
-              label: (contact.websites[i].label.name != 'custom')
-                  ? contact.websites[i].label.name
-                  : contact.websites[i].customLabel,
-              value: contact.websites[i].url,
-              circles: circles,
-              circleMemberships: circleMemberships,
-              detailSharingSettings: profileSharingSettings.websites,
-              onSave: context.read<ProfileCubit>().editWebsite,
-              onDelete: (i) async =>
-                  context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                        websites: [...contact.websites]..removeAt(i),
-                      )),
-              i: i),
+            context: context,
+            headlineSuffix: 'website',
+            label: (contact.websites[i].label.name != 'custom')
+                ? contact.websites[i].label.name
+                : contact.websites[i].customLabel,
+            value: contact.websites[i].url,
+            circles: circles,
+            circleMemberships: circleMemberships,
+            detailSharingSettings: profileSharingSettings.websites,
+            onSave: (label, value, circlesWithSelection) async => context
+                .read<ProfileCubit>()
+                .updateWebsite(
+                    Website(value,
+                        label: WebsiteLabel.custom, customLabel: label),
+                    circlesWithSelection,
+                    i: i),
+            onDelete: () async =>
+                context.read<ProfileCubit>().updateDetails(contact.copyWith(
+                      websites: [...contact.websites]..removeAt(i),
+                    )),
+          ),
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'website',
@@ -927,36 +1043,48 @@ class ProfileViewState extends State<ProfileView> {
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
                   .read<ProfileCubit>()
-                  .addWebsite(
+                  .updateWebsite(
                       Website(value,
                           label: WebsiteLabel.custom, customLabel: label),
                       circles)),
         ),
         // PICTURES / AVATARS
-        _card(
-            Text('Avatars',
-                textScaler: const TextScaler.linear(1.4),
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary)),
-            [const Text('Profile picture support is coming soon :)')])
+        CirclesWithAvatarWidget(
+          pictures: pictures,
+          title: Text('Avatars',
+              textScaler: const TextScaler.linear(1.4),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary)),
+          // TODO: We dont need avatar sharing settings anymore at all, do we?
+          //  profileSharingSettings.avatars,
+          circles: circles,
+          circleMemberCount: Map.fromEntries(circles.keys.map((circleId) =>
+              MapEntry(
+                  circleId,
+                  circleMemberships.values
+                      .where((ids) => ids.contains(circleId))
+                      .length))),
+          editCallback: (circleId, picture) async =>
+              context.read<ProfileCubit>().updateAvatar(circleId, picture),
+          deleteCallback: context.read<ProfileCubit>().removeAvatar,
+        ),
       ]);
 
-  Widget _scaffoldBody(ProfileState state) => (state.profileContact == null)
-      ? const Center(child: CircularProgressIndicator())
-      : CustomScrollView(slivers: [
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: buildProfileScrollView(
-                coagContactId: state.profileContact!.coagContactId,
-                contact: state.profileContact!.details!,
-                addressLocations:
-                    state.profileContact!.addressLocations.values.asList(),
-                circles: state.circles,
-                circleMemberships: state.circleMemberships,
-                profileSharingSettings: state.sharingSettings!),
-          )
-        ]);
+  Widget _scaffoldBody(ProfileState state) => CustomScrollView(slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: buildProfileScrollView(
+              contact: state.profileInfo.details,
+              pictures: state.profileInfo.pictures
+                  .map((k, v) => MapEntry(k, Uint8List.fromList(v))),
+              addressLocations:
+                  state.profileInfo.addressLocations.values.asList(),
+              circles: state.circles,
+              circleMemberships: state.circleMemberships,
+              profileSharingSettings: state.profileInfo.sharingSettings),
+        )
+      ]);
 
   @override
   Widget build(

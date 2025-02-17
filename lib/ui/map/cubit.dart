@@ -9,31 +9,30 @@ import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
 
-Iterable<Location> contactToLocations(CoagContact contact) =>
-    contact.addressLocations.values.map((l) => Location(
-        coagContactId: contact.coagContactId,
+Iterable<Location> addressLocationsToLocations(
+        Iterable<ContactAddressLocation> addressLocations,
+        String label,
+        String? coagContactId) =>
+    addressLocations.map((l) => Location(
+        coagContactId: coagContactId,
         longitude: l.longitude,
         latitude: l.latitude,
-        label: contact.details?.names.values.first ??
-            contact.systemContact!.displayName,
+        label: label,
         subLabel: l.name,
         details: '',
         marker: MarkerType.address));
 
 Location temporaryLocationToLocation(
-        CoagContact contact, ContactTemporaryLocation l) =>
+        String label, ContactTemporaryLocation l, String? coagContactId) =>
     Location(
-        coagContactId: contact.coagContactId,
-        label: contact.details?.names.values.first ??
-            contact.systemContact?.displayName ??
-            'unknown',
+        coagContactId: coagContactId,
+        label: label,
         subLabel: l.name,
         longitude: l.longitude,
         latitude: l.latitude,
@@ -53,27 +52,38 @@ class MapCubit extends Cubit<MapState> {
       }
       emit(MapState([
         ...state.locations.where((l) => l.coagContactId != coagContactId),
-        ...contactToLocations(contact),
+        ...addressLocationsToLocations(contact.addressLocations.values,
+            contact.name, contact.coagContactId),
         ...contact.temporaryLocations
             .where((l) => l.end.isAfter(DateTime.now()))
-            .map((l) => temporaryLocationToLocation(contact, l))
+            .map((l) => temporaryLocationToLocation(
+                contact.name, l, contact.coagContactId))
       ], MapStatus.success,
           mapboxApiToken:
               String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN')));
     });
 
-    emit(MapState(
-        contactsRepository
-            .getContacts()
-            .values
-            .map((c) => [
-                  ...contactToLocations(c),
-                  ...c.temporaryLocations
-                      .where((l) => l.end.isAfter(DateTime.now()))
-                      .map((l) => temporaryLocationToLocation(c, l))
-                ])
-            .flattened,
-        MapStatus.success));
+    final profileInfo = contactsRepository.getProfileInfo();
+    final contacts = contactsRepository.getContacts().values.toList();
+
+    emit(MapState([
+      // TODO: Localize "me"
+      ...addressLocationsToLocations(
+          profileInfo.addressLocations.values, 'Me', null),
+      ...profileInfo.temporaryLocations
+          .where((l) => l.end.isAfter(DateTime.now()))
+          .map((l) => temporaryLocationToLocation('Me', l, null)),
+      ...contacts
+          .map((c) => [
+                ...addressLocationsToLocations(
+                    c.addressLocations.values, c.name, c.coagContactId),
+                ...c.temporaryLocations
+                    .where((l) => l.end.isAfter(DateTime.now()))
+                    .map((l) =>
+                        temporaryLocationToLocation(c.name, l, c.coagContactId))
+              ])
+          .flattened
+    ], MapStatus.success));
   }
 
   final ContactsRepository contactsRepository;

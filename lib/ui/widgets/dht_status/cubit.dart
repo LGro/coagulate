@@ -29,40 +29,40 @@ class DhtStatusCubit extends Cubit<DhtStatusState> {
 
   Future<void> updateStatus() async {
     // Ensure record is opened
-    final distributedStorage = VeilidDhtStorage();
-    try {
-      await distributedStorage.readRecord(
-          recordKey: dhtSettings.key,
-          psk: dhtSettings.psk,
-          keyPair: await getAppUserKeyPair());
-    } on VeilidAPIExceptionTryAgain {
-      try {
-        await distributedStorage.readRecord(
-            recordKey: dhtSettings.key,
-            psk: dhtSettings.psk,
-            keyPair: await getAppUserKeyPair(),
-            refreshMode: DHTRecordRefreshMode.network);
-      } on VeilidAPIExceptionTryAgain catch (e) {
-        if (!isClosed) {
-          return emit(DhtStatusState('disconnected $e'));
-        }
-      }
-    }
+    // final distributedStorage = VeilidDhtStorage();
+    // try {
+    //   await distributedStorage.readRecord(
+    //       recordKey: dhtSettings.key,
+    //       psk: dhtSettings.psk,
+    //       keyPair: await getAppUserKeyPair());
+    // } on VeilidAPIExceptionTryAgain {
+    //   try {
+    //     await distributedStorage.readRecord(
+    //         recordKey: dhtSettings.key,
+    //         psk: dhtSettings.psk,
+    //         keyPair: await getAppUserKeyPair(),
+    //         refreshMode: DHTRecordRefreshMode.network);
+    //   } on VeilidAPIExceptionTryAgain catch (e) {
+    //     if (!isClosed) {
+    //       return emit(DhtStatusState('disconnected $e'));
+    //     }
+    //   }
+    // }
 
     // Inspect record status
-    final report = await Veilid.instance.routingContext().then((rc) =>
-        rc.inspectDHTRecord(
-            Typed<FixedEncodedString43>.fromString(dhtSettings.key)));
+    // final report = await Veilid.instance.routingContext().then((rc) =>
+    //     rc.inspectDHTRecord(
+    //         Typed<FixedEncodedString43>.fromString(dhtSettings.key)));
 
     if (isClosed) {
       return;
     }
 
-    if (report.offlineSubkeys.isEmpty) {
-      return emit(const DhtStatusState('synced'));
-    } else {
-      return emit(const DhtStatusState('pending'));
-    }
+    // if (report.offlineSubkeys.isEmpty) {
+    //   return emit(const DhtStatusState('synced'));
+    // } else {
+    //   return emit(const DhtStatusState('pending'));
+    // }
   }
 
   @override

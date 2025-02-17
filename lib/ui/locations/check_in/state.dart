@@ -9,6 +9,7 @@ enum CheckInStatus {
   locationDenied,
   locationDeniedPermanent,
   locationTimeout,
+  // TODO: This can't happen anymore, right? Remove it.
   noProfile,
   readyForCheckIn,
   checkingIn

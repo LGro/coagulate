@@ -13,9 +13,8 @@ extension ProfileStatusX on ProfileStatus {
 @JsonSerializable()
 final class ProfileState extends Equatable {
   const ProfileState({
+    required this.profileInfo,
     this.status = ProfileStatus.initial,
-    this.profileContact,
-    this.sharingSettings,
     this.circles = const {},
     this.circleMemberships = const {},
     this.permissionsGranted = false,
@@ -25,24 +24,21 @@ final class ProfileState extends Equatable {
       _$ProfileStateFromJson(json);
 
   final ProfileStatus status;
-  final CoagContact? profileContact;
+  final ProfileInfo profileInfo;
   final Map<String, String> circles;
   final Map<String, List<String>> circleMemberships;
-  final ProfileSharingSettings? sharingSettings;
   final bool permissionsGranted;
 
   ProfileState copyWith({
     ProfileStatus? status,
-    CoagContact? profileContact,
+    ProfileInfo? profileInfo,
     Map<String, String>? circles,
     Map<String, List<String>>? circleMemberships,
-    ProfileSharingSettings? sharingSettings,
     bool? permissionsGranted,
   }) =>
       ProfileState(
         status: status ?? this.status,
-        profileContact: profileContact ?? this.profileContact,
-        sharingSettings: sharingSettings ?? this.sharingSettings,
+        profileInfo: profileInfo ?? this.profileInfo,
         circles: circles ?? this.circles,
         circleMemberships: circleMemberships ?? this.circleMemberships,
         permissionsGranted: permissionsGranted ?? this.permissionsGranted,
@@ -53,10 +49,9 @@ final class ProfileState extends Equatable {
   @override
   List<Object?> get props => [
         status,
-        profileContact,
+        profileInfo,
         circles,
         circleMemberships,
-        sharingSettings,
         permissionsGranted,
       ];
 }

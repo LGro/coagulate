@@ -7,7 +7,7 @@ import '../../models/coag_contact.dart';
 
 abstract class DistributedStorage {
   /// Create an empty DHT record, return key and writer in string representation
-  Future<(String, String)> createRecord();
+  Future<(String, String)> createRecord({String? writer});
 
   /// Read DHT record for given key and secret, return decrypted content
   Future<String> readRecord(

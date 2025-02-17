@@ -70,7 +70,7 @@ String contactDetailKey<T>(T detail) {
 Map<String, String> filterNames(
   Map<String, String> names,
   Map<String, List<String>> settings,
-  List<String> activeCircles,
+  Iterable<String> activeCircles,
 ) {
   if (activeCircles.isEmpty) {
     return {};
@@ -83,7 +83,7 @@ Map<String, String> filterNames(
 List<T> filterContactDetailsList<T>(
   List<T> values,
   Map<String, List<String>> settings,
-  List<String> activeCircles,
+  Iterable<String> activeCircles,
 ) {
   if (activeCircles.isEmpty) {
     return [];
@@ -96,30 +96,45 @@ List<T> filterContactDetailsList<T>(
   return updatedValues.values.asList();
 }
 
-ContactDetails filterDetails(ContactDetails details,
-        ProfileSharingSettings settings, List<String> activeCircles) =>
+List<int>? selectAvatar(Map<String, List<int>> avatars,
+        Map<String, int> activeCirclesWithMemberCount) =>
+    avatars.entries
+        .where((e) => activeCirclesWithMemberCount.containsKey(e.key))
+        .sorted((a, b) =>
+            (activeCirclesWithMemberCount[a.key] ?? 0) -
+            (activeCirclesWithMemberCount[b.key] ?? 0))
+        .firstOrNull
+        ?.value;
+
+ContactDetails filterDetails(
+        Map<String, List<int>> avatars,
+        ContactDetails details,
+        ProfileSharingSettings settings,
+        Map<String, int> activeCirclesWithMemberCount) =>
     ContactDetails(
-      names: filterNames(details.names, settings.names, activeCircles),
+      avatar: selectAvatar(avatars, activeCirclesWithMemberCount),
+      names: filterNames(
+          details.names, settings.names, activeCirclesWithMemberCount.keys),
       phones: filterContactDetailsList(
-          details.phones, settings.phones, activeCircles),
+          details.phones, settings.phones, activeCirclesWithMemberCount.keys),
       emails: filterContactDetailsList(
-          details.emails, settings.emails, activeCircles),
-      addresses: filterContactDetailsList(
-          details.addresses, settings.addresses, activeCircles),
-      organizations: filterContactDetailsList(
-          details.organizations, settings.organizations, activeCircles),
-      websites: filterContactDetailsList(
-          details.websites, settings.websites, activeCircles),
-      socialMedias: filterContactDetailsList(
-          details.socialMedias, settings.socialMedias, activeCircles),
+          details.emails, settings.emails, activeCirclesWithMemberCount.keys),
+      addresses: filterContactDetailsList(details.addresses, settings.addresses,
+          activeCirclesWithMemberCount.keys),
+      organizations: filterContactDetailsList(details.organizations,
+          settings.organizations, activeCirclesWithMemberCount.keys),
+      websites: filterContactDetailsList(details.websites, settings.websites,
+          activeCirclesWithMemberCount.keys),
+      socialMedias: filterContactDetailsList(details.socialMedias,
+          settings.socialMedias, activeCirclesWithMemberCount.keys),
       events: filterContactDetailsList(
-          details.events, settings.events, activeCircles),
+          details.events, settings.events, activeCirclesWithMemberCount.keys),
     );
 
 Map<int, ContactAddressLocation> filterAddressLocations(
         Map<int, ContactAddressLocation> locations,
         ProfileSharingSettings settings,
-        List<String> activeCircles) =>
+        Iterable<String> activeCircles) =>
     {
       // TODO: If we were also using "label" style keys for "locations", this could be simplified
       for (final location in locations.entries)
@@ -137,7 +152,8 @@ Map<int, ContactAddressLocation> filterAddressLocations(
 
 /// Remove locations that ended longer than a day ago, or aren't shared with the given circles
 List<ContactTemporaryLocation> filterTemporaryLocations(
-        List<ContactTemporaryLocation> locations, List<String> activeCircles) =>
+        List<ContactTemporaryLocation> locations,
+        Iterable<String> activeCircles) =>
     locations
         .where((l) =>
             l.end.isAfter(DateTime.now()) &&
@@ -145,17 +161,19 @@ List<ContactTemporaryLocation> filterTemporaryLocations(
         .asList();
 
 CoagContactDHTSchema filterAccordingToSharingProfile(
-        {required CoagContact profile,
-        required ProfileSharingSettings settings,
-        required List<String> activeCircles,
-        required ContactDHTSettings? shareBackSettings}) =>
+        {required ProfileInfo profile,
+        required Map<String, int> activeCirclesWithMemberCount,
+        required ContactDHTSettings? shareBackSettings,
+        required String? dhtPictureKey}) =>
     CoagContactDHTSchema(
-      details: filterDetails(profile.details!, settings, activeCircles),
+      details: filterDetails(profile.pictures, profile.details,
+          profile.sharingSettings, activeCirclesWithMemberCount),
+      dhtPictureKey: dhtPictureKey,
       // Only share locations up to 1 day ago
-      temporaryLocations:
-          filterTemporaryLocations(profile.temporaryLocations, activeCircles),
-      addressLocations: filterAddressLocations(
-          profile.addressLocations, settings, activeCircles),
+      temporaryLocations: filterTemporaryLocations(
+          profile.temporaryLocations, activeCirclesWithMemberCount.keys),
+      addressLocations: filterAddressLocations(profile.addressLocations,
+          profile.sharingSettings, activeCirclesWithMemberCount.keys),
       shareBackDHTKey: shareBackSettings?.key,
       shareBackDHTWriter: shareBackSettings?.writer,
       shareBackPubKey: shareBackSettings?.pubKey,
@@ -203,12 +221,11 @@ class ContactsRepository {
   Stream<String> getContactStream() =>
       _contactsStreamController.asBroadcastStream();
 
-  /// Coagulate contact ID of the profile contact
-  String? _profileContactId;
-
-  /// Profile contact sharing settings, specifying circles for each detail
-  ProfileSharingSettings _profileSharingSettings =
-      const ProfileSharingSettings();
+  /// Profile info
+  ProfileInfo _profileInfo = const ProfileInfo();
+  final _profileInfoStreamController = BehaviorSubject<ProfileInfo>();
+  Stream<ProfileInfo> getProfileInfoStream() =>
+      _profileInfoStreamController.asBroadcastStream();
 
   /// Circles with IDs as keys and labels as values
   Map<String, String> _circles = {};
@@ -240,22 +257,19 @@ class ContactsRepository {
   bool veilidNetworkAvailable = false;
 
   Future<void> initialize() async {
-    // Ensure it is initialized
+    // Ensure it is called once to initialize
     await getAppUserKeyPair();
 
     await initializeFromPersistentStorage();
 
-    if (getProfileContact() == null && initialName.isNotEmpty) {
-      final initialDetails = ContactDetails(names: {Uuid().v4(): initialName});
-      final minimalProfileContact =
-          CoagContact(coagContactId: Uuid().v4(), details: initialDetails);
-      // Needs to be saved before setting
-      await saveContact(minimalProfileContact);
-      await setProfileContact(minimalProfileContact.coagContactId);
-      // Add initial name to share with everyone, opt out possible later
-      await setProfileSharingSettings(ProfileSharingSettings(names: {
-        initialDetails.names.keys.first: const [defaultEveryoneCircleId]
-      }));
+    // Initialize profile info
+    if (_profileInfo.details.names.isEmpty && initialName.isNotEmpty) {
+      final nameId = Uuid().v4();
+      await setProfileInfo(ProfileInfo(
+          details: ContactDetails(names: {nameId: initialName}),
+          sharingSettings: ProfileSharingSettings(names: {
+            nameId: const [defaultEveryoneCircleId]
+          })));
     }
 
     // Ensure that everyone is part of the default circle
@@ -285,13 +299,12 @@ class ContactsRepository {
   /////////////////////
   // PERSISTENT STORAGE
   Future<void> initializeFromPersistentStorage() async {
-    _profileContactId = await persistentStorage.getProfileContactId();
+    _profileInfo = await persistentStorage.getProfileInfo();
+    _profileInfoStreamController.add(_profileInfo);
 
-    // Initialize circles, circle memberships and sharing settings from persistent storage
+    // Initialize circles, circle memberships from persistent storage
     _circles = await persistentStorage.getCircles();
     _circleMemberships = await persistentStorage.getCircleMemberships();
-    _profileSharingSettings =
-        await persistentStorage.getProfileSharingSettings();
 
     // Load updates from persistent storage
     // TODO: Actually delete old updates from persistent storage
@@ -311,7 +324,7 @@ class ContactsRepository {
   }
 
   Future<void> saveContact(CoagContact coagContact) async {
-    _contacts[coagContact.coagContactId] = coagContact;
+    _contacts[coagContact.coagContactId] = coagContact.copyWith();
     _contactsStreamController.add(coagContact.coagContactId);
     await persistentStorage.updateContact(coagContact);
   }
@@ -399,8 +412,11 @@ class ContactsRepository {
     try {
       if (contact.dhtSettingsForSharing?.writer == null) {
         final (shareKey, shareWriter) = await distributedStorage.createRecord();
+        final (sharePictureKey, _) =
+            await distributedStorage.createRecord(writer: shareWriter);
         final dhtSettingsForSharing = ContactDHTSettings(
             key: shareKey,
+            pictureKey: sharePictureKey,
             writer: shareWriter,
             // TODO: Get specific cryptosystem version? also, move veilid specific stuff elsewhere
             psk: (contactPubKey == null)
@@ -422,20 +438,6 @@ class ContactsRepository {
             writer: receiveWriter,
             pubKey: await getAppUserKeyPair()
                 .then((kp) => '${cryptoKindToString(kp.kind)}:${kp.key}'));
-        // Write to it once to populate it
-        try {
-          await distributedStorage.updateRecord(
-              content: '',
-              key: dhtSettingsForReceiving!.key,
-              writer: dhtSettingsForReceiving!.writer!,
-              publicKey: dhtSettingsForReceiving?.pubKey,
-              psk: dhtSettingsForReceiving?.psk);
-        } on VeilidAPIException catch (e) {
-          // TODO: Proper logging / other handling strategy / retry?
-          if (kDebugMode) {
-            print(e);
-          }
-        }
 
         // TODO: Is a refresh of the contact before updating necessary?
         contact = getContact(contact.coagContactId)!
@@ -481,13 +483,16 @@ class ContactsRepository {
   ///////////
   // CONTACTS
 
-  Map<String, CoagContact> getContacts() => _contacts;
+  /// Get a copy of all contacts
+  Map<String, CoagContact> getContacts() => {..._contacts};
 
-  CoagContact? getContact(String coagContactId) => _contacts[coagContactId];
+  CoagContact? getContact(String coagContactId) =>
+      _contacts[coagContactId]?.copyWith();
 
   CoagContact? getContactForSystemContactId(String systemContactId) =>
       _contacts.values
-          .firstWhere((c) => c.systemContact?.id == systemContactId);
+          .firstWhereOrNull((c) => c.systemContact?.id == systemContactId)
+          ?.copyWith();
 
   Future<void> removeContact(String coagContactId) async {
     _contacts.remove(coagContactId);
@@ -497,10 +502,6 @@ class ContactsRepository {
       persistentStorage.removeContact(coagContactId),
       persistentStorage.updateCircleMemberships(_circleMemberships)
     ];
-
-    if (_profileContactId == coagContactId) {
-      updateFutures.add(unsetProfileContact());
-    }
 
     // TODO: change updates stream to just trigger refresh instead of carry the updates; or give each update an id and only stream these ids for when an update was added / removed
     _contactUpdates =
@@ -519,18 +520,20 @@ class ContactsRepository {
       return;
     }
 
-    final profileContact = getProfileContact();
-    if (profileContact?.details == null) {
-      return;
-    }
-
     await saveContact(contact.copyWith(
         sharedProfile: json.encode(removeNullOrEmptyValues(
             filterAccordingToSharingProfile(
-                    profile: profileContact!,
-                    settings: _profileSharingSettings,
-                    activeCircles: _circleMemberships[coagContactId] ?? [],
-                    shareBackSettings: contact.dhtSettingsForReceiving)
+                    profile: _profileInfo,
+                    // TODO: Also expose this view of the data? Seems to be used in different places
+                    activeCirclesWithMemberCount: Map.fromEntries(
+                        (_circleMemberships[coagContactId] ?? []).map(
+                            (circleId) => MapEntry(
+                                circleId,
+                                _circleMemberships.values
+                                    .where((ids) => ids.contains(circleId))
+                                    .length))),
+                    shareBackSettings: contact.dhtSettingsForReceiving,
+                    dhtPictureKey: contact.dhtSettingsForSharing?.pictureKey)
                 .toJson()))));
   }
 
@@ -574,9 +577,7 @@ class ContactsRepository {
   Future<CoagContact> createContactForInvite(String name,
       {String? pubKey}) async {
     // Create contact
-    final contact = CoagContact(
-        coagContactId: Uuid().v4(),
-        details: ContactDetails(names: {Uuid().v4(): name}));
+    final contact = CoagContact(coagContactId: Uuid().v4(), name: name);
     await saveContact(contact);
 
     // Add to default circle and update shared profile
@@ -592,9 +593,9 @@ class ContactsRepository {
 
   //////////
   // CIRCLES
-  Map<String, String> getCircles() => _circles;
+  Map<String, String> getCircles() => {..._circles};
 
-  Map<String, List<String>> getCircleMemberships() => _circleMemberships;
+  Map<String, List<String>> getCircleMemberships() => {..._circleMemberships};
 
   Map<String, String> getCirclesForContact(String coagContactId) =>
       _circleMemberships[coagContactId]
@@ -620,14 +621,14 @@ class ContactsRepository {
 
   Future<void> updateCircleMemberships(
       Map<String, List<String>> memberships) async {
-    _circleMemberships = memberships;
+    _circleMemberships = {...memberships};
 
     // Notify about potentially affected contacts
-    for (final coagContactId in memberships.keys) {
+    for (final coagContactId in _circleMemberships.keys) {
       _contactsStreamController.add(coagContactId);
     }
 
-    await persistentStorage.updateCircleMemberships(memberships);
+    await persistentStorage.updateCircleMemberships(_circleMemberships);
 
     await Future.wait([
       for (final contact in _contacts.values
@@ -638,7 +639,7 @@ class ContactsRepository {
 
   Future<void> updateCirclesForContact(
       String coagContactId, List<String> circleIds) async {
-    _circleMemberships[coagContactId] = circleIds;
+    _circleMemberships[coagContactId] = [...circleIds];
     // Notify about the update
     _contactsStreamController.add(coagContactId);
     await Future.wait([
@@ -663,78 +664,42 @@ class ContactsRepository {
           .toList();
 
   //////////////////
-  // PROFILE CONTACT
+  // PROFILE INFO
 
-  CoagContact? getProfileContact() =>
-      (_profileContactId == null) ? null : _contacts[_profileContactId!];
+  ProfileInfo getProfileInfo() => _profileInfo.copyWith();
 
-  Future<void> unsetProfileContact() async {
-    _profileContactId = null;
-    _profileSharingSettings = const ProfileSharingSettings();
-    // TODO: updating all contacts' shared profile data to empty
+  Future<void> setProfileInfo(ProfileInfo profileInfo) async {
+    // Update
+    _profileInfo = profileInfo.copyWith();
+
+    // Persist
+    await persistentStorage.updateProfileInfo(_profileInfo);
+
+    // Notify
+    _profileInfoStreamController.add(_profileInfo.copyWith());
+
+    // Update shared profile data for all contacts individually
+    // NOTE: Having this before and not as part of updateSharingDHT can cause
+    //       the UI to already show update info, even though it is not yet sent
     await Future.wait([
-      persistentStorage.removeProfileContactId(),
-      persistentStorage.updateProfileSharingSettings(_profileSharingSettings)
-    ]);
-  }
-
-  Future<void> setProfileContact(String coagContactId) async {
-    if (!_contacts.containsKey(coagContactId)) {
-      return unsetProfileContact();
-    }
-    // TODO: Do we need to enforce writing to disk to make it available to background straight away?
-    _profileContactId = coagContactId;
-    await persistentStorage.setProfileContactId(coagContactId);
-
-    // Ensure the profile page refreshes; might warrant a separate even stream?
-    _contactsStreamController.add(coagContactId);
-  }
-
-  Future<void> updateProfileContactData(CoagContact contact) async {
-    // TODO: Validity checks that id matches current profile contact?
-
-    await saveContact(contact);
-
-    await Future.wait([
-      for (final contact in _contacts.values
-          .where((c) => c.dhtSettingsForSharing?.psk != null))
+      for (final contact in _contacts.values)
         updateContactSharedProfile(contact.coagContactId)
     ]);
 
+    // Trigger sending out shared info via DHT
     unawaited(updateSharingDHT());
-  }
-
-  /////////////////////////
-  // PROFILE SHARE SETTINGS
-
-  ProfileSharingSettings getProfileSharingSettings() => _profileSharingSettings;
-
-  Future<void> setProfileSharingSettings(
-      ProfileSharingSettings settings) async {
-    _profileSharingSettings = settings;
-    await persistentStorage.updateProfileSharingSettings(settings);
-
-    if (getProfileContact() == null) {
-      return;
-    }
-
-    await Future.wait([
-      for (final contact in _contacts.values
-          .where((c) => c.dhtSettingsForSharing?.psk != null))
-        updateContactSharedProfile(contact.coagContactId)
-    ]);
   }
 
   //////////
   // UPDATES
 
   Future<void> _saveUpdate(ContactUpdate update) async {
-    _contactUpdates.add(update);
-    _updatesStreamController.add(update);
+    _contactUpdates.add(update.copyWith());
+    _updatesStreamController.add(update.copyWith());
     // TODO: Have two persistent storages with different prefixes for updates and contacts?
     //       Because we might not need to migrate the updates on app updates, but def the contacts.
     await persistentStorage.addUpdate(update);
   }
 
-  List<ContactUpdate> getContactUpdates() => _contactUpdates;
+  List<ContactUpdate> getContactUpdates() => [..._contactUpdates];
 }

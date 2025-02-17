@@ -10,7 +10,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
-import '../../utils.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
@@ -39,10 +38,7 @@ Iterable<CoagContact> filterAndSortContacts(
                         .toLowerCase()
                         .contains(filter.toLowerCase()))))
         .toList()
-      ..sort((a, b) =>
-          // Use + in case no display name could be determined to ensure the
-          // respective contacts end up before phone numbers with country codes
-          compareNatural(displayName(a) ?? '+', displayName(b) ?? '+'));
+      ..sort((a, b) => compareNatural(a.name, b.name));
 
 class ContactListCubit extends Cubit<ContactListState> {
   ContactListCubit(this.contactsRepository)

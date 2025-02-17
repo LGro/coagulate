@@ -22,7 +22,7 @@ class ProfileSharingSettings extends Equatable {
   factory ProfileSharingSettings.fromJson(Map<String, dynamic> json) =>
       _$ProfileSharingSettingsFromJson(json);
 
-  /// Map of name ID to circle IDs that have access to phones
+  /// Map of name ID to circle IDs that have access to names
   final Map<String, List<String>> names;
 
   /// Map of index|label to circle IDs that have access to phones

@@ -140,11 +140,7 @@ class MapPage extends StatelessWidget {
                                 MediaQuery.of(context).platformBrightness ==
                                     Brightness.dark,
                             // TODO: Style profile contact locations differently
-                            onTap: (context
-                                            .read<ContactsRepository>()
-                                            .getProfileContact()
-                                            ?.coagContactId ==
-                                        location.coagContactId &&
+                            onTap: (location.coagContactId == null &&
                                     location.marker == MarkerType.address)
                                 ? null
                                 : (location.marker == MarkerType.temporary)
@@ -181,9 +177,11 @@ class MapPage extends StatelessWidget {
                                                                               ScheduleWidget())))),
                                                 ])))
                                     : () {
+                                        // Provoke a null result in case no id
                                         final contact = context
                                             .read<ContactsRepository>()
-                                            .getContact(location.coagContactId);
+                                            .getContact(
+                                                location.coagContactId ?? '-');
                                         if (contact == null) {
                                           // TODO: display error?
                                           return;

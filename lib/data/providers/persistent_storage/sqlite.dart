@@ -132,18 +132,17 @@ class SqliteStorage extends PersistentStorage {
                   MapEntry(key, (value is String) ? value : '???'))));
 
   @override
-  Future<ProfileSharingSettings> getProfileSharingSettings() async =>
-      getDatabase()
-          .then((db) async => db.query('settings',
-              columns: ['settingsJson'],
-              where: 'id = ?',
-              whereArgs: ['profileSharingSettings'],
-              limit: 1))
-          .then((results) => (results.isEmpty)
-              ? const ProfileSharingSettings()
-              : ProfileSharingSettings.fromJson(
-                  json.decode(results.first['settingsJson']! as String)
-                      as Map<String, dynamic>));
+  Future<ProfileInfo> getProfileInfo() async => getDatabase()
+      .then((db) async => db.query('settings',
+          columns: ['settingsJson'],
+          where: 'id = ?',
+          whereArgs: ['profileInfo'],
+          limit: 1))
+      .then((results) => (results.isEmpty)
+          ? const ProfileInfo()
+          : ProfileInfo.fromJson(
+              json.decode(results.first['settingsJson']! as String)
+                  as Map<String, dynamic>));
 
   @override
   Future<void> updateCircleMemberships(
@@ -163,13 +162,8 @@ class SqliteStorage extends PersistentStorage {
           conflictAlgorithm: ConflictAlgorithm.replace));
 
   @override
-  Future<void> updateProfileSharingSettings(
-          ProfileSharingSettings settings) async =>
-      getDatabase().then((db) async => db.insert(
-          'settings',
-          {
-            'id': 'profileSharingSettings',
-            'settingsJson': json.encode(settings.toJson())
-          },
+  Future<void> updateProfileInfo(ProfileInfo info) async =>
+      getDatabase().then((db) async => db.insert('settings',
+          {'id': 'profileInfo', 'settingsJson': json.encode(info.toJson())},
           conflictAlgorithm: ConflictAlgorithm.replace));
 }

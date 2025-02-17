@@ -202,15 +202,25 @@ class _LocationFormState extends State<LocationForm> {
             ),
             CirclesForm(
                 allowCreateNew: false,
+                // TODO: Can we avoid directly accessing the repo from here?
                 circles: context
                     .read<LocationsCubit>()
                     .contactsRepository
-                    .circlesWithMembership(context
-                        .read<LocationsCubit>()
-                        .contactsRepository
-                        // TODO: Why can't this be null?
-                        .getProfileContact()!
-                        .coagContactId),
+                    .getCircles()
+                    .map((id, label) => MapEntry(id, (
+                          id,
+                          label,
+                          false,
+                          context
+                              .read<LocationsCubit>()
+                              .contactsRepository
+                              .getCircleMemberships()
+                              .values
+                              .where((circles) => circles.contains(id))
+                              .length
+                        )))
+                    .values
+                    .toList(),
                 // TODO: add callback
                 callback: (circles) async => {throw Error()}),
             const SizedBox(height: 24),

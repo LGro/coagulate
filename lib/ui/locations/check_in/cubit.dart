@@ -75,24 +75,16 @@ class CheckInCubit extends Cubit<CheckInState> {
       emit(state.copyWith(status: CheckInStatus.checkingIn));
     }
 
-    final profileContact = contactsRepository.getProfileContact();
-    if (profileContact == null) {
-      if (!isClosed) {
-        emit(state.copyWith(status: CheckInStatus.noProfile));
-      }
-      return;
-    }
-
+    final profileInfo = contactsRepository.getProfileInfo();
     try {
       final location =
           await Geolocator.getCurrentPosition(timeLimit: Duration(seconds: 30));
 
-      await contactsRepository.updateProfileContactData(
-          profileContact.copyWith(temporaryLocations: [
-        ...profileContact.temporaryLocations
+      await contactsRepository
+          .setProfileInfo(profileInfo.copyWith(temporaryLocations: [
+        ...profileInfo.temporaryLocations
             .map((l) => l.copyWith(checkedIn: false)),
         ContactTemporaryLocation(
-            coagContactId: profileContact.coagContactId,
             longitude: location.longitude,
             latitude: location.latitude,
             start: DateTime.now(),

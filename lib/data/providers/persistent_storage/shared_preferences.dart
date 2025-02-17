@@ -99,8 +99,7 @@ class SharedPreferencesStorage extends PersistentStorage {
   }
 
   @override
-  Future<ProfileSharingSettings> getProfileSharingSettings() {
-    // TODO: implement getProfileSharingSettings
+  Future<ProfileInfo> getProfileInfo() {
     throw UnimplementedError();
   }
 
@@ -118,7 +117,7 @@ class SharedPreferencesStorage extends PersistentStorage {
   }
 
   @override
-  Future<void> updateProfileSharingSettings(ProfileSharingSettings settings) {
+  Future<void> updateProfileInfo(ProfileInfo info) {
     // TODO: implement updateProfileSharingSettings
     throw UnimplementedError();
   }

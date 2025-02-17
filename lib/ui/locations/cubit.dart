@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:bloc/bloc.dart';
 import 'package:collection/collection.dart';
@@ -19,55 +18,44 @@ part 'state.dart';
 
 class LocationsCubit extends Cubit<LocationsState> {
   LocationsCubit(this.contactsRepository) : super(const LocationsState()) {
-    _contactsSuscription =
-        contactsRepository.getContactStream().listen((idUpdatedContact) async {
-      final profileContact = contactsRepository.getProfileContact();
-      if (idUpdatedContact == profileContact?.coagContactId) {
-        emit(LocationsState(
-            temporaryLocations: _sort(profileContact!.temporaryLocations),
-            circleMembersips: contactsRepository.getCircleMemberships()));
-      }
+    _profileInfoSubscription =
+        contactsRepository.getProfileInfoStream().listen((profileInfo) async {
+      emit(LocationsState(
+          temporaryLocations: _sort(profileInfo.temporaryLocations),
+          circleMembersips: contactsRepository.getCircleMemberships()));
     });
     emit(LocationsState(
         circleMembersips: contactsRepository.getCircleMemberships(),
-        temporaryLocations: (contactsRepository.getProfileContact() == null)
-            ? []
-            : _sort(
-                contactsRepository.getProfileContact()!.temporaryLocations)));
+        temporaryLocations:
+            _sort(contactsRepository.getProfileInfo().temporaryLocations)));
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<String> _contactsSuscription;
+  late final StreamSubscription<ProfileInfo> _profileInfoSubscription;
 
   List<ContactTemporaryLocation> _sort(
           List<ContactTemporaryLocation> locations) =>
       locations.sortedBy((l) => l.start).asList();
 
   Future<void> removeLocation(ContactTemporaryLocation location) async {
-    final profileContact = contactsRepository.getProfileContact();
-    if (profileContact == null) {
-      return;
-    }
-    await contactsRepository.updateProfileContactData(profileContact.copyWith(
-        temporaryLocations: profileContact.temporaryLocations
+    final profileInfo = contactsRepository.getProfileInfo();
+    await contactsRepository.setProfileInfo(profileInfo.copyWith(
+        temporaryLocations: profileInfo.temporaryLocations
             .where((l) => l != location)
             .asList()));
   }
 
   @override
   Future<void> close() {
-    _contactsSuscription.cancel();
+    _profileInfoSubscription.cancel();
     return super.close();
   }
 
   Future<void> toggleCheckInExisting(ContactTemporaryLocation location) async {
-    final profileContact = contactsRepository.getProfileContact();
-    if (profileContact == null) {
-      return;
-    }
+    final profileInfo = contactsRepository.getProfileInfo();
     // TODO: Test that this is responsive also when location is shared with many contacts
-    await contactsRepository.updateProfileContactData(profileContact.copyWith(
-        temporaryLocations: profileContact.temporaryLocations
+    await contactsRepository.setProfileInfo(profileInfo.copyWith(
+        temporaryLocations: profileInfo.temporaryLocations
             .map((l) => (l == location)
                 ? l.copyWith(checkedIn: !l.checkedIn)
                 : l.copyWith(checkedIn: false))

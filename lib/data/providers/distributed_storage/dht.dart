@@ -23,15 +23,18 @@ String? tryUtf8Decode(Uint8List? content) {
 class VeilidDhtStorage extends DistributedStorage {
   /// Create an empty DHT record, return key and writer in string representation
   @override
-  Future<(String, String)> createRecord() async {
+  Future<(String, String)> createRecord({String? writer}) async {
     final record = await DHTRecordPool.instance.createRecord(
-        debugName: 'coag::create', crypto: const VeilidCryptoPublic());
+        debugName: 'coag::create',
+        crypto: const VeilidCryptoPublic(),
+        writer: (writer != null) ? KeyPair.fromString(writer) : null);
+    // Write to it once, so push it into the network. Is this really needed?
+    await record.tryWriteBytes(Uint8List(0));
+    await record.close();
     return (record.key.toString(), record.writer!.toString());
   }
 
-  /// Read DHT record, return decrypted content
-  @override
-  Future<String> readRecord(
+  Future<Uint8List> _readRecord(
       {required String recordKey,
       String? psk,
       TypedKeyPair? keyPair,
@@ -43,7 +46,7 @@ class VeilidDhtStorage extends DistributedStorage {
 
     if (psk == null && keyPair == null) {
       // TODO: Raise exception
-      return '';
+      return Uint8List(0);
     }
     if (psk != null) {
       pskCrypto = await VeilidCryptoPrivate.fromSharedSecret(
@@ -59,14 +62,22 @@ class VeilidDhtStorage extends DistributedStorage {
     while (true) {
       try {
         if (asymCrypto != null) {
-          final content = await DHTRecordPool.instance
-              .openRecordRead(_recordKey,
-                  debugName: 'coag::read', crypto: asymCrypto)
-              .then((record) => record.get(refreshMode: refreshMode))
-              .then(tryUtf8Decode);
+          try {
+            final content = await DHTRecordPool.instance
+                .openRecordRead(_recordKey,
+                    debugName: 'coag::read', crypto: asymCrypto)
+                .then((record) async {
+              final content = await record.get(refreshMode: refreshMode);
+              await record.close();
+              return content;
+            });
 
-          if (content != null) {
-            return content;
+            if (content != null) {
+              return content;
+            }
+          } on FormatException {
+            // This can happen due to "not enough data to decrypt" when a record
+            // was written empty without encryption during initialization
           }
         }
 
@@ -74,15 +85,18 @@ class VeilidDhtStorage extends DistributedStorage {
           final content = await DHTRecordPool.instance
               .openRecordRead(_recordKey,
                   debugName: 'coag::read', crypto: pskCrypto)
-              .then((record) => record.get(refreshMode: refreshMode))
-              .then(tryUtf8Decode);
+              .then((record) async {
+            final content = await record.get(refreshMode: refreshMode);
+            await record.close();
+            return content;
+          });
 
           if (content != null) {
             return content;
           }
         }
 
-        return '';
+        return Uint8List(0);
       } on VeilidAPIExceptionTryAgain {
         // TODO: Make sure that Veilid offline is detected at a higher level and not triggering errors here
         retries++;
@@ -93,6 +107,24 @@ class VeilidDhtStorage extends DistributedStorage {
         }
       }
     }
+  }
+
+  /// Read DHT record, return decrypted content
+  @override
+  Future<String> readRecord(
+      {required String recordKey,
+      String? psk,
+      TypedKeyPair? keyPair,
+      int maxRetries = 3,
+      DHTRecordRefreshMode refreshMode = DHTRecordRefreshMode.network}) async {
+    final content = await _readRecord(
+            recordKey: recordKey,
+            psk: psk,
+            keyPair: keyPair,
+            maxRetries: maxRetries,
+            refreshMode: refreshMode)
+        .then(tryUtf8Decode);
+    return content ?? '';
   }
 
   // TODO: Check and if not handle that the encoded content does (not):
@@ -106,7 +138,7 @@ class VeilidDhtStorage extends DistributedStorage {
       String? publicKey,
       String? psk}) async {
     final _recordKey = Typed<FixedEncodedString43>.fromString(key);
-    final VeilidCryptoPrivate crypto;
+    final VeilidCrypto crypto;
 
     // Ensure that if available, record is encrypted with public key, not psk
     if (publicKey != null) {
@@ -123,24 +155,29 @@ class VeilidDhtStorage extends DistributedStorage {
       return;
     }
 
-    await DHTRecordPool.instance
-        .openRecordWrite(_recordKey, KeyPair.fromString(writer),
-            crypto: crypto, debugName: 'coag::update')
-        .then((record) => record.tryWriteBytes(utf8.encode(content)));
+    final record = await DHTRecordPool.instance.openRecordWrite(
+        _recordKey, KeyPair.fromString(writer),
+        crypto: crypto, debugName: 'coag::update');
+    final written = await record.tryWriteBytes(utf8.encode(content));
+    await record.close();
+    if (written != null) {
+      // This shouldnt happen, but it does sometimes; do we issue parallel update requests?
+      print('found newer $written');
+    }
   }
 
   @override
   Future<void> watchRecord(
       String key, Future<void> Function(String key) onNetworkUpdate) async {
-    final record = await DHTRecordPool.instance.openRecordRead(
-      Typed<FixedEncodedString43>.fromString(key),
-      debugName: 'coag::read-to-watch',
-    );
-    await record
-        .watch(subkeys: [ValueSubkeyRange.single(record.subkeyOrDefault(-1))]);
-    await record.listen(
-        (record, data, subkeys) => onNetworkUpdate(record.key.toString()),
-        localChanges: false);
+    // final record = await DHTRecordPool.instance.openRecordRead(
+    //   Typed<FixedEncodedString43>.fromString(key),
+    //   debugName: 'coag::read-to-watch',
+    // );
+    // await record
+    //     .watch(subkeys: [ValueSubkeyRange.single(record.subkeyOrDefault(-1))]);
+    // await record.listen(
+    //     (record, data, subkeys) => onNetworkUpdate(record.key.toString()),
+    //     localChanges: false);
   }
 
   @override
@@ -158,14 +195,25 @@ class VeilidDhtStorage extends DistributedStorage {
     }
     final dhtContact = CoagContactDHTSchema.fromJson(
         json.decode(contactJson) as Map<String, dynamic>);
+
+    final picture = (dhtContact.dhtPictureKey == null)
+        ? null
+        : await _readRecord(
+            recordKey: dhtContact.dhtPictureKey!,
+            psk: contact.dhtSettingsForReceiving?.psk,
+            keyPair: appUserKeyPair);
+
     return contact.copyWith(
         details: dhtContact.details,
         addressLocations: dhtContact.addressLocations,
         temporaryLocations: dhtContact.temporaryLocations,
         // TODO: Check here if share back pub key is valid?
-        dhtSettingsForSharing: contact.dhtSettingsForSharing
-            ?.copyWith(pubKey: dhtContact.shareBackPubKey));
+        dhtSettingsForSharing: (dhtContact.shareBackDHTKey == null)
+            ? null
+            : ContactDHTSettings(
+                key: dhtContact.shareBackDHTKey!,
+                writer: dhtContact.shareBackDHTWriter,
+                pubKey: dhtContact.shareBackPubKey,
+              ));
   }
 }
-
-// TODO: Close all records before going to background / closing the app?

@@ -7,13 +7,13 @@ part of 'cubit.dart';
 // **************************************************************************
 
 Location _$LocationFromJson(Map<String, dynamic> json) => Location(
-      coagContactId: json['coag_contact_id'] as String,
       longitude: (json['longitude'] as num).toDouble(),
       latitude: (json['latitude'] as num).toDouble(),
       label: json['label'] as String,
       subLabel: json['sub_label'] as String,
       details: json['details'] as String,
       marker: $enumDecode(_$MarkerTypeEnumMap, json['marker']),
+      coagContactId: json['coag_contact_id'] as String?,
     );
 
 Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{

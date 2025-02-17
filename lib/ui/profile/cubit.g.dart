@@ -7,16 +7,10 @@ part of 'cubit.dart';
 // **************************************************************************
 
 ProfileState _$ProfileStateFromJson(Map<String, dynamic> json) => ProfileState(
+      profileInfo:
+          ProfileInfo.fromJson(json['profile_info'] as Map<String, dynamic>),
       status: $enumDecodeNullable(_$ProfileStatusEnumMap, json['status']) ??
           ProfileStatus.initial,
-      profileContact: json['profile_contact'] == null
-          ? null
-          : CoagContact.fromJson(
-              json['profile_contact'] as Map<String, dynamic>),
-      sharingSettings: json['sharing_settings'] == null
-          ? null
-          : ProfileSharingSettings.fromJson(
-              json['sharing_settings'] as Map<String, dynamic>),
       circles: (json['circles'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, e as String),
           ) ??
@@ -33,10 +27,9 @@ ProfileState _$ProfileStateFromJson(Map<String, dynamic> json) => ProfileState(
 Map<String, dynamic> _$ProfileStateToJson(ProfileState instance) =>
     <String, dynamic>{
       'status': _$ProfileStatusEnumMap[instance.status]!,
-      'profile_contact': instance.profileContact?.toJson(),
+      'profile_info': instance.profileInfo.toJson(),
       'circles': instance.circles,
       'circle_memberships': instance.circleMemberships,
-      'sharing_settings': instance.sharingSettings?.toJson(),
       'permissions_granted': instance.permissionsGranted,
     };
 

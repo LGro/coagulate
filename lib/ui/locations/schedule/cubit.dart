@@ -33,21 +33,13 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   }) async {
     emit(state.copyWith(checkingIn: true));
 
-    final profileContact = contactsRepository.getProfileContact();
-    if (profileContact == null) {
-      if (!isClosed) {
-        //TODO: Emit failure state
-        emit(state.copyWith(checkingIn: false));
-      }
-      return;
-    }
+    final profileInfo = contactsRepository.getProfileInfo();
 
     await contactsRepository
-        .updateProfileContactData(profileContact.copyWith(temporaryLocations: [
-      ...profileContact.temporaryLocations
+        .setProfileInfo(profileInfo.copyWith(temporaryLocations: [
+      ...profileInfo.temporaryLocations
           .map((l) => l.copyWith(checkedIn: false)),
       ContactTemporaryLocation(
-          coagContactId: profileContact.coagContactId,
           longitude: coordinates.longitude,
           latitude: coordinates.latitude,
           start: start,

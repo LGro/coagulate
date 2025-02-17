@@ -1,13 +1,14 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
-import '../../utils.dart';
 import '../contact_details/page.dart';
 import '../create_new_contact/page.dart';
 import '../receive_request/page.dart';
@@ -41,12 +42,7 @@ class _ContactListPageState extends State<ContactListPage> {
                   listener: (_, __) async {},
                   builder: (_, profileContactState) => Container(
                       padding: const EdgeInsets.all(10),
-                      child: (state.contacts
-                              .where((c) =>
-                                  c.coagContactId !=
-                                  profileContactState
-                                      .profileContact?.coagContactId)
-                              .isEmpty)
+                      child: (state.contacts.isEmpty)
                           ? Padding(
                               padding: const EdgeInsets.only(left: 8, right: 8),
                               child: Column(
@@ -90,13 +86,7 @@ class _ContactListPageState extends State<ContactListPage> {
                               _searchBar(context, state),
                               const SizedBox(height: 10),
                               Expanded(
-                                  child: _body(
-                                      state.contacts
-                                          .where((c) =>
-                                              c.coagContactId !=
-                                              profileContactState.profileContact
-                                                  ?.coagContactId)
-                                          .toList(),
+                                  child: _body(state.contacts.toList(),
                                       state.circleMemberships)),
                               Row(
                                   mainAxisAlignment:
@@ -195,13 +185,19 @@ class _ContactListPageState extends State<ContactListPage> {
           itemBuilder: (context, i) {
             final contact = contacts[i];
             return ListTile(
-                leading: avatar(contact.systemContact, radius: 18),
-                title: Text(displayName(contact) ?? 'unknown'),
+                leading: (contact.details?.avatar == null)
+                    ? const CircleAvatar(radius: 18, child: Icon(Icons.person))
+                    : CircleAvatar(
+                        backgroundImage: MemoryImage(
+                            Uint8List.fromList(contact.details!.avatar!)),
+                        radius: 18,
+                      ),
+                title: Text(contact.name),
                 trailing: Text(contactSharingReceivingStatus(
                     contact,
                     circleMemberships[contact.coagContactId]?.isNotEmpty ??
                         false)),
-                onTap: () =>
+                onTap: () async =>
                     Navigator.of(context).push(ContactPage.route(contact)));
           });
 }

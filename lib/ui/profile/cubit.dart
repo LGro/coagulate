@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -19,28 +21,29 @@ part 'cubit.g.dart';
 part 'state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
-  ProfileCubit(this.contactsRepository) : super(const ProfileState()) {
-    _contactsSubscription =
-        contactsRepository.getContactStream().listen((idUpdatedContact) {
-      final profileContact = contactsRepository.getProfileContact();
-      if (idUpdatedContact == profileContact?.coagContactId) {
-        emit(state.copyWith(
-            status: ProfileStatus.success,
-            profileContact: profileContact,
-            circles: contactsRepository.getCircles(),
-            circleMemberships: contactsRepository.getCircleMemberships(),
-            sharingSettings: contactsRepository.getProfileSharingSettings()));
-      }
+  ProfileCubit(this.contactsRepository)
+      : super(ProfileState(profileInfo: contactsRepository.getProfileInfo())) {
+    _circlesSubscription = contactsRepository.getCirclesStream().listen((_) {
+      emit(state.copyWith(
+          circles: contactsRepository.getCircles(),
+          circleMemberships: contactsRepository.getCircleMemberships()));
     });
-    final profileContact = contactsRepository.getProfileContact();
-    if (profileContact != null) {
+    _profileInfoSubscription =
+        contactsRepository.getProfileInfoStream().listen((profileInfo) {
       emit(state.copyWith(
           status: ProfileStatus.success,
-          profileContact: profileContact,
+          profileInfo: profileInfo,
           circles: contactsRepository.getCircles(),
-          circleMemberships: contactsRepository.getCircleMemberships(),
-          sharingSettings: contactsRepository.getProfileSharingSettings()));
-    }
+          circleMemberships: contactsRepository.getCircleMemberships()));
+    });
+    final profileInfo = contactsRepository.getProfileInfo();
+    emit(state.copyWith(
+      status: ProfileStatus.success,
+      profileInfo: profileInfo,
+      circles: contactsRepository.getCircles(),
+      circleMemberships: contactsRepository.getCircleMemberships(),
+    ));
+
     // TODO: Check current state of permissions here in addition to listening to stream update
     _permissionsSubscription = contactsRepository
         .isSystemContactAccessGranted()
@@ -49,13 +52,13 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<String> _contactsSubscription;
+  late final StreamSubscription<ProfileInfo> _profileInfoSubscription;
   late final StreamSubscription<bool> _permissionsSubscription;
+  late final StreamSubscription<void> _circlesSubscription;
 
   Future<void> fetchCoordinates(int iAddress) async {
-    final address = state.profileContact?.details?.addresses
-        .elementAtOrNull(iAddress)
-        ?.address;
+    final address =
+        state.profileInfo.details.addresses.elementAtOrNull(iAddress)?.address;
 
     if (address == null) {
       return;
@@ -79,30 +82,29 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   void updateCoordinates(int iAddress, num lng, num lat) {
     final address =
-        state.profileContact?.details?.addresses.elementAtOrNull(iAddress);
+        state.profileInfo.details.addresses.elementAtOrNull(iAddress);
 
     if (address == null) {
       return;
     }
 
     final updatedLocations = Map<int, ContactAddressLocation>.from(
-        state.profileContact!.addressLocations);
+        state.profileInfo.addressLocations);
     updatedLocations[iAddress] = ContactAddressLocation(
-        coagContactId: state.profileContact!.coagContactId,
         longitude: lng.toDouble(),
         latitude: lat.toDouble(),
         name: (address.label == AddressLabel.custom)
             ? address.customLabel
             : address.label.name);
 
-    final updatedContact =
-        state.profileContact!.copyWith(addressLocations: updatedLocations);
+    final updatedInfo =
+        state.profileInfo.copyWith(addressLocations: updatedLocations);
 
-    unawaited(contactsRepository.saveContact(updatedContact));
+    unawaited(contactsRepository.setProfileInfo(updatedInfo));
 
     // Already emit what should also come in a bit later via the updated contacts repo
     if (!isClosed) {
-      emit(state.copyWith(profileContact: updatedContact));
+      emit(state.copyWith(profileInfo: updatedInfo));
     }
   }
 
@@ -117,457 +119,199 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
   }
 
-  Future<void> updateNameSharingCircles(
-      String nameId, List<(String, String)> circles) async {
-    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
-    final names = {...contactsRepository.getProfileSharingSettings().names};
-    names[nameId] = circles.map((c) => c.$1).toList();
-    final updatedSharingSettings =
-        contactsRepository.getProfileSharingSettings().copyWith(names: names);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
+  Future<void> updateDetails(ContactDetails details) async => contactsRepository
+      .setProfileInfo(state.profileInfo.copyWith(details: details));
+
+  // TODO: Trigger a cleanup of the available labels somewhere, doesn't need to be here
+  Future<void> updateDetailSharingCircles(
+      {required Map<String, List<String>> detailSharingSettings,
+      required String key,
+      required List<(String, String, bool)> circlesWithSelection,
+      required ProfileSharingSettings Function(
+              Map<String, List<String>> detailSharingSettings)
+          updateSharingSettings}) async {
+    final _settingsCopy = {...detailSharingSettings};
+    // NOTE: Actually, we require only a list of IDs, move this to call context?
+    _settingsCopy[key] =
+        circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
+    final updatedProfileInfo = state.profileInfo
+        .copyWith(sharingSettings: updateSharingSettings(_settingsCopy));
+    await contactsRepository.setProfileInfo(updatedProfileInfo);
     // TODO: Handle via update subscription instead of updating the state ourselves here?
     if (!isClosed) {
-      emit(state.copyWith(sharingSettings: updatedSharingSettings));
+      emit(state.copyWith(profileInfo: updatedProfileInfo));
     }
   }
 
-  Future<void> updatePhoneSharingCircles(
-      int index, String label, List<(String, String)> circles) async {
-    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
-    final phones = Map<String, List<String>>.from(
-        contactsRepository.getProfileSharingSettings().phones);
-    phones[label] = circles.map((c) => c.$1).toList();
-    final updatedSharingSettings =
-        contactsRepository.getProfileSharingSettings().copyWith(phones: phones);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
-    // TODO: Handle via update subscription instead of updating the state ourselves here?
-    if (!isClosed) {
-      emit(state.copyWith(sharingSettings: updatedSharingSettings));
-    }
+  Future<void> updateAvatar(String circleId, Uint8List picture) async {
+    final pictures = {...state.profileInfo.pictures};
+    pictures[circleId] = picture;
+
+    await contactsRepository
+        .setProfileInfo(state.profileInfo.copyWith(pictures: pictures));
   }
 
-  Future<void> updateEmailSharingCircles(
-      int index, String label, List<(String, String)> circles) async {
-    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
-    final emails = Map<String, List<String>>.from(
-        contactsRepository.getProfileSharingSettings().emails);
-    emails[label] = circles.map((c) => c.$1).toList();
-    final updatedSharingSettings =
-        contactsRepository.getProfileSharingSettings().copyWith(emails: emails);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
-    // TODO: Handle via update subscription instead of updating the state ourselves here?
-    if (!isClosed) {
-      emit(state.copyWith(sharingSettings: updatedSharingSettings));
-    }
+  Future<void> removeAvatar(String circleId) async {
+    final pictures = {...state.profileInfo.pictures}..remove(circleId);
+    await contactsRepository
+        .setProfileInfo(state.profileInfo.copyWith(pictures: pictures));
   }
 
-  Future<void> updateAddressSharingCircles(
-      int index, String label, List<(String, String)> circles) async {
-    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
-    final addresses = Map<String, List<String>>.from(
-        contactsRepository.getProfileSharingSettings().addresses);
-    addresses[label] = circles.map((c) => c.$1).toList();
-    final updatedSharingSettings = contactsRepository
-        .getProfileSharingSettings()
-        .copyWith(addresses: addresses);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
-    // TODO: Handle via update subscription instead of updating the state ourselves here?
-    if (!isClosed) {
-      emit(state.copyWith(sharingSettings: updatedSharingSettings));
-    }
-  }
-
-  Future<void> updateOrganizationSharingCircles(
-      int index, String label, List<(String, String)> circles) async {
-    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
-    final organizations = Map<String, List<String>>.from(
-        contactsRepository.getProfileSharingSettings().organizations);
-    organizations[label] = circles.map((c) => c.$1).toList();
-    final updatedSharingSettings = contactsRepository
-        .getProfileSharingSettings()
-        .copyWith(organizations: organizations);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
-    // TODO: Handle via update subscription instead of updating the state ourselves here?
-    if (!isClosed) {
-      emit(state.copyWith(sharingSettings: updatedSharingSettings));
-    }
-  }
-
-  Future<void> updateWebsiteSharingCircles(
-      int index, String label, List<(String, String)> circles) async {
-    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
-    final websites = Map<String, List<String>>.from(
-        contactsRepository.getProfileSharingSettings().websites);
-    websites[label] = circles.map((c) => c.$1).toList();
-    final updatedSharingSettings = contactsRepository
-        .getProfileSharingSettings()
-        .copyWith(websites: websites);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
-    // TODO: Handle via update subscription instead of updating the state ourselves here?
-    if (!isClosed) {
-      emit(state.copyWith(sharingSettings: updatedSharingSettings));
-    }
-  }
-
-  Future<void> updateSocialMediaSharingCircles(
-      int index, String label, List<(String, String)> circles) async {
-    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
-    final socialMedias = Map<String, List<String>>.from(
-        contactsRepository.getProfileSharingSettings().socialMedias);
-    socialMedias[label] = circles.map((c) => c.$1).toList();
-    final updatedSharingSettings = contactsRepository
-        .getProfileSharingSettings()
-        .copyWith(socialMedias: socialMedias);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
-    // TODO: Handle via update subscription instead of updating the state ourselves here?
-    if (!isClosed) {
-      emit(state.copyWith(sharingSettings: updatedSharingSettings));
-    }
-  }
-
-  Future<void> updateEventSharingCircles(
-      int index, String label, List<(String, String)> circles) async {
-    // TODO: Trigger a cleanup of the available label/index combinations somewhere, doesn't need to be here
-    final events = Map<String, List<String>>.from(
-        contactsRepository.getProfileSharingSettings().events);
-    events[label] = circles.map((c) => c.$1).toList();
-    final updatedSharingSettings =
-        contactsRepository.getProfileSharingSettings().copyWith(events: events);
-    contactsRepository.setProfileSharingSettings(updatedSharingSettings);
-    // TODO: Handle via update subscription instead of updating the state ourselves here?
-    if (!isClosed) {
-      emit(state.copyWith(sharingSettings: updatedSharingSettings));
-    }
-  }
-
-  Future<void> updateDetails(ContactDetails details) async {
-    if (state.profileContact == null) {
-      return;
-    }
-    final updatedContact = state.profileContact!.copyWith(details: details);
-    await contactsRepository.updateProfileContactData(updatedContact);
-  }
-
-  Future<void> addName(
-      String name, List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
-    }
-
-    final names = state.profileContact!.details!.names;
-    final id = Uuid().v4();
+  Future<void> updateName(
+      String name, List<(String, String, bool)> circlesWithSelection,
+      {String? id}) async {
+    final names = {...state.profileInfo.details.names};
+    id ??= Uuid().v4();
     names[id] = name;
 
-    await updateDetails(state.profileContact!.details!.copyWith(names: names));
+    await updateDetails(state.profileInfo.details.copyWith(names: names));
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updateNameSharingCircles(
-        id,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
+    await updateDetailSharingCircles(
+        detailSharingSettings: state.profileInfo.sharingSettings.names,
+        key: id,
+        circlesWithSelection: circlesWithSelection,
+        updateSharingSettings: (settings) =>
+            state.profileInfo.sharingSettings.copyWith(names: settings));
   }
 
-  Future<void> editName(int i, String id, String name,
-      List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
+  Future<void> updatePhone(
+      Phone detail, List<(String, String, bool)> circlesWithSelection,
+      {int? i}) async {
+    final details = [...state.profileInfo.details.phones];
+    if (i == null) {
+      i = details.length;
+      details.add(detail);
+    } else {
+      details[i] = detail;
     }
 
-    final names = {...state.profileContact!.details!.names};
-    final id = names.entries.elementAt(i).key;
-    names[id] = name;
-
-    await updateDetails(state.profileContact!.details!.copyWith(names: names));
+    await updateDetails(state.profileInfo.details.copyWith(phones: details));
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updateNameSharingCircles(
-        id,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
+    await updateDetailSharingCircles(
+        detailSharingSettings: state.profileInfo.sharingSettings.phones,
+        key: (detail.label.name != 'custom')
+            ? detail.label.name
+            : detail.customLabel,
+        circlesWithSelection: circlesWithSelection,
+        updateSharingSettings: (settings) =>
+            state.profileInfo.sharingSettings.copyWith(phones: settings));
   }
 
-  Future<void> addPhone(
-      Phone phone, List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
+  Future<void> updateEmail(
+      Email detail, List<(String, String, bool)> circlesWithSelection,
+      {int? i}) async {
+    final details = [...state.profileInfo.details.emails];
+    if (i == null) {
+      i = details.length;
+      details.add(detail);
+    } else {
+      details[i] = detail;
     }
 
-    final phones = [...state.profileContact!.details!.phones, phone];
-    final i = phones.length - 1;
+    await updateDetails(state.profileInfo.details.copyWith(emails: details));
+
+    await createCirclesIfNotExist(
+        circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
+
+    await updateDetailSharingCircles(
+        detailSharingSettings: state.profileInfo.sharingSettings.emails,
+        key: (detail.label.name != 'custom')
+            ? detail.label.name
+            : detail.customLabel,
+        circlesWithSelection: circlesWithSelection,
+        updateSharingSettings: (settings) =>
+            state.profileInfo.sharingSettings.copyWith(emails: settings));
+  }
+
+  Future<void> updateSocialMedia(
+      SocialMedia detail, List<(String, String, bool)> circlesWithSelection,
+      {int? i}) async {
+    final details = [...state.profileInfo.details.socialMedias];
+    if (i == null) {
+      i = details.length;
+      details.add(detail);
+    } else {
+      details[i] = detail;
+    }
 
     await updateDetails(
-        state.profileContact!.details!.copyWith(phones: phones));
+        state.profileInfo.details.copyWith(socialMedias: details));
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updatePhoneSharingCircles(
-        i,
-        (phones[i].label.name != 'custom')
-            ? phones[i].label.name
-            : phones[i].customLabel,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
+    await updateDetailSharingCircles(
+        detailSharingSettings: state.profileInfo.sharingSettings.socialMedias,
+        key: (detail.label.name != 'custom')
+            ? detail.label.name
+            : detail.customLabel,
+        circlesWithSelection: circlesWithSelection,
+        updateSharingSettings: (settings) =>
+            state.profileInfo.sharingSettings.copyWith(socialMedias: settings));
   }
 
-  Future<void> editPhone(int i, String label, String number,
-      List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
+  Future<void> updateWebsite(
+      Website detail, List<(String, String, bool)> circlesWithSelection,
+      {int? i}) async {
+    final details = [...state.profileInfo.details.websites];
+    if (i == null) {
+      i = details.length;
+      details.add(detail);
+    } else {
+      details[i] = detail;
     }
 
-    final phones = state.profileContact!.details!.phones;
-    phones[i] = Phone(number, label: PhoneLabel.custom, customLabel: label);
-
-    await updateDetails(
-        state.profileContact!.details!.copyWith(phones: phones));
+    await updateDetails(state.profileInfo.details.copyWith(websites: details));
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updatePhoneSharingCircles(
-        i,
-        (phones[i].label.name != 'custom')
-            ? phones[i].label.name
-            : phones[i].customLabel,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
+    await updateDetailSharingCircles(
+        detailSharingSettings: state.profileInfo.sharingSettings.websites,
+        key: (detail.label.name != 'custom')
+            ? detail.label.name
+            : detail.customLabel,
+        circlesWithSelection: circlesWithSelection,
+        updateSharingSettings: (settings) =>
+            state.profileInfo.sharingSettings.copyWith(websites: settings));
   }
 
-  Future<void> addEmail(
-      Email email, List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
+  Future<void> updateAddress(
+      Address detail, List<(String, String, bool)> circlesWithSelection,
+      {int? i}) async {
+    final details = [...state.profileInfo.details.addresses];
+    if (i == null) {
+      i = details.length;
+      details.add(detail);
+    } else {
+      details[i] = detail;
     }
 
-    final emails = [...state.profileContact!.details!.emails, email];
-    final i = emails.length - 1;
-
-    await updateDetails(
-        state.profileContact!.details!.copyWith(emails: emails));
+    await updateDetails(state.profileInfo.details.copyWith(addresses: details));
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updateEmailSharingCircles(
-        i,
-        (emails[i].label.name != 'custom')
-            ? emails[i].label.name
-            : emails[i].customLabel,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
-  }
-
-  Future<void> editEmail(int i, String label, String address,
-      List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
-    }
-
-    final emails = state.profileContact!.details!.emails;
-    emails[i] = Email(address, label: EmailLabel.custom, customLabel: label);
-
-    await updateDetails(
-        state.profileContact!.details!.copyWith(emails: emails));
-
-    await createCirclesIfNotExist(
-        circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
-
-    await updateEmailSharingCircles(
-        i,
-        (emails[i].label.name != 'custom')
-            ? emails[i].label.name
-            : emails[i].customLabel,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
-  }
-
-  Future<void> addSocialMedia(SocialMedia socialMedia,
-      List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
-    }
-
-    final socialMedias = [
-      ...state.profileContact!.details!.socialMedias,
-      socialMedia
-    ];
-    final i = socialMedias.length - 1;
-
-    await updateDetails(
-        state.profileContact!.details!.copyWith(socialMedias: socialMedias));
-
-    await createCirclesIfNotExist(
-        circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
-
-    await updateSocialMediaSharingCircles(
-        i,
-        (socialMedias[i].label.name != 'custom')
-            ? socialMedias[i].label.name
-            : socialMedias[i].customLabel,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
-  }
-
-  Future<void> editSocialMedia(int i, String label, String userName,
-      List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
-    }
-
-    final socialMedias = state.profileContact!.details!.socialMedias;
-    socialMedias[i] = SocialMedia(userName,
-        label: SocialMediaLabel.custom, customLabel: label);
-
-    await updateDetails(
-        state.profileContact!.details!.copyWith(socialMedias: socialMedias));
-
-    await createCirclesIfNotExist(
-        circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
-
-    await updateSocialMediaSharingCircles(
-        i,
-        (socialMedias[i].label.name != 'custom')
-            ? socialMedias[i].label.name
-            : socialMedias[i].customLabel,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
-  }
-
-  Future<void> addWebsite(Website website,
-      List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
-    }
-
-    final websites = [...state.profileContact!.details!.websites, website];
-    final i = websites.length - 1;
-
-    await updateDetails(
-        state.profileContact!.details!.copyWith(websites: websites));
-
-    await createCirclesIfNotExist(
-        circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
-
-    await updateWebsiteSharingCircles(
-        i,
-        (websites[i].label.name != 'custom')
-            ? websites[i].label.name
-            : websites[i].customLabel,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
-  }
-
-  Future<void> editWebsite(int i, String label, String url,
-      List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
-    }
-
-    final websites = state.profileContact!.details!.websites;
-    websites[i] = Website(url, label: WebsiteLabel.custom, customLabel: label);
-
-    await updateDetails(
-        state.profileContact!.details!.copyWith(websites: websites));
-
-    await createCirclesIfNotExist(
-        circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
-
-    await updateWebsiteSharingCircles(
-        i,
-        (websites[i].label.name != 'custom')
-            ? websites[i].label.name
-            : websites[i].customLabel,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
-  }
-
-  Future<void> addAddress(Address address,
-      List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
-    }
-
-    final addresses = [...state.profileContact!.details!.addresses, address];
-    final i = addresses.length - 1;
-
-    await updateDetails(
-        state.profileContact!.details!.copyWith(addresses: addresses));
-
-    // TODO: Only fetch if missing or address changed
-    await fetchCoordinates(i);
-
-    await createCirclesIfNotExist(
-        circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
-
-    await updateAddressSharingCircles(
-        i,
-        (addresses[i].label.name != 'custom')
-            ? addresses[i].label.name
-            : addresses[i].customLabel,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
-  }
-
-  Future<void> editAddress(int i, String label, String address,
-      List<(String, String, bool)> circlesWithSelection) async {
-    if (state.profileContact?.details == null) {
-      return;
-    }
-
-    final addresses = state.profileContact!.details!.addresses;
-    addresses[i] =
-        Address(address, label: AddressLabel.custom, customLabel: label);
-
-    await updateDetails(
-        state.profileContact!.details!.copyWith(addresses: addresses));
-
-    // TODO: Only fetch if missing or address changed
-    await fetchCoordinates(i);
-
-    await createCirclesIfNotExist(
-        circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
-
-    await updateAddressSharingCircles(
-        i,
-        (addresses[i].label.name != 'custom')
-            ? addresses[i].label.name
-            : addresses[i].customLabel,
-        circlesWithSelection
-            .where((e) => e.$3)
-            .map((e) => (e.$1, e.$2))
-            .toList());
+    await updateDetailSharingCircles(
+        detailSharingSettings: state.profileInfo.sharingSettings.addresses,
+        key: (detail.label.name != 'custom')
+            ? detail.label.name
+            : detail.customLabel,
+        circlesWithSelection: circlesWithSelection,
+        updateSharingSettings: (settings) =>
+            state.profileInfo.sharingSettings.copyWith(addresses: settings));
   }
 
   @override
   Future<void> close() {
-    _contactsSubscription.cancel();
+    _profileInfoSubscription.cancel();
+    _circlesSubscription.cancel();
     _permissionsSubscription.cancel();
     return super.close();
   }

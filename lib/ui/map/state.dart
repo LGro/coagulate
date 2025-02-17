@@ -13,22 +13,21 @@ extension MapStatusX on MapStatus {
 
 enum MarkerType { address, temporary, checkedIn }
 
-// TODO: Add color or indicator whether it's a contact or profile location
 @JsonSerializable()
 class Location {
   Location({
-    required this.coagContactId,
     required this.longitude,
     required this.latitude,
     required this.label,
     required this.subLabel,
     required this.details,
     required this.marker,
+    this.coagContactId,
   });
   factory Location.fromJson(Map<String, dynamic> json) =>
       _$LocationFromJson(json);
 
-  final String coagContactId;
+  final String? coagContactId;
   final double longitude;
   final double latitude;
   final String label;

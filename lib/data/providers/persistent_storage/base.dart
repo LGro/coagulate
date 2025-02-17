@@ -31,6 +31,6 @@ abstract class PersistentStorage {
   Future<void> updateCircleMemberships(
       Map<String, List<String>> circleMemberships);
 
-  Future<ProfileSharingSettings> getProfileSharingSettings();
-  Future<void> updateProfileSharingSettings(ProfileSharingSettings settings);
+  Future<ProfileInfo> getProfileInfo();
+  Future<void> updateProfileInfo(ProfileInfo info);
 }

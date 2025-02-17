@@ -9,10 +9,10 @@ part of 'contact_location.dart';
 ContactAddressLocation _$ContactAddressLocationFromJson(
         Map<String, dynamic> json) =>
     ContactAddressLocation(
-      coagContactId: json['coag_contact_id'] as String,
       longitude: (json['longitude'] as num).toDouble(),
       latitude: (json['latitude'] as num).toDouble(),
       name: json['name'] as String,
+      coagContactId: json['coag_contact_id'] as String?,
     );
 
 Map<String, dynamic> _$ContactAddressLocationToJson(
@@ -27,13 +27,13 @@ Map<String, dynamic> _$ContactAddressLocationToJson(
 ContactTemporaryLocation _$ContactTemporaryLocationFromJson(
         Map<String, dynamic> json) =>
     ContactTemporaryLocation(
-      coagContactId: json['coag_contact_id'] as String,
       longitude: (json['longitude'] as num).toDouble(),
       latitude: (json['latitude'] as num).toDouble(),
       name: json['name'] as String,
       start: DateTime.parse(json['start'] as String),
       end: DateTime.parse(json['end'] as String),
       details: json['details'] as String,
+      coagContactId: json['coag_contact_id'] as String?,
       circles: (json['circles'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??

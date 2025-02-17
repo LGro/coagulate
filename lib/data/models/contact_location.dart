@@ -9,17 +9,17 @@ part 'contact_location.g.dart';
 @JsonSerializable()
 class ContactAddressLocation extends Equatable {
   const ContactAddressLocation({
-    required this.coagContactId,
     required this.longitude,
     required this.latitude,
     required this.name,
+    this.coagContactId,
   });
 
   factory ContactAddressLocation.fromJson(Map<String, dynamic> json) =>
       _$ContactAddressLocationFromJson(json);
 
-  /// Contact id this location belongs to
-  final String coagContactId;
+  /// Contact id this location belongs to, null usually indicates app user
+  final String? coagContactId;
 
   /// Longitude coordinate of the location
   final double longitude;
@@ -39,13 +39,13 @@ class ContactAddressLocation extends Equatable {
 @JsonSerializable()
 class ContactTemporaryLocation extends Equatable {
   const ContactTemporaryLocation({
-    required this.coagContactId,
     required this.longitude,
     required this.latitude,
     required this.name,
     required this.start,
     required this.end,
     required this.details,
+    this.coagContactId,
     this.circles = const [],
     this.checkedIn = false,
   });
@@ -53,8 +53,8 @@ class ContactTemporaryLocation extends Equatable {
   factory ContactTemporaryLocation.fromJson(Map<String, dynamic> json) =>
       _$ContactTemporaryLocationFromJson(json);
 
-  /// Contact id this location belongs to
-  final String coagContactId;
+  /// Contact id this location belongs to, null usually indicates the app user
+  final String? coagContactId;
 
   /// Longitude coordinate of the location
   final double longitude;

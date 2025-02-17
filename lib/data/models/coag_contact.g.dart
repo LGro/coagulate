@@ -9,6 +9,7 @@ part of 'coag_contact.dart';
 ContactDHTSettings _$ContactDHTSettingsFromJson(Map<String, dynamic> json) =>
     ContactDHTSettings(
       key: json['key'] as String,
+      pictureKey: json['picture_key'] as String?,
       writer: json['writer'] as String?,
       psk: json['psk'] as String?,
       pubKey: json['pub_key'] as String?,
@@ -20,6 +21,7 @@ ContactDHTSettings _$ContactDHTSettingsFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ContactDHTSettingsToJson(ContactDHTSettings instance) =>
     <String, dynamic>{
       'key': instance.key,
+      'picture_key': instance.pictureKey,
       'writer': instance.writer,
       'psk': instance.psk,
       'pub_key': instance.pubKey,
@@ -28,6 +30,9 @@ Map<String, dynamic> _$ContactDHTSettingsToJson(ContactDHTSettings instance) =>
 
 ContactDetails _$ContactDetailsFromJson(Map<String, dynamic> json) =>
     ContactDetails(
+      avatar: (json['avatar'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList(),
       names: (json['names'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(k, e as String),
           ) ??
@@ -64,6 +69,7 @@ ContactDetails _$ContactDetailsFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ContactDetailsToJson(ContactDetails instance) =>
     <String, dynamic>{
+      'avatar': instance.avatar,
       'names': instance.names,
       'phones': instance.phones.map((e) => e.toJson()).toList(),
       'emails': instance.emails.map((e) => e.toJson()).toList(),
@@ -74,8 +80,46 @@ Map<String, dynamic> _$ContactDetailsToJson(ContactDetails instance) =>
       'events': instance.events.map((e) => e.toJson()).toList(),
     };
 
+ProfileInfo _$ProfileInfoFromJson(Map<String, dynamic> json) => ProfileInfo(
+      details: json['details'] == null
+          ? const ContactDetails()
+          : ContactDetails.fromJson(json['details'] as Map<String, dynamic>),
+      pictures: (json['pictures'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k,
+                (e as List<dynamic>).map((e) => (e as num).toInt()).toList()),
+          ) ??
+          const {},
+      addressLocations:
+          (json['address_locations'] as Map<String, dynamic>?)?.map(
+                (k, e) => MapEntry(int.parse(k),
+                    ContactAddressLocation.fromJson(e as Map<String, dynamic>)),
+              ) ??
+              const {},
+      temporaryLocations: (json['temporary_locations'] as List<dynamic>?)
+              ?.map((e) =>
+                  ContactTemporaryLocation.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      sharingSettings: json['sharing_settings'] == null
+          ? const ProfileSharingSettings()
+          : ProfileSharingSettings.fromJson(
+              json['sharing_settings'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$ProfileInfoToJson(ProfileInfo instance) =>
+    <String, dynamic>{
+      'details': instance.details.toJson(),
+      'pictures': instance.pictures,
+      'address_locations': instance.addressLocations
+          .map((k, e) => MapEntry(k.toString(), e.toJson())),
+      'temporary_locations':
+          instance.temporaryLocations.map((e) => e.toJson()).toList(),
+      'sharing_settings': instance.sharingSettings.toJson(),
+    };
+
 CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
       coagContactId: json['coag_contact_id'] as String,
+      name: json['name'] as String,
       details: json['details'] == null
           ? null
           : ContactDetails.fromJson(json['details'] as Map<String, dynamic>),
@@ -102,7 +146,6 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
           : ContactDHTSettings.fromJson(
               json['dht_settings_for_receiving'] as Map<String, dynamic>),
       sharedProfile: json['shared_profile'] as String?,
-      publicKey: json['public_key'] as String?,
       mostRecentUpdate: json['most_recent_update'] == null
           ? null
           : DateTime.parse(json['most_recent_update'] as String),
@@ -114,6 +157,7 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
 Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
     <String, dynamic>{
       'coag_contact_id': instance.coagContactId,
+      'name': instance.name,
       'system_contact': instance.systemContact?.toJson(),
       'details': instance.details?.toJson(),
       'address_locations': instance.addressLocations
@@ -123,7 +167,6 @@ Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
       'dht_settings_for_sharing': instance.dhtSettingsForSharing?.toJson(),
       'dht_settings_for_receiving': instance.dhtSettingsForReceiving?.toJson(),
       'shared_profile': instance.sharedProfile,
-      'public_key': instance.publicKey,
       'most_recent_update': instance.mostRecentUpdate?.toIso8601String(),
       'most_recent_change': instance.mostRecentChange?.toIso8601String(),
     };
@@ -169,6 +212,7 @@ CoagContactDHTSchemaV2 _$CoagContactDHTSchemaV2FromJson(
       details: ContactDetails.fromJson(json['details'] as Map<String, dynamic>),
       shareBackDHTKey: json['share_back_d_h_t_key'] as String?,
       shareBackPubKey: json['share_back_pub_key'] as String?,
+      dhtPictureKey: json['dht_picture_key'] as String?,
       shareBackDHTWriter: json['share_back_d_h_t_writer'] as String?,
       addressLocations:
           (json['address_locations'] as Map<String, dynamic>?)?.map(
@@ -190,6 +234,7 @@ Map<String, dynamic> _$CoagContactDHTSchemaV2ToJson(
         CoagContactDHTSchemaV2 instance) =>
     <String, dynamic>{
       'details': instance.details.toJson(),
+      'dht_picture_key': instance.dhtPictureKey,
       'address_locations': instance.addressLocations
           .map((k, e) => MapEntry(k.toString(), e.toJson())),
       'temporary_locations':

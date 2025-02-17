@@ -291,21 +291,6 @@ class CheckInWidget extends StatelessWidget {
                   child: const Center(child: CircularProgressIndicator()));
             }
 
-            if (context
-                        .read<CheckInCubit>()
-                        .contactsRepository
-                        .getProfileContact() ==
-                    null ||
-                state.circles.isEmpty) {
-              return SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: const Padding(
-                      padding: EdgeInsets.only(
-                          left: 16, right: 16, bottom: 32, top: 8),
-                      child: Text(
-                          'Pick a profile and add (contacts to) circles first.')));
-            }
-
             // TODO: Instead of these two error cases, just show manual location picker in form
             if (state.status.isLocationDenied ||
                 state.status.isLocationDeniedPermanent) {

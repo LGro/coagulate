@@ -125,8 +125,7 @@ class HiveStorage extends PersistentStorage {
   }
 
   @override
-  Future<ProfileSharingSettings> getProfileSharingSettings() {
-    // TODO: implement getProfileSharingSettings
+  Future<ProfileInfo> getProfileInfo() {
     throw UnimplementedError();
   }
 
@@ -144,8 +143,7 @@ class HiveStorage extends PersistentStorage {
   }
 
   @override
-  Future<void> updateProfileSharingSettings(ProfileSharingSettings settings) {
-    // TODO: implement updateProfileSharingSettings
+  Future<void> updateProfileInfo(ProfileInfo info) {
     throw UnimplementedError();
   }
 }
