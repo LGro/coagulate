@@ -40,11 +40,12 @@ class _CirclesFormState extends State<CirclesForm> {
   void _addNewCircle() {
     // if circle name already exists, add to it, otherwise create new and add to
     final updatedCircles =
-        (_state.circles.map((e) => e.$2).contains(_titleController.text))
-            ? _state.circles.map((e) =>
-                (e.$2 == _titleController.text) ? (e.$1, e.$2, true, e.$4) : e)
+        (_state.circles.map((e) => e.$2).contains(_titleController.text.trim()))
+            ? _state.circles.map((e) => (e.$2 == _titleController.text.trim())
+                ? (e.$1, e.$2, true, e.$4)
+                : e)
             : [
-                (const Uuid().v4(), _titleController.text, true, 0),
+                (const Uuid().v4(), _titleController.text.trim(), true, 0),
                 ..._state.circles
               ];
     setState(() {
@@ -71,7 +72,7 @@ class _CirclesFormState extends State<CirclesForm> {
     try {
       // In case someone entered a new circle name and submitted before adding
       // the new circle explicitly, still add it
-      if (_titleController.text.isNotEmpty) {
+      if (_titleController.text.trim().isNotEmpty) {
         _addNewCircle();
       }
       unawaited(widget
@@ -151,8 +152,9 @@ class _CirclesFormState extends State<CirclesForm> {
                 )),
                 IconButton(
                   key: const Key('circlesForm_submitNewCircle'),
-                  onPressed:
-                      (_titleController.text.isEmpty) ? null : _addNewCircle,
+                  onPressed: (_titleController.text.trim().isEmpty)
+                      ? null
+                      : _addNewCircle,
                   icon: const Icon(Icons.add),
                 ),
               ])),

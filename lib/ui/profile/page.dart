@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -19,8 +18,6 @@ import '../../data/models/contact_location.dart';
 import '../../data/models/profile_sharing_settings.dart';
 import '../../data/repositories/contacts.dart';
 import '../widgets/address_coordinates_form.dart';
-import '../widgets/circles/cubit.dart';
-import '../widgets/circles/widget.dart';
 import 'cubit.dart';
 
 class Name extends Equatable {
@@ -56,32 +53,14 @@ class CirclesWithAvatarWidget extends StatefulWidget {
 }
 
 class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
-  late final TextEditingController _newCircleNameController;
+  // TODO: Is local state management even necessary?
   Map<String, Uint8List> _pictures = {};
 
   @override
   void initState() {
     super.initState();
     _pictures = widget.pictures;
-    _newCircleNameController = TextEditingController();
   }
-
-  @override
-  void dispose() {
-    _newCircleNameController.dispose();
-    super.dispose();
-  }
-
-  // TODO: Add option to add circle via add button?
-  // void _addNewCircle() {
-  //   if (_newCircleNameController.text.isNotEmpty &&
-  //       !_circles.any((e) => e.$2 == _newCircleNameController.text)) {
-  //     setState(() {
-  //       _circles.insert(0, (const Uuid().v4(), _newCircleNameController.text));
-  //     });
-  //     _newCircleNameController.clear();
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) => _card(
@@ -97,7 +76,6 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
                       confirmDismiss: (widget.deleteCallback != null)
                           ? (_) async {
                               widget.deleteCallback!(circleId);
-                              // TODO: Is local state management even necessary?
                               setState(() {
                                 _pictures = _pictures..remove(circleId);
                               });
@@ -130,7 +108,6 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
                                       .read<ProfileCubit>()
                                       .updateAvatar(circleId, p);
                                 }
-                                // TODO: Is local state management even necessary?
                                 setState(() {
                                   _pictures = _updatedPictures;
                                 });
@@ -165,9 +142,9 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
               .asList() +
           [
             const SizedBox(height: 8),
-            const Text('You can set one avatar per circle. Contacts that '
-                'belong to several circles where avatars are available will '
-                'see the one avatar of the smallest circle.'),
+            const Text('You can set one picture per circle. Contacts that '
+                'belong to several circles that have a picture will see the '
+                'one picture belonging to the smallest circle.'),
             const SizedBox(height: 4),
           ]);
 }
@@ -183,12 +160,14 @@ class EditOrAddWidget extends StatefulWidget {
     required this.valueController,
     this.onDelete,
     this.labelController,
+    this.labelHelperText,
     this.hideLabel = false,
   });
 
   final bool isEditing;
   final bool hideLabel;
   final String headlineSuffix;
+  final String? labelHelperText;
   final TextEditingController? labelController;
   final TextEditingController valueController;
   final VoidCallback? onDelete;
@@ -218,11 +197,11 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
   }
 
   void _addNewCircle() {
-    if (_newCircleNameController.text.isNotEmpty &&
-        !_circles.any((e) => e.$2 == _newCircleNameController.text)) {
+    if (_newCircleNameController.text.trim().isNotEmpty &&
+        !_circles.any((e) => e.$2 == _newCircleNameController.text.trim())) {
       setState(() {
-        _circles.insert(
-            0, (const Uuid().v4(), _newCircleNameController.text, true, 0));
+        _circles.insert(0,
+            (const Uuid().v4(), _newCircleNameController.text.trim(), true, 0));
       });
       _newCircleNameController.clear();
     }
@@ -262,10 +241,11 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                   widthFactor: 0.5,
                   child: TextField(
                     controller: widget.labelController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'label',
-                      helperText: 'e.g. home or work',
-                      border: OutlineInputBorder(),
+                      isDense: true,
+                      helperText: widget.labelHelperText,
+                      border: const OutlineInputBorder(),
                     ),
                   )),
               const SizedBox(height: 8),
@@ -273,8 +253,9 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
             TextField(
               controller: widget.valueController,
               decoration: InputDecoration(
+                isDense: true,
                 labelText: widget.headlineSuffix,
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
             ),
 
@@ -313,13 +294,15 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                   child: TextField(
                 controller: _newCircleNameController,
                 decoration: const InputDecoration(
-                  labelText: 'add circle',
+                  isDense: true,
+                  labelText: 'new circle',
                   border: OutlineInputBorder(),
                 ),
               )),
-              IconButton(
+              const SizedBox(width: 8),
+              FilledButton.tonal(
                 onPressed: _addNewCircle,
-                icon: const Icon(Icons.add),
+                child: const Text('add'),
               ),
             ]),
             const SizedBox(height: 24),
@@ -332,13 +315,16 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                 ),
                 // TODO: Give hints that label and text need to be filled out?
                 FilledButton(
-                  onPressed: () => (widget.valueController.text.isEmpty ||
+                  onPressed: () => (widget.valueController.text
+                              .trim()
+                              .isEmpty ||
                           (!widget.hideLabel &&
-                              (widget.labelController?.text.isEmpty ?? false)))
+                              (widget.labelController?.text.trim().isEmpty ??
+                                  false)))
                       ? null
                       : widget.onAddOrSave(
-                          widget.labelController?.text ?? '',
-                          widget.valueController.text,
+                          widget.labelController?.text.trim() ?? '',
+                          widget.valueController.text.trim(),
                           _circles.map((e) => (e.$1, e.$2, e.$3)).toList()),
                   child: const Text('Save'),
                 ),
@@ -617,7 +603,8 @@ Future<void> onAddDetail(
         required Map<String, List<String>> circleMemberships,
         required Future<void> Function(String label, String value,
                 List<(String, String, bool)> selectedCircles)
-            onAdd}) async =>
+            onAdd,
+        String? labelHelperText}) async =>
     showModalBottomSheet<void>(
         context: context,
         isDismissible: true,
@@ -643,6 +630,7 @@ Future<void> onAddDetail(
                         .values
                         .toList(),
                     headlineSuffix: headlineSuffix,
+                    labelHelperText: labelHelperText,
                     labelController: TextEditingController(),
                     valueController: TextEditingController(),
                     onAddOrSave: (label, number, circlesWithSelection) async =>
@@ -663,6 +651,7 @@ Future<void> onEditDetail({
           List<(String, String, bool)> circlesWithSelection)
       onSave,
   required Future<void> Function() onDelete,
+  String? labelHelperText,
   bool hideLabel = false,
 }) async =>
     showModalBottomSheet<void>(
@@ -690,6 +679,7 @@ Future<void> onEditDetail({
                         .values
                         .toList(),
                     headlineSuffix: headlineSuffix,
+                    labelHelperText: labelHelperText,
                     hideLabel: hideLabel,
                     labelController: TextEditingController(text: label),
                     valueController: TextEditingController(text: value),
@@ -809,6 +799,7 @@ class ProfileViewState extends State<ProfileView> {
           editCallback: (i) async => onEditDetail(
             context: context,
             headlineSuffix: 'phone number',
+            labelHelperText: 'e.g. home, mobile or work',
             label: (contact.phones[i].label.name != 'custom')
                 ? contact.phones[i].label.name
                 : contact.phones[i].customLabel,
@@ -830,6 +821,7 @@ class ProfileViewState extends State<ProfileView> {
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'phone number',
+              labelHelperText: 'e.g. home, mobile or work',
               circles: circles,
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
@@ -860,6 +852,7 @@ class ProfileViewState extends State<ProfileView> {
           editCallback: (i) async => onEditDetail(
             context: context,
             headlineSuffix: 'e-mail address',
+            labelHelperText: 'e.g. private or work',
             label: (contact.emails[i].label.name != 'custom')
                 ? contact.emails[i].label.name
                 : contact.emails[i].customLabel,
@@ -881,6 +874,7 @@ class ProfileViewState extends State<ProfileView> {
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'e-mail address',
+              labelHelperText: 'e.g. private or work',
               circles: circles,
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
@@ -912,6 +906,7 @@ class ProfileViewState extends State<ProfileView> {
           editCallback: (i) async => onEditDetail(
             context: context,
             headlineSuffix: 'address',
+            labelHelperText: 'e.g. home or cabin',
             label: (contact.addresses[i].label.name != 'custom')
                 ? contact.addresses[i].label.name
                 : contact.addresses[i].customLabel,
@@ -934,6 +929,7 @@ class ProfileViewState extends State<ProfileView> {
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'address',
+              labelHelperText: 'e.g. home or cabin',
               circles: circles,
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
@@ -965,6 +961,7 @@ class ProfileViewState extends State<ProfileView> {
           editCallback: (i) async => onEditDetail(
             context: context,
             headlineSuffix: 'social media profile',
+            labelHelperText: 'e.g. Signal or Instagram',
             label: (contact.socialMedias[i].label.name != 'custom')
                 ? contact.socialMedias[i].label.name
                 : contact.socialMedias[i].customLabel,
@@ -987,6 +984,7 @@ class ProfileViewState extends State<ProfileView> {
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'social media profile',
+              labelHelperText: 'e.g. Signal or Instagram',
               circles: circles,
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
@@ -1017,6 +1015,7 @@ class ProfileViewState extends State<ProfileView> {
           editCallback: (i) async => onEditDetail(
             context: context,
             headlineSuffix: 'website',
+            labelHelperText: 'e.g. blog or portfolio',
             label: (contact.websites[i].label.name != 'custom')
                 ? contact.websites[i].label.name
                 : contact.websites[i].customLabel,
@@ -1039,6 +1038,7 @@ class ProfileViewState extends State<ProfileView> {
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'website',
+              labelHelperText: 'e.g. blog or portfolio',
               circles: circles,
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
@@ -1051,7 +1051,7 @@ class ProfileViewState extends State<ProfileView> {
         // PICTURES / AVATARS
         CirclesWithAvatarWidget(
           pictures: pictures,
-          title: Text('Avatars',
+          title: Text('Pictures',
               textScaler: const TextScaler.linear(1.4),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -1093,6 +1093,6 @@ class ProfileViewState extends State<ProfileView> {
       BlocConsumer<ProfileCubit, ProfileState>(
           listener: (context, state) {},
           builder: (context, state) => Scaffold(
-              appBar: AppBar(title: const Text('My information')),
+              appBar: AppBar(title: const Text('Profile information')),
               body: _scaffoldBody(state)));
 }

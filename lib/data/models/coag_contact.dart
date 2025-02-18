@@ -1,6 +1,8 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:typed_data';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -12,14 +14,12 @@ part 'coag_contact.g.dart';
 class ContactDHTSettings extends Equatable {
   const ContactDHTSettings(
       {required this.key,
-      this.pictureKey,
       this.writer,
       this.psk,
       this.pubKey,
       this.lastUpdated});
 
   final String key;
-  final String? pictureKey;
   // Optional writer keypair in case I shared first and offered a DHT record for
   // my peer to share back
   final String? writer;
@@ -36,14 +36,12 @@ class ContactDHTSettings extends Equatable {
 
   ContactDHTSettings copyWith(
           {String? key,
-          String? pictureKey,
           String? writer,
           String? psk,
           String? pubKey,
           DateTime? lastUpdated}) =>
       ContactDHTSettings(
         key: key ?? this.key,
-        pictureKey: pictureKey ?? this.pictureKey,
         writer: writer ?? this.writer,
         psk: psk ?? this.psk,
         pubKey: pubKey ?? this.pubKey,
@@ -51,7 +49,7 @@ class ContactDHTSettings extends Equatable {
       );
 
   @override
-  List<Object?> get props => [key, pictureKey, writer, psk, pubKey];
+  List<Object?> get props => [key, writer, psk, pubKey];
 }
 
 @JsonSerializable()
@@ -82,6 +80,7 @@ class ContactDetails extends Equatable {
 
   Contact toSystemContact(String displayName) => Contact(
       displayName: displayName,
+      photo: (avatar == null) ? null : Uint8List.fromList(avatar!),
       phones: phones,
       emails: emails,
       addresses: addresses,
@@ -376,7 +375,6 @@ class CoagContactDHTSchemaV2 extends Equatable {
     required this.details,
     required this.shareBackDHTKey,
     required this.shareBackPubKey,
-    this.dhtPictureKey,
     this.shareBackDHTWriter,
     this.addressLocations = const {},
     this.temporaryLocations = const [],
@@ -394,7 +392,6 @@ class CoagContactDHTSchemaV2 extends Equatable {
 
   final int schemaVersion = 2;
   final ContactDetails details;
-  final String? dhtPictureKey;
   final Map<int, ContactAddressLocation> addressLocations;
   final List<ContactTemporaryLocation> temporaryLocations;
   final String? shareBackDHTKey;
@@ -407,7 +404,6 @@ class CoagContactDHTSchemaV2 extends Equatable {
   CoagContactDHTSchemaV2 copyWith({
     ContactDetails? details,
     String? shareBackDHTKey,
-    String? dhtPictureKey,
     String? shareBackDHTWriter,
     String? shareBackPubKey,
     Map<int, ContactAddressLocation>? addressLocations,
@@ -416,7 +412,6 @@ class CoagContactDHTSchemaV2 extends Equatable {
       CoagContactDHTSchemaV2(
         details: details ?? this.details,
         shareBackDHTKey: shareBackDHTKey ?? this.shareBackDHTKey,
-        dhtPictureKey: dhtPictureKey ?? this.dhtPictureKey,
         shareBackPubKey: shareBackPubKey ?? this.shareBackPubKey,
         shareBackDHTWriter: shareBackDHTWriter ?? this.shareBackDHTWriter,
         addressLocations: addressLocations ?? this.addressLocations,
@@ -429,7 +424,6 @@ class CoagContactDHTSchemaV2 extends Equatable {
         schemaVersion,
         details,
         shareBackDHTKey,
-        dhtPictureKey,
         shareBackPubKey,
         shareBackDHTWriter,
         addressLocations,

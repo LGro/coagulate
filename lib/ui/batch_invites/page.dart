@@ -31,8 +31,8 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
   }
 
   void _updateButtonState() {
-    _isButtonEnabled.value = _nameController.text.isNotEmpty &&
-        _invitationsAmountController.text.isNotEmpty &&
+    _isButtonEnabled.value = _nameController.text.trim().isNotEmpty &&
+        _invitationsAmountController.text.trim().isNotEmpty &&
         _selectedDate != null;
   }
 
@@ -128,9 +128,10 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
                               : () => context
                                   .read<BatchInvitesCubit>()
                                   .generateInvites(
-                                      _nameController.text,
+                                      _nameController.text.trim(),
                                       int.tryParse(_invitationsAmountController
-                                              .text) ??
+                                              .text
+                                              .trim()) ??
                                           0,
                                       _selectedDate!),
                           child: const Text('Prepare invite')))),

@@ -117,7 +117,7 @@ class ContactPage extends StatelessWidget {
         Padding(
             padding: const EdgeInsets.only(left: 12, top: 16, right: 12),
             child: Text('Connection settings',
-                textScaler: const TextScaler.linear(1.2),
+                textScaler: const TextScaler.linear(1.4),
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.primary))),
@@ -155,12 +155,12 @@ class ContactPage extends StatelessWidget {
           const SizedBox(height: 8),
           if (contact.dhtSettingsForSharing?.key != null)
             DhtStatusWidget(
-              dhtSettings: contact.dhtSettingsForSharing!,
+              recordKey: contact.dhtSettingsForSharing!.key,
               statusWidgets: const {},
             ),
           if (contact.dhtSettingsForReceiving?.key != null)
             DhtStatusWidget(
-              dhtSettings: contact.dhtSettingsForReceiving!,
+              recordKey: contact.dhtSettingsForReceiving!.key,
               statusWidgets: const {},
             ),
           const SizedBox(height: 8),
@@ -176,12 +176,12 @@ class ContactPage extends StatelessWidget {
           if (contact.dhtSettingsForReceiving?.psk != null)
             Text(
                 'DHT Rcv Sec: ${contact.dhtSettingsForReceiving!.psk!.substring(0, min(20, contact.dhtSettingsForReceiving!.psk!.length))}...'),
-          if (contact.dhtSettingsForReceiving?.writer != null)
-            Text(
-                'DHT Rcv Wrt: ${contact.dhtSettingsForReceiving!.writer!.substring(0, min(20, contact.dhtSettingsForReceiving!.writer!.length))}...'),
           if (contact.dhtSettingsForReceiving?.pubKey != null)
             Text(
                 'DHT Rcv Pub: ${contact.dhtSettingsForReceiving!.pubKey!.substring(0, min(20, contact.dhtSettingsForReceiving!.pubKey!.length))}...'),
+          if (contact.dhtSettingsForReceiving?.writer != null)
+            Text(
+                'DHT Rcv Wrt: ${contact.dhtSettingsForReceiving!.writer!.substring(0, min(20, contact.dhtSettingsForReceiving!.writer!.length))}...'),
           if (contact.dhtSettingsForSharing?.key != null)
             const Padding(
                 padding: EdgeInsets.only(left: 16, right: 16),
@@ -192,12 +192,12 @@ class ContactPage extends StatelessWidget {
           if (contact.dhtSettingsForSharing?.psk != null)
             Text(
                 'DHT Shr Sec: ${contact.dhtSettingsForSharing!.psk!.substring(0, min(20, contact.dhtSettingsForSharing!.psk!.length))}...'),
-          if (contact.dhtSettingsForSharing?.writer != null)
-            Text(
-                'DHT Shr Wrt: ${contact.dhtSettingsForSharing!.writer!.substring(0, min(20, contact.dhtSettingsForSharing!.writer!.length))}...'),
           if (contact.dhtSettingsForSharing?.pubKey != null)
             Text(
                 'DHT Shr Pub: ${contact.dhtSettingsForSharing!.pubKey!.substring(0, min(20, contact.dhtSettingsForSharing!.pubKey!.length))}...'),
+          if (contact.dhtSettingsForSharing?.writer != null)
+            Text(
+                'DHT Shr Wrt: ${contact.dhtSettingsForSharing!.writer!.substring(0, min(20, contact.dhtSettingsForSharing!.writer!.length))}...'),
           const SizedBox(height: 16),
         ]),
       ]));
@@ -211,7 +211,7 @@ List<Widget> contactDetailsAndLocations(
           padding:
               const EdgeInsets.only(left: 12, top: 8, right: 12, bottom: 8),
           child: Text('Contact details',
-              textScaler: const TextScaler.linear(1.2),
+              textScaler: const TextScaler.linear(1.4),
               style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.primary))),
@@ -219,8 +219,8 @@ List<Widget> contactDetailsAndLocations(
       if (contact.details == null)
         Padding(
             padding: const EdgeInsets.only(left: 16, right: 16),
-            child: Text('Once you are connected, you will see the information '
-                '${contact.name} shared with you here.')),
+            child: Text('Once you are connected, the information '
+                '${contact.name} shares with you shows up here.')),
 
       // Contact details
       if (contact.details?.names.isNotEmpty ?? false)
@@ -277,7 +277,7 @@ List<Widget> contactDetailsAndLocations(
       if (contact.temporaryLocations.isNotEmpty)
         temporaryLocationsCard(
             Text('Locations',
-                textScaler: const TextScaler.linear(1.2),
+                textScaler: const TextScaler.linear(1.4),
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.primary)),
@@ -411,7 +411,7 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
           ])),
       Center(
           child: Padding(
-              padding: const EdgeInsets.only(left: 12, top: 16, right: 12),
+              padding: const EdgeInsets.only(left: 12, top: 4, right: 12),
               child: (details.avatar == null)
                   ? const CircleAvatar(radius: 48, child: Icon(Icons.person))
                   : CircleAvatar(
@@ -471,8 +471,8 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
       const Padding(
           padding: EdgeInsets.only(left: 12, right: 12, bottom: 8, top: 4),
           child: Text(
-              'Once connected, they see the above information based on the '
-              'circles you added them to.')),
+              'Once you are connected, they see the above information based on '
+              'the circles you added them to.')),
     ];
 
 Widget circlesCard(

@@ -122,27 +122,6 @@ class ProfileCubit extends Cubit<ProfileState> {
   Future<void> updateDetails(ContactDetails details) async => contactsRepository
       .setProfileInfo(state.profileInfo.copyWith(details: details));
 
-  // TODO: Trigger a cleanup of the available labels somewhere, doesn't need to be here
-  Future<void> updateDetailSharingCircles(
-      {required Map<String, List<String>> detailSharingSettings,
-      required String key,
-      required List<(String, String, bool)> circlesWithSelection,
-      required ProfileSharingSettings Function(
-              Map<String, List<String>> detailSharingSettings)
-          updateSharingSettings}) async {
-    final _settingsCopy = {...detailSharingSettings};
-    // NOTE: Actually, we require only a list of IDs, move this to call context?
-    _settingsCopy[key] =
-        circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
-    final updatedProfileInfo = state.profileInfo
-        .copyWith(sharingSettings: updateSharingSettings(_settingsCopy));
-    await contactsRepository.setProfileInfo(updatedProfileInfo);
-    // TODO: Handle via update subscription instead of updating the state ourselves here?
-    if (!isClosed) {
-      emit(state.copyWith(profileInfo: updatedProfileInfo));
-    }
-  }
-
   Future<void> updateAvatar(String circleId, Uint8List picture) async {
     final pictures = {...state.profileInfo.pictures};
     pictures[circleId] = picture;
@@ -164,17 +143,25 @@ class ProfileCubit extends Cubit<ProfileState> {
     id ??= Uuid().v4();
     names[id] = name;
 
-    await updateDetails(state.profileInfo.details.copyWith(names: names));
-
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updateDetailSharingCircles(
-        detailSharingSettings: state.profileInfo.sharingSettings.names,
-        key: id,
-        circlesWithSelection: circlesWithSelection,
-        updateSharingSettings: (settings) =>
-            state.profileInfo.sharingSettings.copyWith(names: settings));
+    final _sharingSettings = {...state.profileInfo.sharingSettings.names};
+    _sharingSettings[id] =
+        circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
+
+    final updatedProfile = state.profileInfo.copyWith(
+      details: state.profileInfo.details.copyWith(
+        names: names,
+      ),
+      sharingSettings: state.profileInfo.sharingSettings.copyWith(
+        names: _sharingSettings,
+      ),
+    );
+    if (!isClosed) {
+      emit(state.copyWith(profileInfo: updatedProfile));
+    }
+    await contactsRepository.setProfileInfo(updatedProfile);
   }
 
   Future<void> updatePhone(
@@ -188,19 +175,27 @@ class ProfileCubit extends Cubit<ProfileState> {
       details[i] = detail;
     }
 
-    await updateDetails(state.profileInfo.details.copyWith(phones: details));
-
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updateDetailSharingCircles(
-        detailSharingSettings: state.profileInfo.sharingSettings.phones,
-        key: (detail.label.name != 'custom')
+    final _sharingSettings = {...state.profileInfo.sharingSettings.phones};
+    _sharingSettings[(detail.label.name != 'custom')
             ? detail.label.name
-            : detail.customLabel,
-        circlesWithSelection: circlesWithSelection,
-        updateSharingSettings: (settings) =>
-            state.profileInfo.sharingSettings.copyWith(phones: settings));
+            : detail.customLabel] =
+        circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
+
+    final updatedProfile = state.profileInfo.copyWith(
+      details: state.profileInfo.details.copyWith(
+        phones: details,
+      ),
+      sharingSettings: state.profileInfo.sharingSettings.copyWith(
+        phones: _sharingSettings,
+      ),
+    );
+    if (!isClosed) {
+      emit(state.copyWith(profileInfo: updatedProfile));
+    }
+    await contactsRepository.setProfileInfo(updatedProfile);
   }
 
   Future<void> updateEmail(
@@ -214,19 +209,27 @@ class ProfileCubit extends Cubit<ProfileState> {
       details[i] = detail;
     }
 
-    await updateDetails(state.profileInfo.details.copyWith(emails: details));
-
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updateDetailSharingCircles(
-        detailSharingSettings: state.profileInfo.sharingSettings.emails,
-        key: (detail.label.name != 'custom')
+    final _sharingSettings = {...state.profileInfo.sharingSettings.emails};
+    _sharingSettings[(detail.label.name != 'custom')
             ? detail.label.name
-            : detail.customLabel,
-        circlesWithSelection: circlesWithSelection,
-        updateSharingSettings: (settings) =>
-            state.profileInfo.sharingSettings.copyWith(emails: settings));
+            : detail.customLabel] =
+        circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
+
+    final updatedProfile = state.profileInfo.copyWith(
+      details: state.profileInfo.details.copyWith(
+        emails: details,
+      ),
+      sharingSettings: state.profileInfo.sharingSettings.copyWith(
+        emails: _sharingSettings,
+      ),
+    );
+    if (!isClosed) {
+      emit(state.copyWith(profileInfo: updatedProfile));
+    }
+    await contactsRepository.setProfileInfo(updatedProfile);
   }
 
   Future<void> updateSocialMedia(
@@ -240,20 +243,29 @@ class ProfileCubit extends Cubit<ProfileState> {
       details[i] = detail;
     }
 
-    await updateDetails(
-        state.profileInfo.details.copyWith(socialMedias: details));
-
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updateDetailSharingCircles(
-        detailSharingSettings: state.profileInfo.sharingSettings.socialMedias,
-        key: (detail.label.name != 'custom')
+    final _sharingSettings = {
+      ...state.profileInfo.sharingSettings.socialMedias
+    };
+    _sharingSettings[(detail.label.name != 'custom')
             ? detail.label.name
-            : detail.customLabel,
-        circlesWithSelection: circlesWithSelection,
-        updateSharingSettings: (settings) =>
-            state.profileInfo.sharingSettings.copyWith(socialMedias: settings));
+            : detail.customLabel] =
+        circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
+
+    final updatedProfile = state.profileInfo.copyWith(
+      details: state.profileInfo.details.copyWith(
+        socialMedias: details,
+      ),
+      sharingSettings: state.profileInfo.sharingSettings.copyWith(
+        socialMedias: _sharingSettings,
+      ),
+    );
+    if (!isClosed) {
+      emit(state.copyWith(profileInfo: updatedProfile));
+    }
+    await contactsRepository.setProfileInfo(updatedProfile);
   }
 
   Future<void> updateWebsite(
@@ -267,19 +279,27 @@ class ProfileCubit extends Cubit<ProfileState> {
       details[i] = detail;
     }
 
-    await updateDetails(state.profileInfo.details.copyWith(websites: details));
-
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updateDetailSharingCircles(
-        detailSharingSettings: state.profileInfo.sharingSettings.websites,
-        key: (detail.label.name != 'custom')
+    final _sharingSettings = {...state.profileInfo.sharingSettings.websites};
+    _sharingSettings[(detail.label.name != 'custom')
             ? detail.label.name
-            : detail.customLabel,
-        circlesWithSelection: circlesWithSelection,
-        updateSharingSettings: (settings) =>
-            state.profileInfo.sharingSettings.copyWith(websites: settings));
+            : detail.customLabel] =
+        circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
+
+    final updatedProfile = state.profileInfo.copyWith(
+      details: state.profileInfo.details.copyWith(
+        websites: details,
+      ),
+      sharingSettings: state.profileInfo.sharingSettings.copyWith(
+        websites: _sharingSettings,
+      ),
+    );
+    if (!isClosed) {
+      emit(state.copyWith(profileInfo: updatedProfile));
+    }
+    await contactsRepository.setProfileInfo(updatedProfile);
   }
 
   Future<void> updateAddress(
@@ -293,19 +313,27 @@ class ProfileCubit extends Cubit<ProfileState> {
       details[i] = detail;
     }
 
-    await updateDetails(state.profileInfo.details.copyWith(addresses: details));
-
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    await updateDetailSharingCircles(
-        detailSharingSettings: state.profileInfo.sharingSettings.addresses,
-        key: (detail.label.name != 'custom')
+    final _sharingSettings = {...state.profileInfo.sharingSettings.addresses};
+    _sharingSettings[(detail.label.name != 'custom')
             ? detail.label.name
-            : detail.customLabel,
-        circlesWithSelection: circlesWithSelection,
-        updateSharingSettings: (settings) =>
-            state.profileInfo.sharingSettings.copyWith(addresses: settings));
+            : detail.customLabel] =
+        circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
+
+    final updatedProfile = state.profileInfo.copyWith(
+      details: state.profileInfo.details.copyWith(
+        addresses: details,
+      ),
+      sharingSettings: state.profileInfo.sharingSettings.copyWith(
+        addresses: _sharingSettings,
+      ),
+    );
+    if (!isClosed) {
+      emit(state.copyWith(profileInfo: updatedProfile));
+    }
+    await contactsRepository.setProfileInfo(updatedProfile);
   }
 
   @override

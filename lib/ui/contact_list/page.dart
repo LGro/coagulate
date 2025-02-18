@@ -49,11 +49,11 @@ class _ContactListPageState extends State<ContactListPage> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     const SizedBox(height: 8),
-                                    const Text(
-                                        'You do not have any contacts yet.',
-                                        textScaler: TextScaler.linear(1.2)),
+                                    const Text('Add your first contact.',
+                                        textScaler: TextScaler.linear(1.4)),
                                     const SizedBox(height: 24),
-                                    const Text('Invite someone'),
+                                    const Text('Invite someone',
+                                        textScaler: TextScaler.linear(1.2)),
                                     const SizedBox(height: 8),
                                     Align(
                                         alignment: Alignment.center,
@@ -68,7 +68,8 @@ class _ContactListPageState extends State<ContactListPage> {
                                             })),
                                     const SizedBox(height: 8),
                                     const Text(
-                                        'or accept an invite you received'),
+                                        'or accept an invite you received',
+                                        textScaler: TextScaler.linear(1.2)),
                                     const SizedBox(height: 8),
                                     Align(
                                         alignment: Alignment.center,
@@ -121,6 +122,7 @@ class _ContactListPageState extends State<ContactListPage> {
           autocorrect: false,
           decoration: InputDecoration(
               labelText: 'Search',
+              isDense: true,
               prefixIcon: const Icon(Icons.search),
               // TODO: Clear the actual text as well
               suffixIcon: IconButton(

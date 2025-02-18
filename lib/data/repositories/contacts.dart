@@ -163,12 +163,10 @@ List<ContactTemporaryLocation> filterTemporaryLocations(
 CoagContactDHTSchema filterAccordingToSharingProfile(
         {required ProfileInfo profile,
         required Map<String, int> activeCirclesWithMemberCount,
-        required ContactDHTSettings? shareBackSettings,
-        required String? dhtPictureKey}) =>
+        required ContactDHTSettings? shareBackSettings}) =>
     CoagContactDHTSchema(
       details: filterDetails(profile.pictures, profile.details,
           profile.sharingSettings, activeCirclesWithMemberCount),
-      dhtPictureKey: dhtPictureKey,
       // Only share locations up to 1 day ago
       temporaryLocations: filterTemporaryLocations(
           profile.temporaryLocations, activeCirclesWithMemberCount.keys),
@@ -412,11 +410,8 @@ class ContactsRepository {
     try {
       if (contact.dhtSettingsForSharing?.writer == null) {
         final (shareKey, shareWriter) = await distributedStorage.createRecord();
-        final (sharePictureKey, _) =
-            await distributedStorage.createRecord(writer: shareWriter);
         final dhtSettingsForSharing = ContactDHTSettings(
             key: shareKey,
-            pictureKey: sharePictureKey,
             writer: shareWriter,
             // TODO: Get specific cryptosystem version? also, move veilid specific stuff elsewhere
             psk: (contactPubKey == null)
@@ -524,7 +519,8 @@ class ContactsRepository {
         sharedProfile: json.encode(removeNullOrEmptyValues(
             filterAccordingToSharingProfile(
                     profile: _profileInfo,
-                    // TODO: Also expose this view of the data? Seems to be used in different places
+                    // TODO: Also expose this view of the data from contacts repo?
+                    //       Seems to be used in different places.
                     activeCirclesWithMemberCount: Map.fromEntries(
                         (_circleMemberships[coagContactId] ?? []).map(
                             (circleId) => MapEntry(
@@ -532,36 +528,8 @@ class ContactsRepository {
                                 _circleMemberships.values
                                     .where((ids) => ids.contains(circleId))
                                     .length))),
-                    shareBackSettings: contact.dhtSettingsForReceiving,
-                    dhtPictureKey: contact.dhtSettingsForSharing?.pictureKey)
+                    shareBackSettings: contact.dhtSettingsForReceiving)
                 .toJson()))));
-  }
-
-  Future<void> updateContactSharingSettings(
-      String coagContactId, ContactDHTSettings sharingSettings) async {
-    if (!_contacts.containsKey(coagContactId)) {
-      // TODO: Log and/or raise error?
-      return;
-    }
-    // TODO: what if there were sharing settings before? do we clean up the old shared profile?
-    final updatedContact = _contacts[coagContactId]!
-        .copyWith(dhtSettingsForSharing: sharingSettings);
-    // Save updated contact first, before triggering update of sharing profile
-    // for the then already existing contact
-    await saveContact(updatedContact);
-    await updateContactSharedProfile(coagContactId);
-  }
-
-  Future<void> updateContactReceivingSettings(
-      String coagContactId, ContactDHTSettings receivingSettings) async {
-    if (!_contacts.containsKey(coagContactId)) {
-      // TODO: Log and/or raise error?
-      return;
-    }
-    final updatedContact = _contacts[coagContactId]!
-        .copyWith(dhtSettingsForReceiving: receivingSettings);
-    await saveContact(updatedContact);
-    unawaited(updateContactFromDHT(updatedContact));
   }
 
   Future<void> _dhtRecordUpdateCallback(String key) async {
@@ -582,7 +550,9 @@ class ContactsRepository {
 
     // Add to default circle and update shared profile
     await updateCirclesForContact(
-        contact.coagContactId, [defaultEveryoneCircleId]);
+        contact.coagContactId, [defaultEveryoneCircleId],
+        // Trigger dht update with custom arguments below instead
+        triggerDhtUpdate: false);
 
     // Trigger sharing, incl. DHT record creation
     unawaited(tryShareWithContactDHT(contact,
@@ -638,7 +608,8 @@ class ContactsRepository {
   }
 
   Future<void> updateCirclesForContact(
-      String coagContactId, List<String> circleIds) async {
+      String coagContactId, List<String> circleIds,
+      {bool triggerDhtUpdate = true}) async {
     _circleMemberships[coagContactId] = [...circleIds];
     // Notify about the update
     _contactsStreamController.add(coagContactId);
@@ -646,6 +617,12 @@ class ContactsRepository {
       persistentStorage.updateCircleMemberships(_circleMemberships),
       updateContactSharedProfile(coagContactId)
     ]);
+
+    // Trigger DHT update
+    final contact = getContact(coagContactId);
+    if (contact != null && triggerDhtUpdate) {
+      unawaited(tryShareWithContactDHT(contact));
+    }
   }
 
   // TODO: Make this a pure utilities function instead for better testability?

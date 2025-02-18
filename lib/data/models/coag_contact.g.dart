@@ -9,7 +9,6 @@ part of 'coag_contact.dart';
 ContactDHTSettings _$ContactDHTSettingsFromJson(Map<String, dynamic> json) =>
     ContactDHTSettings(
       key: json['key'] as String,
-      pictureKey: json['picture_key'] as String?,
       writer: json['writer'] as String?,
       psk: json['psk'] as String?,
       pubKey: json['pub_key'] as String?,
@@ -21,7 +20,6 @@ ContactDHTSettings _$ContactDHTSettingsFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$ContactDHTSettingsToJson(ContactDHTSettings instance) =>
     <String, dynamic>{
       'key': instance.key,
-      'picture_key': instance.pictureKey,
       'writer': instance.writer,
       'psk': instance.psk,
       'pub_key': instance.pubKey,
@@ -212,7 +210,6 @@ CoagContactDHTSchemaV2 _$CoagContactDHTSchemaV2FromJson(
       details: ContactDetails.fromJson(json['details'] as Map<String, dynamic>),
       shareBackDHTKey: json['share_back_d_h_t_key'] as String?,
       shareBackPubKey: json['share_back_pub_key'] as String?,
-      dhtPictureKey: json['dht_picture_key'] as String?,
       shareBackDHTWriter: json['share_back_d_h_t_writer'] as String?,
       addressLocations:
           (json['address_locations'] as Map<String, dynamic>?)?.map(
@@ -234,7 +231,6 @@ Map<String, dynamic> _$CoagContactDHTSchemaV2ToJson(
         CoagContactDHTSchemaV2 instance) =>
     <String, dynamic>{
       'details': instance.details.toJson(),
-      'dht_picture_key': instance.dhtPictureKey,
       'address_locations': instance.addressLocations
           .map((k, e) => MapEntry(k.toString(), e.toJson())),
       'temporary_locations':

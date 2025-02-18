@@ -59,7 +59,8 @@ class _CreateNewContactPageState extends State<CreateNewContactPage> {
                       onPressed: () async {
                         final contact = await context
                             .read<ContactsRepository>()
-                            .createContactForInvite(_nameController.text);
+                            .createContactForInvite(
+                                _nameController.text.trim());
                         if (context.mounted) {
                           await Navigator.of(context).pushReplacement(
                               MaterialPageRoute<ContactPage>(

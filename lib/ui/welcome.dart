@@ -15,7 +15,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   Future<void> _onSubmit() async {
     if (_nameController.text.isNotEmpty) {
-      await widget.setNameCallback(_nameController.text);
+      await widget.setNameCallback(_nameController.text.trim());
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your name.')),

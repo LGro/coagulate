@@ -41,7 +41,7 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     ClipboardData? clipboardData =
         await Clipboard.getData(Clipboard.kTextPlain);
     if (clipboardData?.text != null) {
-      final fragment = Uri.parse(clipboardData!.text!).fragment;
+      final fragment = Uri.parse(clipboardData!.text!.trim()).fragment;
       if (fragment.isEmpty) {
         // TODO: signal back faulty URL
       } else {
@@ -126,10 +126,13 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
       return;
     }
 
-    final name = components.getOrNull(-4);
+    final name = (components.length == 4) ? components[0] : null;
+    final iKey = (components.length == 4) ? 1 : 0;
+    final iPsk = (components.length == 4) ? 3 : 2;
+
     final dhtSettingsForReceiving = ContactDHTSettings(
-        key: '${components[-3]}:${components[-2]}',
-        psk: components[-1],
+        key: '${components[iKey]}:${components[iKey + 1]}',
+        psk: components[iPsk],
         pubKey: await getAppUserKeyPair()
             .then((kp) => '${cryptoKindToString(kp.kind)}:${kp.key}'));
     var contact = CoagContact(
