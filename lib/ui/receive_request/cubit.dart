@@ -1,17 +1,15 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/services.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:uuid/uuid.dart';
-import 'package:veilid/veilid.dart';
+import 'package:veilid_support/veilid_support.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
@@ -19,8 +17,6 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
-// TODO: Revisit which statuses we still need
-// NOTE: When we make this a hydrated cubit again, we need to find a way how to reset to the initial state after success
 class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
   ReceiveRequestCubit(this.contactsRepository,
       {ReceiveRequestState? initialState})
@@ -51,6 +47,11 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
   }
 
   Future<void> qrCodeCaptured(BarcodeCapture capture) async {
+    // Avoid duplicate calls, which apparently happen from the qr detect
+    // callback and cause creation of multiple (e.g. 2) contacts
+    if (state.status.isProcessing) {
+      return;
+    }
     emit(const ReceiveRequestState(ReceiveRequestStatus.processing));
     for (final barcode in capture.barcodes) {
       if (barcode.rawValue?.startsWith('https://coagulate.social') ?? false) {
@@ -72,49 +73,6 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     }
   }
 
-  Future<void> linkExistingContact(String coagContactId) async {
-    if (state.profile == null) {
-      // TODO: more meaningful error handling? because this shouldn't happen
-      return emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
-    }
-
-    final contact = state.profile!.copyWith(coagContactId: coagContactId);
-    await contactsRepository.saveContact(contact);
-
-    if (!isClosed) {
-      emit(ReceiveRequestState(ReceiveRequestStatus.success, profile: contact));
-    }
-  }
-
-  Future<void> createNewContact() async {
-    if (state.profile == null) {
-      return emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
-    }
-
-    await contactsRepository.saveContact(state.profile!);
-
-    if (!isClosed) {
-      emit(state.copyWith(status: ReceiveRequestStatus.success));
-    }
-  }
-
-  void updateNewRequesterContact(String value) {
-    // Find existing contacts with similar name
-    final proposals = contactsRepository
-        .getContacts()
-        .values
-        .where((c) =>
-            (c.details != null || c.systemContact != null) &&
-            (value.isEmpty ||
-                (c.details?.names.values.join() ??
-                        c.systemContact?.displayName ??
-                        '')
-                    .toLowerCase()
-                    .contains(value.toLowerCase())))
-        .asList();
-    // FIXME: Do something with the proposals
-  }
-
   Future<void> handleFragment(String fragment) async {
     final components = fragment.split(':');
     if (![3, 4].contains(components.length)) {
@@ -126,50 +84,31 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
       return;
     }
 
+    // TODO: support batch invite link with more components
+
     final name = (components.length == 4) ? components[0] : null;
     final iKey = (components.length == 4) ? 1 : 0;
     final iPsk = (components.length == 4) ? 3 : 2;
 
-    final dhtSettingsForReceiving = ContactDHTSettings(
-        key: '${components[iKey]}:${components[iKey + 1]}',
-        psk: components[iPsk],
-        pubKey: await getAppUserKeyPair()
-            .then((kp) => '${cryptoKindToString(kp.kind)}:${kp.key}'));
-    var contact = CoagContact(
+    final contact = CoagContact(
         coagContactId: Uuid().v4(),
         // TODO: localize default to language
         name: name ?? 'unknown',
-        dhtSettingsForReceiving: dhtSettingsForReceiving);
+        // TODO: Handle fromString parsing errors
+        dhtSettings: DhtSettings(
+            recordKeyThemSharing: Typed<FixedEncodedString43>.fromString(
+                '${components[iKey]}:${components[iKey + 1]}'),
+            initialSecret: FixedEncodedString43.fromString(components[iPsk]),
+            myKeyPair: await DHTRecordPool.instance.veilid
+                .bestCryptoSystem()
+                .then((cs) => cs
+                    .generateKeyPair()
+                    .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)))));
 
-    try {
-      // Just fetch the contact, do not integrate it into the repository yet
-      // TODO: Should this live somewhere else? this can be refactored using distributedStorage.getContact
-      final contactJson = await contactsRepository.distributedStorage
-          .readRecord(
-              recordKey: dhtSettingsForReceiving.key,
-              psk: dhtSettingsForReceiving.psk);
-      if (contactJson.isNotEmpty) {
-        final dhtContact = CoagContactDHTSchema.fromJson(
-            json.decode(contactJson) as Map<String, dynamic>);
-        contact = contact.copyWith(
-            // TODO: Use email address if provided instead?
-            name: dhtContact.details.names.values.firstOrNull,
-            details: dhtContact.details,
-            addressLocations: dhtContact.addressLocations,
-            temporaryLocations: dhtContact.temporaryLocations,
-            dhtSettingsForSharing: (dhtContact.shareBackDHTKey == null)
-                ? null
-                : ContactDHTSettings(
-                    key: dhtContact.shareBackDHTKey!,
-                    writer: dhtContact.shareBackDHTWriter,
-                    pubKey: dhtContact.shareBackPubKey,
-                  ));
-      }
-    } on Exception catch (e) {
-      // Log or display?
-    }
-
+    // TODO: Check if there are situations where this is called multiple times,
+    //       resulting in duplicate contact creation
     await contactsRepository.saveContact(contact);
+    unawaited(contactsRepository.updateContactFromDHT(contact));
     if (!isClosed) {
       return emit(state.copyWith(
           status: ReceiveRequestStatus.success, profile: contact));

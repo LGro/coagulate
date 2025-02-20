@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
@@ -30,7 +30,7 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
                 .toList()));
       }
     });
-    _contactsSuscription =
+    _contactsSubscription =
         contactsRepository.getContactStream().listen((updtedContactId) {
       if (updtedContactId == coagContactId && !isClosed) {
         final updatedContact = contactsRepository.getContact(updtedContactId);
@@ -57,15 +57,18 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<String> _contactsSuscription;
+  late final StreamSubscription<String> _contactsSubscription;
   late final StreamSubscription<void> _circlesSubscription;
+
+  Future<void> updateComment(String comment) async =>
+      contactsRepository.saveContact(state.contact!.copyWith(comment: comment));
 
   Future<void> delete(String coagContactId) async =>
       contactsRepository.removeContact(coagContactId);
 
   @override
   Future<void> close() {
-    _contactsSuscription.cancel();
+    _contactsSubscription.cancel();
     _circlesSubscription.cancel();
     return super.close();
   }

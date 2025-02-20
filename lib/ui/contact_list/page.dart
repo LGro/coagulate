@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:typed_data';
@@ -12,7 +12,6 @@ import '../../ui/profile/cubit.dart';
 import '../contact_details/page.dart';
 import '../create_new_contact/page.dart';
 import '../receive_request/page.dart';
-import '../widgets/avatar.dart';
 import 'cubit.dart';
 
 class ContactListPage extends StatefulWidget {
@@ -207,7 +206,7 @@ class _ContactListPageState extends State<ContactListPage> {
 String contactSharingReceivingStatus(
     CoagContact contact, bool isMemberAnyCircle) {
   var status = '';
-  if (contact.dhtSettingsForSharing != null && isMemberAnyCircle) {
+  if (contact.dhtSettings.recordKeyMeSharing != null && isMemberAnyCircle) {
     status = 'S';
   }
   if (contact.details != null) {

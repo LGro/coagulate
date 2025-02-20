@@ -20,16 +20,15 @@ class DhtStatusCubit extends Cubit<DhtStatusState> {
     unawaited(updateStatus());
   }
 
-  final String recordKey;
+  final Typed<FixedEncodedString43> recordKey;
   late final Timer? timerPersistentStorageRefresh;
 
   Future<void> updateStatus() async {
-    final _key = Typed<FixedEncodedString43>.fromString(recordKey);
     try {
       final report = await DHTRecordPool.instance
-          .openRecordRead(_key, debugName: 'coag::read::stats')
+          .openRecordRead(recordKey, debugName: 'coag::read::stats')
           .then((record) async {
-        final report = await record.routingContext.inspectDHTRecord(_key);
+        final report = await record.routingContext.inspectDHTRecord(recordKey);
         await record.close();
         return report;
       });

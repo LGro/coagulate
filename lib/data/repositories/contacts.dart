@@ -113,6 +113,7 @@ ContactDetails filterDetails(
         Map<String, int> activeCirclesWithMemberCount) =>
     ContactDetails(
       avatar: selectAvatar(avatars, activeCirclesWithMemberCount),
+      publicKey: details.publicKey,
       names: filterNames(
           details.names, settings.names, activeCirclesWithMemberCount.keys),
       phones: filterContactDetailsList(
@@ -163,7 +164,7 @@ List<ContactTemporaryLocation> filterTemporaryLocations(
 CoagContactDHTSchema filterAccordingToSharingProfile(
         {required ProfileInfo profile,
         required Map<String, int> activeCirclesWithMemberCount,
-        required ContactDHTSettings? shareBackSettings}) =>
+        required DhtSettings dhtSettings}) =>
     CoagContactDHTSchema(
       details: filterDetails(profile.pictures, profile.details,
           profile.sharingSettings, activeCirclesWithMemberCount),
@@ -172,31 +173,15 @@ CoagContactDHTSchema filterAccordingToSharingProfile(
           profile.temporaryLocations, activeCirclesWithMemberCount.keys),
       addressLocations: filterAddressLocations(profile.addressLocations,
           profile.sharingSettings, activeCirclesWithMemberCount.keys),
-      shareBackDHTKey: shareBackSettings?.key,
-      shareBackDHTWriter: shareBackSettings?.writer,
-      shareBackPubKey: shareBackSettings?.pubKey,
+      shareBackDHTKey: dhtSettings.recordKeyThemSharing.toString(),
+      shareBackDHTWriter: dhtSettings.writerThemSharing.toString(),
+      shareBackPubKey: dhtSettings.myKeyPair.key.toString(),
+      ackHandshakeComplete: dhtSettings.theirPublicKey != null,
     );
 
 Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
   // TODO: implement me; or implement custom schema for sharing payload
   return json;
-}
-
-// TODO: This feels like it should live somewhere else
-Future<TypedKeyPair> getAppUserKeyPair() async {
-  const spKey = 'coag_app_user_key_pair';
-  final sp = await SharedPreferences.getInstance();
-  var keyPairString = sp.getString(spKey);
-  if (keyPairString == null) {
-    final keyPair = await DHTRecordPool.instance.veilid.bestCryptoSystem().then(
-        (cs) => cs
-            .generateKeyPair()
-            .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)));
-    keyPairString = keyPair.toString();
-    await sp.setString(spKey, keyPairString);
-  }
-  return TypedKeyPair.fromString(keyPairString);
-  // TODO: Upgrade keypair to newer crypto system once available
 }
 
 class ContactsRepository {
@@ -255,9 +240,6 @@ class ContactsRepository {
   bool veilidNetworkAvailable = false;
 
   Future<void> initialize() async {
-    // Ensure it is called once to initialize
-    await getAppUserKeyPair();
-
     await initializeFromPersistentStorage();
 
     // Initialize profile info
@@ -330,8 +312,7 @@ class ContactsRepository {
   //////
   // DHT
   Future<void> updateContactFromDHT(CoagContact contact) async {
-    final updatedContact =
-        await distributedStorage.getContact(contact, await getAppUserKeyPair());
+    final updatedContact = await distributedStorage.getContact(contact);
 
     if (updatedContact != null) {
       final updateTime = DateTime.now();
@@ -350,12 +331,22 @@ class ContactsRepository {
 
         await saveContact(updatedContact.copyWith(
             mostRecentUpdate: updateTime, mostRecentChange: updateTime));
+
+        // When it's the first time they acknowledge a completed handshake,
+        // trigger an update of the sharing DHT record to switch from the
+        // initial secret to a public key derived one
+        if (!contact.dhtSettings.theyAckHandshakeComplete &&
+            updatedContact.dhtSettings.theyAckHandshakeComplete) {
+          // TODO: This could be directly "distributedStorage.updateRecord"
+          //       with error handling.
+          await tryShareWithContactDHT(updatedContact);
+        }
       }
     }
 
-    if (contact.dhtSettingsForReceiving != null) {
+    if (contact.dhtSettings.recordKeyThemSharing != null) {
       await distributedStorage.watchRecord(
-          contact.dhtSettingsForReceiving!.key, _dhtRecordUpdateCallback);
+          contact.dhtSettings.recordKeyThemSharing!, _dhtRecordUpdateCallback);
     }
   }
 
@@ -373,7 +364,7 @@ class ContactsRepository {
   Future<void> _veilidUpdateValueChangeCallback(
       VeilidUpdateValueChange update) async {
     final contact = _contacts.values.firstWhereOrNull(
-        (c) => c.dhtSettingsForReceiving?.key == update.key.toString());
+        (c) => c.dhtSettings.recordKeyThemSharing == update.key);
     if (contact == null) {
       // TODO: log
       return;
@@ -396,7 +387,7 @@ class ContactsRepository {
     // TODO: Can we parallelize this? with Future.wait([])?
     for (final contact in contacts) {
       // Check for incoming updates
-      if (contact.dhtSettingsForReceiving != null) {
+      if (contact.dhtSettings.recordKeyThemSharing != null) {
         await updateContactFromDHT(contact);
       }
     }
@@ -408,35 +399,42 @@ class ContactsRepository {
   Future<void> tryShareWithContactDHT(CoagContact contact,
       {bool initializeReceivingSettings = false, String? contactPubKey}) async {
     try {
-      if (contact.dhtSettingsForSharing?.writer == null) {
+      // NOTE: This assumes that when we have a record key to receive, it will
+      //       eventually provide us with sharing back settings
+      if (contact.dhtSettings.writerMeSharing == null &&
+          contact.dhtSettings.recordKeyThemSharing == null) {
         final (shareKey, shareWriter) = await distributedStorage.createRecord();
-        final dhtSettingsForSharing = ContactDHTSettings(
-            key: shareKey,
-            writer: shareWriter,
-            // TODO: Get specific cryptosystem version? also, move veilid specific stuff elsewhere
-            psk: (contactPubKey == null)
-                ? await Veilid.instance.bestCryptoSystem().then(
-                    (cs) => cs.randomSharedSecret().then((v) => v.toString()))
-                : null,
-            pubKey: contactPubKey);
+
+        // TODO: Get specific cryptosystem version? also, move veilid specific stuff elsewhere
+        final initialSecret = (contactPubKey == null)
+            ? await Veilid.instance
+                .bestCryptoSystem()
+                .then((cs) => cs.randomSharedSecret())
+            : null;
 
         // TODO: Is a refresh of the contact before updating necessary?
-        contact = getContact(contact.coagContactId)!
-            .copyWith(dhtSettingsForSharing: dhtSettingsForSharing);
+        contact = getContact(contact.coagContactId)!;
+        contact = contact.copyWith(
+            dhtSettings: contact.dhtSettings.copyWith(
+                recordKeyMeSharing: shareKey,
+                writerMeSharing: shareWriter,
+                theirPublicKey: (contactPubKey == null)
+                    ? null
+                    // TODO: Are we using typed or untyped here?
+                    : PublicKey.fromString(contactPubKey),
+                initialSecret: initialSecret));
         await saveContact(contact);
       }
+
       if (initializeReceivingSettings) {
         final (receiveKey, receiveWriter) =
             await distributedStorage.createRecord();
-        final dhtSettingsForReceiving = ContactDHTSettings(
-            key: receiveKey,
-            writer: receiveWriter,
-            pubKey: await getAppUserKeyPair()
-                .then((kp) => '${cryptoKindToString(kp.kind)}:${kp.key}'));
-
         // TODO: Is a refresh of the contact before updating necessary?
-        contact = getContact(contact.coagContactId)!
-            .copyWith(dhtSettingsForReceiving: dhtSettingsForReceiving);
+        contact = getContact(contact.coagContactId)!;
+        contact = contact.copyWith(
+            dhtSettings: contact.dhtSettings.copyWith(
+                recordKeyThemSharing: receiveKey,
+                writerThemSharing: receiveWriter));
         await saveContact(contact);
 
         // Ensure shared profile contains all the updated share and share back
@@ -445,11 +443,7 @@ class ContactsRepository {
       }
 
       await distributedStorage.updateRecord(
-          content: contact.sharedProfile ?? '',
-          key: contact.dhtSettingsForSharing!.key,
-          writer: contact.dhtSettingsForSharing!.writer!,
-          publicKey: contact.dhtSettingsForSharing?.pubKey,
-          psk: contact.dhtSettingsForSharing?.psk);
+          contact.sharedProfile ?? '', contact.dhtSettings);
     } on VeilidAPIException catch (e) {
       // TODO: Proper logging / other handling strategy / retry?
       if (kDebugMode) {
@@ -528,13 +522,13 @@ class ContactsRepository {
                                 _circleMemberships.values
                                     .where((ids) => ids.contains(circleId))
                                     .length))),
-                    shareBackSettings: contact.dhtSettingsForReceiving)
+                    dhtSettings: contact.dhtSettings)
                 .toJson()))));
   }
 
-  Future<void> _dhtRecordUpdateCallback(String key) async {
+  Future<void> _dhtRecordUpdateCallback(Typed<FixedEncodedString43> key) async {
     for (final contact in _contacts.values) {
-      if (key == contact.dhtSettingsForReceiving?.key) {
+      if (key == contact.dhtSettings.recordKeyThemSharing) {
         return updateContactFromDHT(contact);
       }
     }
@@ -545,7 +539,15 @@ class ContactsRepository {
   Future<CoagContact> createContactForInvite(String name,
       {String? pubKey}) async {
     // Create contact
-    final contact = CoagContact(coagContactId: Uuid().v4(), name: name);
+    final contact = CoagContact(
+        coagContactId: Uuid().v4(),
+        name: name,
+        dhtSettings: DhtSettings(
+            myKeyPair: await DHTRecordPool.instance.veilid
+                .bestCryptoSystem()
+                .then((cs) => cs
+                    .generateKeyPair()
+                    .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)))));
     await saveContact(contact);
 
     // Add to default circle and update shared profile
@@ -600,9 +602,9 @@ class ContactsRepository {
 
     await persistentStorage.updateCircleMemberships(_circleMemberships);
 
+    // Update all shared profiles regardless of the current DHT sharing status
     await Future.wait([
-      for (final contact in _contacts.values
-          .where((c) => c.dhtSettingsForSharing?.psk != null))
+      for (final contact in _contacts.values)
         updateContactSharedProfile(contact.coagContactId)
     ]);
   }

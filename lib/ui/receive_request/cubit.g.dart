@@ -38,8 +38,6 @@ Map<String, dynamic> _$ReceiveRequestStateToJson(
 const _$ReceiveRequestStatusEnumMap = {
   ReceiveRequestStatus.qrcode: 'qrcode',
   ReceiveRequestStatus.processing: 'processing',
-  ReceiveRequestStatus.receivedShare: 'receivedShare',
-  ReceiveRequestStatus.receivedRequest: 'receivedRequest',
   ReceiveRequestStatus.success: 'success',
   ReceiveRequestStatus.receivedUriFragment: 'receivedUriFragment',
 };

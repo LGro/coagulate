@@ -6,9 +6,70 @@ import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:veilid/veilid.dart';
 import 'contact_location.dart';
 import 'profile_sharing_settings.dart';
 part 'coag_contact.g.dart';
+
+@JsonSerializable()
+class DhtSettings extends Equatable {
+  const DhtSettings(
+      {required this.myKeyPair,
+      this.theirPublicKey,
+      this.recordKeyMeSharing,
+      this.writerMeSharing,
+      this.recordKeyThemSharing,
+      this.writerThemSharing,
+      this.initialSecret,
+      this.theyAckHandshakeComplete = false});
+
+  factory DhtSettings.fromJson(Map<String, dynamic> json) =>
+      _$DhtSettingsFromJson(json);
+
+  final TypedKeyPair myKeyPair;
+  final PublicKey? theirPublicKey;
+  final Typed<FixedEncodedString43>? recordKeyMeSharing;
+  final KeyPair? writerMeSharing;
+  final Typed<FixedEncodedString43>? recordKeyThemSharing;
+  final KeyPair? writerThemSharing;
+  final FixedEncodedString43? initialSecret;
+  final bool theyAckHandshakeComplete;
+
+  Map<String, dynamic> toJson() => _$DhtSettingsToJson(this);
+
+  DhtSettings copyWith(
+          {TypedKeyPair? myKeyPair,
+          PublicKey? theirPublicKey,
+          Typed<FixedEncodedString43>? recordKeyMeSharing,
+          KeyPair? writerMeSharing,
+          Typed<FixedEncodedString43>? recordKeyThemSharing,
+          KeyPair? writerThemSharing,
+          FixedEncodedString43? initialSecret,
+          bool? theyAckHandshakeComplete}) =>
+      DhtSettings(
+        myKeyPair: myKeyPair ?? this.myKeyPair,
+        theirPublicKey: theirPublicKey ?? this.theirPublicKey,
+        recordKeyMeSharing: recordKeyMeSharing ?? this.recordKeyMeSharing,
+        writerMeSharing: writerMeSharing ?? this.writerMeSharing,
+        recordKeyThemSharing: recordKeyThemSharing ?? this.recordKeyThemSharing,
+        writerThemSharing: writerThemSharing ?? this.writerThemSharing,
+        initialSecret: initialSecret ?? this.initialSecret,
+        theyAckHandshakeComplete:
+            theyAckHandshakeComplete ?? this.theyAckHandshakeComplete,
+      );
+
+  @override
+  List<Object?> get props => [
+        myKeyPair,
+        theirPublicKey,
+        recordKeyMeSharing,
+        writerMeSharing,
+        recordKeyThemSharing,
+        writerThemSharing,
+        initialSecret,
+        theyAckHandshakeComplete,
+      ];
+}
 
 @JsonSerializable()
 class ContactDHTSettings extends Equatable {
@@ -56,6 +117,7 @@ class ContactDHTSettings extends Equatable {
 class ContactDetails extends Equatable {
   const ContactDetails({
     this.avatar,
+    this.publicKey,
     this.names = const {},
     this.phones = const [],
     this.emails = const [],
@@ -70,6 +132,7 @@ class ContactDetails extends Equatable {
   ContactDetails.fromSystemContact(Contact c)
       : avatar = c.photo?.toList(),
         names = {'0': c.displayName},
+        publicKey = null,
         phones = c.phones,
         emails = c.emails,
         addresses = c.addresses,
@@ -94,6 +157,9 @@ class ContactDetails extends Equatable {
 
   /// Binary integer representation of an image
   final List<int>? avatar;
+
+  /// Public key for encrypting data
+  final String? publicKey;
 
   /// Names with unique key
   final Map<String, String> names;
@@ -123,6 +189,7 @@ class ContactDetails extends Equatable {
 
   ContactDetails copyWith(
           {List<int>? avatar,
+          String? publicKey,
           Map<String, String>? names,
           List<Phone>? phones,
           List<Email>? emails,
@@ -133,6 +200,7 @@ class ContactDetails extends Equatable {
           List<Event>? events}) =>
       ContactDetails(
         avatar: avatar ?? this.avatar,
+        publicKey: publicKey ?? this.publicKey,
         names: names ?? this.names,
         phones: phones ?? this.phones,
         emails: emails ?? this.emails,
@@ -146,6 +214,7 @@ class ContactDetails extends Equatable {
   @override
   List<Object?> get props => [
         avatar,
+        publicKey,
         names,
         phones,
         emails,
@@ -208,12 +277,12 @@ class CoagContact extends Equatable {
   const CoagContact({
     required this.coagContactId,
     required this.name,
+    required this.dhtSettings,
     this.details,
     this.systemContact,
     this.addressLocations = const {},
     this.temporaryLocations = const [],
-    this.dhtSettingsForSharing,
-    this.dhtSettingsForReceiving,
+    this.comment = '',
     this.sharedProfile,
     this.mostRecentUpdate,
     this.mostRecentChange,
@@ -223,17 +292,28 @@ class CoagContact extends Equatable {
 
   /// Name given to the contact by the app user
   final String name;
+
+  /// Associated system contact
   final Contact? systemContact;
+
+  /// Details shared by the contact
   final ContactDetails? details;
+
+  /// Comment from the app user about the contact for personal reference
+  final String comment;
 
   // This is a map from index to value instead of a list because only the ith
   // address could have a location
   final Map<int, ContactAddressLocation> addressLocations;
   final List<ContactTemporaryLocation> temporaryLocations;
-  final ContactDHTSettings? dhtSettingsForSharing;
-  final ContactDHTSettings? dhtSettingsForReceiving;
+
+  /// Cryptographic keys and DHT record info for sharing with this contact
+  final DhtSettings dhtSettings;
+
   // TODO: Make this a proper type with toJson?
+  /// Personalized selection of profile info that is shared with this contact
   final String? sharedProfile;
+
   // TODO: Move these two to contact details to also have the same for the system contact
   final DateTime? mostRecentUpdate;
   final DateTime? mostRecentChange;
@@ -270,12 +350,12 @@ class CoagContact extends Equatable {
   CoagContact copyWith({
     String? coagContactId,
     String? name,
+    String? comment,
     Contact? systemContact,
     ContactDetails? details,
     Map<int, ContactAddressLocation>? addressLocations,
     List<ContactTemporaryLocation>? temporaryLocations,
-    ContactDHTSettings? dhtSettingsForSharing,
-    ContactDHTSettings? dhtSettingsForReceiving,
+    DhtSettings? dhtSettings,
     String? sharedProfile,
     DateTime? mostRecentUpdate,
     DateTime? mostRecentChange,
@@ -286,12 +366,10 @@ class CoagContact extends Equatable {
         systemContact: systemContact ?? this.systemContact,
         addressLocations: addressLocations ?? this.addressLocations,
         temporaryLocations: temporaryLocations ?? this.temporaryLocations,
-        dhtSettingsForSharing:
-            dhtSettingsForSharing ?? this.dhtSettingsForSharing,
-        dhtSettingsForReceiving:
-            dhtSettingsForReceiving ?? this.dhtSettingsForReceiving,
+        dhtSettings: dhtSettings ?? this.dhtSettings,
         sharedProfile: sharedProfile ?? this.sharedProfile,
         name: name ?? this.name,
+        comment: comment ?? this.comment,
         mostRecentUpdate: mostRecentUpdate ?? this.mostRecentUpdate,
         mostRecentChange: mostRecentChange ?? this.mostRecentChange,
       );
@@ -301,10 +379,10 @@ class CoagContact extends Equatable {
         coagContactId,
         details,
         systemContact,
-        dhtSettingsForSharing,
-        dhtSettingsForReceiving,
+        dhtSettings,
         sharedProfile,
         name,
+        comment,
         addressLocations,
         temporaryLocations,
         mostRecentUpdate,
@@ -378,6 +456,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
     this.shareBackDHTWriter,
     this.addressLocations = const {},
     this.temporaryLocations = const [],
+    this.ackHandshakeComplete = false,
     DateTime? mostRecentUpdate,
   }) {
     this.mostRecentUpdate = mostRecentUpdate ?? DateTime.now();
@@ -397,6 +476,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
   final String? shareBackDHTKey;
   final String? shareBackDHTWriter;
   final String? shareBackPubKey;
+  final bool ackHandshakeComplete;
   late final DateTime? mostRecentUpdate;
 
   Map<String, dynamic> toJson() => _$CoagContactDHTSchemaV2ToJson(this);
@@ -408,6 +488,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
     String? shareBackPubKey,
     Map<int, ContactAddressLocation>? addressLocations,
     List<ContactTemporaryLocation>? temporaryLocations,
+    bool? ackHandshakeComplete,
   }) =>
       CoagContactDHTSchemaV2(
         details: details ?? this.details,
@@ -416,6 +497,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
         shareBackDHTWriter: shareBackDHTWriter ?? this.shareBackDHTWriter,
         addressLocations: addressLocations ?? this.addressLocations,
         temporaryLocations: temporaryLocations ?? this.temporaryLocations,
+        ackHandshakeComplete: ackHandshakeComplete ?? this.ackHandshakeComplete,
       );
 
   // Differences in mostRecentUpdate timestamp will still caus equality
@@ -428,6 +510,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
         shareBackDHTWriter,
         addressLocations,
         temporaryLocations,
+        ackHandshakeComplete,
       ];
 }
 

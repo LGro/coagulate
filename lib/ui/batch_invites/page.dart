@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
-import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'cubit.dart';
 
 class BatchInvitesPage extends StatefulWidget {
+  const BatchInvitesPage({super.key});
+
   @override
   _BatchInvitesPageState createState() => _BatchInvitesPageState();
 }
@@ -67,14 +69,14 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
         title: const Text('Batch invites'),
       ),
       body: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                   'With batch invites, everyone invited via the same batch '
-                  'will see the label and everyone else from the batch to '
-                  'connect with them until the invites expire.'),
+                  'will see the label and everyone else invited to the batch '
+                  'to connect with them before the invites expire.'),
               const SizedBox(height: 16),
               const Text('New batch',
                   textScaler: TextScaler.linear(1.2),
@@ -125,7 +127,7 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
                       child: FilledButton(
                           onPressed: (!isEnabled)
                               ? null
-                              : () => context
+                              : () async => context
                                   .read<BatchInvitesCubit>()
                                   .generateInvites(
                                       _nameController.text.trim(),
@@ -135,15 +137,54 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
                                           0,
                                       _selectedDate!),
                           child: const Text('Prepare invite')))),
+
               const SizedBox(height: 16),
+
               const Text(
                 'Existing batches',
                 style: TextStyle(fontWeight: FontWeight.bold),
                 textScaler: TextScaler.linear(1.2),
               ),
-              const Text(
-                  'The functionality to extend or expire existing batches, '
-                  'and to see how many invites were used will follow soon.'),
+              // Trigger share dialogue with comma separated links
+              BlocBuilder<BatchInvitesCubit, BatchInvitesState>(
+                  builder: (context, state) => ListView.builder(
+                      itemCount: state.batches.length,
+                      itemBuilder: (context, index) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: existingBatchWidget(state.batches[index])))),
+
+              // const Text(
+              //     'The functionality to expire existing batches, '
+              //     'and to see how many invites were used will follow soon.'),
             ],
           )));
 }
+
+String generateInviteLinks(Batch batch) => batch.subkeyWriters
+    .toList()
+    .asMap()
+    .entries
+    .map(
+        // The index of the writer in the list + 1 is the corresponding subkey
+        // TODO: Do we need to URL encode? Maybe use Url().toString()?
+        (w) => 'https://coagulate.social/c/${batch.label}'
+            '#${batch.dhtRecordKey}:${batch.psk}:${w.key + 1}:${w.value}')
+    .join(', ');
+
+Widget existingBatchWidget(Batch batch) => Row(children: [
+      Text(batch.label),
+      const SizedBox(width: 4),
+      Text('(${DateFormat('yyyy-MM-dd').format(batch.expiration)})'),
+      const SizedBox(width: 4),
+      IconButton.filledTonal(
+          // Share.shareXFiles([XFile.fromData(utf8.encode(text), mimeType: 'text/plain')], fileNameOverrides: ['myfile.txt']),
+          onPressed: () async => Share.share(generateInviteLinks(batch)),
+          icon: const Icon(Icons.share)),
+    ]);
+
+
+/**
+final components = "dht:RecordKey:psk:subKeyIndex:writer".split(':');
+read meta info from first subkey, decrypt with psk
+write pubkey and name to own subkey
+*/

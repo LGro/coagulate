@@ -1491,10 +1491,10 @@ packages:
     dependency: transitive
     description:
       name: system_info_plus
-      sha256: b915c811c6605b802f3988859bc2bb79c95f735762a75b5451741f7a2b949d1b
+      sha256: df94187e95527f9cb459e6a9f6e0b1ea20c157d8029bc233de34b3c1e17e1c48
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.5"
+    version: "0.0.6"
   term_glyph:
     dependency: transitive
     description:
@@ -1669,7 +1669,7 @@ packages:
       path: "../veilid/veilid-flutter"
       relative: true
     source: path
-    version: "0.4.1"
+    version: "0.4.3"
   veilid_support:
     dependency: "direct main"
     description:

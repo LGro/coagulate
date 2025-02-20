@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:convert';
@@ -8,7 +8,7 @@ import 'dart:typed_data';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart' as flutterContacts;
+import 'package:flutter_contacts/flutter_contacts.dart' as flutter_contacts;
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -38,6 +38,8 @@ Uri _shareUrl({required String key, required String psk, String? name}) {
       fragment: fragment.join(':'));
 }
 
+String _shorten(String str) => str.substring(0, min(10, str.length));
+
 Widget _qrCodeButton(BuildContext context,
         {required String buttonText,
         required String alertTitle,
@@ -66,9 +68,12 @@ Widget _qrCodeButton(BuildContext context,
                             size: 200))))));
 
 class ContactPage extends StatelessWidget {
-  const ContactPage({super.key, required this.coagContactId});
+  ContactPage({super.key, required this.coagContactId});
 
   final String coagContactId;
+
+  final TextEditingController _contactCommentController =
+      TextEditingController();
 
   static Route<void> route(CoagContact contact) => MaterialPageRoute(
       fullscreenDialog: true,
@@ -111,9 +116,9 @@ class ContactPage extends StatelessWidget {
                   ))),
 
         // Contact details
-        ...contactDetailsAndLocations(context, contact),
+        ..._contactDetailsAndLocations(context, contact),
 
-        // Sharing stuff
+        // Sharing circle settings and shared profile
         Padding(
             padding: const EdgeInsets.only(left: 12, top: 16, right: 12),
             child: Text('Connection settings',
@@ -122,10 +127,38 @@ class ContactPage extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.primary))),
         Padding(
-            padding:
-                const EdgeInsets.only(left: 4, top: 4, bottom: 4, right: 4),
-            child: sharingSettings(context, contact, circleNames)),
+            padding: const EdgeInsets.only(left: 4, top: 4, right: 4),
+            child: _sharingSettings(context, contact, circleNames)),
 
+        // Private note
+        Padding(
+            padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+            child: Text('Private note',
+                textScaler: const TextScaler.linear(1.4),
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary))),
+        Padding(
+            padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+            child: TextFormField(
+              key: const Key('contactDetailsNoteInput'),
+              onTapOutside: (event) async => context
+                  .read<ContactDetailsCubit>()
+                  .updateComment(_contactCommentController.text),
+              controller: _contactCommentController..text = contact.comment,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                helperText:
+                    'This note is just for you and never shared with anyone.',
+              ),
+              textInputAction: TextInputAction.done,
+              // TODO: Does this limit the number of lines or just specify the visible ones?
+              //       We need the latter not the former.
+              maxLines: 4,
+            )),
+
+        // Delete contact
+        const SizedBox(height: 16),
         Center(
             child: TextButton(
                 onPressed: () async => context
@@ -134,7 +167,8 @@ class ContactPage extends StatelessWidget {
                     .then((_) =>
                         (context.mounted) ? Navigator.of(context).pop() : null),
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                  backgroundColor: WidgetStatePropertyAll(
+                      Theme.of(context).colorScheme.error),
                 ),
                 // TODO: Add subtext that this will retain the system contact in case it was linked
                 child: const Padding(
@@ -153,58 +187,40 @@ class ContactPage extends StatelessWidget {
           const SizedBox(height: 8),
           const VeilidStatusWidget(statusWidgets: {}),
           const SizedBox(height: 8),
-          if (contact.dhtSettingsForSharing?.key != null)
+          if (contact.dhtSettings.recordKeyMeSharing != null)
             DhtStatusWidget(
-              recordKey: contact.dhtSettingsForSharing!.key,
+              recordKey: contact.dhtSettings.recordKeyMeSharing!,
               statusWidgets: const {},
             ),
-          if (contact.dhtSettingsForReceiving?.key != null)
+          if (contact.dhtSettings.recordKeyThemSharing != null)
             DhtStatusWidget(
-              recordKey: contact.dhtSettingsForReceiving!.key,
+              recordKey: contact.dhtSettings.recordKeyThemSharing!,
               statusWidgets: const {},
             ),
           const SizedBox(height: 8),
           Text('Updated: ${contact.mostRecentUpdate}'),
           Text('Changed: ${contact.mostRecentChange}'),
-          if (contact.dhtSettingsForReceiving?.key != null)
-            const Padding(
-                padding: EdgeInsets.only(left: 16, right: 16),
-                child: Divider(color: Colors.grey)),
-          if (contact.dhtSettingsForReceiving?.key != null)
+          _paddedDivider(),
+          Text(
+              'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair.key.toString())}...'),
+          if (contact.dhtSettings.recordKeyMeSharing != null)
             Text(
-                'DHT Rcv Key: ${contact.dhtSettingsForReceiving!.key.substring(5, 25)}...'),
-          if (contact.dhtSettingsForReceiving?.psk != null)
+                'MeDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
+          if (contact.dhtSettings.theirPublicKey != null)
             Text(
-                'DHT Rcv Sec: ${contact.dhtSettingsForReceiving!.psk!.substring(0, min(20, contact.dhtSettingsForReceiving!.psk!.length))}...'),
-          if (contact.dhtSettingsForReceiving?.pubKey != null)
+                'ThemPubKey: ${_shorten(contact.dhtSettings.theirPublicKey.toString())}...'),
+          if (contact.dhtSettings.recordKeyThemSharing != null)
             Text(
-                'DHT Rcv Pub: ${contact.dhtSettingsForReceiving!.pubKey!.substring(0, min(20, contact.dhtSettingsForReceiving!.pubKey!.length))}...'),
-          if (contact.dhtSettingsForReceiving?.writer != null)
+                'ThemDhtKey: ${_shorten(contact.dhtSettings.recordKeyThemSharing.toString())}...'),
+          if (contact.dhtSettings.initialSecret != null)
             Text(
-                'DHT Rcv Wrt: ${contact.dhtSettingsForReceiving!.writer!.substring(0, min(20, contact.dhtSettingsForReceiving!.writer!.length))}...'),
-          if (contact.dhtSettingsForSharing?.key != null)
-            const Padding(
-                padding: EdgeInsets.only(left: 16, right: 16),
-                child: Divider(color: Colors.grey)),
-          if (contact.dhtSettingsForSharing?.key != null)
-            Text(
-                'DHT Shr Key: ${contact.dhtSettingsForSharing!.key.substring(5, 25)}...'),
-          if (contact.dhtSettingsForSharing?.psk != null)
-            Text(
-                'DHT Shr Sec: ${contact.dhtSettingsForSharing!.psk!.substring(0, min(20, contact.dhtSettingsForSharing!.psk!.length))}...'),
-          if (contact.dhtSettingsForSharing?.pubKey != null)
-            Text(
-                'DHT Shr Pub: ${contact.dhtSettingsForSharing!.pubKey!.substring(0, min(20, contact.dhtSettingsForSharing!.pubKey!.length))}...'),
-          if (contact.dhtSettingsForSharing?.writer != null)
-            Text(
-                'DHT Shr Wrt: ${contact.dhtSettingsForSharing!.writer!.substring(0, min(20, contact.dhtSettingsForSharing!.writer!.length))}...'),
+                'InitSec: ${_shorten(contact.dhtSettings.initialSecret.toString())}...'),
           const SizedBox(height: 16),
         ]),
       ]));
 }
 
-// NOTE: This is also used in receive requests page
-List<Widget> contactDetailsAndLocations(
+List<Widget> _contactDetailsAndLocations(
         BuildContext context, CoagContact contact) =>
     [
       Padding(
@@ -233,7 +249,7 @@ List<Widget> contactDetailsAndLocations(
           hideLabel: true,
         ),
       if (contact.details?.phones.isNotEmpty ?? false)
-        detailsList<flutterContacts.Phone>(
+        detailsList<flutter_contacts.Phone>(
           contact.details!.phones,
           title: const Text('Phones'),
           getLabel: (v) =>
@@ -241,7 +257,7 @@ List<Widget> contactDetailsAndLocations(
           getValue: (v) => v.number,
         ),
       if (contact.details?.emails.isNotEmpty ?? false)
-        detailsList<flutterContacts.Email>(
+        detailsList<flutter_contacts.Email>(
           contact.details!.emails,
           title: const Text('E-Mails'),
           getLabel: (v) =>
@@ -249,7 +265,7 @@ List<Widget> contactDetailsAndLocations(
           getValue: (v) => v.address,
         ),
       if (contact.details?.addresses.isNotEmpty ?? false)
-        detailsList<flutterContacts.Address>(
+        detailsList<flutter_contacts.Address>(
           contact.details!.addresses,
           title: const Text('Addresses'),
           getLabel: (v) =>
@@ -257,7 +273,7 @@ List<Widget> contactDetailsAndLocations(
           getValue: (v) => v.address,
         ),
       if (contact.details?.socialMedias.isNotEmpty ?? false)
-        detailsList<flutterContacts.SocialMedia>(
+        detailsList<flutter_contacts.SocialMedia>(
           contact.details!.socialMedias,
           title: const Text('Socials'),
           getLabel: (v) =>
@@ -265,7 +281,7 @@ List<Widget> contactDetailsAndLocations(
           getValue: (v) => v.userName,
         ),
       if (contact.details?.websites.isNotEmpty ?? false)
-        detailsList<flutterContacts.Website>(
+        detailsList<flutter_contacts.Website>(
           contact.details!.websites,
           title: const Text('Websites'),
           getLabel: (v) =>
@@ -275,7 +291,7 @@ List<Widget> contactDetailsAndLocations(
 
       // Locations
       if (contact.temporaryLocations.isNotEmpty)
-        temporaryLocationsCard(
+        _temporaryLocationsCard(
             Text('Locations',
                 textScaler: const TextScaler.linear(1.4),
                 style: TextStyle(
@@ -287,27 +303,26 @@ List<Widget> contactDetailsAndLocations(
 Widget _paddedDivider() => const Padding(
     padding: EdgeInsets.only(left: 16, right: 16), child: Divider());
 
-Widget sharingSettings(
+Widget _sharingSettings(
         BuildContext context, CoagContact contact, List<String> circleNames) =>
     Card(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      circlesCard(context, contact.coagContactId, circleNames),
+      _circlesCard(context, contact.coagContactId, circleNames),
 
       if (circleNames.isNotEmpty &&
-          contact.dhtSettingsForSharing != null &&
-          contact.dhtSettingsForSharing?.writer != null &&
-          contact.dhtSettingsForSharing?.psk != null &&
+          contact.dhtSettings.writerMeSharing != null &&
+          contact.dhtSettings.initialSecret != null &&
           contact.sharedProfile != null &&
           contact.sharedProfile!.isNotEmpty) ...[
         _paddedDivider(),
-        connectingCard(context, contact),
+        _connectingCard(context, contact),
       ],
 
       if (circleNames.isNotEmpty &&
           contact.sharedProfile != null &&
           contact.sharedProfile!.isNotEmpty) ...[
         _paddedDivider(),
-        ...displayDetails(CoagContactDHTSchema.fromJson(
+        ..._displayDetails(CoagContactDHTSchema.fromJson(
                 json.decode(contact.sharedProfile!) as Map<String, dynamic>)
             .details),
       ],
@@ -319,7 +334,7 @@ Widget sharingSettings(
               .temporaryLocations
               .isNotEmpty) ...[
         _paddedDivider(),
-        temporaryLocationsCard(
+        _temporaryLocationsCard(
             const Row(children: [
               Icon(Icons.share_location),
               SizedBox(width: 8),
@@ -336,7 +351,7 @@ Widget sharingSettings(
       ],
     ]));
 
-Widget temporaryLocationsCard(
+Widget _temporaryLocationsCard(
         Widget title, List<ContactTemporaryLocation> locations) =>
     Padding(
         padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
@@ -350,10 +365,10 @@ Widget temporaryLocationsCard(
               .asList(),
         ]));
 
-Widget connectingCard(BuildContext context, CoagContact contact) =>
+Widget _connectingCard(BuildContext context, CoagContact contact) =>
     Stack(children: [
-      if (contact.dhtSettingsForSharing?.key != null &&
-          contact.dhtSettingsForSharing?.psk != null)
+      if (contact.dhtSettings.recordKeyMeSharing != null &&
+          contact.dhtSettings.initialSecret != null)
         Padding(
             padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
             child:
@@ -370,8 +385,8 @@ Widget connectingCard(BuildContext context, CoagContact contact) =>
                   buttonText: 'Show them this QR code',
                   alertTitle: 'Show to ${contact.name}',
                   qrCodeData: _shareUrl(
-                    key: contact.dhtSettingsForSharing!.key,
-                    psk: contact.dhtSettingsForSharing!.psk!,
+                    key: contact.dhtSettings.recordKeyMeSharing.toString(),
+                    psk: contact.dhtSettings.initialSecret.toString(),
                     name: CoagContactDHTSchema.fromJson(
                             json.decode(contact.sharedProfile!)
                                 as Map<String, dynamic>)
@@ -401,7 +416,7 @@ Widget connectingCard(BuildContext context, CoagContact contact) =>
             ]))
     ]);
 
-Iterable<Widget> displayDetails(ContactDetails details) => [
+Iterable<Widget> _displayDetails(ContactDetails details) => [
       const Padding(
           padding: EdgeInsets.only(top: 8, left: 12, right: 12, bottom: 8),
           child: Row(children: [
@@ -429,7 +444,7 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
           hideLabel: true,
         ),
       if (details.phones.isNotEmpty)
-        detailsList<flutterContacts.Phone>(
+        detailsList<flutter_contacts.Phone>(
           details.phones,
           title: const Text('Phones'),
           getLabel: (v) =>
@@ -437,7 +452,7 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
           getValue: (v) => v.number,
         ),
       if (details.emails.isNotEmpty)
-        detailsList<flutterContacts.Email>(
+        detailsList<flutter_contacts.Email>(
           details.emails,
           title: const Text('E-Mails'),
           getLabel: (v) =>
@@ -445,7 +460,7 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
           getValue: (v) => v.address,
         ),
       if (details.addresses.isNotEmpty)
-        detailsList<flutterContacts.Address>(
+        detailsList<flutter_contacts.Address>(
           details.addresses,
           title: const Text('Addresses'),
           getLabel: (v) =>
@@ -453,7 +468,7 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
           getValue: (v) => v.address,
         ),
       if (details.socialMedias.isNotEmpty)
-        detailsList<flutterContacts.SocialMedia>(
+        detailsList<flutter_contacts.SocialMedia>(
           details.socialMedias,
           title: const Text('Socials'),
           getLabel: (v) =>
@@ -461,7 +476,7 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
           getValue: (v) => v.userName,
         ),
       if (details.websites.isNotEmpty)
-        detailsList<flutterContacts.Website>(
+        detailsList<flutter_contacts.Website>(
           details.websites,
           title: const Text('Websites'),
           getLabel: (v) =>
@@ -475,7 +490,7 @@ Iterable<Widget> displayDetails(ContactDetails details) => [
               'the circles you added them to.')),
     ];
 
-Widget circlesCard(
+Widget _circlesCard(
         BuildContext context, String coagContactId, List<String> circleNames) =>
     Padding(
         padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 12),
