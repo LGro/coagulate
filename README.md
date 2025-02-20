@@ -18,7 +18,7 @@ If you find any, feel free to open a small pull request 😊
 
 While this is still in development, you must have a clone of the [Veilid](https://gitlab.com/veilid/veilid/) source checked out at `../veilid` relative to the working directory of this repository.
 
-For platform specific development setup, see the scripts in `./dev-setup`.
+Check the CI/CD workflows in `.github/` for a compatible development setup.
 
 In case you prefer MapBox over OpenStreetMap as a map provider, specify an API token via the environment variable `COAGULATE_MAPBOX_PUBLIC_TOKEN`.
 
