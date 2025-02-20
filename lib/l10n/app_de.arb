@@ -1,0 +1,11 @@
+{
+  "name": "Name",
+  "welcomeAppTitle": "Willkommen bei Coagulate",
+  "@welcomeAppTitle": {
+    "description": "App title for welcome screen."
+  },
+  "welcomeHeadline": "Willkommen!\nWie heißt du?",
+  "welcomeText": "Das ist die erste Information über dich, die du gleich selektiv mit anderen teilen kannst.",
+  "welcomeCallToActionButton": "Los geht's",
+  "welcomeErrorNameMissing": "Bitte gib deinen Namen ein."
+}

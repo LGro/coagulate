@@ -20,7 +20,7 @@ else
     ANDTMP=/tmp/andtmp_$(date +%s)
 fi
 cat <<EOF > $ANDTMP
-    ndkVersion '26.3.11579264'
+    ndkVersion '27.0.12077973'
 EOF
 sed -i '' -e "/android {/r $ANDTMP" $APPDIR/android/app/build.gradle
 rm -- $ANDTMP

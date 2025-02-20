@@ -87,6 +87,7 @@ icons_launcher:
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
     # Launcher icon
     - assets/launcher/icon.png

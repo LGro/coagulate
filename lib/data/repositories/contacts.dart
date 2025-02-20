@@ -96,7 +96,7 @@ List<T> filterContactDetailsList<T>(
   return updatedValues.values.asList();
 }
 
-List<int>? selectAvatar(Map<String, List<int>> avatars,
+List<int>? selectPicture(Map<String, List<int>> avatars,
         Map<String, int> activeCirclesWithMemberCount) =>
     avatars.entries
         .where((e) => activeCirclesWithMemberCount.containsKey(e.key))
@@ -107,12 +107,12 @@ List<int>? selectAvatar(Map<String, List<int>> avatars,
         ?.value;
 
 ContactDetails filterDetails(
-        Map<String, List<int>> avatars,
+        Map<String, List<int>> pictures,
         ContactDetails details,
         ProfileSharingSettings settings,
         Map<String, int> activeCirclesWithMemberCount) =>
     ContactDetails(
-      avatar: selectAvatar(avatars, activeCirclesWithMemberCount),
+      picture: selectPicture(pictures, activeCirclesWithMemberCount),
       publicKey: details.publicKey,
       names: filterNames(
           details.names, settings.names, activeCirclesWithMemberCount.keys),
@@ -178,11 +178,6 @@ CoagContactDHTSchema filterAccordingToSharingProfile(
       shareBackPubKey: dhtSettings.myKeyPair.key.toString(),
       ackHandshakeComplete: dhtSettings.theirPublicKey != null,
     );
-
-Map<String, dynamic> removeNullOrEmptyValues(Map<String, dynamic> json) {
-  // TODO: implement me; or implement custom schema for sharing payload
-  return json;
-}
 
 class ContactsRepository {
   ContactsRepository(this.persistentStorage, this.distributedStorage,
@@ -443,7 +438,7 @@ class ContactsRepository {
       }
 
       await distributedStorage.updateRecord(
-          contact.sharedProfile ?? '', contact.dhtSettings);
+          contact.sharedProfile, contact.dhtSettings);
     } on VeilidAPIException catch (e) {
       // TODO: Proper logging / other handling strategy / retry?
       if (kDebugMode) {
@@ -510,20 +505,18 @@ class ContactsRepository {
     }
 
     await saveContact(contact.copyWith(
-        sharedProfile: json.encode(removeNullOrEmptyValues(
-            filterAccordingToSharingProfile(
-                    profile: _profileInfo,
-                    // TODO: Also expose this view of the data from contacts repo?
-                    //       Seems to be used in different places.
-                    activeCirclesWithMemberCount: Map.fromEntries(
-                        (_circleMemberships[coagContactId] ?? []).map(
-                            (circleId) => MapEntry(
-                                circleId,
-                                _circleMemberships.values
-                                    .where((ids) => ids.contains(circleId))
-                                    .length))),
-                    dhtSettings: contact.dhtSettings)
-                .toJson()))));
+        sharedProfile: filterAccordingToSharingProfile(
+            profile: _profileInfo,
+            // TODO: Also expose this view of the data from contacts repo?
+            //       Seems to be used in different places.
+            activeCirclesWithMemberCount: Map.fromEntries(
+                (_circleMemberships[coagContactId] ?? []).map((circleId) =>
+                    MapEntry(
+                        circleId,
+                        _circleMemberships.values
+                            .where((ids) => ids.contains(circleId))
+                            .length))),
+            dhtSettings: contact.dhtSettings)));
   }
 
   Future<void> _dhtRecordUpdateCallback(Typed<FixedEncodedString43> key) async {

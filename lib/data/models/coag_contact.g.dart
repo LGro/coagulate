@@ -65,7 +65,7 @@ Map<String, dynamic> _$ContactDHTSettingsToJson(ContactDHTSettings instance) =>
 
 ContactDetails _$ContactDetailsFromJson(Map<String, dynamic> json) =>
     ContactDetails(
-      avatar: (json['avatar'] as List<dynamic>?)
+      picture: (json['picture'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
           .toList(),
       publicKey: json['public_key'] as String?,
@@ -105,7 +105,7 @@ ContactDetails _$ContactDetailsFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ContactDetailsToJson(ContactDetails instance) =>
     <String, dynamic>{
-      'avatar': instance.avatar,
+      'picture': instance.picture,
       'public_key': instance.publicKey,
       'names': instance.names,
       'phones': instance.phones.map((e) => e.toJson()).toList(),
@@ -177,7 +177,10 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
               .toList() ??
           const [],
       comment: json['comment'] as String? ?? '',
-      sharedProfile: json['shared_profile'] as String?,
+      sharedProfile: json['shared_profile'] == null
+          ? null
+          : CoagContactDHTSchemaV2.fromJson(
+              json['shared_profile'] as Map<String, dynamic>),
       mostRecentUpdate: json['most_recent_update'] == null
           ? null
           : DateTime.parse(json['most_recent_update'] as String),
@@ -198,7 +201,7 @@ Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
       'temporary_locations':
           instance.temporaryLocations.map((e) => e.toJson()).toList(),
       'dht_settings': instance.dhtSettings.toJson(),
-      'shared_profile': instance.sharedProfile,
+      'shared_profile': instance.sharedProfile?.toJson(),
       'most_recent_update': instance.mostRecentUpdate?.toIso8601String(),
       'most_recent_change': instance.mostRecentChange?.toIso8601String(),
     };

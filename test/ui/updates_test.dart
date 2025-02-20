@@ -9,25 +9,13 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('compare contact details', () {
     final resultSame = compareContacts(
-        ContactDetails(
-            displayName: 'd',
-            name: Name(first: 'f'),
-            emails: [Email('e@1.de')]),
-        ContactDetails(
-            displayName: 'd',
-            name: Name(first: 'f'),
-            emails: [Email('e@1.de')]));
+        ContactDetails(names: const {'0': 'a'}, emails: [Email('e@1.de')]),
+        ContactDetails(names: const {'0': 'a'}, emails: [Email('e@1.de')]));
     expect(resultSame, '');
 
     final resultDifferentEmail = compareContacts(
-        ContactDetails(
-            displayName: 'd',
-            name: Name(first: 'f'),
-            emails: [Email('e@1.de')]),
-        ContactDetails(
-            displayName: 'd',
-            name: Name(first: 'f'),
-            emails: [Email('e@2.de')]));
+        ContactDetails(names: const {'0': 'a'}, emails: [Email('e@1.de')]),
+        ContactDetails(names: const {'0': 'a'}, emails: [Email('e@2.de')]));
     expect(resultDifferentEmail, 'email addresses');
   });
 }

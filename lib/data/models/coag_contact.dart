@@ -1,6 +1,7 @@
 // Copyright 2024 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
@@ -116,7 +117,7 @@ class ContactDHTSettings extends Equatable {
 @JsonSerializable()
 class ContactDetails extends Equatable {
   const ContactDetails({
-    this.avatar,
+    this.picture,
     this.publicKey,
     this.names = const {},
     this.phones = const [],
@@ -130,7 +131,7 @@ class ContactDetails extends Equatable {
 
   // TODO: Can it backfire if we drop all names but the display name?
   ContactDetails.fromSystemContact(Contact c)
-      : avatar = c.photo?.toList(),
+      : picture = c.photo?.toList(),
         names = {'0': c.displayName},
         publicKey = null,
         phones = c.phones,
@@ -143,7 +144,7 @@ class ContactDetails extends Equatable {
 
   Contact toSystemContact(String displayName) => Contact(
       displayName: displayName,
-      photo: (avatar == null) ? null : Uint8List.fromList(avatar!),
+      photo: (picture == null) ? null : Uint8List.fromList(picture!),
       phones: phones,
       emails: emails,
       addresses: addresses,
@@ -156,7 +157,7 @@ class ContactDetails extends Equatable {
       _$ContactDetailsFromJson(json);
 
   /// Binary integer representation of an image
-  final List<int>? avatar;
+  final List<int>? picture;
 
   /// Public key for encrypting data
   final String? publicKey;
@@ -188,7 +189,7 @@ class ContactDetails extends Equatable {
   Map<String, dynamic> toJson() => _$ContactDetailsToJson(this);
 
   ContactDetails copyWith(
-          {List<int>? avatar,
+          {List<int>? picture,
           String? publicKey,
           Map<String, String>? names,
           List<Phone>? phones,
@@ -199,7 +200,7 @@ class ContactDetails extends Equatable {
           List<SocialMedia>? socialMedias,
           List<Event>? events}) =>
       ContactDetails(
-        avatar: avatar ?? this.avatar,
+        picture: picture ?? this.picture,
         publicKey: publicKey ?? this.publicKey,
         names: names ?? this.names,
         phones: phones ?? this.phones,
@@ -213,7 +214,7 @@ class ContactDetails extends Equatable {
 
   @override
   List<Object?> get props => [
-        avatar,
+        picture,
         publicKey,
         names,
         phones,
@@ -310,9 +311,8 @@ class CoagContact extends Equatable {
   /// Cryptographic keys and DHT record info for sharing with this contact
   final DhtSettings dhtSettings;
 
-  // TODO: Make this a proper type with toJson?
   /// Personalized selection of profile info that is shared with this contact
-  final String? sharedProfile;
+  final CoagContactDHTSchema? sharedProfile;
 
   // TODO: Move these two to contact details to also have the same for the system contact
   final DateTime? mostRecentUpdate;
@@ -356,7 +356,7 @@ class CoagContact extends Equatable {
     Map<int, ContactAddressLocation>? addressLocations,
     List<ContactTemporaryLocation>? temporaryLocations,
     DhtSettings? dhtSettings,
-    String? sharedProfile,
+    CoagContactDHTSchema? sharedProfile,
     DateTime? mostRecentUpdate,
     DateTime? mostRecentChange,
   }) =>
@@ -480,6 +480,9 @@ class CoagContactDHTSchemaV2 extends Equatable {
   late final DateTime? mostRecentUpdate;
 
   Map<String, dynamic> toJson() => _$CoagContactDHTSchemaV2ToJson(this);
+
+  String toJsonStringWithoutPicture() =>
+      jsonEncode(copyWith(details: details.copyWith(picture: [])).toJson());
 
   CoagContactDHTSchemaV2 copyWith({
     ContactDetails? details,

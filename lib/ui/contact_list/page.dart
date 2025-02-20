@@ -186,11 +186,11 @@ class _ContactListPageState extends State<ContactListPage> {
           itemBuilder: (context, i) {
             final contact = contacts[i];
             return ListTile(
-                leading: (contact.details?.avatar == null)
+                leading: (contact.details?.picture == null)
                     ? const CircleAvatar(radius: 18, child: Icon(Icons.person))
                     : CircleAvatar(
                         backgroundImage: MemoryImage(
-                            Uint8List.fromList(contact.details!.avatar!)),
+                            Uint8List.fromList(contact.details!.picture!)),
                         radius: 18,
                       ),
                 title: Text(contact.name),

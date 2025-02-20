@@ -95,8 +95,8 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
                             try {
                               final pickedFile = await ImagePicker().pickImage(
                                 source: ImageSource.gallery,
-                                maxWidth: 400,
-                                maxHeight: 400,
+                                maxWidth: 800,
+                                maxHeight: 800,
                                 imageQuality: 90,
                               );
                               if (context.mounted && pickedFile != null) {

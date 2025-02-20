@@ -7,6 +7,7 @@ import 'package:background_fetch/background_fetch.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -148,6 +149,8 @@ class AppRouter {
 }
 
 class CoagulateApp extends StatefulWidget {
+  const CoagulateApp({super.key});
+
   @override
   _CoagulateAppState createState() => _CoagulateAppState();
 }
@@ -267,7 +270,7 @@ class _CoagulateAppState extends State<CoagulateApp>
         if (_providedNameOnFirstLaunch == null ||
             _providedNameOnFirstLaunch!.isEmpty) {
           return MaterialApp(
-              title: 'Welcome to Coagulate',
+              title: 'Coagulate',
               themeMode: ThemeMode.system,
               theme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
@@ -278,6 +281,8 @@ class _CoagulateAppState extends State<CoagulateApp>
                     seedColor: Colors.indigo, brightness: Brightness.dark),
                 useMaterial3: true,
               ),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
               home: WelcomeScreen(_setFirstLaunchComplete));
         }
 
@@ -302,12 +307,8 @@ class _CoagulateAppState extends State<CoagulateApp>
             routeInformationProvider:
                 AppRouter().router.routeInformationProvider,
             routeInformationParser: AppRouter().router.routeInformationParser,
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [Locale('en'), Locale('de')],
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
           ),
         ));
       });

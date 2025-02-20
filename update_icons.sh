@@ -1,3 +1,3 @@
 #!/bin/bash
-flutter pub get
-dart run icons_launcher:create
+fvm flutter pub get
+fvm dart run icons_launcher:create

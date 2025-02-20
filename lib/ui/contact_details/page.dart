@@ -105,13 +105,13 @@ class ContactPage extends StatelessWidget {
       SingleChildScrollView(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        if (contact.details?.avatar != null)
+        if (contact.details?.picture != null)
           Center(
               child: Padding(
                   padding: const EdgeInsets.only(left: 12, top: 16, right: 12),
                   child: CircleAvatar(
                     backgroundImage: MemoryImage(
-                        Uint8List.fromList(contact.details!.avatar!)),
+                        Uint8List.fromList(contact.details!.picture!)),
                     radius: 48,
                   ))),
 
@@ -139,14 +139,16 @@ class ContactPage extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.primary))),
         Padding(
-            padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+            padding: const EdgeInsets.only(left: 16, top: 8, right: 16),
             child: TextFormField(
               key: const Key('contactDetailsNoteInput'),
+
               onTapOutside: (event) async => context
                   .read<ContactDetailsCubit>()
                   .updateComment(_contactCommentController.text),
               controller: _contactCommentController..text = contact.comment,
               decoration: const InputDecoration(
+                isDense: true,
                 border: OutlineInputBorder(),
                 helperText:
                     'This note is just for you and never shared with anyone.',
@@ -242,7 +244,7 @@ List<Widget> _contactDetailsAndLocations(
       if (contact.details?.names.isNotEmpty ?? false)
         detailsList<String>(
           contact.details!.names.values.toList(),
-          title: const Text('Names'),
+          title: Text('Name${(contact.details!.names.length == 1) ? '' : 's'}'),
           getValue: (v) => v,
           // This doesn't do anything when hideLabel, maybe it can be optional
           getLabel: (v) => v,
@@ -308,31 +310,18 @@ Widget _sharingSettings(
     Card(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _circlesCard(context, contact.coagContactId, circleNames),
-
       if (circleNames.isNotEmpty &&
           contact.dhtSettings.writerMeSharing != null &&
           contact.dhtSettings.initialSecret != null &&
-          contact.sharedProfile != null &&
-          contact.sharedProfile!.isNotEmpty) ...[
+          contact.sharedProfile != null) ...[
         _paddedDivider(),
         _connectingCard(context, contact),
       ],
-
-      if (circleNames.isNotEmpty &&
-          contact.sharedProfile != null &&
-          contact.sharedProfile!.isNotEmpty) ...[
+      if (circleNames.isNotEmpty && contact.sharedProfile != null) ...[
         _paddedDivider(),
-        ..._displayDetails(CoagContactDHTSchema.fromJson(
-                json.decode(contact.sharedProfile!) as Map<String, dynamic>)
-            .details),
+        ..._displayDetails(contact.sharedProfile!.details),
       ],
-      // TODO: Switch to a schema instance instead of a string as the sharedProfile? Or at least offer a method to conveniently get it
-      if (contact.sharedProfile != null &&
-          contact.sharedProfile!.isNotEmpty &&
-          CoagContactDHTSchema.fromJson(
-                  json.decode(contact.sharedProfile!) as Map<String, dynamic>)
-              .temporaryLocations
-              .isNotEmpty) ...[
+      if (contact.sharedProfile?.temporaryLocations.isNotEmpty ?? false) ...[
         _paddedDivider(),
         _temporaryLocationsCard(
             const Row(children: [
@@ -340,9 +329,7 @@ Widget _sharingSettings(
               SizedBox(width: 8),
               Text('Shared locations', textScaler: TextScaler.linear(1.2))
             ]),
-            CoagContactDHTSchema.fromJson(
-                    json.decode(contact.sharedProfile!) as Map<String, dynamic>)
-                .temporaryLocations),
+            contact.sharedProfile!.temporaryLocations),
         Padding(
             padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
             child: Text('These current and future locations are available to '
@@ -387,13 +374,8 @@ Widget _connectingCard(BuildContext context, CoagContact contact) =>
                   qrCodeData: _shareUrl(
                     key: contact.dhtSettings.recordKeyMeSharing.toString(),
                     psk: contact.dhtSettings.initialSecret.toString(),
-                    name: CoagContactDHTSchema.fromJson(
-                            json.decode(contact.sharedProfile!)
-                                as Map<String, dynamic>)
-                        .details
-                        .names
-                        .values
-                        .firstOrNull,
+                    name:
+                        contact.sharedProfile!.details.names.values.firstOrNull,
                   ).toString()),
               // TextButton(
               //   child: const Row(
@@ -427,12 +409,12 @@ Iterable<Widget> _displayDetails(ContactDetails details) => [
       Center(
           child: Padding(
               padding: const EdgeInsets.only(left: 12, top: 4, right: 12),
-              child: (details.avatar == null)
+              child: (details.picture == null)
                   ? const CircleAvatar(radius: 48, child: Icon(Icons.person))
                   : CircleAvatar(
                       radius: 48,
                       backgroundImage:
-                          MemoryImage(Uint8List.fromList(details.avatar!)),
+                          MemoryImage(Uint8List.fromList(details.picture!)),
                     ))),
       if (details.names.isNotEmpty)
         detailsList<String>(

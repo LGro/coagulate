@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'utils.dart';
 
 class WelcomeScreen extends StatefulWidget {
   WelcomeScreen(this.setNameCallback);
@@ -18,7 +19,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       await widget.setNameCallback(_nameController.text.trim());
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your name.')),
+        SnackBar(content: Text(context.loc.welcomeErrorNameMissing)),
       );
     }
   }
@@ -31,22 +32,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                "Welcome!\nWhat's your name?",
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              Text(
+                context.loc.welcomeHeadline,
+                style:
+                    const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'This is the first bit of personal information that you can '
-                'selectively share with others in a moment.',
-                style: TextStyle(fontSize: 16),
-              ),
+              Text(context.loc.welcomeText,
+                  style: const TextStyle(fontSize: 16)),
               const SizedBox(height: 24),
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.loc.name,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
@@ -54,7 +53,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 alignment: Alignment.centerRight,
                 child: FilledButton(
                   onPressed: _onSubmit,
-                  child: const Text("Let's coagulate"),
+                  child: Text(context.loc.welcomeCallToActionButton),
                 ),
               ),
             ],
