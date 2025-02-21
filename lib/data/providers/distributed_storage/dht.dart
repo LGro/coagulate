@@ -256,7 +256,7 @@ class VeilidDhtStorage extends DistributedStorage {
         psk: contact.dhtSettings.initialSecret,
         publicKey: contact.dhtSettings.theirPublicKey,
         keyPair: contact.dhtSettings.myKeyPair);
-    if (contactJson?.isEmpty ?? false) {
+    if (contactJson?.isEmpty ?? true) {
       return null;
     }
     final dhtContact = CoagContactDHTSchema.fromJson(

@@ -20,16 +20,16 @@ class ContactUpdate extends Equatable {
       _$ContactUpdateFromJson(json);
 
   final String? coagContactId;
-  final ContactDetails oldContact;
-  final ContactDetails newContact;
+  final CoagContact oldContact;
+  final CoagContact newContact;
   final DateTime timestamp;
 
   Map<String, dynamic> toJson() => _$ContactUpdateToJson(this);
 
   ContactUpdate copyWith({
     String? coagContactId,
-    ContactDetails? oldContact,
-    ContactDetails? newContact,
+    CoagContact? oldContact,
+    CoagContact? newContact,
     DateTime? timestamp,
   }) =>
       ContactUpdate(

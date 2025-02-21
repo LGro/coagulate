@@ -112,7 +112,7 @@ class ContactPage extends StatelessWidget {
                   child: CircleAvatar(
                     backgroundImage: MemoryImage(
                         Uint8List.fromList(contact.details!.picture!)),
-                    radius: 48,
+                    radius: 64,
                   ))),
 
         // Contact details
@@ -313,7 +313,8 @@ Widget _sharingSettings(
       if (circleNames.isNotEmpty &&
           contact.dhtSettings.writerMeSharing != null &&
           contact.dhtSettings.initialSecret != null &&
-          contact.sharedProfile != null) ...[
+          contact.sharedProfile != null &&
+          !contact.dhtSettings.theyAckHandshakeComplete) ...[
         _paddedDivider(),
         _connectingCard(context, contact),
       ],
@@ -340,17 +341,22 @@ Widget _sharingSettings(
 
 Widget _temporaryLocationsCard(
         Widget title, List<ContactTemporaryLocation> locations) =>
-    Padding(
-        padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          title,
-          ...locations
-              .where((l) => l.end.isAfter(DateTime.now()))
-              .map((l) => Padding(
-                  padding: const EdgeInsets.only(left: 8, right: 8),
-                  child: locationTile(l)))
-              .asList(),
-        ]));
+    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+          padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
+          child: title),
+      Padding(
+          padding: const EdgeInsets.only(left: 4, right: 4, top: 4),
+          child: Card(
+              child: Column(
+                  children: locations
+                      .where((l) => l.end.isAfter(DateTime.now()))
+                      .map((l) => Padding(
+                          padding: const EdgeInsets.only(
+                              left: 16, right: 16, bottom: 4),
+                          child: locationTile(l)))
+                      .asList())))
+    ]);
 
 Widget _connectingCard(BuildContext context, CoagContact contact) =>
     Stack(children: [

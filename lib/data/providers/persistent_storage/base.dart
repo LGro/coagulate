@@ -3,7 +3,6 @@
 
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
-import '../../models/profile_sharing_settings.dart';
 
 abstract class PersistentStorage {
   Future<CoagContact> getContact(String coagContactId);

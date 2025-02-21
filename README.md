@@ -38,6 +38,10 @@ Based on the Gemfile of this repo, you can get fastlane with
 bundle update
 ```
 
+### Misc
+
+For iOS when changing e.g. the `IPHONEOS_DEPLOYMENT_TARGET`, cd into `ios/` and run `pod update`.
+
 ## User Stories
 
 ### Open app first time

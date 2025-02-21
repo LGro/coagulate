@@ -89,15 +89,44 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     final name = (components.length == 4) ? components[0] : null;
     final iKey = (components.length == 4) ? 1 : 0;
     final iPsk = (components.length == 4) ? 3 : 2;
+    final recordKey = Typed<FixedEncodedString43>.fromString(
+        '${components[iKey]}:${components[iKey + 1]}');
 
+    // If we're already receiving from that record, redirect to existing contact
+    final existingContactsThemSharing = contactsRepository
+        .getContacts()
+        .values
+        .where((c) => c.dhtSettings.recordKeyThemSharing == recordKey);
+    if (existingContactsThemSharing.isNotEmpty) {
+      if (!isClosed) {
+        emit(state.copyWith(
+            status: ReceiveRequestStatus.success,
+            profile: existingContactsThemSharing.first));
+      }
+      return;
+    }
+
+    // If I accidentally scanned my own QR code, don't add a contact
+    final existingContactsMeSharing = contactsRepository
+        .getContacts()
+        .values
+        .where((c) => c.dhtSettings.recordKeyMeSharing == recordKey);
+    if (existingContactsMeSharing.isNotEmpty) {
+      if (!isClosed) {
+        // TODO: Provide error feedback
+        emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+      }
+      return;
+    }
+
+    // Otherwise, add new contact with the information we already have
     final contact = CoagContact(
         coagContactId: Uuid().v4(),
         // TODO: localize default to language
         name: name ?? 'unknown',
         // TODO: Handle fromString parsing errors
         dhtSettings: DhtSettings(
-            recordKeyThemSharing: Typed<FixedEncodedString43>.fromString(
-                '${components[iKey]}:${components[iKey + 1]}'),
+            recordKeyThemSharing: recordKey,
             initialSecret: FixedEncodedString43.fromString(components[iPsk]),
             myKeyPair: await DHTRecordPool.instance.veilid
                 .bestCryptoSystem()
@@ -105,8 +134,8 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
                     .generateKeyPair()
                     .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)))));
 
-    // TODO: Check if there are situations where this is called multiple times,
-    //       resulting in duplicate contact creation
+    // Save contact and trigger optional DHT update if connected, this allows
+    // to scan a QR code offline and fetch data later if not available now
     await contactsRepository.saveContact(contact);
     unawaited(contactsRepository.updateContactFromDHT(contact));
     if (!isClosed) {

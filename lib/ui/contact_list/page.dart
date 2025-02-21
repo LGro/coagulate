@@ -5,13 +5,14 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:veilid/veilid.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
-import '../../ui/profile/cubit.dart';
 import '../contact_details/page.dart';
 import '../create_new_contact/page.dart';
 import '../receive_request/page.dart';
+import '../widgets/dht_sharing_status/widget.dart';
 import 'cubit.dart';
 
 class ContactListPage extends StatefulWidget {
@@ -22,6 +23,68 @@ class ContactListPage extends StatefulWidget {
 }
 
 class _ContactListPageState extends State<ContactListPage> {
+  Widget _noContactsBody() => Padding(
+      padding: const EdgeInsets.only(left: 8, right: 8),
+      child: Column(children: [
+        const SizedBox(height: 8),
+        const Text('Add your first contact.',
+            textScaler: TextScaler.linear(1.4)),
+        const SizedBox(height: 24),
+        const Text('Invite someone', textScaler: TextScaler.linear(1.2)),
+        const SizedBox(height: 8),
+        Center(
+            child: FilledButton(
+                child: const Text('Create invite'),
+                onPressed: () async {
+                  await Navigator.of(context).push(
+                      MaterialPageRoute<CreateNewContactPage>(
+                          builder: (_) => CreateNewContactPage()));
+                })),
+        const SizedBox(height: 8),
+        const Text('or accept an invite you received',
+            textScaler: TextScaler.linear(1.2)),
+        const SizedBox(height: 8),
+        Center(
+            child: FilledButton(
+                child: const Text('Accept invite'),
+                onPressed: () async {
+                  await Navigator.of(context).push(
+                      MaterialPageRoute<ReceiveRequestPage>(
+                          builder: (_) => const ReceiveRequestPage()));
+                })),
+      ]));
+
+  Widget _contactsBody(BuildContext context, ContactListState state) =>
+      Column(children: [
+        _searchBar(context, state),
+        const SizedBox(height: 10),
+        Expanded(
+            child: _body(state.contacts.toList(), state.circleMemberships)),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          FilledButton(
+              child: const Text('Create invite'),
+              onPressed: () async {
+                await Navigator.of(context).push(
+                    MaterialPageRoute<CreateNewContactPage>(
+                        builder: (_) => CreateNewContactPage()));
+              }),
+          FilledButton(
+              child: const Text('Accept invite'),
+              onPressed: () async {
+                await Navigator.of(context).push(
+                    MaterialPageRoute<ReceiveRequestPage>(
+                        builder: (_) => const ReceiveRequestPage()));
+              }),
+        ]),
+        Row(children: [
+          Center(
+              child: DhtSharingStatusWidget(
+                  recordKeys: state.contacts
+                      .map((c) => c.dhtSettings.recordKeyMeSharing)
+                      .whereType<Typed<FixedEncodedString43>>()))
+        ]),
+      ]);
+
   @override
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(title: const Text('Contacts')),
@@ -30,88 +93,14 @@ class _ContactListPageState extends State<ContactListPage> {
             BlocProvider(
                 create: (context) =>
                     ContactListCubit(context.read<ContactsRepository>())),
-            BlocProvider(
-                create: (context) =>
-                    ProfileCubit(context.read<ContactsRepository>())),
           ],
           child: BlocConsumer<ContactListCubit, ContactListState>(
               listener: (context, state) async {},
-              builder: (context, state) => BlocConsumer<ProfileCubit,
-                      ProfileState>(
-                  listener: (_, __) async {},
-                  builder: (_, profileContactState) => Container(
-                      padding: const EdgeInsets.all(10),
-                      child: (state.contacts.isEmpty)
-                          ? Padding(
-                              padding: const EdgeInsets.only(left: 8, right: 8),
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const SizedBox(height: 8),
-                                    const Text('Add your first contact.',
-                                        textScaler: TextScaler.linear(1.4)),
-                                    const SizedBox(height: 24),
-                                    const Text('Invite someone',
-                                        textScaler: TextScaler.linear(1.2)),
-                                    const SizedBox(height: 8),
-                                    Align(
-                                        alignment: Alignment.center,
-                                        child: FilledButton(
-                                            child: const Text('Create invite'),
-                                            onPressed: () async {
-                                              await Navigator.of(context).push(
-                                                  MaterialPageRoute<
-                                                          CreateNewContactPage>(
-                                                      builder: (_) =>
-                                                          CreateNewContactPage()));
-                                            })),
-                                    const SizedBox(height: 8),
-                                    const Text(
-                                        'or accept an invite you received',
-                                        textScaler: TextScaler.linear(1.2)),
-                                    const SizedBox(height: 8),
-                                    Align(
-                                        alignment: Alignment.center,
-                                        child: FilledButton(
-                                            child: const Text('Accept invite'),
-                                            onPressed: () async {
-                                              await Navigator.of(context).push(
-                                                  MaterialPageRoute<
-                                                          ReceiveRequestPage>(
-                                                      builder: (_) =>
-                                                          const ReceiveRequestPage()));
-                                            })),
-                                  ]))
-                          : Column(children: [
-                              _searchBar(context, state),
-                              const SizedBox(height: 10),
-                              Expanded(
-                                  child: _body(state.contacts.toList(),
-                                      state.circleMemberships)),
-                              Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    FilledButton(
-                                        child: const Text('Create invite'),
-                                        onPressed: () async {
-                                          await Navigator.of(context).push(
-                                              MaterialPageRoute<
-                                                      CreateNewContactPage>(
-                                                  builder: (_) =>
-                                                      CreateNewContactPage()));
-                                        }),
-                                    FilledButton(
-                                        child: const Text('Accept invite'),
-                                        onPressed: () async {
-                                          await Navigator.of(context).push(
-                                              MaterialPageRoute<
-                                                      ReceiveRequestPage>(
-                                                  builder: (_) =>
-                                                      const ReceiveRequestPage()));
-                                        }),
-                                  ]),
-                            ]))))));
+              builder: (context, state) => Container(
+                  padding: const EdgeInsets.all(10),
+                  child: (state.contacts.isEmpty)
+                      ? _noContactsBody()
+                      : _contactsBody(context, state)))));
 
   Widget _searchBar(BuildContext context, ContactListState state) =>
       Row(children: [

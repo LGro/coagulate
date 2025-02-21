@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:rxdart/subjects.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:veilid_support/veilid_support.dart';
 
@@ -179,6 +177,18 @@ CoagContactDHTSchema filterAccordingToSharingProfile(
       ackHandshakeComplete: dhtSettings.theirPublicKey != null,
     );
 
+Iterable<ContactUpdate> selectUniqueUpdates(Iterable<ContactUpdate> updates) {
+  final selectedUpdates = <int, ContactUpdate>{};
+
+  for (final u in updates) {
+    if (!selectedUpdates.containsKey(u.newContact.hashCode)) {
+      selectedUpdates[u.newContact.hashCode] = u;
+    }
+  }
+
+  return selectedUpdates.values;
+}
+
 class ContactsRepository {
   ContactsRepository(this.persistentStorage, this.distributedStorage,
       this.systemContactsStorage, this.initialName,
@@ -320,8 +330,20 @@ class ContactsRepository {
         await _saveUpdate(ContactUpdate(
             // TODO: contact details can be null; handle this more appropriately than the current workaround with empty details
             coagContactId: contact.coagContactId,
-            oldContact: contact.details ?? const ContactDetails(),
-            newContact: updatedContact.details ?? const ContactDetails(),
+            oldContact: CoagContact(
+                coagContactId: contact.coagContactId,
+                name: contact.name,
+                dhtSettings: contact.dhtSettings.copyWith(),
+                details: contact.details?.copyWith(),
+                temporaryLocations: [...contact.temporaryLocations],
+                addressLocations: {...contact.addressLocations}),
+            newContact: CoagContact(
+                coagContactId: updatedContact.coagContactId,
+                name: updatedContact.name,
+                dhtSettings: updatedContact.dhtSettings.copyWith(),
+                details: updatedContact.details?.copyWith(),
+                temporaryLocations: [...updatedContact.temporaryLocations],
+                addressLocations: {...updatedContact.addressLocations}),
             timestamp: DateTime.now()));
 
         await saveContact(updatedContact.copyWith(
@@ -673,5 +695,7 @@ class ContactsRepository {
     await persistentStorage.addUpdate(update);
   }
 
-  List<ContactUpdate> getContactUpdates() => [..._contactUpdates];
+  // TODO: Also clean up unnecessary updates from persistent storage
+  List<ContactUpdate> getContactUpdates() =>
+      selectUniqueUpdates(_contactUpdates).toList();
 }

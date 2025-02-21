@@ -10,9 +10,9 @@ ContactUpdate _$ContactUpdateFromJson(Map<String, dynamic> json) =>
     ContactUpdate(
       coagContactId: json['coag_contact_id'] as String?,
       oldContact:
-          ContactDetails.fromJson(json['old_contact'] as Map<String, dynamic>),
+          CoagContact.fromJson(json['old_contact'] as Map<String, dynamic>),
       newContact:
-          ContactDetails.fromJson(json['new_contact'] as Map<String, dynamic>),
+          CoagContact.fromJson(json['new_contact'] as Map<String, dynamic>),
       timestamp: DateTime.parse(json['timestamp'] as String),
     );
 

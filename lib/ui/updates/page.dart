@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
@@ -26,55 +26,78 @@ String formatTimeDifference(Duration d) {
   return '${d.inDays}d';
 }
 
-String compareContacts(ContactDetails oldContact, ContactDetails newContact) {
+String compareContacts(CoagContact oldContact, CoagContact newContact) {
   final results = <String>[];
 
-  if (oldContact.names != newContact.names) {
-    results.add('name');
+  final oldDetails = oldContact.details ?? const ContactDetails();
+  final newDetails = newContact.details ?? const ContactDetails();
+
+  if (!(oldDetails.picture ?? []).equals(newDetails.picture ?? [])) {
+    results.add('picture');
   }
 
-  if (!const ListEquality<Email>()
-      .equals(oldContact.emails, newContact.emails)) {
-    results.add('email addresses');
+  if (oldDetails.names.values
+          .toSet()
+          .difference(newDetails.names.values.toSet())
+          .isNotEmpty ||
+      newDetails.names.values
+          .toSet()
+          .difference(oldDetails.names.values.toSet())
+          .isNotEmpty) {
+    results.add('names');
   }
 
-  if (!const ListEquality<Address>()
-      .equals(oldContact.addresses, newContact.addresses)) {
+  if (!oldDetails.emails.equals(newDetails.emails)) {
+    results.add('emails');
+  }
+
+  if (!oldDetails.addresses.equals(newDetails.addresses)) {
     results.add('addresses');
   }
 
-  if (!const ListEquality<Phone>()
-      .equals(oldContact.phones, newContact.phones)) {
-    results.add('phone numbers');
+  if (!oldDetails.phones.equals(newDetails.phones)) {
+    results.add('phones');
   }
 
-  if (!const ListEquality<Website>()
-      .equals(oldContact.websites, newContact.websites)) {
+  if (!oldDetails.websites.equals(newDetails.websites)) {
     results.add('websites');
   }
 
-  if (!const ListEquality<SocialMedia>()
-      .equals(oldContact.socialMedias, newContact.socialMedias)) {
-    results.add('social media');
+  if (!oldDetails.socialMedias.equals(newDetails.socialMedias)) {
+    results.add('socials');
   }
 
-  if (!const ListEquality<Organization>()
-      .equals(oldContact.organizations, newContact.organizations)) {
+  if (!oldDetails.organizations.equals(newDetails.organizations)) {
     results.add('organizations');
   }
 
-  if (!const ListEquality<Event>()
-      .equals(oldContact.events, newContact.events)) {
+  if (!oldDetails.events.equals(newDetails.events)) {
     results.add('events');
+  }
+
+  // TODO: Make this consistent with the yesterday filtering we do elsewhere?
+  if (!oldContact.temporaryLocations
+      .where((l) => l.end.isAfter(DateTime.now()))
+      .toList()
+      .equals(newContact.temporaryLocations
+          .where((l) => l.end.isAfter(DateTime.now()))
+          .toList())) {
+    results.add('locations');
   }
 
   return results.join(', ');
 }
 
 Widget updateTile(String name, String timing, String change,
-        {required void Function()? onTap}) =>
+        {required void Function()? onTap, List<int>? picture}) =>
     ListTile(
         onTap: onTap,
+        leading: (picture == null)
+            ? const CircleAvatar(radius: 18, child: Icon(Icons.person))
+            : CircleAvatar(
+                backgroundImage: MemoryImage(Uint8List.fromList(picture)),
+                radius: 18,
+              ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -123,11 +146,14 @@ class UpdatesPage extends StatelessWidget {
                                     'No updates yet, share with others or ask others to share with you!',
                                     style: TextStyle(fontSize: 16)))
                           ]
-                        : state.updates
+                        : selectUniqueUpdates(state.updates)
                             .map((u) => updateTile(
-                                (u.oldContact.names.isNotEmpty)
-                                    ? u.oldContact.names.values.join(',')
-                                    : u.newContact.names.values.join(', '),
+                                (u.oldContact.details?.names.isNotEmpty ??
+                                        false)
+                                    ? u.oldContact.details!.names.values
+                                        .join(' / ')
+                                    : u.newContact.details!.names.values
+                                        .join(' / '),
                                 formatTimeDifference(
                                     DateTime.now().difference(u.timestamp)),
                                 compareContacts(u.oldContact, u.newContact),
@@ -144,7 +170,8 @@ class UpdatesPage extends StatelessWidget {
                                         }
                                         unawaited(Navigator.push(context,
                                             ContactPage.route(contact)));
-                                      }))
+                                      },
+                                picture: u.newContact.details?.picture))
                             .toList(),
                     // updateTile(
                     //     'Ronja Dudeli van Makolle Longname The Fourth',
