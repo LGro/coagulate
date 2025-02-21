@@ -76,12 +76,11 @@ class _ContactListPageState extends State<ContactListPage> {
                         builder: (_) => const ReceiveRequestPage()));
               }),
         ]),
-        Row(children: [
-          Center(
-              child: DhtSharingStatusWidget(
-                  recordKeys: state.contacts
-                      .map((c) => c.dhtSettings.recordKeyMeSharing)
-                      .whereType<Typed<FixedEncodedString43>>()))
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          DhtSharingStatusWidget(
+              recordKeys: state.contacts
+                  .map((c) => c.dhtSettings.recordKeyMeSharing)
+                  .whereType<Typed<FixedEncodedString43>>())
         ]),
       ]);
 

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../veilid_processor/views/signal_strength_meter.dart';
+import '../widgets/veilid_status/widget.dart';
 import 'cubit.dart';
 import 'licenses/page.dart';
 
@@ -26,8 +27,8 @@ class SettingsPage extends StatelessWidget {
                     const ListTile(
                         title: Text('Network status'),
                         trailing: Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: SignalStrengthMeterWidget())),
+                            padding: EdgeInsets.only(right: 4),
+                            child: VeilidStatusWidget(statusWidgets: {}))),
                     ListTile(
                         title: const Text('Automatic address resolution'),
                         trailing: Switch(

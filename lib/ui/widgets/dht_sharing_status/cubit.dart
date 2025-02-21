@@ -49,8 +49,11 @@ class DhtSharingStatusCubit extends Cubit<DhtSharingStatusState> {
         offlineSubkeysPerContact.whereType<int>().fold(0, (a, b) => a + b);
 
     if (!isClosed) {
+      // TODO: Move rendering to widget
       return emit(DhtSharingStatusState(
-          '$numOfflineSubkeys / $numUnknown / $numSubkeys'));
+          '${((1 - (numOfflineSubkeys / numSubkeys)) * 100).round()}% synced / '
+          '${((numUnknown / numSubkeys) * 100).round()}% unknown / '
+          '$numSubkeys subkeys total'));
     }
   }
 

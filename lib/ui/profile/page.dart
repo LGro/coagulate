@@ -1073,27 +1073,28 @@ class ProfileViewState extends State<ProfileView> {
 
         // TODO: Do one of these per name and include the name?
         // TODO: Also feature this as an option on the create invite page?
-        _card(
-            Text('Public invite link',
-                textScaler: const TextScaler.linear(1.4),
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary)),
-            [
-              const Text('You can add the following link to your social media '
-                  'profiles, website, e-mail signature or any place where you '
-                  'want to show others an opportunity to connect with you via '
-                  'Coagulate. Others can use this link to generate a personal '
-                  'sharing offer for you that they can send you through '
-                  'existing means of communication.'),
-              Row(children: [
-                const Text('https://coagulate.social/c/#PUBKEY'),
-                IconButton(
-                    onPressed: () async =>
-                        Share.share('https://coagulate.social/c/#PUBKEY'),
-                    icon: const Icon(Icons.copy)),
-              ]),
-            ]),
+        // _card(
+        //     Text('Public invite link',
+        //         textScaler: const TextScaler.linear(1.4),
+        //         style: TextStyle(
+        //             fontWeight: FontWeight.bold,
+        //             color: Theme.of(context).colorScheme.primary)),
+        //     [
+        //       const SizedBox(height: 4),
+        //       const Text('You can add the following link to your social media '
+        //           'profiles, website, e-mail signature or any place where you '
+        //           'want to show others an opportunity to connect with you via '
+        //           'Coagulate. Others can use this link to generate a personal '
+        //           'sharing offer for you that they can send you through '
+        //           'existing means of communication.'),
+        //       Row(children: [
+        //         const Text('https://coagulate.social/c/#PUBKEY'),
+        //         IconButton(
+        //             onPressed: () async =>
+        //                 Share.share('https://coagulate.social/c/#PUBKEY'),
+        //             icon: const Icon(Icons.copy)),
+        //       ]),
+        //     ]),
       ]);
 
   Widget _scaffoldBody(ProfileState state) => CustomScrollView(slivers: [
