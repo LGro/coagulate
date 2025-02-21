@@ -44,7 +44,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: context.loc.name,
+                  labelText: context.loc.name.capitalize(),
                   border: const OutlineInputBorder(),
                 ),
               ),

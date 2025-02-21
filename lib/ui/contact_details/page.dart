@@ -243,6 +243,7 @@ List<Widget> _contactDetailsAndLocations(
       // Contact details
       if (contact.details?.names.isNotEmpty ?? false)
         detailsList<String>(
+          context,
           contact.details!.names.values.toList(),
           title: Text('Name${(contact.details!.names.length == 1) ? '' : 's'}'),
           getValue: (v) => v,
@@ -252,6 +253,7 @@ List<Widget> _contactDetailsAndLocations(
         ),
       if (contact.details?.phones.isNotEmpty ?? false)
         detailsList<flutter_contacts.Phone>(
+          context,
           contact.details!.phones,
           title: const Text('Phones'),
           getLabel: (v) =>
@@ -260,6 +262,7 @@ List<Widget> _contactDetailsAndLocations(
         ),
       if (contact.details?.emails.isNotEmpty ?? false)
         detailsList<flutter_contacts.Email>(
+          context,
           contact.details!.emails,
           title: const Text('E-Mails'),
           getLabel: (v) =>
@@ -268,6 +271,7 @@ List<Widget> _contactDetailsAndLocations(
         ),
       if (contact.details?.addresses.isNotEmpty ?? false)
         detailsList<flutter_contacts.Address>(
+          context,
           contact.details!.addresses,
           title: const Text('Addresses'),
           getLabel: (v) =>
@@ -276,6 +280,7 @@ List<Widget> _contactDetailsAndLocations(
         ),
       if (contact.details?.socialMedias.isNotEmpty ?? false)
         detailsList<flutter_contacts.SocialMedia>(
+          context,
           contact.details!.socialMedias,
           title: const Text('Socials'),
           getLabel: (v) =>
@@ -284,6 +289,7 @@ List<Widget> _contactDetailsAndLocations(
         ),
       if (contact.details?.websites.isNotEmpty ?? false)
         detailsList<flutter_contacts.Website>(
+          context,
           contact.details!.websites,
           title: const Text('Websites'),
           getLabel: (v) =>
@@ -320,7 +326,7 @@ Widget _sharingSettings(
       ],
       if (circleNames.isNotEmpty && contact.sharedProfile != null) ...[
         _paddedDivider(),
-        ..._displayDetails(contact.sharedProfile!.details),
+        ..._displayDetails(context, contact.sharedProfile!.details),
       ],
       if (contact.sharedProfile?.temporaryLocations.isNotEmpty ?? false) ...[
         _paddedDivider(),
@@ -404,7 +410,9 @@ Widget _connectingCard(BuildContext context, CoagContact contact) =>
             ]))
     ]);
 
-Iterable<Widget> _displayDetails(ContactDetails details) => [
+Iterable<Widget> _displayDetails(
+        BuildContext context, ContactDetails details) =>
+    [
       const Padding(
           padding: EdgeInsets.only(top: 8, left: 12, right: 12, bottom: 8),
           child: Row(children: [
@@ -424,6 +432,7 @@ Iterable<Widget> _displayDetails(ContactDetails details) => [
                     ))),
       if (details.names.isNotEmpty)
         detailsList<String>(
+          context,
           details.names.values.toList(),
           title: const Text('Names'),
           getValue: (v) => v,
@@ -433,6 +442,7 @@ Iterable<Widget> _displayDetails(ContactDetails details) => [
         ),
       if (details.phones.isNotEmpty)
         detailsList<flutter_contacts.Phone>(
+          context,
           details.phones,
           title: const Text('Phones'),
           getLabel: (v) =>
@@ -441,6 +451,7 @@ Iterable<Widget> _displayDetails(ContactDetails details) => [
         ),
       if (details.emails.isNotEmpty)
         detailsList<flutter_contacts.Email>(
+          context,
           details.emails,
           title: const Text('E-Mails'),
           getLabel: (v) =>
@@ -449,6 +460,7 @@ Iterable<Widget> _displayDetails(ContactDetails details) => [
         ),
       if (details.addresses.isNotEmpty)
         detailsList<flutter_contacts.Address>(
+          context,
           details.addresses,
           title: const Text('Addresses'),
           getLabel: (v) =>
@@ -457,6 +469,7 @@ Iterable<Widget> _displayDetails(ContactDetails details) => [
         ),
       if (details.socialMedias.isNotEmpty)
         detailsList<flutter_contacts.SocialMedia>(
+          context,
           details.socialMedias,
           title: const Text('Socials'),
           getLabel: (v) =>
@@ -465,6 +478,7 @@ Iterable<Widget> _displayDetails(ContactDetails details) => [
         ),
       if (details.websites.isNotEmpty)
         detailsList<flutter_contacts.Website>(
+          context,
           details.websites,
           title: const Text('Websites'),
           getLabel: (v) =>

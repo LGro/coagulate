@@ -182,23 +182,34 @@ class _ContactListPageState extends State<ContactListPage> {
                         radius: 18,
                       ),
                 title: Text(contact.name),
-                trailing: Text(contactSharingReceivingStatus(
+                trailing: contactSharingReceivingStatus(
                     contact,
                     circleMemberships[contact.coagContactId]?.isNotEmpty ??
-                        false)),
+                        false),
                 onTap: () async =>
                     Navigator.of(context).push(ContactPage.route(contact)));
           });
 }
 
-String contactSharingReceivingStatus(
+Widget? contactSharingReceivingStatus(
     CoagContact contact, bool isMemberAnyCircle) {
-  var status = '';
-  if (contact.dhtSettings.recordKeyMeSharing != null && isMemberAnyCircle) {
-    status = 'S';
+  // Me and them are sharing
+  if (contact.dhtSettings.theyAckHandshakeComplete) {
+    return const Icon(Icons.done_all);
   }
-  if (contact.details != null) {
-    status = 'R$status';
+  // I'm sharing but they aren't sharing back
+  if (contact.dhtSettings.recordKeyMeSharing != null &&
+      contact.dhtSettings.theirPublicKey == null) {
+    return const Icon(Icons.call_made);
   }
-  return status;
+  // They're sharing but I'm not sharing back
+  if (contact.dhtSettings.theirPublicKey != null && !isMemberAnyCircle) {
+    return const Icon(Icons.call_received);
+  }
+  // We're both sharing, but haven't received the ack
+  if (contact.dhtSettings.recordKeyMeSharing != null &&
+      contact.dhtSettings.recordKeyThemSharing != null) {
+    return const Icon(Icons.done);
+  }
+  return null;
 }

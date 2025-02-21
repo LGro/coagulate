@@ -1,5 +1,24 @@
 {
+  "edit": "bearbeiten",
+  "add": "hinzufügen",
+  "cancel": "abbrechen",
+  "save": "speichern",
   "name": "Name",
+  "names": "Namen",
+  "phone": "Telefonnummer",
+  "phoneNumber": "Telefonnummer",
+  "phones": "Telefonnummern",
+  "emails": "E-Mails",
+  "emailAddress": "E-Mail Adresse",
+  "addresses": "E-Mail Adressen",
+  "address": "Adresse",
+  "websites": "Webseiten",
+  "website": "Webseite",
+  "pictures": "Bild",
+  "newCircle": "neuer Kreis",
+  "sharedWith": "geteilt mit",
+  "contact": "Kontakt",
+  "contacts": "Kontakten",
   "welcomeAppTitle": "Willkommen bei Coagulate",
   "@welcomeAppTitle": {
     "description": "App title for welcome screen."
@@ -7,5 +26,10 @@
   "welcomeHeadline": "Willkommen!\nWie heißt du?",
   "welcomeText": "Das ist die erste Information über dich, die du gleich selektiv mit anderen teilen kannst.",
   "welcomeCallToActionButton": "Los geht's",
-  "welcomeErrorNameMissing": "Bitte gib deinen Namen ein."
+  "welcomeErrorNameMissing": "Bitte gib deinen Namen ein.",
+  "profileHeadline": "Profil Informationen",
+  "profileAddHeadline": "{type} hinzufügen",
+  "profileEditHeadline": "{type} bearbeiten",
+  "profileAndShareWithHeadline": "und mit folgenden Kreisen teilen",
+  "profilePictureExplainer": "Hier kannst du pro Kreis ein Bild auswählen. Falls ein Kontakt mehreren Kreisen mit einem Bild zugeordnet ist, sieht dein Kontakt das Bild des kleinsten Kreises."
 }

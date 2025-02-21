@@ -1,5 +1,24 @@
 {
-  "name": "Name",
+  "edit": "edit",
+  "add": "add",
+  "cancel": "cancel",
+  "save": "save",
+  "name": "name",
+  "names": "names",
+  "phone": "phone",
+  "phoneNumber": "phone number",
+  "phones": "phones",
+  "emails": "emails",
+  "emailAddress": "e-mail address",
+  "addresses": "addresses",
+  "address": "address",
+  "websites": "websites",
+  "website": "website",
+  "pictures": "pictures",
+  "newCircle": "new circle",
+  "sharedWith": "shared with",
+  "contact": "contact",
+  "contacts": "contacts",
   "welcomeAppTitle": "Welcome to Coagulate",
   "@welcomeAppTitle": {
     "description": "App title for welcome screen."
@@ -7,5 +26,10 @@
   "welcomeHeadline": "Welcome!\nWhat's your name?",
   "welcomeText": "This is the first bit of personal information that you can selectively share with others in a moment.",
   "welcomeCallToActionButton": "Let's coagulate",
-  "welcomeErrorNameMissing": "Please enter your name."
+  "welcomeErrorNameMissing": "Please enter your name.",
+  "profileHeadline": "Profile information",
+  "profileAddHeadline": "Add {type}",
+  "profileEditHeadline": "Edit {type}",
+  "profileAndShareWithHeadline": "and share with circles",
+  "profilePictureExplainer": "You can set one picture per circle. Contacts that belong to several circles that have a picture will see the one picture belonging to the smallest circle."
 }

@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
@@ -11,13 +11,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/models/profile_sharing_settings.dart';
 import '../../data/repositories/contacts.dart';
+import '../utils.dart';
 import '../widgets/address_coordinates_form.dart';
 import 'cubit.dart';
 
@@ -70,7 +70,7 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
               .map((circleId, circleLabel) => MapEntry<String, Widget>(
                   circleId,
                   Dismissible(
-                      key: Key('avatar|$circleId'),
+                      key: Key('picture|$circleId'),
                       direction: (widget.deleteCallback != null)
                           ? DismissDirection.endToStart
                           : DismissDirection.none,
@@ -143,9 +143,7 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
               .asList() +
           [
             const SizedBox(height: 8),
-            const Text('You can set one picture per circle. Contacts that '
-                'belong to several circles that have a picture will see the '
-                'one picture belonging to the smallest circle.'),
+            Text(context.loc.profilePictureExplainer),
             const SizedBox(height: 4),
           ]);
 }
@@ -228,7 +226,9 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
           children: [
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text(
-                "${widget.isEditing ? 'Edit' : 'Add'} ${widget.headlineSuffix}",
+                (widget.isEditing)
+                    ? context.loc.profileEditHeadline(widget.headlineSuffix)
+                    : context.loc.profileAddHeadline(widget.headlineSuffix),
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               if (widget.onDelete != null)
@@ -262,7 +262,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
 
             const SizedBox(height: 16),
             Text(
-              'and share with circles',
+              context.loc.profileAndShareWithHeadline,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
@@ -294,16 +294,16 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
               Expanded(
                   child: TextField(
                 controller: _newCircleNameController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   isDense: true,
-                  labelText: 'new circle',
-                  border: OutlineInputBorder(),
+                  labelText: context.loc.newCircle,
+                  border: const OutlineInputBorder(),
                 ),
               )),
               const SizedBox(width: 8),
               FilledButton.tonal(
                 onPressed: _addNewCircle,
-                child: const Text('add'),
+                child: Text(context.loc.add),
               ),
             ]),
             const SizedBox(height: 24),
@@ -312,7 +312,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
               children: [
                 FilledButton(
                   onPressed: Navigator.of(context).pop,
-                  child: const Text('Cancel'),
+                  child: Text(context.loc.cancel),
                 ),
                 // TODO: Give hints that label and text need to be filled out?
                 FilledButton(
@@ -327,7 +327,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                           widget.labelController?.text.trim() ?? '',
                           widget.valueController.text.trim(),
                           _circles.map((e) => (e.$1, e.$2, e.$3)).toList()),
-                  child: const Text('Save'),
+                  child: Text(context.loc.save),
                 ),
               ],
             ),
@@ -350,6 +350,7 @@ Card _card(Text title, List<Widget> children) => Card(
                 ]))));
 
 Widget detailsList<T>(
+  BuildContext context,
   List<T> details, {
   required Text title,
   required String Function(T detail) getValue,
@@ -440,10 +441,15 @@ Widget detailsList<T>(
                                                         const EdgeInsets.only(
                                                             bottom: 4),
                                                     child: Text([
-                                                      'Shared with',
+                                                      context.loc.sharedWith
+                                                          .capitalize(),
                                                       numSharedContacts
                                                           .toString(),
-                                                      'contact${(numSharedContacts != 1) ? 's' : ''}',
+                                                      if (numSharedContacts !=
+                                                          1)
+                                                        context.loc.contacts
+                                                      else
+                                                        context.loc.contact,
                                                       if (circleNames
                                                           .isNotEmpty)
                                                         'via circle${(circleNames.length != 1) ? 's' : ''}:',
@@ -486,7 +492,7 @@ Widget addressesWithForms(BuildContext context, List<Address> addresses,
         void Function(String value)? editCallback,
         VoidCallback? addCallback}) =>
     _card(
-        Text('Addresses',
+        Text(context.loc.addresses.capitalize(),
             textScaler: const TextScaler.linear(1.4),
             style: TextStyle(
                 fontWeight: FontWeight.bold,
@@ -706,10 +712,11 @@ class ProfileViewState extends State<ProfileView> {
         const SizedBox(height: 8),
         // NAMES
         detailsList<Name>(
+            context,
             contact.names.entries
                 .map((e) => Name(name: e.value, label: e.key))
                 .toList(),
-            title: Text('Names',
+            title: Text(context.loc.names.capitalize(),
                 textScaler: const TextScaler.linear(1.4),
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -728,7 +735,7 @@ class ProfileViewState extends State<ProfileView> {
                 )),
             editCallback: (i) async => onEditDetail(
                   context: context,
-                  headlineSuffix: 'name',
+                  headlineSuffix: context.loc.name,
                   hideLabel: true,
                   label: contact.names.entries.elementAt(i).key,
                   value: contact.names.entries.elementAt(i).value,
@@ -759,7 +766,7 @@ class ProfileViewState extends State<ProfileView> {
                           child: EditOrAddWidget(
                               isEditing: false,
                               valueController: TextEditingController(),
-                              headlineSuffix: 'name',
+                              headlineSuffix: context.loc.name,
                               circles: circles
                                   .map((cId, cLabel) => MapEntry(cId, (
                                         cId,
@@ -781,8 +788,9 @@ class ProfileViewState extends State<ProfileView> {
                     ))),
         // PHONES
         detailsList<Phone>(
+          context,
           contact.phones,
-          title: Text('Phones',
+          title: Text(context.loc.phones.capitalize(),
               textScaler: const TextScaler.linear(1.4),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -799,7 +807,7 @@ class ProfileViewState extends State<ProfileView> {
                   )),
           editCallback: (i) async => onEditDetail(
             context: context,
-            headlineSuffix: 'phone number',
+            headlineSuffix: context.loc.phoneNumber,
             labelHelperText: 'e.g. home, mobile or work',
             label: (contact.phones[i].label.name != 'custom')
                 ? contact.phones[i].label.name
@@ -821,7 +829,7 @@ class ProfileViewState extends State<ProfileView> {
           ),
           addCallback: () async => onAddDetail(
               context: context,
-              headlineSuffix: 'phone number',
+              headlineSuffix: context.loc.phoneNumber,
               labelHelperText: 'e.g. home, mobile or work',
               circles: circles,
               circleMemberships: circleMemberships,
@@ -834,8 +842,9 @@ class ProfileViewState extends State<ProfileView> {
         ),
         // E-MAILS
         detailsList<Email>(
+          context,
           contact.emails,
-          title: Text('E-Mails',
+          title: Text(context.loc.emails.capitalize(),
               textScaler: const TextScaler.linear(1.4),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -852,7 +861,7 @@ class ProfileViewState extends State<ProfileView> {
                   )),
           editCallback: (i) async => onEditDetail(
             context: context,
-            headlineSuffix: 'e-mail address',
+            headlineSuffix: context.loc.emailAddress,
             labelHelperText: 'e.g. private or work',
             label: (contact.emails[i].label.name != 'custom')
                 ? contact.emails[i].label.name
@@ -874,7 +883,7 @@ class ProfileViewState extends State<ProfileView> {
           ),
           addCallback: () async => onAddDetail(
               context: context,
-              headlineSuffix: 'e-mail address',
+              headlineSuffix: context.loc.emailAddress,
               labelHelperText: 'e.g. private or work',
               circles: circles,
               circleMemberships: circleMemberships,
@@ -888,8 +897,9 @@ class ProfileViewState extends State<ProfileView> {
         // ADDRESSES
         //addressLocations
         detailsList<Address>(
+          context,
           contact.addresses,
-          title: Text('Addresses',
+          title: Text(context.loc.addresses.capitalize(),
               textScaler: const TextScaler.linear(1.4),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -906,7 +916,7 @@ class ProfileViewState extends State<ProfileView> {
                   )),
           editCallback: (i) async => onEditDetail(
             context: context,
-            headlineSuffix: 'address',
+            headlineSuffix: context.loc.address,
             labelHelperText: 'e.g. home or cabin',
             label: (contact.addresses[i].label.name != 'custom')
                 ? contact.addresses[i].label.name
@@ -929,7 +939,7 @@ class ProfileViewState extends State<ProfileView> {
           ),
           addCallback: () async => onAddDetail(
               context: context,
-              headlineSuffix: 'address',
+              headlineSuffix: context.loc.address,
               labelHelperText: 'e.g. home or cabin',
               circles: circles,
               circleMemberships: circleMemberships,
@@ -942,6 +952,7 @@ class ProfileViewState extends State<ProfileView> {
         ),
         // SOCIAL MEDIAS
         detailsList<SocialMedia>(
+          context,
           contact.socialMedias,
           title: Text('Socials',
               textScaler: const TextScaler.linear(1.4),
@@ -997,8 +1008,9 @@ class ProfileViewState extends State<ProfileView> {
         ),
         // WEBSITES
         detailsList<Website>(
+          context,
           contact.websites,
-          title: Text('Websites',
+          title: Text(context.loc.websites.capitalize(),
               textScaler: const TextScaler.linear(1.4),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -1015,7 +1027,7 @@ class ProfileViewState extends State<ProfileView> {
                   )),
           editCallback: (i) async => onEditDetail(
             context: context,
-            headlineSuffix: 'website',
+            headlineSuffix: context.loc.website,
             labelHelperText: 'e.g. blog or portfolio',
             label: (contact.websites[i].label.name != 'custom')
                 ? contact.websites[i].label.name
@@ -1038,7 +1050,7 @@ class ProfileViewState extends State<ProfileView> {
           ),
           addCallback: () async => onAddDetail(
               context: context,
-              headlineSuffix: 'website',
+              headlineSuffix: context.loc.website,
               labelHelperText: 'e.g. blog or portfolio',
               circles: circles,
               circleMemberships: circleMemberships,
@@ -1052,7 +1064,7 @@ class ProfileViewState extends State<ProfileView> {
         // PICTURES / AVATARS
         CirclesWithAvatarWidget(
           pictures: pictures,
-          title: Text('Pictures',
+          title: Text(context.loc.pictures.capitalize(),
               textScaler: const TextScaler.linear(1.4),
               style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -1119,6 +1131,6 @@ class ProfileViewState extends State<ProfileView> {
       BlocConsumer<ProfileCubit, ProfileState>(
           listener: (context, state) {},
           builder: (context, state) => Scaffold(
-              appBar: AppBar(title: const Text('Profile information')),
+              appBar: AppBar(title: Text(context.loc.profileHeadline)),
               body: _scaffoldBody(state)));
 }
