@@ -11,7 +11,8 @@ class Batch extends Equatable {
       required this.dhtRecordKey,
       required this.writer,
       required this.subkeyWriters,
-      required this.psk});
+      required this.psk,
+      this.numPopulatedSubkeys});
 
   factory Batch.fromJson(Map<String, dynamic> json) => _$BatchFromJson(json);
 
@@ -23,26 +24,44 @@ class Batch extends Equatable {
   final List<KeyPair> subkeyWriters;
   final FixedEncodedString43 psk;
 
+  final int? numPopulatedSubkeys;
+
   Map<String, dynamic> toJson() => _$BatchToJson(this);
 
+  Batch copyWith({int? numPopulatedSubkeys}) => Batch(
+      label: this.label,
+      expiration: this.expiration,
+      dhtRecordKey: this.dhtRecordKey,
+      writer: this.writer,
+      subkeyWriters: [...this.subkeyWriters],
+      psk: this.psk,
+      numPopulatedSubkeys: numPopulatedSubkeys ?? this.numPopulatedSubkeys);
+
   @override
-  List<Object?> get props =>
-      [label, expiration, dhtRecordKey, writer, subkeyWriters, psk];
+  List<Object?> get props => [
+        label,
+        expiration,
+        dhtRecordKey,
+        writer,
+        subkeyWriters,
+        psk,
+        numPopulatedSubkeys
+      ];
 }
 
 @JsonSerializable()
 final class BatchInvitesState extends Equatable {
-  const BatchInvitesState({this.batches = const []});
+  const BatchInvitesState({this.batches = const {}});
 
   factory BatchInvitesState.fromJson(Map<String, dynamic> json) =>
       _$BatchInvitesStateFromJson(json);
 
-  final List<Batch> batches;
+  final Map<String, Batch> batches;
 
   Map<String, dynamic> toJson() => _$BatchInvitesStateToJson(this);
 
   BatchInvitesState copyWith({
-    List<Batch>? batches,
+    Map<String, Batch>? batches,
   }) =>
       BatchInvitesState(
         batches: batches ?? this.batches,

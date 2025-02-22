@@ -3,7 +3,6 @@
 
 import 'dart:convert';
 import 'dart:developer' as dev;
-import 'dart:ffi';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -238,12 +237,11 @@ class VeilidDhtStorage extends DistributedStorage {
       Typed<FixedEncodedString43> key,
       Future<void> Function(Typed<FixedEncodedString43> key)
           onNetworkUpdate) async {
-    final record = await DHTRecordPool.instance
-        .openRecordRead(key, debugName: 'coag::read-to-watch');
-    await record
-        .watch(subkeys: [ValueSubkeyRange.single(record.subkeyOrDefault(-1))]);
-    await record.listen((record, data, subkeys) => onNetworkUpdate(record.key),
-        localChanges: false);
+    // final record = await DHTRecordPool.instance
+    //     .openRecordRead(key, debugName: 'coag::read-to-watch');
+    // await record.watch(subkeys: [const ValueSubkeyRange(low: 0, high: 32)]);
+    // await record.listen((record, data, subkeys) => onNetworkUpdate(record.key),
+    //     localChanges: false);
   }
 
   @override

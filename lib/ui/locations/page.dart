@@ -435,14 +435,16 @@ class LocationsPage extends StatelessWidget {
                     Container(
                         padding: const EdgeInsets.all(20),
                         child: const Text(
-                            'Nothing coming up, check-in now or schedule a future stay.',
+                            'Nothing coming up, check-in at the current '
+                            'location now or schedule a future stay.',
                             style: TextStyle(fontSize: 16))),
                   if (state.circleMembersips.isEmpty)
                     Container(
                         padding: const EdgeInsets.only(
                             left: 20, right: 20, bottom: 20),
                         child: const Text(
-                            'Before you can share your location, add some contacts to circles.',
+                            'You need someone to share your location with: '
+                            'Add some contacts to circles.',
                             style: TextStyle(fontSize: 16))),
                 ])),
                 const SizedBox(height: 8),

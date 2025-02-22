@@ -3,6 +3,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 
@@ -31,11 +32,34 @@ class MyForm extends StatefulWidget {
   State<MyForm> createState() => _MyFormState();
 }
 
+class MultipleOf15InputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue; // Allow empty input
+    }
+
+    // Check if input is a valid positive multiple of 15 (including 0)
+    final parsedValue = int.tryParse(newValue.text);
+    if (parsedValue != null && parsedValue >= 0 && parsedValue % 15 == 0) {
+      return newValue;
+    }
+
+    // Reject input if invalid
+    return oldValue;
+  }
+}
+
 class _MyFormState extends State<MyForm> {
   final _key = GlobalKey<FormState>();
   late MyFormState _state;
   late final TextEditingController _titleController;
   late final TextEditingController _detailsController;
+  late final TextEditingController _hoursController =
+      TextEditingController(text: '0');
+  late final TextEditingController _minutesController =
+      TextEditingController(text: '0');
 
   void _onTitleChanged() {
     setState(() {
@@ -46,18 +70,6 @@ class _MyFormState extends State<MyForm> {
   void _onDetailsChanged() {
     setState(() {
       _state = _state.copyWith(details: _detailsController.text);
-    });
-  }
-
-  void _onMinutesChanged(double value) {
-    setState(() {
-      _state = _state.copyWith(minutes: value.toInt());
-    });
-  }
-
-  void _onHoursChanged(double value) {
-    setState(() {
-      _state = _state.copyWith(hours: value.toInt());
     });
   }
 
@@ -81,8 +93,9 @@ class _MyFormState extends State<MyForm> {
           name: (_state.title.isEmpty) ? 'Checked-in' : _state.title,
           details: _state.details,
           circles: _state.circles.where((c) => c.$3).map((c) => c.$1).toList(),
-          end: DateTime.now()
-              .add(Duration(hours: _state.hours, minutes: _state.minutes)));
+          end: DateTime.now().add(Duration(
+              hours: int.parse(_hoursController.text),
+              minutes: int.parse(_minutesController.text))));
       _state = _state.copyWith(status: FormzSubmissionStatus.success);
       // Navigator.pop(context);
     } catch (e) {
@@ -93,19 +106,13 @@ class _MyFormState extends State<MyForm> {
 
     setState(() {});
 
-    FocusScope.of(context)
-      ..nextFocus()
-      ..unfocus();
-
-    const failureSnackBar = SnackBar(
-      content: Text('Something went wrong... 🚨'),
-    );
+    Navigator.of(context).popUntil((route) => route.isFirst);
 
     if (!_state.status.isSuccess) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          failureSnackBar,
+          const SnackBar(content: Text('Something went wrong... 🚨')),
         );
     } else {
       _resetForm();
@@ -116,6 +123,8 @@ class _MyFormState extends State<MyForm> {
     _key.currentState!.reset();
     _titleController.clear();
     _detailsController.clear();
+    _hoursController.clear();
+    _minutesController.clear();
     setState(() => _state = MyFormState());
   }
 
@@ -151,34 +160,43 @@ class _MyFormState extends State<MyForm> {
   Widget build(BuildContext context) => SingleChildScrollView(
       child: Form(
           key: _key,
-          child: Column(children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Share current location',
+                textScaler: const TextScaler.linear(1.6),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary)),
+            const SizedBox(height: 16),
             TextFormField(
-              key: const Key('myForm_titleInput'),
+              key: const Key('checkInForm_titleInput'),
               controller: _titleController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 helperMaxLines: 2,
                 labelText: 'Title',
                 errorMaxLines: 2,
+                isDense: true,
               ),
               textInputAction: TextInputAction.done,
             ),
             const SizedBox(height: 8),
             TextFormField(
-              key: const Key('myForm_detailsInput'),
+              key: const Key('checkInForm_detailsInput'),
               controller: _detailsController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 helperMaxLines: 2,
-                labelText: 'Details',
+                labelText: 'Description',
                 errorMaxLines: 2,
+                isDense: true,
               ),
               textInputAction: TextInputAction.done,
               maxLines: 3,
             ),
             const SizedBox(height: 16),
             const Row(children: [
-              Text('Circles to share with', textScaler: TextScaler.linear(1.1))
+              Text('with circles', textScaler: TextScaler.linear(1.2))
             ]),
             Wrap(
                 spacing: 8,
@@ -187,52 +205,67 @@ class _MyFormState extends State<MyForm> {
                     .asMap()
                     .map((i, c) => MapEntry(
                         i,
-                        (c.$3)
-                            ? FilledButton(
-                                onPressed: () =>
-                                    _updateCircleSelection(i, false),
-                                child: Text('${c.$2} (${c.$4})'))
-                            : OutlinedButton(
-                                onPressed: () =>
-                                    _updateCircleSelection(i, true),
-                                child: Text('${c.$2} (${c.$4})'))))
+                        GestureDetector(
+                            onTap: () => _updateCircleSelection(i, !c.$3),
+                            behavior: HitTestBehavior.opaque,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Checkbox(
+                                    value: c.$3,
+                                    onChanged: (value) => (value == null)
+                                        ? null
+                                        : _updateCircleSelection(i, value)),
+                                Text('${c.$2} (${c.$4})'),
+                                const SizedBox(width: 4),
+                              ],
+                            ))))
                     .values
                     .toList()),
+            const SizedBox(height: 4),
+            const Text('for duration', textScaler: TextScaler.linear(1.2)),
+            const SizedBox(height: 12),
+            Row(children: [
+              Expanded(
+                  child: TextFormField(
+                      key: const Key('checkInForm_hours'),
+                      controller: _hoursController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        labelText: 'Hours',
+                        border: OutlineInputBorder(),
+                      ))),
+              const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(':')),
+              Expanded(
+                  child: TextFormField(
+                      key: const Key('checkInForm_minutes'),
+                      controller: _minutesController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        labelText: 'Minutes',
+                        border: OutlineInputBorder(),
+                      ))),
+            ]),
             const SizedBox(height: 16),
-            Row(children: [
-              const Text('Hours'),
-              Expanded(
-                  child: Slider(
-                      value: _state.hours.toDouble(),
-                      label: _state.hours.toString(),
-                      max: 24,
-                      divisions: 24,
-                      onChanged: _onHoursChanged)),
-            ]),
-            Row(children: [
-              const Text('Minutes'),
-              Expanded(
-                  child: Slider(
-                      value: _state.minutes.toDouble(),
-                      label: _state.minutes.toString(),
-                      max: 55,
-                      divisions: 11,
-                      onChanged: _onMinutesChanged)),
-            ]),
-            const SizedBox(height: 8),
             if (_state.status.isInProgress)
-              const CircularProgressIndicator()
+              const Center(child: CircularProgressIndicator())
             else
-              ElevatedButton(
-                key: const Key('myForm_submit'),
+              Center(
+                  child: FilledButton(
+                key: const Key('checkInForm_submit'),
                 onPressed:
                     (_state.circles.firstWhereOrNull((c) => c.$3) != null &&
-                            (_state.minutes > 0 || _state.hours > 0) &&
+                            (int.parse(_minutesController.text) > 0 ||
+                                int.parse(_hoursController.text) > 0) &&
                             _state.title.isNotEmpty)
                         ? _onSubmit
                         : null,
-                child: const Text('Share'),
-              ),
+                child: const Text('share'),
+              )),
             const SizedBox(height: 16),
           ])));
 }

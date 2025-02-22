@@ -1,8 +1,7 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
@@ -14,7 +13,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
-import '../../data/models/profile_sharing_settings.dart';
 import '../../data/repositories/contacts.dart';
 
 part 'cubit.g.dart';

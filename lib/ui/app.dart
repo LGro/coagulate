@@ -8,7 +8,6 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -190,7 +189,9 @@ class _CoagulateAppState extends State<CoagulateApp>
       // Await initialization with potential initial DHT updates unless it
       // exceeds 25s to respect the background task limit of 30s on iOS
       try {
-        await repo.initialize().timeout(const Duration(seconds: 25));
+        await repo
+            .initialize(scheduleRegularUpdates: false)
+            .timeout(const Duration(seconds: 25));
       } on TimeoutException {
         await BackgroundFetch.finish(taskId);
         return;

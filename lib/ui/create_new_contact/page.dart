@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/repositories/contacts.dart';
-import '../batch_invites/page.dart';
+import '../batch_invite_management/page.dart';
 import '../contact_details/page.dart';
 
 class CreateNewContactPage extends StatefulWidget {

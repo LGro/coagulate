@@ -16,6 +16,7 @@ Batch _$BatchFromJson(Map<String, dynamic> json) => Batch(
           .map(KeyPair.fromJson)
           .toList(),
       psk: FixedEncodedString43.fromJson(json['psk']),
+      numPopulatedSubkeys: (json['num_populated_subkeys'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$BatchToJson(Batch instance) => <String, dynamic>{
@@ -25,6 +26,7 @@ Map<String, dynamic> _$BatchToJson(Batch instance) => <String, dynamic>{
       'writer': instance.writer.toJson(),
       'subkey_writers': instance.subkeyWriters.map((e) => e.toJson()).toList(),
       'psk': instance.psk.toJson(),
+      'num_populated_subkeys': instance.numPopulatedSubkeys,
     };
 
 BatchInvitesState _$BatchInvitesStateFromJson(Map<String, dynamic> json) =>

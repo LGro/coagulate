@@ -1,10 +1,9 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
@@ -27,8 +26,8 @@ class ReceiveRequestPage extends StatelessWidget {
       child: BlocConsumer<ReceiveRequestCubit, ReceiveRequestState>(
           listener: (context, state) async {
         if (state.status.isSuccess && state.profile != null) {
-          context.pushReplacementNamed('contactDetails',
-              pathParameters: {'coagContactId': state.profile!.coagContactId});
+          await Navigator.of(context).pushAndRemoveUntil(
+              ContactPage.route(state.profile!), (route) => route.isFirst);
         }
       }, builder: (context, state) {
         switch (state.status) {

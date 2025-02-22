@@ -34,7 +34,7 @@ class _ContactListPageState extends State<ContactListPage> {
         const SizedBox(height: 8),
         Center(
             child: FilledButton(
-                child: const Text('Create invite'),
+                child: const Text('create invite'),
                 onPressed: () async {
                   await Navigator.of(context).push(
                       MaterialPageRoute<CreateNewContactPage>(
@@ -46,7 +46,7 @@ class _ContactListPageState extends State<ContactListPage> {
         const SizedBox(height: 8),
         Center(
             child: FilledButton(
-                child: const Text('Accept invite'),
+                child: const Text('accept invite'),
                 onPressed: () async {
                   await Navigator.of(context).push(
                       MaterialPageRoute<ReceiveRequestPage>(
@@ -62,14 +62,14 @@ class _ContactListPageState extends State<ContactListPage> {
             child: _body(state.contacts.toList(), state.circleMemberships)),
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           FilledButton(
-              child: const Text('Create invite'),
+              child: const Text('create invite'),
               onPressed: () async {
                 await Navigator.of(context).push(
                     MaterialPageRoute<CreateNewContactPage>(
                         builder: (_) => CreateNewContactPage()));
               }),
           FilledButton(
-              child: const Text('Accept invite'),
+              child: const Text('accept invite'),
               onPressed: () async {
                 await Navigator.of(context).push(
                     MaterialPageRoute<ReceiveRequestPage>(
@@ -209,7 +209,8 @@ Widget? contactSharingReceivingStatus(
   // We're both sharing, but haven't received the ack
   if (contact.dhtSettings.recordKeyMeSharing != null &&
       contact.dhtSettings.recordKeyThemSharing != null) {
-    return const Icon(Icons.done);
+    // TODO: Use Icons.done to differentiate from full handshake DH switch?
+    return const Icon(Icons.done_all);
   }
   return null;
 }

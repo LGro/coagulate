@@ -50,6 +50,10 @@ class DhtSharingStatusCubit extends Cubit<DhtSharingStatusState> {
 
     if (!isClosed) {
       // TODO: Move rendering to widget
+      // Beware division by zero o.O
+      if (numSubkeys == 0) {
+        return emit(const DhtSharingStatusState(''));
+      }
       return emit(DhtSharingStatusState(
           '${((1 - (numOfflineSubkeys / numSubkeys)) * 100).round()}% synced / '
           '${((numUnknown / numSubkeys) * 100).round()}% unknown / '

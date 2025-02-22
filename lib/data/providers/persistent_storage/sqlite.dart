@@ -11,7 +11,6 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
-import '../../models/profile_sharing_settings.dart';
 import 'base.dart';
 
 Future<Database> getDatabase() async => openDatabase(

@@ -133,11 +133,10 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
                                 Padding(
                                     padding: const EdgeInsets.only(left: 8),
                                     //FIXME: Overflow / wrapping for long circle names
-                                    child: Expanded(
-                                        child: Text(
-                                            '$circleLabel (${widget.circleMemberCount[circleId] ?? 0} '
-                                            'contact${(widget.circleMemberCount[circleId] == 1) ? '' : 's'})',
-                                            softWrap: true))),
+                                    child: Text(
+                                        '$circleLabel (${widget.circleMemberCount[circleId] ?? 0} '
+                                        'contact${(widget.circleMemberCount[circleId] == 1) ? '' : 's'})',
+                                        softWrap: true)),
                               ]))))))
               .values
               .asList() +

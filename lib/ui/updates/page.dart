@@ -146,7 +146,7 @@ class UpdatesPage extends StatelessWidget {
                                     'No updates yet, share with others or ask others to share with you!',
                                     style: TextStyle(fontSize: 16)))
                           ]
-                        : selectUniqueUpdates(state.updates)
+                        : state.updates
                             .map((u) => updateTile(
                                 (u.oldContact.details?.names.isNotEmpty ??
                                         false)

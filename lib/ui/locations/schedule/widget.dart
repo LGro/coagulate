@@ -198,8 +198,8 @@ class _MyFormState extends State<MyForm> {
             const Padding(
                 padding: EdgeInsets.only(left: 16, right: 16),
                 child: Row(children: [
-                  Text('Circles to share with',
-                      textScaler: TextScaler.linear(1.1))
+                  Text('and share with circles',
+                      textScaler: TextScaler.linear(1.2))
                 ])),
             Wrap(
                 spacing: 8,
@@ -208,15 +208,21 @@ class _MyFormState extends State<MyForm> {
                     .asMap()
                     .map((i, c) => MapEntry(
                         i,
-                        (c.$3)
-                            ? FilledButton(
-                                onPressed: () =>
-                                    _updateCircleSelection(i, false),
-                                child: Text('${c.$2} (${c.$4})'))
-                            : OutlinedButton(
-                                onPressed: () =>
-                                    _updateCircleSelection(i, true),
-                                child: Text('${c.$2} (${c.$4})'))))
+                        GestureDetector(
+                            onTap: () => _updateCircleSelection(i, !c.$3),
+                            behavior: HitTestBehavior.opaque,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Checkbox(
+                                    value: c.$3,
+                                    onChanged: (value) => (value == null)
+                                        ? null
+                                        : _updateCircleSelection(i, value)),
+                                Text('${c.$2} (${c.$4})'),
+                                const SizedBox(width: 4),
+                              ],
+                            ))))
                     .values
                     .toList()),
             const SizedBox(height: 16),
@@ -293,7 +299,9 @@ class _MyFormState extends State<MyForm> {
                   maxZoomLevel: 16,
                   initPosition: _state.location?.latLong ??
                       const LatLong(48.8575, 2.3514),
-                  searchBarBackgroundColor: Colors.white,
+                  searchBarHintText: 'Search location',
+                  searchBarBackgroundColor: Theme.of(context).canvasColor,
+                  // searchBarTextColor: Theme.of(context).focusColor,
                   mapLanguage: 'en',
                   onError: (e) => print(e),
                   selectLocationButtonLeadingIcon: const Icon(Icons.check),
@@ -306,6 +314,8 @@ class _MyFormState extends State<MyForm> {
                   selectLocationButtonHeight: 0,
                   selectLocationButtonWidth: 0,
                   showContributorBadgeForOSM: true,
+                  // markerIcon: Icon(Icons.location_on,
+                  //     color: Theme.of(context).primaryColorDark, size: 42),
                 )),
             const SizedBox(height: 16),
             if (_state.status.isInProgress)
@@ -320,7 +330,7 @@ class _MyFormState extends State<MyForm> {
                             _state.title.isNotEmpty)
                         ? _onSubmit
                         : null,
-                child: const Text('Share'),
+                child: const Text('share'),
               ),
             const SizedBox(height: 16),
           ])));
@@ -377,7 +387,7 @@ class ScheduleWidget extends StatelessWidget {
       child: BlocConsumer<ScheduleCubit, ScheduleState>(
           listener: (context, state) async {},
           builder: (context, state) => Scaffold(
-              appBar: AppBar(title: const Text('Schedule Visit')),
+              appBar: AppBar(title: const Text('Schedule a visit')),
               body: SingleChildScrollView(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

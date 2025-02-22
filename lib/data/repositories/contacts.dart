@@ -1,4 +1,8 @@
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
+
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
@@ -9,6 +13,7 @@ import 'package:uuid/uuid.dart';
 import 'package:veilid_support/veilid_support.dart';
 
 import '../../veilid_processor/veilid_processor.dart';
+import '../models/batch_invites.dart';
 import '../models/coag_contact.dart';
 import '../models/contact_location.dart';
 import '../models/contact_update.dart';
@@ -177,18 +182,6 @@ CoagContactDHTSchema filterAccordingToSharingProfile(
       ackHandshakeComplete: dhtSettings.theirPublicKey != null,
     );
 
-Iterable<ContactUpdate> selectUniqueUpdates(Iterable<ContactUpdate> updates) {
-  final selectedUpdates = <int, ContactUpdate>{};
-
-  for (final u in updates) {
-    if (!selectedUpdates.containsKey(u.newContact.hashCode)) {
-      selectedUpdates[u.newContact.hashCode] = u;
-    }
-  }
-
-  return selectedUpdates.values;
-}
-
 class ContactsRepository {
   ContactsRepository(this.persistentStorage, this.distributedStorage,
       this.systemContactsStorage, this.initialName,
@@ -244,7 +237,11 @@ class ContactsRepository {
 
   bool veilidNetworkAvailable = false;
 
-  Future<void> initialize() async {
+  final List<BatchInvite> _batchInvites = [];
+
+  Timer? updateFromDhtTimer;
+
+  Future<void> initialize({bool scheduleRegularUpdates = true}) async {
     await initializeFromPersistentStorage();
 
     // Initialize profile info
@@ -279,6 +276,13 @@ class ContactsRepository {
     ProcessorRepository.instance
         .streamProcessorConnectionState()
         .listen(_veilidConnectionStateChangeCallback);
+
+    if (scheduleRegularUpdates) {
+      // updateFromDhtTimer = Timer.periodic(
+      //     const Duration(seconds: 5),
+      //     (t) async => updateAndWatchReceivingDHT(shuffle: true)
+      //         .timeout(const Duration(seconds: 4)));
+    }
   }
 
   /////////////////////
@@ -290,6 +294,7 @@ class ContactsRepository {
     // Initialize circles, circle memberships from persistent storage
     _circles = await persistentStorage.getCircles();
     _circleMemberships = await persistentStorage.getCircleMemberships();
+    _circlesStreamController.add(null);
 
     // Load updates from persistent storage
     // TODO: Actually delete old updates from persistent storage
@@ -325,26 +330,28 @@ class ContactsRepository {
         await saveContact(
             updatedContact.copyWith(mostRecentUpdate: updateTime));
       } else {
-        // TODO: Use update time from when the update was sent not received
-        // TODO: When temporary locations are updated, only record an update about added / updated locations / check-ins
-        await _saveUpdate(ContactUpdate(
-            // TODO: contact details can be null; handle this more appropriately than the current workaround with empty details
-            coagContactId: contact.coagContactId,
-            oldContact: CoagContact(
-                coagContactId: contact.coagContactId,
-                name: contact.name,
-                dhtSettings: contact.dhtSettings.copyWith(),
-                details: contact.details?.copyWith(),
-                temporaryLocations: [...contact.temporaryLocations],
-                addressLocations: {...contact.addressLocations}),
-            newContact: CoagContact(
-                coagContactId: updatedContact.coagContactId,
-                name: updatedContact.name,
-                dhtSettings: updatedContact.dhtSettings.copyWith(),
-                details: updatedContact.details?.copyWith(),
-                temporaryLocations: [...updatedContact.temporaryLocations],
-                addressLocations: {...updatedContact.addressLocations}),
-            timestamp: DateTime.now()));
+        if (!getContactUpdates()
+            .map((u) => u.newContact.hashCode)
+            .contains(updatedContact.hashCode)) {
+          await _saveUpdate(ContactUpdate(
+              coagContactId: contact.coagContactId,
+              oldContact: CoagContact(
+                  coagContactId: contact.coagContactId,
+                  name: contact.name,
+                  dhtSettings: contact.dhtSettings.copyWith(),
+                  details: contact.details?.copyWith(),
+                  temporaryLocations: [...contact.temporaryLocations],
+                  addressLocations: {...contact.addressLocations}),
+              newContact: CoagContact(
+                  coagContactId: updatedContact.coagContactId,
+                  name: updatedContact.name,
+                  dhtSettings: updatedContact.dhtSettings.copyWith(),
+                  details: updatedContact.details?.copyWith(),
+                  temporaryLocations: [...updatedContact.temporaryLocations],
+                  addressLocations: {...updatedContact.addressLocations}),
+              // TODO: Use update time from when the update was sent not received
+              timestamp: DateTime.now()));
+        }
 
         await saveContact(updatedContact.copyWith(
             mostRecentUpdate: updateTime, mostRecentChange: updateTime));
@@ -578,6 +585,24 @@ class ContactsRepository {
     return contact;
   }
 
+  Future<CoagContact> createContactFromBatch(
+      {required String name,
+      required DhtSettings dhtSettings,
+      required String batchCircleId}) async {
+    // Create contact
+    final contact = CoagContact(
+        coagContactId: Uuid().v4(), name: name, dhtSettings: dhtSettings);
+    await saveContact(contact);
+
+    // Add to default circle and update shared profile
+    await updateCirclesForContact(
+        contact.coagContactId, [defaultEveryoneCircleId, batchCircleId],
+        // Trigger dht update with custom arguments below instead
+        triggerDhtUpdate: false);
+
+    return contact;
+  }
+
   //////////
   // CIRCLES
   Map<String, String> getCircles() => {..._circles};
@@ -696,6 +721,181 @@ class ContactsRepository {
   }
 
   // TODO: Also clean up unnecessary updates from persistent storage
-  List<ContactUpdate> getContactUpdates() =>
-      selectUniqueUpdates(_contactUpdates).toList();
+  List<ContactUpdate> getContactUpdates() => [..._contactUpdates];
+
+  ////////////////
+  // BATCH INVITES
+
+  //"dht:RecordKey:psk:subKeyIndex:writer".split(':');
+  Future<void> handleBatchInvite(
+      String myName,
+      Typed<FixedEncodedString43> recordKey,
+      FixedEncodedString43 psk,
+      int mySubkey,
+      KeyPair subkeyWriter) async {
+    // read meta info from first subkey, decrypt with psk
+    // TODO: Factor out into helper for simple read
+    final crypto =
+        await VeilidCryptoPrivate.fromSharedSecret(recordKey.kind, psk);
+    final record = await DHTRecordPool.instance
+        .openRecordRead(recordKey, debugName: 'coag::read', crypto: crypto);
+    Uint8List? batchInfoRaw;
+    try {
+      batchInfoRaw = await record.get(
+          crypto: crypto, refreshMode: DHTRecordRefreshMode.network, subkey: 0);
+    } on FormatException catch (e) {
+    } finally {
+      await record.close();
+    }
+    if (batchInfoRaw == null) {
+      return;
+    }
+    final batchInfo = BatchInviteInfoSchema.fromJson(
+        jsonDecode(utf8.decode(batchInfoRaw)) as Map<String, dynamic>);
+
+    // create circle from label with id from record key
+    await addCircle(recordKey.toString(), batchInfo.label);
+
+    // generate one keypair to use for all contacts in that batch
+    final batchKeyPair = await DHTRecordPool.instance.veilid
+        .bestCryptoSystem()
+        .then((cs) => cs
+            .generateKeyPair()
+            .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)));
+
+    // write pubkey and name to own subkey
+    // TODO: Factor out into helper for simple write
+    final mySubkeyRecord = await DHTRecordPool.instance.openRecordWrite(
+        recordKey, subkeyWriter,
+        debugName: 'coag::write-batch-subkey',
+        crypto: crypto,
+        defaultSubkey: mySubkey);
+    final mySubkeyContent =
+        BatchSubkeySchema(myName, batchKeyPair.key, const {});
+    await mySubkeyRecord
+        .tryWriteBytes(utf8.encode(jsonEncode(mySubkeyContent.toJson())));
+    await mySubkeyRecord.close();
+
+    final batch = BatchInvite(
+        label: batchInfo.label,
+        expiration: batchInfo.expiration,
+        recordKey: recordKey,
+        psk: psk,
+        subkeyCount: record.subkeyCount,
+        mySubkey: mySubkey,
+        subkeyWriter: subkeyWriter,
+        myName: myName,
+        myKeyPair: batchKeyPair);
+
+    // TODO: Save batch persistently
+    _batchInvites.add(batch);
+
+    await batchInviteUpdate(batch);
+  }
+
+  // TODO: regularly run for all batches
+  // TODO: how to deal with race condition of two folks setting things up in parallel, who wins? make it unidirectional, no share back settings or override share back settings? is this really an issue?
+  Future<void> batchInviteUpdate(BatchInvite batch) async {
+    final crypto = await VeilidCryptoPrivate.fromSharedSecret(
+        batch.recordKey.kind, batch.psk);
+
+    // get current record matches
+    final myConnectionRecords = {...batch.myConnectionRecords};
+
+    // iterate over other subkeys, to
+    for (var subkey = 1; subkey < batch.subkeyCount; subkey++) {
+      if (subkey == batch.mySubkey) {
+        continue;
+      }
+
+      final record = await DHTRecordPool.instance.openRecordRead(
+          batch.recordKey,
+          debugName: 'coag::read',
+          crypto: crypto,
+          defaultSubkey: subkey);
+      Uint8List? contactSubkeyContentRaw;
+      try {
+        contactSubkeyContentRaw = await record.get(
+            crypto: crypto,
+            refreshMode: DHTRecordRefreshMode.network,
+            subkey: 0);
+      } on FormatException catch (e) {
+      } finally {
+        await record.close();
+      }
+      if (contactSubkeyContentRaw == null) {
+        continue;
+      }
+      final contactSubkeyContent = BatchSubkeySchema.fromJson(
+          jsonDecode(utf8.decode(contactSubkeyContentRaw))
+              as Map<String, dynamic>);
+
+      // Skip contacts we already connected with
+      if (getContacts()
+          .values
+          .where((c) =>
+              c.dhtSettings.theirPublicKey == contactSubkeyContent.publicKey)
+          .isNotEmpty) {
+        continue;
+      }
+
+      // If contact subkey contains my pubkey with a dht record key,
+      // create contact, add to batch circle and fetch from said record
+      if (contactSubkeyContent.records
+          .containsKey(batch.myKeyPair.key.toString())) {
+        final contact = await createContactFromBatch(
+            name: contactSubkeyContent.name,
+            dhtSettings: DhtSettings(
+                recordKeyThemSharing: contactSubkeyContent
+                    .records[batch.myKeyPair.key.toString()],
+                theirPublicKey: contactSubkeyContent.publicKey,
+                myKeyPair: batch.myKeyPair),
+            batchCircleId: batch.recordKey.toString());
+        await updateContactFromDHT(contact);
+        continue;
+      }
+
+      // If contact subkey contains pubkey I haven't seen before, create DHT
+      // record and write with pubkey to my subkey
+      if (!myConnectionRecords
+          .containsKey(contactSubkeyContent.publicKey.toString())) {
+        final contact = await createContactFromBatch(
+            name: contactSubkeyContent.name,
+            dhtSettings: DhtSettings(
+                theirPublicKey: contactSubkeyContent.publicKey,
+                myKeyPair: batch.myKeyPair),
+            batchCircleId: batch.recordKey.toString());
+
+        // Trigger sharing, incl. DHT record creation
+        await tryShareWithContactDHT(contact,
+            contactPubKey: contact.dhtSettings.theirPublicKey.toString());
+
+        final updatedContact = getContact(contact.coagContactId);
+
+        if (updatedContact?.dhtSettings.recordKeyMeSharing != null) {
+          myConnectionRecords[contactSubkeyContent.publicKey.toString()] =
+              updatedContact!.dhtSettings.recordKeyMeSharing!;
+        } else {
+          // this should happen only when record creation fails in
+          // trysharewithcontactdht?
+          print('missing share key for batch offer');
+        }
+      }
+    }
+
+    // Update record matches to my subkey
+    if (myConnectionRecords.length > batch.myConnectionRecords.length) {
+      final mySubkeyRecord = await DHTRecordPool.instance.openRecordWrite(
+          batch.recordKey, batch.subkeyWriter,
+          debugName: 'coag::write-batch-subkey',
+          crypto: crypto,
+          defaultSubkey: batch.mySubkey);
+      final mySubkeyContent = BatchSubkeySchema(
+          batch.myName, batch.myKeyPair.key, myConnectionRecords);
+      await mySubkeyRecord
+          .tryWriteBytes(utf8.encode(jsonEncode(mySubkeyContent.toJson())));
+      await mySubkeyRecord.close();
+    }
+    // TODO: Also update the name in case someone changed the name available to the circle?
+  }
 }
