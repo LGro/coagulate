@@ -42,6 +42,7 @@ class BatchSubkeySchema extends Equatable {
   List<Object?> get props => [name, publicKey, records];
 }
 
+// TODO: Drop myName?
 @JsonSerializable()
 class BatchInvite extends Equatable {
   const BatchInvite(

@@ -728,7 +728,7 @@ class ContactsRepository {
 
   //"dht:RecordKey:psk:subKeyIndex:writer".split(':');
   Future<void> handleBatchInvite(
-      String myName,
+      String myNameId,
       Typed<FixedEncodedString43> recordKey,
       FixedEncodedString43 psk,
       int mySubkey,
@@ -762,6 +762,9 @@ class ContactsRepository {
         .then((cs) => cs
             .generateKeyPair()
             .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)));
+
+    final myName = getProfileInfo().details.names[myNameId] ??
+        '${batchInfo.label} $mySubkey';
 
     // write pubkey and name to own subkey
     // TODO: Factor out into helper for simple write

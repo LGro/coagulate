@@ -8,15 +8,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
+import '../contact_list/page.dart';
 import '../widgets/avatar.dart';
 import '../widgets/scan_qr_code.dart';
 import 'cubit.dart';
 
 // TODO: Move cubit initialization outside to parent scope (potentially leaving the BlocConsumer inside) instead of passing initial state here?
 class ReceiveRequestPage extends StatelessWidget {
-  const ReceiveRequestPage({super.key, this.initialState});
+  ReceiveRequestPage({super.key, this.initialState});
 
   final ReceiveRequestState? initialState;
+
+  final TextEditingController batchInviteMyNameController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext _) => BlocProvider(
@@ -28,6 +32,12 @@ class ReceiveRequestPage extends StatelessWidget {
         if (state.status.isSuccess && state.profile != null) {
           await Navigator.of(context).pushAndRemoveUntil(
               ContactPage.route(state.profile!), (route) => route.isFirst);
+        } else if (state.status.isBatchInviteSuccess) {
+          await Navigator.of(context).pushAndRemoveUntil(
+              // TODO: Push to specific circle filter?
+              MaterialPageRoute<ContactListPage>(
+                  builder: (context) => const ContactListPage()),
+              (route) => route.isFirst);
         }
       }, builder: (context, state) {
         switch (state.status) {
@@ -43,6 +53,67 @@ class ReceiveRequestPage extends StatelessWidget {
                   ],
                 ),
                 body: const Center(child: CircularProgressIndicator()));
+
+          case ReceiveRequestStatus.receivedBatchInvite:
+            return Scaffold(
+                appBar: AppBar(
+                  title: Text(
+                      'Invited via ${state.fragment?.split(':').first ?? '???'}'),
+                  actions: [
+                    IconButton(
+                        onPressed:
+                            context.read<ReceiveRequestCubit>().scanQrCode,
+                        icon: const Icon(Icons.qr_code_scanner))
+                  ],
+                ),
+                body: Column(children: [
+                  Text('You have been invited in a batch with others. '
+                      'Everyone in that batch gets to see each other. '
+                      'As others use their invites, they appear automatically '
+                      'as contacts and are added to your circle '
+                      '"${state.fragment?.split(':').first ?? '???'}", '
+                      'which you can manage as usual and set what to share.'),
+                  const SizedBox(height: 16),
+                  const Text('Pick the name you want to share with others:'),
+                  DropdownMenu<(String, String)>(
+                    initialSelection: null,
+                    controller: batchInviteMyNameController,
+                    // requestFocusOnTap is enabled/disabled by platforms when it is null.
+                    // On mobile platforms, this is false by default. Setting this to true will
+                    // trigger focus request on the text field and virtual keyboard will appear
+                    // afterward. On desktop platforms however, this defaults to true.
+                    requestFocusOnTap: true,
+                    label: const Text('Name'),
+                    onSelected: (name) {
+                      // TODO: Can we make due without a state?
+                      // setState(() {
+                      //   selectedColor = color;
+                      // });
+                      batchInviteMyNameController.text = name?.$1 ?? '';
+                    },
+                    dropdownMenuEntries: context
+                        .read<ReceiveRequestCubit>()
+                        .contactsRepository
+                        .getProfileInfo()
+                        .details
+                        .names
+                        .entries
+                        .map((e) => DropdownMenuEntry(
+                            label: e.value, value: (e.key, e.value)))
+                        .toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(child: TextFormField()),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                      onPressed: (batchInviteMyNameController.text.isEmpty)
+                          ? null
+                          : () async => context
+                              .read<ReceiveRequestCubit>()
+                              .handleBatchInvite(
+                                  batchInviteMyNameController.text),
+                      child: const Text('Accept')),
+                ]));
 
           case ReceiveRequestStatus.qrcode:
             return Scaffold(
@@ -85,6 +156,9 @@ class ReceiveRequestPage extends StatelessWidget {
                         ])));
 
           case ReceiveRequestStatus.success:
+            return const Center(child: CircularProgressIndicator());
+
+          case ReceiveRequestStatus.batchInviteSuccess:
             return const Center(child: CircularProgressIndicator());
 
           case ReceiveRequestStatus.receivedUriFragment:

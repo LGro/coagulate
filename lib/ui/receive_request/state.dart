@@ -3,12 +3,21 @@
 
 part of 'cubit.dart';
 
-enum ReceiveRequestStatus { qrcode, processing, success, receivedUriFragment }
+enum ReceiveRequestStatus {
+  qrcode,
+  processing,
+  success,
+  batchInviteSuccess,
+  receivedUriFragment,
+  receivedBatchInvite,
+}
 
 extension ReceiveRequestStatusX on ReceiveRequestStatus {
   bool get isQrcode => this == ReceiveRequestStatus.qrcode;
   bool get isProcessing => this == ReceiveRequestStatus.processing;
   bool get isSuccess => this == ReceiveRequestStatus.success;
+  bool get isBatchInviteSuccess =>
+      this == ReceiveRequestStatus.batchInviteSuccess;
   bool get isReceivedUriFragment =>
       this == ReceiveRequestStatus.receivedUriFragment;
 }

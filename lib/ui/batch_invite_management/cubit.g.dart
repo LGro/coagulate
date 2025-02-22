@@ -31,13 +31,13 @@ Map<String, dynamic> _$BatchToJson(Batch instance) => <String, dynamic>{
 
 BatchInvitesState _$BatchInvitesStateFromJson(Map<String, dynamic> json) =>
     BatchInvitesState(
-      batches: (json['batches'] as List<dynamic>?)
-              ?.map((e) => Batch.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
+      batches: (json['batches'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, Batch.fromJson(e as Map<String, dynamic>)),
+          ) ??
+          const {},
     );
 
 Map<String, dynamic> _$BatchInvitesStateToJson(BatchInvitesState instance) =>
     <String, dynamic>{
-      'batches': instance.batches.map((e) => e.toJson()).toList(),
+      'batches': instance.batches.map((k, e) => MapEntry(k, e.toJson())),
     };

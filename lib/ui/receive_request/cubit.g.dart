@@ -40,4 +40,5 @@ const _$ReceiveRequestStatusEnumMap = {
   ReceiveRequestStatus.processing: 'processing',
   ReceiveRequestStatus.success: 'success',
   ReceiveRequestStatus.receivedUriFragment: 'receivedUriFragment',
+  ReceiveRequestStatus.receivedBatchInvite: 'receivedBatchInvite',
 };

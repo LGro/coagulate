@@ -73,19 +73,8 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     }
   }
 
-  Future<void> handleFragment(String fragment) async {
-    final components = fragment.split(':');
-    if (![3, 4].contains(components.length)) {
-      // TODO: Log / feedback?
-      print('Payload malformed, not three or four long, but $fragment');
-      if (!isClosed) {
-        emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
-      }
-      return;
-    }
-
-    // TODO: support batch invite link with more components
-
+  // name?:dhtRecordKey:psk
+  Future<void> handlePersonalInvite(List<String> components) async {
     final name = (components.length == 4) ? components[0] : null;
     final iKey = (components.length == 4) ? 1 : 0;
     final iPsk = (components.length == 4) ? 3 : 2;
@@ -141,6 +130,51 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     if (!isClosed) {
       return emit(state.copyWith(
           status: ReceiveRequestStatus.success, profile: contact));
+    }
+  }
+
+  // label:dhtRecordKey:psk:subkey:writer
+  Future<void> handleBatchInvite(String myName) async {
+    if (state.fragment == null) {
+      return;
+    }
+    // TODO: Handle parsing errors and report
+    final components = state.fragment!.split(':');
+    final recordKey = Typed<FixedEncodedString43>.fromString(
+        '${components[1]}:${components[2]}');
+    final psk = FixedEncodedString43.fromString(components[3]);
+    final mySubkey = int.parse(components[4]);
+    final subkeyWriter = KeyPair.fromString(components[5]);
+
+    emit(state.copyWith(status: ReceiveRequestStatus.processing));
+
+    await contactsRepository.handleBatchInvite(
+        myName, recordKey, psk, mySubkey, subkeyWriter);
+
+    if (!isClosed) {
+      emit(state.copyWith(status: ReceiveRequestStatus.batchInviteSuccess));
+    }
+  }
+
+  Future<void> handleFragment(String fragment) async {
+    final components = fragment.split(':');
+
+    // One person shows another a QR code to connect
+    if (![3, 4].contains(components.length)) {
+      return handlePersonalInvite(components);
+    }
+
+    // Scanning a QR code or handling an invite link from a batch invite
+    if (components.length == 6 && !isClosed) {
+      return emit(ReceiveRequestState(ReceiveRequestStatus.receivedBatchInvite,
+          fragment: fragment));
+    }
+
+    // TODO: Log / feedback?
+    print('Payload malformed: $fragment');
+
+    if (!isClosed) {
+      emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
     }
   }
 }
