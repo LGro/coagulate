@@ -311,6 +311,11 @@ class ContactsRepository {
     for (final c in _contacts.values) {
       _contactsStreamController.add(c.coagContactId);
     }
+
+    // Load all batches and update
+    final batches = await persistentStorage.getBatches();
+    _batchInvites.addAll(batches);
+    await Future.wait(_batchInvites.map(batchInviteUpdate));
   }
 
   Future<void> saveContact(CoagContact coagContact) async {
@@ -408,13 +413,15 @@ class ContactsRepository {
       contacts.shuffle();
     }
 
-    // TODO: Can we parallelize this? with Future.wait([])?
+    // TODO: Can we parallelize this? with Future.wait([]) like below?
     for (final contact in contacts) {
       // Check for incoming updates
       if (contact.dhtSettings.recordKeyThemSharing != null) {
         await updateContactFromDHT(contact);
       }
     }
+
+    await Future.wait(_batchInvites.map(batchInviteUpdate));
 
     return true;
   }
@@ -726,13 +733,17 @@ class ContactsRepository {
   ////////////////
   // BATCH INVITES
 
-  //"dht:RecordKey:psk:subKeyIndex:writer".split(':');
   Future<void> handleBatchInvite(
       String myNameId,
       Typed<FixedEncodedString43> recordKey,
       FixedEncodedString43 psk,
       int mySubkey,
       KeyPair subkeyWriter) async {
+    // If we already know about this invite, don't do anything
+    if (_batchInvites.where((b) => b.recordKey == recordKey).isNotEmpty) {
+      return;
+    }
+
     // read meta info from first subkey, decrypt with psk
     // TODO: Factor out into helper for simple read
     final crypto =
@@ -790,8 +801,8 @@ class ContactsRepository {
         myName: myName,
         myKeyPair: batchKeyPair);
 
-    // TODO: Save batch persistently
     _batchInvites.add(batch);
+    await persistentStorage.addBatch(batch);
 
     await batchInviteUpdate(batch);
   }

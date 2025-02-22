@@ -9,6 +9,7 @@ import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../models/batch_invites.dart';
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
 import 'base.dart';
@@ -22,6 +23,8 @@ Future<Database> getDatabase() async => openDatabase(
           // TODO: Consider using specific columns for update attributes instead of one json string
           ..execute(
               'CREATE TABLE updates(id INTEGER PRIMARY KEY, updateJson TEXT)')
+          ..execute(
+              'CREATE TABLE batches(id INTEGER PRIMARY KEY, batchJson TEXT)')
           ..execute(
               'CREATE TABLE settings(id TEXT PRIMARY KEY, settingsJson TEXT)');
       },
@@ -165,4 +168,17 @@ class SqliteStorage extends PersistentStorage {
       getDatabase().then((db) async => db.insert('settings',
           {'id': 'profileInfo', 'settingsJson': json.encode(info.toJson())},
           conflictAlgorithm: ConflictAlgorithm.replace));
+
+  @override
+  Future<void> addBatch(BatchInvite batch) async =>
+      getDatabase().then((db) async =>
+          db.insert('batches', {'batchJson': json.encode(batch.toJson())}));
+
+  @override
+  Future<List<BatchInvite>> getBatches() async => getDatabase()
+      .then((db) async => db.query('batches', columns: ['batchJson']))
+      .then((results) => results
+          .map((r) => BatchInvite.fromJson(
+              json.decode(r['batchJson']! as String) as Map<String, dynamic>))
+          .asList());
 }

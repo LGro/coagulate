@@ -1,6 +1,7 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import '../../models/batch_invites.dart';
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
 
@@ -32,4 +33,8 @@ abstract class PersistentStorage {
 
   Future<ProfileInfo> getProfileInfo();
   Future<void> updateProfileInfo(ProfileInfo info);
+
+  Future<void> addBatch(BatchInvite batch);
+
+  Future<List<BatchInvite>> getBatches();
 }

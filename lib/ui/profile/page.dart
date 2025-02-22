@@ -302,7 +302,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
               const SizedBox(width: 8),
               FilledButton.tonal(
                 onPressed: _addNewCircle,
-                child: Text(context.loc.add),
+                child: Text(context.loc.add.capitalize()),
               ),
             ]),
             const SizedBox(height: 24),
@@ -311,7 +311,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
               children: [
                 FilledButton(
                   onPressed: Navigator.of(context).pop,
-                  child: Text(context.loc.cancel),
+                  child: Text(context.loc.cancel.capitalize()),
                 ),
                 // TODO: Give hints that label and text need to be filled out?
                 FilledButton(
@@ -326,7 +326,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                           widget.labelController?.text.trim() ?? '',
                           widget.valueController.text.trim(),
                           _circles.map((e) => (e.$1, e.$2, e.$3)).toList()),
-                  child: Text(context.loc.save),
+                  child: Text(context.loc.save.capitalize()),
                 ),
               ],
             ),

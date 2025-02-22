@@ -34,7 +34,7 @@ class _ContactListPageState extends State<ContactListPage> {
         const SizedBox(height: 8),
         Center(
             child: FilledButton(
-                child: const Text('create invite'),
+                child: const Text('Create invite'),
                 onPressed: () async {
                   await Navigator.of(context).push(
                       MaterialPageRoute<CreateNewContactPage>(
@@ -46,11 +46,11 @@ class _ContactListPageState extends State<ContactListPage> {
         const SizedBox(height: 8),
         Center(
             child: FilledButton(
-                child: const Text('accept invite'),
+                child: const Text('Accept invite'),
                 onPressed: () async {
                   await Navigator.of(context).push(
                       MaterialPageRoute<ReceiveRequestPage>(
-                          builder: (_) => const ReceiveRequestPage()));
+                          builder: (_) => ReceiveRequestPage()));
                 })),
       ]));
 
@@ -62,18 +62,18 @@ class _ContactListPageState extends State<ContactListPage> {
             child: _body(state.contacts.toList(), state.circleMemberships)),
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           FilledButton(
-              child: const Text('create invite'),
+              child: const Text('Create invite'),
               onPressed: () async {
                 await Navigator.of(context).push(
                     MaterialPageRoute<CreateNewContactPage>(
                         builder: (_) => CreateNewContactPage()));
               }),
           FilledButton(
-              child: const Text('accept invite'),
+              child: const Text('Accept invite'),
               onPressed: () async {
                 await Navigator.of(context).push(
                     MaterialPageRoute<ReceiveRequestPage>(
-                        builder: (_) => const ReceiveRequestPage()));
+                        builder: (_) => ReceiveRequestPage()));
               }),
         ]),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [

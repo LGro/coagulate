@@ -475,7 +475,7 @@ class LocationsPage extends StatelessWidget {
                               children: [
                                 Icon(Icons.pin_drop),
                                 SizedBox(width: 8),
-                                Text('check-in')
+                                Text('Check-in')
                               ])),
                       const Expanded(child: SizedBox()),
                       FilledButton(
@@ -490,7 +490,7 @@ class LocationsPage extends StatelessWidget {
                               children: [
                                 Icon(Icons.calendar_month),
                                 SizedBox(width: 8),
-                                Text('schedule')
+                                Text('Schedule')
                               ])),
                       const Expanded(child: SizedBox()),
                     ])),

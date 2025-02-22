@@ -126,25 +126,19 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
                                       0,
                                   _selectedDate!),
                       child: const Text('Prepare invite')))),
-
           const SizedBox(height: 16),
-
           const Text(
             'Existing batches',
             style: TextStyle(fontWeight: FontWeight.bold),
             textScaler: TextScaler.linear(1.2),
           ),
-          // Trigger share dialogue with comma separated links
           Expanded(
               child: ListView.builder(
                   itemCount: state.batches.length,
                   itemBuilder: (context, index) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: existingBatchWidget(state.batches[index])))),
-
-          // const Text(
-          //     'The functionality to expire existing batches, '
-          //     'and to see how many invites were used will follow soon.'),
+                      child: existingBatchWidget(
+                          state.batches.values.toList()[index])))),
         ],
       ));
 

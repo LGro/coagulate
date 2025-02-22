@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../models/batch_invites.dart';
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
 import 'base.dart';
@@ -118,6 +119,18 @@ class SharedPreferencesStorage extends PersistentStorage {
   @override
   Future<void> updateProfileInfo(ProfileInfo info) {
     // TODO: implement updateProfileSharingSettings
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> addBatch(BatchInvite batch) {
+    // TODO: implement addBatch
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<BatchInvite>> getBatches() {
+    // TODO: implement getBatches
     throw UnimplementedError();
   }
 }

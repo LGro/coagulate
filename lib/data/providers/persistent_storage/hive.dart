@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../models/batch_invites.dart';
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
 import 'base.dart';
@@ -143,6 +144,18 @@ class HiveStorage extends PersistentStorage {
 
   @override
   Future<void> updateProfileInfo(ProfileInfo info) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> addBatch(BatchInvite batch) {
+    // TODO: implement addBatch
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<BatchInvite>> getBatches() {
+    // TODO: implement getBatches
     throw UnimplementedError();
   }
 }
