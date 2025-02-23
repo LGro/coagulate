@@ -66,7 +66,8 @@ class ReceiveRequestPage extends StatelessWidget {
                         icon: const Icon(Icons.qr_code_scanner))
                   ],
                 ),
-                body: Column(children: [
+                body: SingleChildScrollView(
+                    child: Column(children: [
                   Text('You have been invited in a batch with others. '
                       'Everyone in that batch gets to see each other. '
                       'As others use their invites, they appear automatically '
@@ -89,6 +90,7 @@ class ReceiveRequestPage extends StatelessWidget {
                       // setState(() {
                       //   selectedColor = color;
                       // });
+                      // TODO: We need to set the controller but also store the id
                       batchInviteMyNameController.text = name?.$1 ?? '';
                     },
                     dropdownMenuEntries: context
@@ -102,18 +104,19 @@ class ReceiveRequestPage extends StatelessWidget {
                             label: e.value, value: (e.key, e.value)))
                         .toList(),
                   ),
-                  const SizedBox(height: 8),
-                  Expanded(child: TextFormField()),
                   const SizedBox(height: 16),
+                  // TODO: This also needs state to react to changes in text
                   FilledButton(
-                      onPressed: (batchInviteMyNameController.text.isEmpty)
-                          ? null
-                          : () async => context
+                      onPressed:
+                          //  (batchInviteMyNameController.text.isEmpty)
+                          //     ? null
+                          //     :
+                          () async => context
                               .read<ReceiveRequestCubit>()
                               .handleBatchInvite(
                                   batchInviteMyNameController.text),
                       child: const Text('Accept')),
-                ]));
+                ])));
 
           case ReceiveRequestStatus.qrcode:
             return Scaffold(

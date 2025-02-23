@@ -38,8 +38,8 @@ Future<Batch> createBatch(
 
   // DHT record content crypto
   final psk = await cryptoSystem.randomSharedSecret();
-  final pskCrypto = await VeilidCryptoPrivate.fromTypedKey(
-      TypedSecret(kind: cryptoSystem.kind(), value: psk), 'Coagulate Share');
+  final pskCrypto =
+      await VeilidCryptoPrivate.fromSharedSecret(cryptoSystem.kind(), psk);
 
   // Write general info to first subkey with owner writer key pair
   final info = BatchInviteInfoSchema(label, expiration);

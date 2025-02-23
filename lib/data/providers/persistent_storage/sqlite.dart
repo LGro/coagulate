@@ -23,8 +23,7 @@ Future<Database> getDatabase() async => openDatabase(
           // TODO: Consider using specific columns for update attributes instead of one json string
           ..execute(
               'CREATE TABLE updates(id INTEGER PRIMARY KEY, updateJson TEXT)')
-          ..execute(
-              'CREATE TABLE batches(id INTEGER PRIMARY KEY, batchJson TEXT)')
+          ..execute('CREATE TABLE batches(id TEXT PRIMARY KEY, batchJson TEXT)')
           ..execute(
               'CREATE TABLE settings(id TEXT PRIMARY KEY, settingsJson TEXT)');
       },
@@ -169,10 +168,35 @@ class SqliteStorage extends PersistentStorage {
           {'id': 'profileInfo', 'settingsJson': json.encode(info.toJson())},
           conflictAlgorithm: ConflictAlgorithm.replace));
 
+  Future<BatchInvite> getBatch(String recordKey) async {
+    final db = await getDatabase();
+    final result = await db.query('batches',
+        columns: ['batchJson'],
+        where: '"id" = ?',
+        whereArgs: [recordKey],
+        limit: 1);
+    if (result.isEmpty) {
+      // TODO: handle error case more specifically
+      throw Exception('Batch with record $recordKey could not be found');
+    }
+    return BatchInvite.fromJson(
+        json.decode(result[0]['batchJson']! as String) as Map<String, dynamic>);
+  }
+
   @override
-  Future<void> addBatch(BatchInvite batch) async =>
-      getDatabase().then((db) async =>
-          db.insert('batches', {'batchJson': json.encode(batch.toJson())}));
+  Future<void> addBatch(BatchInvite batch) async {
+    final db = await getDatabase();
+    try {
+      await getBatch(batch.recordKey.toString());
+      await db.update('batches', {'batchJson': json.encode(batch.toJson())},
+          where: '"id" = ?', whereArgs: [batch.recordKey.toString()]);
+    } on Exception {
+      await db.insert('contacts', {
+        'batchJson': json.encode(batch.toJson()),
+        'id': batch.recordKey.toString()
+      });
+    }
+  }
 
   @override
   Future<List<BatchInvite>> getBatches() async => getDatabase()

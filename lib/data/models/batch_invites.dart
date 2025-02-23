@@ -78,6 +78,20 @@ class BatchInvite extends Equatable {
 
   Map<String, dynamic> toJson() => _$BatchInviteToJson(this);
 
+  BatchInvite copyWith(
+          {Map<String, Typed<FixedEncodedString43>>? myConnectionRecords}) =>
+      BatchInvite(
+          label: this.label,
+          expiration: this.expiration,
+          recordKey: this.recordKey,
+          psk: this.psk,
+          subkeyCount: this.subkeyCount,
+          mySubkey: this.mySubkey,
+          subkeyWriter: this.subkeyWriter,
+          myName: this.myName,
+          myKeyPair: this.myKeyPair,
+          myConnectionRecords: myConnectionRecords ?? this.myConnectionRecords);
+
   @override
   List<Object?> get props => [
         label,

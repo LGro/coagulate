@@ -144,7 +144,8 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
         '${components[1]}:${components[2]}');
     final psk = FixedEncodedString43.fromString(components[3]);
     final mySubkey = int.parse(components[4]);
-    final subkeyWriter = KeyPair.fromString(components[5]);
+    final subkeyWriter =
+        KeyPair.fromString('${components[5]}:${components[6]}');
 
     emit(state.copyWith(status: ReceiveRequestStatus.processing));
 
@@ -160,12 +161,12 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     final components = fragment.split(':');
 
     // One person shows another a QR code to connect
-    if (![3, 4].contains(components.length)) {
+    if ([3, 4].contains(components.length)) {
       return handlePersonalInvite(components);
     }
 
     // Scanning a QR code or handling an invite link from a batch invite
-    if (components.length == 6 && !isClosed) {
+    if (components.length == 7 && !isClosed) {
       return emit(ReceiveRequestState(ReceiveRequestStatus.receivedBatchInvite,
           fragment: fragment));
     }

@@ -160,8 +160,9 @@ String generateInviteLinks(Batch batch) => batch.subkeyWriters
     .map(
         // The index of the writer in the list + 1 is the corresponding subkey
         // TODO: Do we need to URL encode? Maybe use Url().toString()?
-        (w) => 'https://coagulate.social/c/${batch.label}'
-            '#${batch.dhtRecordKey}:${batch.psk}:${w.key + 1}:${w.value}')
+        // TODO: Forbid colons in label
+        (w) => 'https://coagulate.social/c/'
+            '#${batch.label}:${batch.dhtRecordKey}:${batch.psk}:${w.key + 1}:${w.value}')
     .join(', ');
 
 Widget existingBatchWidget(Batch batch) => Row(children: [
