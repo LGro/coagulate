@@ -229,33 +229,36 @@ class ContactDetails extends Equatable {
 
 @JsonSerializable()
 class ProfileInfo extends Equatable {
-  const ProfileInfo({
+  const ProfileInfo(
+    this.id, {
     this.details = const ContactDetails(),
     this.pictures = const {},
     this.addressLocations = const {},
-    this.temporaryLocations = const [],
+    this.temporaryLocations = const {},
     this.sharingSettings = const ProfileSharingSettings(),
   });
 
   factory ProfileInfo.fromJson(Map<String, dynamic> json) =>
       _$ProfileInfoFromJson(json);
-  final ContactDetails details;
 
+  final String id;
+  final ContactDetails details;
   final Map<String, List<int>> pictures;
   // This is a map from index to value instead of a list because only the ith
   // address could have a location
   final Map<int, ContactAddressLocation> addressLocations;
-  final List<ContactTemporaryLocation> temporaryLocations;
+  final Map<String, ContactTemporaryLocation> temporaryLocations;
   final ProfileSharingSettings sharingSettings;
   Map<String, dynamic> toJson() => _$ProfileInfoToJson(this);
   ProfileInfo copyWith({
     ContactDetails? details,
     Map<String, List<int>>? pictures,
     Map<int, ContactAddressLocation>? addressLocations,
-    List<ContactTemporaryLocation>? temporaryLocations,
+    Map<String, ContactTemporaryLocation>? temporaryLocations,
     ProfileSharingSettings? sharingSettings,
   }) =>
       ProfileInfo(
+        id,
         details: details ?? this.details,
         pictures: pictures ?? this.pictures,
         addressLocations: addressLocations ?? this.addressLocations,
@@ -265,6 +268,7 @@ class ProfileInfo extends Equatable {
 
   @override
   List<Object?> get props => [
+        id,
         details,
         pictures,
         addressLocations,
@@ -282,7 +286,7 @@ class CoagContact extends Equatable {
     this.details,
     this.systemContact,
     this.addressLocations = const {},
-    this.temporaryLocations = const [],
+    this.temporaryLocations = const {},
     this.comment = '',
     this.sharedProfile,
     this.mostRecentUpdate,
@@ -306,7 +310,7 @@ class CoagContact extends Equatable {
   // This is a map from index to value instead of a list because only the ith
   // address could have a location
   final Map<int, ContactAddressLocation> addressLocations;
-  final List<ContactTemporaryLocation> temporaryLocations;
+  final Map<String, ContactTemporaryLocation> temporaryLocations;
 
   /// Cryptographic keys and DHT record info for sharing with this contact
   final DhtSettings dhtSettings;
@@ -354,7 +358,7 @@ class CoagContact extends Equatable {
     Contact? systemContact,
     ContactDetails? details,
     Map<int, ContactAddressLocation>? addressLocations,
-    List<ContactTemporaryLocation>? temporaryLocations,
+    Map<String, ContactTemporaryLocation>? temporaryLocations,
     DhtSettings? dhtSettings,
     CoagContactDHTSchema? sharedProfile,
     DateTime? mostRecentUpdate,
@@ -399,7 +403,7 @@ class CoagContactDHTSchemaV1 extends Equatable {
     this.shareBackPsk,
     this.shareBackDHTWriter,
     this.addressLocations = const {},
-    this.temporaryLocations = const [],
+    this.temporaryLocations = const {},
   });
 
   factory CoagContactDHTSchemaV1.fromJson(Map<String, dynamic> json) =>
@@ -409,7 +413,7 @@ class CoagContactDHTSchemaV1 extends Equatable {
   final String coagContactId;
   final ContactDetails details;
   final Map<int, ContactAddressLocation> addressLocations;
-  final List<ContactTemporaryLocation> temporaryLocations;
+  final Map<String, ContactTemporaryLocation> temporaryLocations;
   final String? shareBackDHTKey;
   final String? shareBackDHTWriter;
   final String? shareBackPsk;
@@ -422,7 +426,7 @@ class CoagContactDHTSchemaV1 extends Equatable {
     String? shareBackPsk,
     String? shareBackDHTWriter,
     Map<int, ContactAddressLocation>? addressLocations,
-    List<ContactTemporaryLocation>? temporaryLocations,
+    Map<String, ContactTemporaryLocation>? temporaryLocations,
   }) =>
       CoagContactDHTSchemaV1(
         coagContactId: coagContactId,
@@ -455,7 +459,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
     required this.shareBackPubKey,
     this.shareBackDHTWriter,
     this.addressLocations = const {},
-    this.temporaryLocations = const [],
+    this.temporaryLocations = const {},
     this.ackHandshakeComplete = false,
     DateTime? mostRecentUpdate,
   }) {
@@ -472,7 +476,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
   final int schemaVersion = 2;
   final ContactDetails details;
   final Map<int, ContactAddressLocation> addressLocations;
-  final List<ContactTemporaryLocation> temporaryLocations;
+  final Map<String, ContactTemporaryLocation> temporaryLocations;
   final String? shareBackDHTKey;
   final String? shareBackDHTWriter;
   final String? shareBackPubKey;
@@ -490,7 +494,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
     String? shareBackDHTWriter,
     String? shareBackPubKey,
     Map<int, ContactAddressLocation>? addressLocations,
-    List<ContactTemporaryLocation>? temporaryLocations,
+    Map<String, ContactTemporaryLocation>? temporaryLocations,
     bool? ackHandshakeComplete,
   }) =>
       CoagContactDHTSchemaV2(

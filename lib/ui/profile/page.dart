@@ -30,6 +30,25 @@ class Name extends Equatable {
   List<Object?> get props => [name, label];
 }
 
+Future<void> pickCirclePicture(BuildContext context,
+    Future<void> Function(Uint8List picture) handlePicture) async {
+  try {
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 90,
+    );
+    if (context.mounted && pickedFile != null) {
+      final p = await pickedFile.readAsBytes();
+      await handlePicture(p);
+    }
+  } catch (e) {
+    // TODO: Handle
+    print(e);
+  }
+}
+
 class CirclesWithAvatarWidget extends StatefulWidget {
   const CirclesWithAvatarWidget({
     super.key,
@@ -64,87 +83,79 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => _card(
-      widget.title,
-      widget.circles
-              .map((circleId, circleLabel) => MapEntry<String, Widget>(
-                  circleId,
-                  Dismissible(
-                      key: Key('picture|$circleId'),
-                      direction: (widget.deleteCallback != null)
-                          ? DismissDirection.endToStart
-                          : DismissDirection.none,
-                      confirmDismiss: (widget.deleteCallback != null)
-                          ? (_) async {
-                              widget.deleteCallback!(circleId);
-                              setState(() {
-                                _pictures = _pictures..remove(circleId);
-                              });
-                              // Ensure the UI element is not actually removed
-                              return false;
-                            }
-                          : null,
-                      background: Container(
-                        color: Colors.red,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () async {
-                            try {
-                              final pickedFile = await ImagePicker().pickImage(
-                                source: ImageSource.gallery,
-                                maxWidth: 800,
-                                maxHeight: 800,
-                                imageQuality: 90,
-                              );
-                              if (context.mounted && pickedFile != null) {
-                                final p = await pickedFile.readAsBytes();
-                                final _updatedPictures = {..._pictures};
-                                _updatedPictures[circleId] = p;
-                                if (context.mounted) {
-                                  await context
-                                      .read<ProfileCubit>()
-                                      .updateAvatar(circleId, p);
+  Widget build(BuildContext context) => Column(
+      children: _card(
+          title: widget.title,
+          children: <Widget>[const SizedBox(height: 6)] +
+              widget.circles
+                  .map((circleId, circleLabel) => MapEntry<String, Widget>(
+                      circleId,
+                      Dismissible(
+                          key: Key('picture|$circleId'),
+                          direction: (widget.deleteCallback != null)
+                              ? DismissDirection.endToStart
+                              : DismissDirection.none,
+                          confirmDismiss: (widget.deleteCallback != null)
+                              ? (_) async {
+                                  widget.deleteCallback!(circleId);
+                                  setState(() {
+                                    _pictures = _pictures..remove(circleId);
+                                  });
+                                  // Ensure the UI element is not actually removed
+                                  return false;
                                 }
-                                setState(() {
-                                  _pictures = _updatedPictures;
-                                });
-                              }
-                            } catch (e) {
-                              // TODO: Handle
-                              print(e);
-                            }
-                          },
-                          child: Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Row(children: [
-                                if (!_pictures.containsKey(circleId))
-                                  const CircleAvatar(
-                                      radius: 48, child: Icon(Icons.person)),
-                                if (_pictures.containsKey(circleId))
-                                  CircleAvatar(
-                                    backgroundImage:
-                                        MemoryImage(_pictures[circleId]!),
-                                    radius: 48,
-                                  ),
-                                Padding(
-                                    padding: const EdgeInsets.only(left: 8),
-                                    //FIXME: Overflow / wrapping for long circle names
-                                    child: Text(
-                                        '$circleLabel (${widget.circleMemberCount[circleId] ?? 0} '
-                                        'contact${(widget.circleMemberCount[circleId] == 1) ? '' : 's'})',
-                                        softWrap: true)),
-                              ]))))))
-              .values
-              .asList() +
-          [
-            const SizedBox(height: 8),
-            Text(context.loc.profilePictureExplainer),
-            const SizedBox(height: 4),
-          ]);
+                              : null,
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child:
+                                const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () async =>
+                                  pickCirclePicture(context, (p) async {
+                                    final _updatedPictures = {..._pictures};
+                                    _updatedPictures[circleId] = p;
+                                    if (context.mounted) {
+                                      await context
+                                          .read<ProfileCubit>()
+                                          .updateAvatar(circleId, p);
+                                    }
+                                    setState(() {
+                                      _pictures = _updatedPictures;
+                                    });
+                                  }),
+                              child: Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Row(children: [
+                                    if (!_pictures.containsKey(circleId))
+                                      const CircleAvatar(
+                                          radius: 48,
+                                          child: Icon(Icons.person)),
+                                    if (_pictures.containsKey(circleId))
+                                      CircleAvatar(
+                                        backgroundImage:
+                                            MemoryImage(_pictures[circleId]!),
+                                        radius: 48,
+                                      ),
+                                    Padding(
+                                        padding: const EdgeInsets.only(left: 8),
+                                        //FIXME: Overflow / wrapping for long circle names
+                                        child: Text(
+                                            'Circle: $circleLabel\nShared with '
+                                            '${widget.circleMemberCount[circleId] ?? 0} '
+                                            'contact${(widget.circleMemberCount[circleId] == 1) ? '' : 's'}',
+                                            softWrap: true)),
+                                  ]))))))
+                  .values
+                  .asList() +
+              [
+                const SizedBox(height: 8),
+                Text(context.loc.profilePictureExplainer),
+                const SizedBox(height: 4),
+              ]));
 }
 
 // TODO: Pass other labels to prevent duplicates
@@ -160,6 +171,7 @@ class EditOrAddWidget extends StatefulWidget {
     this.labelController,
     this.labelHelperText,
     this.hideLabel = false,
+    this.existingLabels = const [],
   });
 
   final bool isEditing;
@@ -172,12 +184,13 @@ class EditOrAddWidget extends StatefulWidget {
   final void Function(String label, String value,
       List<(String, String, bool)> selectedCircles) onAddOrSave;
   final List<(String, String, bool, int)> circles;
-
+  final List<String> existingLabels;
   @override
   State<EditOrAddWidget> createState() => _EditOrAddWidgetState();
 }
 
 class _EditOrAddWidgetState extends State<EditOrAddWidget> {
+  final _formKey = GlobalKey<FormState>();
   late List<(String, String, bool, int)> _circles;
   late final TextEditingController _newCircleNameController;
 
@@ -218,7 +231,9 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,11 +250,12 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                     onPressed: widget.onDelete,
                     icon: const Icon(Icons.delete_forever, color: Colors.red)),
             ]),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             if (!widget.hideLabel && widget.labelController != null) ...[
+              const SizedBox(height: 8),
               FractionallySizedBox(
                   widthFactor: 0.5,
-                  child: TextField(
+                  child: TextFormField(
                     controller: widget.labelController,
                     decoration: InputDecoration(
                       labelText: 'label',
@@ -247,11 +263,21 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                       helperText: widget.labelHelperText,
                       border: const OutlineInputBorder(),
                     ),
+                    validator: (value) {
+                      if (widget.existingLabels
+                          .map((l) => l.toLowerCase())
+                          .contains(value?.toLowerCase())) {
+                        return 'This label already exists.';
+                      }
+                      return null;
+                    },
+                    onChanged: (_) => _formKey.currentState!.validate(),
                   )),
               const SizedBox(height: 8),
             ],
             TextField(
               controller: widget.valueController,
+              autocorrect: false,
               decoration: InputDecoration(
                 isDense: true,
                 labelText: widget.headlineSuffix,
@@ -268,7 +294,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
             // If we don't need wrapping but go for a list, use CheckboxListTile
             Wrap(
               spacing: 8,
-              runSpacing: 6,
+              runSpacing: -4,
               children: List.generate(
                   _circles.length,
                   (index) => GestureDetector(
@@ -288,24 +314,24 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                         ],
                       ))),
             ),
-            const SizedBox(height: 8),
-            Row(children: [
-              Expanded(
-                  child: TextField(
-                controller: _newCircleNameController,
-                decoration: InputDecoration(
-                  isDense: true,
-                  labelText: context.loc.newCircle,
-                  border: const OutlineInputBorder(),
-                ),
-              )),
-              const SizedBox(width: 8),
-              FilledButton.tonal(
-                onPressed: _addNewCircle,
-                child: Text(context.loc.add.capitalize()),
-              ),
-            ]),
-            const SizedBox(height: 24),
+            // const SizedBox(height: 8),
+            // Row(children: [
+            //   Expanded(
+            //       child: TextField(
+            //     controller: _newCircleNameController,
+            //     decoration: InputDecoration(
+            //       isDense: true,
+            //       labelText: context.loc.newCircle,
+            //       border: const OutlineInputBorder(),
+            //     ),
+            //   )),
+            //   const SizedBox(width: 8),
+            //   FilledButton.tonal(
+            //     onPressed: _addNewCircle,
+            //     child: Text(context.loc.add.capitalize()),
+            //   ),
+            // ]),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -322,38 +348,46 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                               (widget.labelController?.text.trim().isEmpty ??
                                   false)))
                       ? null
-                      : widget.onAddOrSave(
-                          widget.labelController?.text.trim() ?? '',
-                          widget.valueController.text.trim(),
-                          _circles.map((e) => (e.$1, e.$2, e.$3)).toList()),
-                  child: Text(context.loc.save.capitalize()),
+                      : (_formKey.currentState!.validate())
+                          ? widget.onAddOrSave(
+                              widget.labelController?.text.trim() ?? '',
+                              widget.valueController.text.trim(),
+                              _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
+                          : null,
+                  child: Text((widget.isEditing)
+                      ? context.loc.save.capitalize()
+                      : context.loc.add.capitalize()),
                 ),
               ],
             ),
           ],
         ),
-      );
+      ));
 }
 
-Card _card(Text title, List<Widget> children) => Card(
-    margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-    child: SizedBox(
-        child: Padding(
-            padding:
-                const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 8),
-            child: Column(
+List<Widget> _card({Text? title, List<Widget> children = const []}) => [
+      if (title != null)
+        Row(children: <Widget>[
+          Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 4),
+              child: title)
+        ]),
+      Card(
+          margin: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+          child: Padding(
+              padding: const EdgeInsets.only(left: 14, right: 8, bottom: 8),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(children: <Widget>[title]),
-                  ...children,
-                ]))));
+                children: children,
+              ))),
+    ];
 
-Widget detailsList<T>(
+List<Widget> detailsList<T>(
   BuildContext context,
   List<T> details, {
-  required Text title,
   required String Function(T detail) getValue,
   required String Function(T detail) getLabel,
+  Text? title,
   Map<String, String>? circles,
   Map<String, List<String>>? circleMemberships,
   List<String>? Function(String label)? getDetailSharingSettings,
@@ -361,10 +395,11 @@ Widget detailsList<T>(
   VoidCallback? addCallback,
   void Function(int i)? deleteCallback,
   bool hideLabel = false,
+  bool hideEditButton = false,
 }) =>
     _card(
-        title,
-        details
+        title: title,
+        children: details
                 .asMap()
                 .map((i, e) {
                   final label = getLabel(e);
@@ -393,81 +428,100 @@ Widget detailsList<T>(
                           .length;
 
                   return MapEntry<int, Widget>(
-                      i,
-                      Dismissible(
-                          key: Key('$title|${getValue(e)}|$i'),
-                          direction: (deleteCallback != null)
-                              ? DismissDirection.endToStart
-                              : DismissDirection.none,
-                          onDismissed: (deleteCallback != null)
-                              ? (_) => deleteCallback(i)
-                              : null,
-                          background: Container(
-                            color: Colors.red,
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child:
-                                const Icon(Icons.delete, color: Colors.white),
-                          ),
-                          child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: (editCallback == null)
-                                  ? null
-                                  : () => editCallback(i),
-                              child: Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Row(
+                    i,
+                    Dismissible(
+                      key: Key('$title|${getValue(e)}|$i'),
+                      direction: (deleteCallback != null)
+                          ? DismissDirection.endToStart
+                          : DismissDirection.none,
+                      onDismissed: (deleteCallback != null)
+                          ? (_) => deleteCallback(i)
+                          : null,
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: (editCallback == null)
+                            ? null
+                            : () => editCallback(i),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Expanded(
-                                            child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                              if (!hideLabel)
-                                                Text(getLabel(e),
-                                                    textScaler:
-                                                        const TextScaler.linear(
-                                                            0.9)),
-                                              Text(getValue(e),
-                                                  style: const TextStyle(
-                                                      fontSize: 19)),
-                                              if (circleNames != null &&
-                                                  numSharedContacts != null)
-                                                Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            bottom: 4),
-                                                    child: Text([
-                                                      context.loc.sharedWith
-                                                          .capitalize(),
-                                                      numSharedContacts
-                                                          .toString(),
-                                                      if (numSharedContacts !=
-                                                          1)
-                                                        context.loc.contacts
-                                                      else
-                                                        context.loc.contact,
-                                                      if (circleNames
-                                                          .isNotEmpty)
-                                                        'via circle${(circleNames.length != 1) ? 's' : ''}:',
-                                                      circleNames.join(', ')
-                                                    ].join(' '))),
-                                            ])),
-                                        // if (editCallback != null)
-                                        //   IconButton.filledTonal(
-                                        //       onPressed: () => editCallback(i),
-                                        //       icon: const Icon(Icons.edit))
-                                      ])))));
+                                    if (!hideLabel)
+                                      Text(getLabel(e),
+                                          textScaler:
+                                              const TextScaler.linear(1.1),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelLarge),
+                                    Text(getValue(e),
+                                        textScaler:
+                                            const TextScaler.linear(1.1),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge),
+                                    if (circleNames != null &&
+                                        numSharedContacts != null)
+                                      Text(
+                                          textScaler:
+                                              const TextScaler.linear(1.1),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall,
+                                          [
+                                            context.loc.sharedWith.capitalize(),
+                                            numSharedContacts.toString(),
+                                            if (numSharedContacts != 1)
+                                              context.loc.contacts
+                                            else
+                                              context.loc.contact,
+                                          ].join(' ')),
+                                    if (circleNames?.isNotEmpty ?? false)
+                                      Text(
+                                        textScaler:
+                                            const TextScaler.linear(1.1),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                        'Circle${(circleNames!.length != 1) ? 's' : ''}: '
+                                        '${circleNames.join(', ')}',
+                                      ),
+                                  ])),
+                              if (editCallback != null && !hideEditButton)
+                                IconButton.filledTonal(
+                                    onPressed: () => editCallback(i),
+                                    icon: const Icon(Icons.edit),
+                                    iconSize: 20),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
                 })
                 .values
-                .asList() +
+                .asList()
+                .addBetween(const SizedBox(height: 8)) +
             [
-              if (addCallback != null)
-                Center(
-                    child: IconButton.filledTonal(
-                        onPressed: addCallback, icon: const Icon(Icons.add)))
+              if (addCallback != null) ...[
+                const SizedBox(height: 8),
+                Align(
+                    alignment: Alignment.bottomRight,
+                    child: IconButton.filled(
+                        onPressed: addCallback, icon: const Icon(Icons.add))),
+              ]
             ]);
 
 String _commaToNewline(String s) =>
@@ -485,18 +539,18 @@ bool labelDoesMatch(String name, Address address) {
   return name == address.label.name;
 }
 
-Widget addressesWithForms(BuildContext context, List<Address> addresses,
+List<Widget> addressesWithForms(BuildContext context, List<Address> addresses,
         List<ContactAddressLocation> locations,
         {void Function(int index, String label)? editCirclesCallback,
         void Function(String value)? editCallback,
         VoidCallback? addCallback}) =>
     _card(
-        Text(context.loc.addresses.capitalize(),
+        title: Text(context.loc.addresses.capitalize(),
             textScaler: const TextScaler.linear(1.4),
             style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary)),
-        addresses
+        children: addresses
             .asMap()
             .map((i, e) => MapEntry(
                 i,
@@ -610,7 +664,8 @@ Future<void> onAddDetail(
         required Future<void> Function(String label, String value,
                 List<(String, String, bool)> selectedCircles)
             onAdd,
-        String? labelHelperText}) async =>
+        String? labelHelperText,
+        List<String> existingLabels = const []}) async =>
     showModalBottomSheet<void>(
         context: context,
         isDismissible: true,
@@ -638,6 +693,7 @@ Future<void> onAddDetail(
                     headlineSuffix: headlineSuffix,
                     labelHelperText: labelHelperText,
                     labelController: TextEditingController(),
+                    existingLabels: existingLabels,
                     valueController: TextEditingController(),
                     onAddOrSave: (label, number, circlesWithSelection) async =>
                         onAdd(label, number, circlesWithSelection).then((_) =>
@@ -659,6 +715,7 @@ Future<void> onEditDetail({
   required Future<void> Function() onDelete,
   String? labelHelperText,
   bool hideLabel = false,
+  List<String> existingLabels = const [],
 }) async =>
     showModalBottomSheet<void>(
         context: context,
@@ -687,6 +744,7 @@ Future<void> onEditDetail({
                     headlineSuffix: headlineSuffix,
                     labelHelperText: labelHelperText,
                     hideLabel: hideLabel,
+                    existingLabels: [...existingLabels]..remove(label),
                     labelController: TextEditingController(text: label),
                     valueController: TextEditingController(text: value),
                     onDelete: () async => onDelete().then((_) =>
@@ -710,7 +768,7 @@ class ProfileViewState extends State<ProfileView> {
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const SizedBox(height: 8),
         // NAMES
-        detailsList<Name>(
+        ...detailsList<Name>(
             context,
             contact.names.entries
                 .map((e) => Name(name: e.value, label: e.key))
@@ -786,7 +844,7 @@ class ProfileViewState extends State<ProfileView> {
                                       : null))),
                     ))),
         // PHONES
-        detailsList<Phone>(
+        ...detailsList<Phone>(
           context,
           contact.phones,
           title: Text(context.loc.phones.capitalize(),
@@ -812,6 +870,10 @@ class ProfileViewState extends State<ProfileView> {
                 ? contact.phones[i].label.name
                 : contact.phones[i].customLabel,
             value: contact.phones[i].number,
+            existingLabels: contact.phones
+                .map((v) =>
+                    (v.label.name != 'custom') ? v.label.name : v.customLabel)
+                .toList(),
             circles: circles,
             circleMemberships: circleMemberships,
             detailSharingSettings: profileSharingSettings.phones,
@@ -830,6 +892,10 @@ class ProfileViewState extends State<ProfileView> {
               context: context,
               headlineSuffix: context.loc.phoneNumber,
               labelHelperText: 'e.g. home, mobile or work',
+              existingLabels: contact.phones
+                  .map((v) =>
+                      (v.label.name != 'custom') ? v.label.name : v.customLabel)
+                  .toList(),
               circles: circles,
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
@@ -840,7 +906,7 @@ class ProfileViewState extends State<ProfileView> {
                       circles)),
         ),
         // E-MAILS
-        detailsList<Email>(
+        ...detailsList<Email>(
           context,
           contact.emails,
           title: Text(context.loc.emails.capitalize(),
@@ -865,6 +931,10 @@ class ProfileViewState extends State<ProfileView> {
             label: (contact.emails[i].label.name != 'custom')
                 ? contact.emails[i].label.name
                 : contact.emails[i].customLabel,
+            existingLabels: contact.emails
+                .map((v) =>
+                    (v.label.name != 'custom') ? v.label.name : v.customLabel)
+                .toList(),
             value: contact.emails[i].address,
             circles: circles,
             circleMemberships: circleMemberships,
@@ -884,6 +954,10 @@ class ProfileViewState extends State<ProfileView> {
               context: context,
               headlineSuffix: context.loc.emailAddress,
               labelHelperText: 'e.g. private or work',
+              existingLabels: contact.emails
+                  .map((v) =>
+                      (v.label.name != 'custom') ? v.label.name : v.customLabel)
+                  .toList(),
               circles: circles,
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
@@ -895,7 +969,7 @@ class ProfileViewState extends State<ProfileView> {
         ),
         // ADDRESSES
         //addressLocations
-        detailsList<Address>(
+        ...detailsList<Address>(
           context,
           contact.addresses,
           title: Text(context.loc.addresses.capitalize(),
@@ -920,6 +994,10 @@ class ProfileViewState extends State<ProfileView> {
             label: (contact.addresses[i].label.name != 'custom')
                 ? contact.addresses[i].label.name
                 : contact.addresses[i].customLabel,
+            existingLabels: contact.addresses
+                .map((v) =>
+                    (v.label.name != 'custom') ? v.label.name : v.customLabel)
+                .toList(),
             value: contact.addresses[i].address,
             circles: circles,
             circleMemberships: circleMemberships,
@@ -940,6 +1018,10 @@ class ProfileViewState extends State<ProfileView> {
               context: context,
               headlineSuffix: context.loc.address,
               labelHelperText: 'e.g. home or cabin',
+              existingLabels: contact.addresses
+                  .map((v) =>
+                      (v.label.name != 'custom') ? v.label.name : v.customLabel)
+                  .toList(),
               circles: circles,
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
@@ -950,7 +1032,7 @@ class ProfileViewState extends State<ProfileView> {
                       circles)),
         ),
         // SOCIAL MEDIAS
-        detailsList<SocialMedia>(
+        ...detailsList<SocialMedia>(
           context,
           contact.socialMedias,
           title: Text('Socials',
@@ -976,6 +1058,10 @@ class ProfileViewState extends State<ProfileView> {
             label: (contact.socialMedias[i].label.name != 'custom')
                 ? contact.socialMedias[i].label.name
                 : contact.socialMedias[i].customLabel,
+            existingLabels: contact.socialMedias
+                .map((v) =>
+                    (v.label.name != 'custom') ? v.label.name : v.customLabel)
+                .toList(),
             value: contact.socialMedias[i].userName,
             circles: circles,
             circleMemberships: circleMemberships,
@@ -996,6 +1082,10 @@ class ProfileViewState extends State<ProfileView> {
               context: context,
               headlineSuffix: 'social media profile',
               labelHelperText: 'e.g. Signal or Instagram',
+              existingLabels: contact.socialMedias
+                  .map((v) =>
+                      (v.label.name != 'custom') ? v.label.name : v.customLabel)
+                  .toList(),
               circles: circles,
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
@@ -1006,7 +1096,7 @@ class ProfileViewState extends State<ProfileView> {
                       circles)),
         ),
         // WEBSITES
-        detailsList<Website>(
+        ...detailsList<Website>(
           context,
           contact.websites,
           title: Text(context.loc.websites.capitalize(),
@@ -1031,6 +1121,10 @@ class ProfileViewState extends State<ProfileView> {
             label: (contact.websites[i].label.name != 'custom')
                 ? contact.websites[i].label.name
                 : contact.websites[i].customLabel,
+            existingLabels: contact.websites
+                .map((v) =>
+                    (v.label.name != 'custom') ? v.label.name : v.customLabel)
+                .toList(),
             value: contact.websites[i].url,
             circles: circles,
             circleMemberships: circleMemberships,
@@ -1051,6 +1145,10 @@ class ProfileViewState extends State<ProfileView> {
               context: context,
               headlineSuffix: context.loc.website,
               labelHelperText: 'e.g. blog or portfolio',
+              existingLabels: contact.websites
+                  .map((v) =>
+                      (v.label.name != 'custom') ? v.label.name : v.customLabel)
+                  .toList(),
               circles: circles,
               circleMemberships: circleMemberships,
               onAdd: (label, value, circles) async => context
@@ -1108,20 +1206,22 @@ class ProfileViewState extends State<ProfileView> {
         //     ]),
       ]);
 
-  Widget _scaffoldBody(ProfileState state) => CustomScrollView(slivers: [
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: buildProfileScrollView(
-              contact: state.profileInfo.details,
-              pictures: state.profileInfo.pictures
-                  .map((k, v) => MapEntry(k, Uint8List.fromList(v))),
-              addressLocations:
-                  state.profileInfo.addressLocations.values.asList(),
-              circles: state.circles,
-              circleMemberships: state.circleMemberships,
-              profileSharingSettings: state.profileInfo.sharingSettings),
-        )
-      ]);
+  Widget _scaffoldBody(ProfileState state) => (state.profileInfo == null)
+      ? const Center(child: CircularProgressIndicator())
+      : CustomScrollView(slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: buildProfileScrollView(
+                contact: state.profileInfo!.details,
+                pictures: state.profileInfo!.pictures
+                    .map((k, v) => MapEntry(k, Uint8List.fromList(v))),
+                addressLocations:
+                    state.profileInfo!.addressLocations.values.asList(),
+                circles: state.circles,
+                circleMemberships: state.circleMemberships,
+                profileSharingSettings: state.profileInfo!.sharingSettings),
+          )
+        ]);
 
   @override
   Widget build(

@@ -22,6 +22,7 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _invitationsAmountController =
       TextEditingController();
+  final TextEditingController _expirationController = TextEditingController();
   DateTime? _selectedDate;
   final ValueNotifier<bool> _isButtonEnabled = ValueNotifier(false);
 
@@ -43,6 +44,7 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
     _nameController.dispose();
     _invitationsAmountController.dispose();
     _isButtonEnabled.dispose();
+    _expirationController.dispose();
     super.dispose();
   }
 
@@ -59,94 +61,117 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
       setState(() {
         _selectedDate = pickedDate;
       });
+      _expirationController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
       _updateButtonState();
     }
   }
 
-  Widget _body(BuildContext context, BatchInvitesState state) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('With batch invites, everyone invited via the same batch '
-              'will see the label and everyone else invited to the '
-              'batch to connect with them before the invites expire.'),
-          const SizedBox(height: 16),
-          const Text('New batch',
-              textScaler: TextScaler.linear(1.2),
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Row(children: [
-            Expanded(
-                flex: 4,
-                child: TextField(
+  void _resetForm() {
+    _nameController.text = '';
+    _invitationsAmountController.text = '';
+    _selectedDate = null;
+    _expirationController.text = '';
+  }
+
+  Widget _body(BuildContext context, BatchInvitesState state) =>
+      SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                  'Do you want to invite a bunch of folks from an existing '
+                  'community who already do or want to know each other?'),
+              const Text(
+                  'With invitation batches, everyone invited via the same batch '
+                  'will see the label and everyone else invited to the '
+                  'batch to connect with them before the invites expire.'),
+              const SizedBox(height: 16),
+              Text('New batch',
+                  textScaler: const TextScaler.linear(1.2),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary)),
+              const SizedBox(height: 8),
+              TextField(
                   controller: _nameController,
                   autocorrect: false,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'^[a-zA-Z0-9]*$')),
+                  ],
                   decoration: const InputDecoration(
-                      labelText: 'Label', border: OutlineInputBorder()),
-                )),
-            const SizedBox(width: 4),
-            Expanded(
-                flex: 2,
-                child: TextField(
+                      labelText: 'Batch label',
+                      border: OutlineInputBorder(),
+                      helperMaxLines: 100,
+                      helperText:
+                          'Only alpha numeric characters i.e. letters and '
+                          'numbers are allowed')),
+              const SizedBox(height: 16),
+              TextField(
                   controller: _invitationsAmountController,
                   autocorrect: false,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: const InputDecoration(
-                      labelText: 'Invitations', border: OutlineInputBorder()),
-                )),
-            const SizedBox(width: 4),
-            Expanded(
-                flex: 3,
-                child: TextField(
+                      labelText: 'Invitations',
+                      border: OutlineInputBorder(),
+                      helperMaxLines: 100,
+                      helperText:
+                          'Number of invitations in the batch. Pick a handful '
+                          'more than you think, since you can not generate any '
+                          'more later')),
+              const SizedBox(height: 16),
+              TextField(
                   onTap: _pickDate,
-                  controller: TextEditingController(
-                      text: (_selectedDate == null)
-                          ? ''
-                          : DateFormat('yyyy-MM-dd').format(_selectedDate!)),
+                  controller: _expirationController,
+                  readOnly: true,
                   autocorrect: false,
                   decoration: const InputDecoration(
-                      labelText: 'Expiration', border: OutlineInputBorder()),
-                )),
-          ]),
-          const SizedBox(height: 8),
-          ValueListenableBuilder<bool>(
-              valueListenable: _isButtonEnabled,
-              builder: (_, isEnabled, child) => Center(
-                  child: FilledButton(
-                      onPressed: (!isEnabled)
-                          ? null
-                          : () async => context
-                              .read<BatchInvitesCubit>()
-                              .generateInvites(
-                                  _nameController.text.trim(),
-                                  int.tryParse(_invitationsAmountController.text
-                                          .trim()) ??
-                                      0,
-                                  _selectedDate!),
-                      child: const Text('Prepare invite')))),
-          const SizedBox(height: 16),
-          const Text(
-            'Existing batches',
-            style: TextStyle(fontWeight: FontWeight.bold),
-            textScaler: TextScaler.linear(1.2),
-          ),
-          Expanded(
-              child: ListView.builder(
-                  itemCount: state.batches.length,
-                  itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: existingBatchWidget(
-                          state.batches.values.toList()[index])))),
-        ],
-      ));
+                      labelText: 'Expiration date',
+                      border: OutlineInputBorder(),
+                      helperMaxLines: 100,
+                      helperText:
+                          'Until this date, everyone needs to have used their '
+                          'invitation.')),
+              const SizedBox(height: 8),
+              ValueListenableBuilder<bool>(
+                  valueListenable: _isButtonEnabled,
+                  builder: (_, isEnabled, child) => Center(
+                      child: FilledButton(
+                          onPressed: (!isEnabled)
+                              ? null
+                              : () async {
+                                  await context
+                                      .read<BatchInvitesCubit>()
+                                      .generateInvites(
+                                          _nameController.text.trim(),
+                                          int.tryParse(
+                                                  _invitationsAmountController
+                                                      .text
+                                                      .trim()) ??
+                                              0,
+                                          _selectedDate!);
+                                  _resetForm();
+                                },
+                          child: const Text('Generate invites batch')))),
+              const SizedBox(height: 16),
+              Text('Generated batches',
+                  textScaler: const TextScaler.linear(1.2),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary)),
+              const Text(
+                  'WARNING: When you leave this view, you will no longer have '
+                  'access to the batch you created. Make sure to copy / export '
+                  'the generated invitation batches links directly.'),
+              ...state.batches.values.map(existingBatchWidget),
+            ],
+          ));
 
   @override
   Widget build(BuildContext _) => Scaffold(
-      appBar: AppBar(
-        title: const Text('Batch invites'),
-      ),
+      appBar: AppBar(title: const Text('Invitation batches')),
       body: BlocProvider(
           create: (context) => BatchInvitesCubit(),
           child: BlocBuilder<BatchInvitesCubit, BatchInvitesState>(

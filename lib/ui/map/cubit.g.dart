@@ -14,10 +14,16 @@ Location _$LocationFromJson(Map<String, dynamic> json) => Location(
       details: json['details'] as String,
       marker: $enumDecode(_$MarkerTypeEnumMap, json['marker']),
       coagContactId: json['coag_contact_id'] as String?,
+      locationId: json['location_id'] as String?,
+      picture: (json['picture'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList(),
     );
 
 Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
       'coag_contact_id': instance.coagContactId,
+      'location_id': instance.locationId,
+      'picture': instance.picture,
       'longitude': instance.longitude,
       'latitude': instance.latitude,
       'label': instance.label,

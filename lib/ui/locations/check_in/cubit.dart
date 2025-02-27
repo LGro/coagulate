@@ -7,6 +7,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../data/models/contact_location.dart';
 import '../../../data/repositories/contacts.dart';
@@ -76,24 +77,31 @@ class CheckInCubit extends Cubit<CheckInState> {
     }
 
     final profileInfo = contactsRepository.getProfileInfo();
+    if (profileInfo == null) {
+      return;
+    }
     try {
       final location =
           await Geolocator.getCurrentPosition(timeLimit: Duration(seconds: 30));
 
-      await contactsRepository
-          .setProfileInfo(profileInfo.copyWith(temporaryLocations: [
-        ...profileInfo.temporaryLocations
-            .map((l) => l.copyWith(checkedIn: false)),
-        ContactTemporaryLocation(
-            longitude: location.longitude,
-            latitude: location.latitude,
-            start: DateTime.now(),
-            name: name,
-            details: details,
-            end: end,
-            circles: circles,
-            checkedIn: true)
-      ]));
+      await contactsRepository.setProfileInfo(profileInfo.copyWith(
+          temporaryLocations: Map.fromEntries([
+        // Ensure all others are checked out
+        ...profileInfo.temporaryLocations.entries
+            .map((l) => MapEntry(l.key, l.value.copyWith(checkedIn: false))),
+        // Add new one as checked in
+        MapEntry(
+            Uuid().v4(),
+            ContactTemporaryLocation(
+                longitude: location.longitude,
+                latitude: location.latitude,
+                start: DateTime.now(),
+                name: name,
+                details: details,
+                end: end,
+                circles: circles,
+                checkedIn: true)),
+      ])));
 
       // TODO: Emit success status?
       // if (!isClosed) {

@@ -28,23 +28,26 @@ Iterable<Location> addressLocationsToLocations(
         details: '',
         marker: MarkerType.address));
 
-Location temporaryLocationToLocation(
-        String label, ContactTemporaryLocation l, String? coagContactId) =>
+Location temporaryLocationToLocation(String label, ContactTemporaryLocation l,
+        {String? coagContactId, String? locationId, List<int>? picture}) =>
     Location(
         coagContactId: coagContactId,
+        locationId: locationId,
         label: label,
         subLabel: l.name,
         longitude: l.longitude,
         latitude: l.latitude,
+        // TODO: Format on page, keep data raw here
         details: '${DateFormat("yyyy-MM-dd HH:mm").format(l.start)} - '
             '${DateFormat("yyyy-MM-dd HH:mm").format(l.end)}'
-            '\nDetails: ${l.details}',
+            '\n${l.details}',
+        picture: picture,
         marker: MarkerType.temporary);
 
 class MapCubit extends Cubit<MapState> {
   MapCubit(this.contactsRepository)
       : super(const MapState([], MapStatus.initial)) {
-    _contactsSuscription =
+    _contactsSubscription =
         contactsRepository.getContactStream().listen((coagContactId) {
       final contact = contactsRepository.getContact(coagContactId);
       if (contact == null) {
@@ -54,10 +57,11 @@ class MapCubit extends Cubit<MapState> {
         ...state.locations.where((l) => l.coagContactId != coagContactId),
         ...addressLocationsToLocations(contact.addressLocations.values,
             contact.name, contact.coagContactId),
-        ...contact.temporaryLocations
-            .where((l) => l.end.isAfter(DateTime.now()))
-            .map((l) => temporaryLocationToLocation(
-                contact.name, l, contact.coagContactId))
+        ...filterTemporaryLocations(contact.temporaryLocations).entries.map(
+            (l) => temporaryLocationToLocation(contact.name, l.value,
+                coagContactId: contact.coagContactId,
+                locationId: l.key,
+                picture: contact.details?.picture))
       ], MapStatus.success,
           mapboxApiToken:
               String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN')));
@@ -69,29 +73,32 @@ class MapCubit extends Cubit<MapState> {
     emit(MapState([
       // TODO: Localize "me"
       ...addressLocationsToLocations(
-          profileInfo.addressLocations.values, 'Me', null),
-      ...profileInfo.temporaryLocations
-          .where((l) => l.end.isAfter(DateTime.now()))
-          .map((l) => temporaryLocationToLocation('Me', l, null)),
+          profileInfo?.addressLocations.values ?? [], 'Me', null),
+      ...filterTemporaryLocations(profileInfo?.temporaryLocations ?? {})
+          .entries
+          .map((l) => temporaryLocationToLocation('Me', l.value,
+              locationId: l.key,
+              picture: profileInfo?.pictures.values.firstOrNull)),
       ...contacts
           .map((c) => [
                 ...addressLocationsToLocations(
                     c.addressLocations.values, c.name, c.coagContactId),
-                ...c.temporaryLocations
-                    .where((l) => l.end.isAfter(DateTime.now()))
-                    .map((l) =>
-                        temporaryLocationToLocation(c.name, l, c.coagContactId))
+                ...filterTemporaryLocations(c.temporaryLocations).entries.map(
+                    (l) => temporaryLocationToLocation(c.name, l.value,
+                        coagContactId: c.coagContactId,
+                        locationId: l.key,
+                        picture: c.details?.picture))
               ])
           .flattened
     ], MapStatus.success));
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<String> _contactsSuscription;
+  late final StreamSubscription<String> _contactsSubscription;
 
   @override
   Future<void> close() {
-    _contactsSuscription.cancel();
+    _contactsSubscription.cancel();
     return super.close();
   }
 }

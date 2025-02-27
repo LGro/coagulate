@@ -8,3 +8,13 @@ extension LocalizationExt on BuildContext {
 extension StringExtension on String {
   String capitalize() => '${this[0].toUpperCase()}${substring(1)}';
 }
+
+String extractAllValuesToString(dynamic value) {
+  if (value is Map) {
+    return value.values.map(extractAllValuesToString).join('|');
+  } else if (value is List) {
+    return value.map(extractAllValuesToString).join('|');
+  } else {
+    return value.toString();
+  }
+}

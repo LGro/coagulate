@@ -1,15 +1,16 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
-import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as flutter_contacts;
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
@@ -67,38 +68,87 @@ Widget _qrCodeButton(BuildContext context,
                             backgroundColor: Colors.white,
                             size: 200))))));
 
-class ContactPage extends StatelessWidget {
-  ContactPage({super.key, required this.coagContactId});
+class ContactPage extends StatefulWidget {
+  const ContactPage({required this.coagContactId, super.key});
 
   final String coagContactId;
-
-  final TextEditingController _contactCommentController =
-      TextEditingController();
 
   static Route<void> route(CoagContact contact) => MaterialPageRoute(
       fullscreenDialog: true,
       builder: (context) => ContactPage(coagContactId: contact.coagContactId));
 
   @override
+  State<ContactPage> createState() => _ContactPageState();
+}
+
+class _ContactPageState extends State<ContactPage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _contactCommentController =
+      TextEditingController();
+
+  var _isEditingName = false;
+
+  @override
   Widget build(BuildContext context) => MultiBlocProvider(
-          providers: [
-            BlocProvider(
-                create: (context) => ContactDetailsCubit(
-                    context.read<ContactsRepository>(), coagContactId)),
-            BlocProvider(
-                create: (context) =>
-                    ProfileCubit(context.read<ContactsRepository>())),
-          ],
-          child: BlocConsumer<ContactDetailsCubit, ContactDetailsState>(
-              listener: (context, state) async {},
-              builder: (context, state) => Scaffold(
-                  appBar: AppBar(
-                    title: Text(state.contact?.name ?? 'Contact Details'),
+        providers: [
+          BlocProvider(
+              create: (context) => ContactDetailsCubit(
+                  context.read<ContactsRepository>(), widget.coagContactId)),
+          BlocProvider(
+              create: (context) =>
+                  ProfileCubit(context.read<ContactsRepository>())),
+        ],
+        child: BlocConsumer<ContactDetailsCubit, ContactDetailsState>(
+          listener: (context, state) async {},
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(
+              title: _isEditingName
+                  ? TextField(
+                      autofocus: true,
+                      autocorrect: false,
+                      controller: _nameController
+                        ..text = state.contact?.name ?? '',
+                      decoration: const InputDecoration(isDense: true),
+                    )
+                  : Text(state.contact?.name ?? 'Contact Details'),
+              actions: [
+                IconButton(
+                    onPressed: () async {
+                      if (_isEditingName) {
+                        await context
+                            .read<ContactDetailsCubit>()
+                            .updateName(_nameController.text);
+                      }
+                      setState(() {
+                        _isEditingName = !_isEditingName;
+                      });
+                    },
+                    icon: Icon(_isEditingName ? Icons.save : Icons.edit))
+              ],
+            ),
+            body: (state.contact == null)
+                ? const SingleChildScrollView(child: Text('Contact not found.'))
+                : RefreshIndicator(
+                    onRefresh: () async => context
+                        .read<ContactDetailsCubit>()
+                        .refresh()
+                        .then((success) => context.mounted
+                            ? (success
+                                ? ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Successfully refreshed!')))
+                                : ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                    content: Text(
+                                        'Refreshing failed, try again later!'),
+                                  )))
+                            : null),
+                    child: _body(context, state.contact!, state.circleNames),
                   ),
-                  body: (state.contact == null)
-                      ? const SingleChildScrollView(
-                          child: Text('Contact not found.'))
-                      : _body(context, state.contact!, state.circleNames))));
+          ),
+        ),
+      );
 
   Widget _body(BuildContext context, CoagContact contact,
           List<String> circleNames) =>
@@ -108,12 +158,16 @@ class ContactPage extends StatelessWidget {
         if (contact.details?.picture != null)
           Center(
               child: Padding(
-                  padding: const EdgeInsets.only(left: 12, top: 16, right: 12),
-                  child: CircleAvatar(
-                    backgroundImage: MemoryImage(
-                        Uint8List.fromList(contact.details!.picture!)),
-                    radius: 64,
-                  ))),
+            padding: const EdgeInsets.only(left: 12, top: 16, right: 12),
+            child: ClipOval(
+                child: Image.memory(
+              Uint8List.fromList(contact.details!.picture!),
+              gaplessPlayback: true,
+              width: 128,
+              height: 128,
+              fit: BoxFit.cover,
+            )),
+          )),
 
         // Contact details
         ..._contactDetailsAndLocations(context, contact),
@@ -222,6 +276,15 @@ class ContactPage extends StatelessWidget {
       ]));
 }
 
+void _launchUrl(String url) async {
+  Uri uri = Uri.parse(url);
+  try {
+    final success = await launchUrl(uri);
+  } on PlatformException {
+    // TODO: Give feedback?
+  }
+}
+
 List<Widget> _contactDetailsAndLocations(
         BuildContext context, CoagContact contact) =>
     [
@@ -242,59 +305,64 @@ List<Widget> _contactDetailsAndLocations(
 
       // Contact details
       if (contact.details?.names.isNotEmpty ?? false)
-        detailsList<String>(
+        ...detailsList<String>(
           context,
           contact.details!.names.values.toList(),
-          title: Text('Name${(contact.details!.names.length == 1) ? '' : 's'}'),
           getValue: (v) => v,
           // This doesn't do anything when hideLabel, maybe it can be optional
           getLabel: (v) => v,
           hideLabel: true,
         ),
       if (contact.details?.phones.isNotEmpty ?? false)
-        detailsList<flutter_contacts.Phone>(
+        ...detailsList<flutter_contacts.Phone>(
           context,
           contact.details!.phones,
-          title: const Text('Phones'),
           getLabel: (v) =>
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.number,
+          hideEditButton: true,
+          editCallback: (i) async =>
+              _launchUrl('tel:${contact.details!.phones[i].number}'),
         ),
       if (contact.details?.emails.isNotEmpty ?? false)
-        detailsList<flutter_contacts.Email>(
+        ...detailsList<flutter_contacts.Email>(
           context,
           contact.details!.emails,
-          title: const Text('E-Mails'),
           getLabel: (v) =>
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.address,
+          hideEditButton: true,
+          editCallback: (i) async =>
+              _launchUrl('mailto:${contact.details!.emails[i].address}'),
         ),
       if (contact.details?.addresses.isNotEmpty ?? false)
-        detailsList<flutter_contacts.Address>(
+        ...detailsList<flutter_contacts.Address>(
           context,
           contact.details!.addresses,
-          title: const Text('Addresses'),
           getLabel: (v) =>
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.address,
         ),
       if (contact.details?.socialMedias.isNotEmpty ?? false)
-        detailsList<flutter_contacts.SocialMedia>(
+        ...detailsList<flutter_contacts.SocialMedia>(
           context,
           contact.details!.socialMedias,
-          title: const Text('Socials'),
           getLabel: (v) =>
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.userName,
         ),
       if (contact.details?.websites.isNotEmpty ?? false)
-        detailsList<flutter_contacts.Website>(
+        ...detailsList<flutter_contacts.Website>(
           context,
           contact.details!.websites,
-          title: const Text('Websites'),
           getLabel: (v) =>
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.url,
+          hideEditButton: true,
+          editCallback: (i) async => _launchUrl(
+              contact.details!.websites[i].url.startsWith('http')
+                  ? contact.details!.websites[i].url
+                  : 'https://${contact.details!.websites[i].url}'),
         ),
 
       // Locations
@@ -326,7 +394,7 @@ Widget _sharingSettings(
       ],
       if (circleNames.isNotEmpty && contact.sharedProfile != null) ...[
         _paddedDivider(),
-        ..._displayDetails(context, contact.sharedProfile!.details),
+        ..._displaySharedProfile(context, contact.sharedProfile!.details),
       ],
       if (contact.sharedProfile?.temporaryLocations.isNotEmpty ?? false) ...[
         _paddedDivider(),
@@ -346,7 +414,7 @@ Widget _sharingSettings(
     ]));
 
 Widget _temporaryLocationsCard(
-        Widget title, List<ContactTemporaryLocation> locations) =>
+        Widget title, Map<String, ContactTemporaryLocation> locations) =>
     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(
           padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
@@ -355,7 +423,7 @@ Widget _temporaryLocationsCard(
           padding: const EdgeInsets.only(left: 4, right: 4, top: 4),
           child: Card(
               child: Column(
-                  children: locations
+                  children: locations.values
                       .where((l) => l.end.isAfter(DateTime.now()))
                       .map((l) => Padding(
                           padding: const EdgeInsets.only(
@@ -410,7 +478,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact) =>
             ]))
     ]);
 
-Iterable<Widget> _displayDetails(
+Iterable<Widget> _displaySharedProfile(
         BuildContext context, ContactDetails details) =>
     [
       const Padding(
@@ -420,67 +488,64 @@ Iterable<Widget> _displayDetails(
             SizedBox(width: 4),
             Text('Shared profile', textScaler: TextScaler.linear(1.2))
           ])),
-      Center(
-          child: Padding(
-              padding: const EdgeInsets.only(left: 12, top: 4, right: 12),
-              child: (details.picture == null)
-                  ? const CircleAvatar(radius: 48, child: Icon(Icons.person))
-                  : CircleAvatar(
-                      radius: 48,
-                      backgroundImage:
-                          MemoryImage(Uint8List.fromList(details.picture!)),
-                    ))),
+      if (details.picture != null)
+        Center(
+            child: Padding(
+          padding: const EdgeInsets.only(left: 12, top: 4, right: 12),
+          child: ClipOval(
+              child: Image.memory(
+            Uint8List.fromList(details.picture!),
+            gaplessPlayback: true,
+            width: 96,
+            height: 96,
+            fit: BoxFit.cover,
+          )),
+        )),
       if (details.names.isNotEmpty)
-        detailsList<String>(
+        ...detailsList<String>(
           context,
           details.names.values.toList(),
-          title: const Text('Names'),
           getValue: (v) => v,
           // This doesn't do anything when hideLabel, maybe it can be optional
           getLabel: (v) => v,
           hideLabel: true,
         ),
       if (details.phones.isNotEmpty)
-        detailsList<flutter_contacts.Phone>(
+        ...detailsList<flutter_contacts.Phone>(
           context,
           details.phones,
-          title: const Text('Phones'),
           getLabel: (v) =>
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.number,
         ),
       if (details.emails.isNotEmpty)
-        detailsList<flutter_contacts.Email>(
+        ...detailsList<flutter_contacts.Email>(
           context,
           details.emails,
-          title: const Text('E-Mails'),
           getLabel: (v) =>
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.address,
         ),
       if (details.addresses.isNotEmpty)
-        detailsList<flutter_contacts.Address>(
+        ...detailsList<flutter_contacts.Address>(
           context,
           details.addresses,
-          title: const Text('Addresses'),
           getLabel: (v) =>
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.address,
         ),
       if (details.socialMedias.isNotEmpty)
-        detailsList<flutter_contacts.SocialMedia>(
+        ...detailsList<flutter_contacts.SocialMedia>(
           context,
           details.socialMedias,
-          title: const Text('Socials'),
           getLabel: (v) =>
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.userName,
         ),
       if (details.websites.isNotEmpty)
-        detailsList<flutter_contacts.Website>(
+        ...detailsList<flutter_contacts.Website>(
           context,
           details.websites,
-          title: const Text('Websites'),
           getLabel: (v) =>
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.url,
@@ -498,7 +563,7 @@ Widget _circlesCard(
         padding: const EdgeInsets.only(left: 12, right: 12, top: 8, bottom: 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Row(children: [
-            Icon(Icons.bubble_chart),
+            Icon(Icons.bubble_chart_outlined),
             SizedBox(width: 4),
             Text('Circle memberships', textScaler: TextScaler.linear(1.2))
           ]),

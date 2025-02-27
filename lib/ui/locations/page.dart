@@ -380,15 +380,16 @@ class LocationsPage extends StatelessWidget {
                 Expanded(
                     child: ListView(children: [
                   // Current locations // TODO: maybe allow checking in 5-10min earlier?
-                  ...state.temporaryLocations
+                  ...state.temporaryLocations.entries
                       .where((l) =>
-                          !l.end.isBefore(DateTime.now()) &&
-                          l.start.isBefore(DateTime.now()))
+                          !l.value.end.isBefore(DateTime.now()) &&
+                          l.value.start.isBefore(DateTime.now()))
                       .map((l) => Dismissible(
                           key: UniqueKey(),
                           direction: DismissDirection.endToStart,
-                          onDismissed: (_) async =>
-                              context.read<LocationsCubit>().removeLocation(l),
+                          onDismissed: (_) async => context
+                              .read<LocationsCubit>()
+                              .removeLocation(l.key),
                           background: Container(
                             color: Colors.red,
                             alignment: Alignment.centerRight,
@@ -399,22 +400,23 @@ class LocationsPage extends StatelessWidget {
                           child: Padding(
                               padding:
                                   const EdgeInsets.only(left: 16, right: 16),
-                              child: locationTile(l,
+                              child: locationTile(l.value,
                                   circleMembersips: state.circleMembersips,
                                   onTap: () async => context
                                       .read<LocationsCubit>()
-                                      .toggleCheckInExisting(l)))))
+                                      .toggleCheckInExisting(l.key)))))
                       .asList(),
                   // Future locations
-                  ...state.temporaryLocations
+                  ...state.temporaryLocations.entries
                       .where((l) =>
-                          !l.end.isBefore(DateTime.now()) &&
-                          !l.start.isBefore(DateTime.now()))
+                          !l.value.end.isBefore(DateTime.now()) &&
+                          !l.value.start.isBefore(DateTime.now()))
                       .map((l) => Dismissible(
                           key: UniqueKey(),
                           direction: DismissDirection.endToStart,
-                          onDismissed: (_) async =>
-                              context.read<LocationsCubit>().removeLocation(l),
+                          onDismissed: (_) async => context
+                              .read<LocationsCubit>()
+                              .removeLocation(l.key),
                           background: Container(
                             color: Colors.red,
                             alignment: Alignment.centerRight,
@@ -425,12 +427,12 @@ class LocationsPage extends StatelessWidget {
                           child: Padding(
                               padding:
                                   const EdgeInsets.only(left: 16, right: 16),
-                              child: locationTile(l,
+                              child: locationTile(l.value,
                                   circleMembersips: state.circleMembersips))))
                       .asList(),
                   // If no future locations
-                  if (state.temporaryLocations
-                      .where((l) => !l.end.isBefore(DateTime.now()))
+                  if (state.temporaryLocations.entries
+                      .where((l) => !l.value.end.isBefore(DateTime.now()))
                       .isEmpty)
                     Container(
                         padding: const EdgeInsets.all(20),

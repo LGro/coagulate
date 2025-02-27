@@ -31,7 +31,7 @@ abstract class PersistentStorage {
   Future<void> updateCircleMemberships(
       Map<String, List<String>> circleMemberships);
 
-  Future<ProfileInfo> getProfileInfo();
+  Future<ProfileInfo?> getProfileInfo();
   Future<void> updateProfileInfo(ProfileInfo info);
 
   Future<void> addBatch(BatchInvite batch);

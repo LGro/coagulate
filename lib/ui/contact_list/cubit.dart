@@ -14,37 +14,11 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
-String extractAllValuesToString(dynamic value) {
-  if (value is Map) {
-    return value.values.map(extractAllValuesToString).join('|');
-  } else if (value is List) {
-    return value.map(extractAllValuesToString).join('|');
-  } else {
-    return value.toString();
-  }
-}
-
-Iterable<CoagContact> filterAndSortContacts(
-        Iterable<CoagContact> contacts, String filter) =>
-    ((filter.isEmpty)
-            ? contacts
-            : contacts.where((c) =>
-                (c.details != null &&
-                    extractAllValuesToString(c.details!.toJson())
-                        .toLowerCase()
-                        .contains(filter.toLowerCase())) ||
-                (c.systemContact != null &&
-                    extractAllValuesToString(c.systemContact!.toJson())
-                        .toLowerCase()
-                        .contains(filter.toLowerCase()))))
-        .toList()
-      ..sort((a, b) => compareNatural(a.name, b.name));
-
 class ContactListCubit extends Cubit<ContactListState> {
   ContactListCubit(this.contactsRepository)
       : super(const ContactListState(ContactListStatus.initial)) {
     // TODO: Also listen to circle updates?
-    _contactsSuscription =
+    _contactsSubscription =
         contactsRepository.getContactStream().listen((idUpdatedContact) {
       if (!isClosed) {
         final contact = contactsRepository.getContact(idUpdatedContact);
@@ -54,54 +28,33 @@ class ContactListCubit extends Cubit<ContactListState> {
         emit(state.copyWith(
             circleMemberships: contactsRepository.getCircleMemberships(),
             circles: contactsRepository.getCircles(),
-            contacts: filterAndSortContactsInSelectedCircles(
-                state.filter, state.selectedCircle)));
+            contacts: contactsRepository.getContacts().values.toList()
+              ..sortedBy((c) => c.name)));
       }
     });
 
     emit(ContactListState(ContactListStatus.success,
-        contacts: filterAndSortContactsInSelectedCircles(
-            state.filter, state.selectedCircle),
+        contacts: contactsRepository.getContacts().values.toList()
+          ..sortedBy((c) => c.name),
         circles: contactsRepository.getCircles(),
         circleMemberships: contactsRepository.getCircleMemberships()));
   }
 
   final ContactsRepository contactsRepository;
-  late final StreamSubscription<String> _contactsSuscription;
+  late final StreamSubscription<String> _contactsSubscription;
 
-  void filter(String filter) => emit(state.copyWith(
-      // FIXME: Needing to pass "filter" to two places feels awkward
-      filter: filter,
-      contacts: filterAndSortContactsInSelectedCircles(
-          filter, state.selectedCircle)));
-
-  void selectCircle(String circleId) => emit(state.copyWith(
-      selectedCircle: circleId,
-      contacts:
-          filterAndSortContactsInSelectedCircles(state.filter, circleId)));
-
-  // TODO: Explicitly re-initializing the state instead of a copy with is erroneous
-  //       do something about it like moving unselect circle to state
-  void unselectCircle() => emit(ContactListState(state.status,
-      filter: state.filter,
-      circleMemberships: state.circleMemberships,
-      circles: state.circles,
-      contacts: filterAndSortContactsInSelectedCircles(state.filter, null)));
-
-  Iterable<CoagContact> filterAndSortContactsInSelectedCircles(
-          String filter, String? selectedCircle) =>
-      filterAndSortContacts(
-          contactsRepository.getContacts().values.where((contact) =>
-              selectedCircle == null ||
-              contactsRepository
-                  .getContactIdsForCircle(selectedCircle)
-                  .toSet()
-                  .contains(contact.coagContactId)),
-          filter);
+  // TODO: This takes looong, can we speed it up?
+  Future<bool> refresh() async {
+    // TODO: Parallelize these two?
+    final receiveSuccess =
+        await contactsRepository.updateAndWatchReceivingDHT();
+    final sharingSuccess = await contactsRepository.updateSharingDHT();
+    return receiveSuccess && sharingSuccess;
+  }
 
   @override
   Future<void> close() {
-    _contactsSuscription.cancel();
+    _contactsSubscription.cancel();
     return super.close();
   }
 }

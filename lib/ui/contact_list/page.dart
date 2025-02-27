@@ -12,8 +12,39 @@ import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
 import '../create_new_contact/page.dart';
 import '../receive_request/page.dart';
+import '../updates/page.dart';
+import '../utils.dart';
 import '../widgets/dht_sharing_status/widget.dart';
+import '../widgets/searchable_list.dart';
 import 'cubit.dart';
+
+Widget contactsListView(BuildContext context, List<CoagContact> contacts,
+        Map<String, List<String>> circleMemberships) =>
+    SearchableList<CoagContact>(
+        items: contacts,
+        buildItemWidget: (contact) => ListTile(
+            leading: (contact.details?.picture == null)
+                ? const CircleAvatar(radius: 18, child: Icon(Icons.person))
+                : ClipOval(
+                    child: Image.memory(
+                    Uint8List.fromList(contact.details!.picture!),
+                    gaplessPlayback: true,
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.cover,
+                  )),
+            title: Text(contact.name),
+            trailing: contactSharingReceivingStatus(contact,
+                circleMemberships[contact.coagContactId]?.isNotEmpty ?? false),
+            onTap: () async =>
+                Navigator.of(context).push(ContactPage.route(contact))),
+        // TODO: Also allow searching shared locations?
+        matchesItem: (search, contact) =>
+            contact.name.toLowerCase().contains(search.toLowerCase()) ||
+            (contact.details != null &&
+                extractAllValuesToString(contact.details!.toJson())
+                    .toLowerCase()
+                    .contains(search.toLowerCase())));
 
 class ContactListPage extends StatefulWidget {
   const ContactListPage({super.key});
@@ -56,20 +87,32 @@ class _ContactListPageState extends State<ContactListPage> {
 
   Widget _contactsBody(BuildContext context, ContactListState state) =>
       Column(children: [
-        _searchBar(context, state),
-        const SizedBox(height: 10),
         Expanded(
-            child: _body(state.contacts.toList(), state.circleMemberships)),
+            child: contactsListView(
+                context, state.contacts.toList(), state.circleMemberships)),
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           FilledButton(
-              child: const Text('Create invite'),
+              child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // This could be qr_code_2_add if available, is that better?
+                    Icon(Icons.person_add),
+                    SizedBox(width: 8),
+                    Text('Create invite'),
+                  ]),
               onPressed: () async {
                 await Navigator.of(context).push(
                     MaterialPageRoute<CreateNewContactPage>(
                         builder: (_) => CreateNewContactPage()));
               }),
           FilledButton(
-              child: const Text('Accept invite'),
+              child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.qr_code_scanner),
+                    SizedBox(width: 8),
+                    Text('Accept invite'),
+                  ]),
               onPressed: () async {
                 await Navigator.of(context).push(
                     MaterialPageRoute<ReceiveRequestPage>(
@@ -84,9 +127,30 @@ class _ContactListPageState extends State<ContactListPage> {
         ]),
       ]);
 
+  var _dummyToTriggerRebuild = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Trigger a rebuild to make sure that when we edited the name of a contact
+    // it shows up in the list up-to-date
+    setState(() {
+      _dummyToTriggerRebuild = _dummyToTriggerRebuild + 1;
+    });
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(title: const Text('Contacts')),
+      appBar: AppBar(title: const Text('Contacts'), actions: [
+        // Notifications -> show updates page
+        // TODO: Only show when there are updates?
+        IconButton(
+            onPressed: () async => Navigator.of(context).push(
+                MaterialPageRoute<ContactPage>(
+                    builder: (context) => const UpdatesPage())),
+            icon: const Icon(Icons.notifications))
+      ]),
       body: MultiBlocProvider(
           providers: [
             BlocProvider(
@@ -99,96 +163,24 @@ class _ContactListPageState extends State<ContactListPage> {
                   padding: const EdgeInsets.all(10),
                   child: (state.contacts.isEmpty)
                       ? _noContactsBody()
-                      : _contactsBody(context, state)))));
-
-  Widget _searchBar(BuildContext context, ContactListState state) =>
-      Row(children: [
-        Expanded(
-            child: TextField(
-          onChanged: context.read<ContactListCubit>().filter,
-          autocorrect: false,
-          decoration: InputDecoration(
-              labelText: 'Search',
-              isDense: true,
-              prefixIcon: const Icon(Icons.search),
-              // TODO: Clear the actual text as well
-              suffixIcon: IconButton(
-                onPressed: () async =>
-                    context.read<ContactListCubit>().filter(''),
-                icon: const Icon(Icons.clear),
-              ),
-              border: const OutlineInputBorder()),
-        )),
-        if (state.circleMemberships.values.expand((c) => c).isNotEmpty)
-          if (state.selectedCircle != null)
-            ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 100),
-                child: TextButton(
-                    onPressed: context.read<ContactListCubit>().unselectCircle,
-                    child: Text(
-                      'Circle: ${state.circles[state.selectedCircle]}',
-                      overflow: TextOverflow.ellipsis,
-                    )))
-          else
-            IconButton(
-                onPressed: () async => showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (modalContext) => Padding(
-                        padding: EdgeInsets.only(
-                            left: 24,
-                            top: 24,
-                            right: 24,
-                            bottom: 16 +
-                                MediaQuery.of(modalContext).viewInsets.bottom),
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('Only display contacts from circle:',
-                                  textScaler: TextScaler.linear(1.2)),
-                              const SizedBox(height: 16),
-                              Wrap(spacing: 8, runSpacing: 6, children: [
-                                for (final circle in state.circles.entries)
-                                  if (state.circleMemberships.values
-                                      .expand((c) => c)
-                                      .contains(circle.key))
-                                    OutlinedButton(
-                                        onPressed: () {
-                                          context
-                                              .read<ContactListCubit>()
-                                              .selectCircle(circle.key);
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text(
-                                            '${circle.value} (${state.circleMemberships.values.where((ids) => ids.contains(circle.key)).length})'))
-                              ])
-                            ]))),
-                icon: const Icon(Icons.bubble_chart))
-      ]);
-
-  Widget _body(List<CoagContact> contacts,
-          Map<String, List<String>> circleMemberships) =>
-      ListView.builder(
-          itemCount: contacts.length,
-          itemBuilder: (context, i) {
-            final contact = contacts[i];
-            return ListTile(
-                leading: (contact.details?.picture == null)
-                    ? const CircleAvatar(radius: 18, child: Icon(Icons.person))
-                    : CircleAvatar(
-                        backgroundImage: MemoryImage(
-                            Uint8List.fromList(contact.details!.picture!)),
-                        radius: 18,
-                      ),
-                title: Text(contact.name),
-                trailing: contactSharingReceivingStatus(
-                    contact,
-                    circleMemberships[contact.coagContactId]?.isNotEmpty ??
-                        false),
-                onTap: () async =>
-                    Navigator.of(context).push(ContactPage.route(contact)));
-          });
+                      // TODO: Add pull to refresh?
+                      : RefreshIndicator(
+                          onRefresh: () async => context
+                              .read<ContactListCubit>()
+                              .refresh()
+                              .then((success) => context.mounted
+                                  ? (success
+                                      ? ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text(
+                                                  'Successfully refreshed!')))
+                                      : ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                          content: Text(
+                                              'Refreshing failed, try again later!'),
+                                        )))
+                                  : null),
+                          child: _contactsBody(context, state))))));
 }
 
 Widget? contactSharingReceivingStatus(
@@ -212,5 +204,8 @@ Widget? contactSharingReceivingStatus(
     // TODO: Use Icons.done to differentiate from full handshake DH switch?
     return const Icon(Icons.done_all);
   }
-  return null;
+  if (contact.dhtSettings.theirPublicKey != null) {
+    return const Icon(Icons.hourglass_empty);
+  }
+  return const Icon(Icons.question_mark);
 }

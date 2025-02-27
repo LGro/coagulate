@@ -154,15 +154,15 @@ Map<int, ContactAddressLocation> filterAddressLocations(
           location.key: location.value
     };
 
-/// Remove locations that ended longer than a day ago, or aren't shared with the given circles
-List<ContactTemporaryLocation> filterTemporaryLocations(
-        List<ContactTemporaryLocation> locations,
-        Iterable<String> activeCircles) =>
-    locations
-        .where((l) =>
-            l.end.isAfter(DateTime.now()) &&
-            l.circles.toSet().intersectsWith(activeCircles.toSet()))
-        .asList();
+/// Remove locations that ended longer than a day ago,s
+/// or aren't shared with the given circles if provided
+Map<String, ContactTemporaryLocation> filterTemporaryLocations(
+        Map<String, ContactTemporaryLocation> locations,
+        [Iterable<String>? activeCircles]) =>
+    Map.fromEntries(locations.entries.where((l) =>
+        l.value.end.isAfter(DateTime.now()) &&
+        (activeCircles == null ||
+            l.value.circles.toSet().intersectsWith(activeCircles.toSet()))));
 
 CoagContactDHTSchema filterAccordingToSharingProfile(
         {required ProfileInfo profile,
@@ -203,7 +203,7 @@ class ContactsRepository {
       _contactsStreamController.asBroadcastStream();
 
   /// Profile info
-  ProfileInfo _profileInfo = const ProfileInfo();
+  ProfileInfo? _profileInfo;
   final _profileInfoStreamController = BehaviorSubject<ProfileInfo>();
   Stream<ProfileInfo> getProfileInfoStream() =>
       _profileInfoStreamController.asBroadcastStream();
@@ -245,9 +245,9 @@ class ContactsRepository {
     await initializeFromPersistentStorage();
 
     // Initialize profile info
-    if (_profileInfo.details.names.isEmpty && initialName.isNotEmpty) {
+    if (_profileInfo == null) {
       final nameId = Uuid().v4();
-      await setProfileInfo(ProfileInfo(
+      await setProfileInfo(ProfileInfo(Uuid().v4(),
           details: ContactDetails(names: {nameId: initialName}),
           sharingSettings: ProfileSharingSettings(names: {
             nameId: const [defaultEveryoneCircleId]
@@ -289,7 +289,9 @@ class ContactsRepository {
   // PERSISTENT STORAGE
   Future<void> initializeFromPersistentStorage() async {
     _profileInfo = await persistentStorage.getProfileInfo();
-    _profileInfoStreamController.add(_profileInfo);
+    if (_profileInfo != null) {
+      _profileInfoStreamController.add(_profileInfo!);
+    }
 
     // Initialize circles, circle memberships from persistent storage
     _circles = await persistentStorage.getCircles();
@@ -327,10 +329,12 @@ class ContactsRepository {
 
   //////
   // DHT
-  Future<void> updateContactFromDHT(CoagContact contact) async {
+  Future<bool> updateContactFromDHT(CoagContact contact) async {
+    var success = false;
     final updatedContact = await distributedStorage.getContact(contact);
 
     if (updatedContact != null) {
+      success = true;
       final updateTime = DateTime.now();
       if (updatedContact == contact) {
         await saveContact(
@@ -346,14 +350,14 @@ class ContactsRepository {
                   name: contact.name,
                   dhtSettings: contact.dhtSettings.copyWith(),
                   details: contact.details?.copyWith(),
-                  temporaryLocations: [...contact.temporaryLocations],
+                  temporaryLocations: {...contact.temporaryLocations},
                   addressLocations: {...contact.addressLocations}),
               newContact: CoagContact(
                   coagContactId: updatedContact.coagContactId,
                   name: updatedContact.name,
                   dhtSettings: updatedContact.dhtSettings.copyWith(),
                   details: updatedContact.details?.copyWith(),
-                  temporaryLocations: [...updatedContact.temporaryLocations],
+                  temporaryLocations: {...updatedContact.temporaryLocations},
                   addressLocations: {...updatedContact.addressLocations}),
               // TODO: Use update time from when the update was sent not received
               timestamp: DateTime.now()));
@@ -378,6 +382,8 @@ class ContactsRepository {
       await distributedStorage.watchRecord(
           contact.dhtSettings.recordKeyThemSharing!, _dhtRecordUpdateCallback);
     }
+
+    return success;
   }
 
   void _veilidConnectionStateChangeCallback(ProcessorConnectionState event) {
@@ -428,7 +434,8 @@ class ContactsRepository {
   }
 
   /// Update the "me-to-them" record for a given contact and update dht settings
-  Future<void> tryShareWithContactDHT(CoagContact contact,
+  // TODO: Sometimes we pass a full contact instance, sometimes just the id - what are benefits and downsides? does it make sense to unify?
+  Future<bool> tryShareWithContactDHT(CoagContact contact,
       {bool initializeReceivingSettings = false,
       PublicKey? contactPubKey}) async {
     try {
@@ -475,20 +482,23 @@ class ContactsRepository {
 
       await distributedStorage.updateRecord(
           contact.sharedProfile, contact.dhtSettings);
+
+      return true;
     } on VeilidAPIException catch (e) {
       // TODO: Proper logging / other handling strategy / retry?
       if (kDebugMode) {
         print(e);
       }
+      return false;
     }
   }
 
   /// Update the DHT "me-to-them" records for all contacts
-  Future<void> updateSharingDHT() async {
+  Future<bool> updateSharingDHT() async {
     if (!ProcessorRepository
         .instance.processorConnectionState.attachment.publicInternetReady) {
       veilidNetworkAvailable = false;
-      return;
+      return false;
     }
     veilidNetworkAvailable = true;
 
@@ -498,6 +508,8 @@ class ContactsRepository {
           in _contacts.values.where((c) => c.sharedProfile != null))
         tryShareWithContactDHT(contact)
     ]);
+
+    return true;
   }
 
   ///////////
@@ -535,14 +547,14 @@ class ContactsRepository {
   /// circle memberships
   Future<void> updateContactSharedProfile(String coagContactId) async {
     final contact = _contacts[coagContactId];
-    if (contact == null) {
+    if (contact == null || _profileInfo == null) {
       // TODO: Raise error that can be handled downstream
       return;
     }
 
     await saveContact(contact.copyWith(
         sharedProfile: filterAccordingToSharingProfile(
-            profile: _profileInfo,
+            profile: _profileInfo!,
             // TODO: Also expose this view of the data from contacts repo?
             //       Seems to be used in different places.
             activeCirclesWithMemberCount: Map.fromEntries(
@@ -558,7 +570,8 @@ class ContactsRepository {
   Future<void> _dhtRecordUpdateCallback(Typed<FixedEncodedString43> key) async {
     for (final contact in _contacts.values) {
       if (key == contact.dhtSettings.recordKeyThemSharing) {
-        return updateContactFromDHT(contact);
+        await updateContactFromDHT(contact);
+        return;
       }
     }
   }
@@ -646,6 +659,7 @@ class ContactsRepository {
     _circleMemberships[coagContactId] = [...circleIds];
     // Notify about the update
     _contactsStreamController.add(coagContactId);
+    _circlesStreamController.add(null);
     await Future.wait([
       persistentStorage.updateCircleMemberships(_circleMemberships),
       updateContactSharedProfile(coagContactId)
@@ -676,17 +690,17 @@ class ContactsRepository {
   //////////////////
   // PROFILE INFO
 
-  ProfileInfo getProfileInfo() => _profileInfo.copyWith();
+  ProfileInfo? getProfileInfo() => _profileInfo?.copyWith();
 
   Future<void> setProfileInfo(ProfileInfo profileInfo) async {
     // Update
     _profileInfo = profileInfo.copyWith();
 
     // Persist
-    await persistentStorage.updateProfileInfo(_profileInfo);
+    await persistentStorage.updateProfileInfo(_profileInfo!);
 
     // Notify
-    _profileInfoStreamController.add(_profileInfo.copyWith());
+    _profileInfoStreamController.add(_profileInfo!.copyWith());
 
     // Update shared profile data for all contacts individually
     // NOTE: Having this before and not as part of updateSharingDHT can cause
@@ -753,10 +767,15 @@ class ContactsRepository {
     // create circle from label with id from record key
     await addCircle(recordKey.toString(), batchInfo.label);
 
-    // TODO: Update sharing profile for circle to include name
+    final profileInfo = getProfileInfo();
 
-    final myName = getProfileInfo().details.names[myNameId] ??
-        '${batchInfo.label} $mySubkey';
+    if (profileInfo == null) {
+      return;
+    }
+
+    // TODO: Update sharing profile for circle to include name
+    final myName =
+        profileInfo.details.names[myNameId] ?? '${batchInfo.label} $mySubkey';
 
     // generate one keypair to use for all contacts in that batch
     final batchKeyPair = await DHTRecordPool.instance.veilid
@@ -801,7 +820,7 @@ class ContactsRepository {
   // TODO: how to deal with race condition of two folks setting things up in parallel, who wins? make it unidirectional, no share back settings or override share back settings? is this really an issue?
   Future<void> batchInviteUpdate(BatchInvite batch) async {
     // Do not check expired invite batches
-    if (batch.expiration.isAfter(DateTime.now())) {
+    if (DateTime.now().isAfter(batch.expiration)) {
       // TODO: Do we clean up / mark contacts that didn't successfully connect?
       return;
     }
@@ -854,6 +873,7 @@ class ContactsRepository {
           coagContactId: Uuid().v4(),
           name: contactSubkeyContent.name,
           dhtSettings: DhtSettings(
+              theyAckHandshakeComplete: true,
               theirPublicKey: contactSubkeyContent.publicKey,
               myKeyPair: batch.myKeyPair),
         );
@@ -891,13 +911,17 @@ class ContactsRepository {
 
       // If contact subkey contains my pubkey with a dht record key,
       // create contact, add to batch circle and fetch from said record
-      if (contactSubkeyContent.records
-          .containsKey(batch.myKeyPair.key.toString())) {
+      if (contact?.dhtSettings.recordKeyThemSharing == null &&
+          contactSubkeyContent.records
+              .containsKey(batch.myKeyPair.key.toString())) {
         contact = contact?.copyWith(
             dhtSettings: contact.dhtSettings.copyWith(
                 recordKeyThemSharing: contactSubkeyContent
                     .records[batch.myKeyPair.key.toString()]));
         if (contact != null) {
+          // Save even if update from DHT fails
+          await saveContact(contact);
+          // Try updating from DHT
           await updateContactFromDHT(contact);
         }
       }

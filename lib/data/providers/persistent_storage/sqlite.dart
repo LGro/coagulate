@@ -133,14 +133,14 @@ class SqliteStorage extends PersistentStorage {
                   MapEntry(key, (value is String) ? value : '???'))));
 
   @override
-  Future<ProfileInfo> getProfileInfo() async => getDatabase()
+  Future<ProfileInfo?> getProfileInfo() async => getDatabase()
       .then((db) async => db.query('settings',
           columns: ['settingsJson'],
           where: 'id = ?',
           whereArgs: ['profileInfo'],
           limit: 1))
       .then((results) => (results.isEmpty)
-          ? const ProfileInfo()
+          ? null
           : ProfileInfo.fromJson(
               json.decode(results.first['settingsJson']! as String)
                   as Map<String, dynamic>));
@@ -191,7 +191,7 @@ class SqliteStorage extends PersistentStorage {
       await db.update('batches', {'batchJson': json.encode(batch.toJson())},
           where: '"id" = ?', whereArgs: [batch.recordKey.toString()]);
     } on Exception {
-      await db.insert('contacts', {
+      await db.insert('batches', {
         'batchJson': json.encode(batch.toJson()),
         'id': batch.recordKey.toString()
       });

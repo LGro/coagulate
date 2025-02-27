@@ -19,6 +19,7 @@
   "sharedWith": "geteilt mit",
   "contact": "Kontakt",
   "contacts": "Kontakten",
+  "circles": "Kreise",
   "welcomeAppTitle": "Willkommen bei Coagulate",
   "@welcomeAppTitle": {
     "description": "App title for welcome screen."

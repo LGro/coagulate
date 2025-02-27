@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 part of 'cubit.dart';
@@ -14,7 +14,7 @@ extension MapStatusX on MapStatus {
 enum MarkerType { address, temporary, checkedIn }
 
 @JsonSerializable()
-class Location {
+class Location extends Equatable {
   Location({
     required this.longitude,
     required this.latitude,
@@ -23,11 +23,15 @@ class Location {
     required this.details,
     required this.marker,
     this.coagContactId,
+    this.locationId,
+    this.picture,
   });
   factory Location.fromJson(Map<String, dynamic> json) =>
       _$LocationFromJson(json);
 
   final String? coagContactId;
+  final String? locationId;
+  final List<int>? picture;
   final double longitude;
   final double latitude;
   final String label;
@@ -35,6 +39,19 @@ class Location {
   final String details;
   final MarkerType marker;
   Map<String, dynamic> toJson() => _$LocationToJson(this);
+
+  @override
+  List<Object?> get props => [
+        coagContactId,
+        locationId,
+        longitude,
+        latitude,
+        label,
+        subLabel,
+        details,
+        marker,
+        picture,
+      ];
 }
 
 @JsonSerializable()

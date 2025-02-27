@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -21,13 +20,13 @@ class LocationsCubit extends Cubit<LocationsState> {
     _profileInfoSubscription =
         contactsRepository.getProfileInfoStream().listen((profileInfo) async {
       emit(LocationsState(
-          temporaryLocations: _sort(profileInfo.temporaryLocations),
+          temporaryLocations: profileInfo.temporaryLocations,
           circleMembersips: contactsRepository.getCircleMemberships()));
     });
     emit(LocationsState(
         circleMembersips: contactsRepository.getCircleMemberships(),
         temporaryLocations:
-            _sort(contactsRepository.getProfileInfo().temporaryLocations)));
+            contactsRepository.getProfileInfo()?.temporaryLocations ?? {}));
   }
 
   final ContactsRepository contactsRepository;
@@ -35,14 +34,16 @@ class LocationsCubit extends Cubit<LocationsState> {
 
   List<ContactTemporaryLocation> _sort(
           List<ContactTemporaryLocation> locations) =>
-      locations.sortedBy((l) => l.start).asList();
+      locations.sortedBy((l) => l.start);
 
-  Future<void> removeLocation(ContactTemporaryLocation location) async {
+  Future<void> removeLocation(String locationId) async {
     final profileInfo = contactsRepository.getProfileInfo();
+    if (profileInfo == null) {
+      return;
+    }
     await contactsRepository.setProfileInfo(profileInfo.copyWith(
-        temporaryLocations: profileInfo.temporaryLocations
-            .where((l) => l != location)
-            .asList()));
+        temporaryLocations: {...profileInfo.temporaryLocations}
+          ..remove(locationId)));
   }
 
   @override
@@ -51,14 +52,18 @@ class LocationsCubit extends Cubit<LocationsState> {
     return super.close();
   }
 
-  Future<void> toggleCheckInExisting(ContactTemporaryLocation location) async {
+  Future<void> toggleCheckInExisting(String locationId) async {
     final profileInfo = contactsRepository.getProfileInfo();
+    if (profileInfo == null) {
+      return;
+    }
     // TODO: Test that this is responsive also when location is shared with many contacts
     await contactsRepository.setProfileInfo(profileInfo.copyWith(
-        temporaryLocations: profileInfo.temporaryLocations
-            .map((l) => (l == location)
-                ? l.copyWith(checkedIn: !l.checkedIn)
-                : l.copyWith(checkedIn: false))
-            .toList()));
+        temporaryLocations: Map.fromEntries(profileInfo
+            .temporaryLocations.entries
+            .map((l) => (l.key == locationId)
+                ? MapEntry(
+                    l.key, l.value.copyWith(checkedIn: !l.value.checkedIn))
+                : MapEntry(l.key, l.value.copyWith(checkedIn: false))))));
   }
 }

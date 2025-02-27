@@ -13,7 +13,7 @@ extension ProfileStatusX on ProfileStatus {
 @JsonSerializable()
 final class ProfileState extends Equatable {
   const ProfileState({
-    required this.profileInfo,
+    this.profileInfo,
     this.status = ProfileStatus.initial,
     this.circles = const {},
     this.circleMemberships = const {},
@@ -24,7 +24,7 @@ final class ProfileState extends Equatable {
       _$ProfileStateFromJson(json);
 
   final ProfileStatus status;
-  final ProfileInfo profileInfo;
+  final ProfileInfo? profileInfo;
   final Map<String, String> circles;
   final Map<String, List<String>> circleMemberships;
   final bool permissionsGranted;

@@ -70,17 +70,6 @@ class _CreateNewContactPageState extends State<CreateNewContactPage> {
                       },
                       child: const Text('Prepare invite'))),
               const SizedBox(height: 8),
-              const Expanded(child: SizedBox()),
-              // TODO: Add on tap action only to "Batch Invites"?
-              GestureDetector(
-                  onTap: () async => Navigator.of(context).push(
-                      MaterialPageRoute<BatchInvitesPage>(
-                          builder: (_) => BatchInvitesPage())),
-                  child: const Text(
-                      'Do you want to invite a bunch of folks from an existing '
-                      'community who already know each other? '
-                      'Use Batch Invites')),
-              const SizedBox(height: 16),
             ],
           )));
 }

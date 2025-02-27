@@ -19,6 +19,7 @@ import '../data/providers/system_contacts/system_contacts.dart';
 import '../data/repositories/contacts.dart';
 import '../tick.dart';
 import '../veilid_init.dart';
+import 'circles_list/page.dart';
 import 'contact_details/page.dart';
 import 'contact_list/page.dart';
 import 'locations/page.dart';
@@ -55,9 +56,10 @@ const navBarItems = [
     BottomNavigationBarItem(icon: Icon(Icons.pin_drop), label: 'Locations')
   ),
   (
-    '/updates',
-    ['updates'],
-    BottomNavigationBarItem(icon: Icon(Icons.update), label: 'Updates')
+    '/circles',
+    ['circles'],
+    BottomNavigationBarItem(
+        icon: Icon(Icons.bubble_chart_outlined), label: 'Circles')
   ),
   (
     '/contacts',
@@ -108,9 +110,9 @@ class AppRouter {
                 name: 'locations',
                 builder: (_, __) => const LocationsPage()),
             GoRoute(
-                path: '/updates',
-                name: 'updates',
-                builder: (_, __) => const UpdatesPage()),
+                path: '/circles',
+                name: 'circles',
+                builder: (_, __) => const CirclesListPage()),
             GoRoute(
                 path: '/contacts',
                 name: 'contacts',

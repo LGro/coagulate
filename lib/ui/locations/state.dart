@@ -6,12 +6,12 @@ part of 'cubit.dart';
 @JsonSerializable()
 final class LocationsState extends Equatable {
   const LocationsState(
-      {this.temporaryLocations = const [], this.circleMembersips = const {}});
+      {this.temporaryLocations = const {}, this.circleMembersips = const {}});
 
   factory LocationsState.fromJson(Map<String, dynamic> json) =>
       _$LocationsStateFromJson(json);
 
-  final Iterable<ContactTemporaryLocation> temporaryLocations;
+  final Map<String, ContactTemporaryLocation> temporaryLocations;
   final Map<String, List<String>> circleMembersips;
 
   Map<String, dynamic> toJson() => _$LocationsStateToJson(this);

@@ -63,8 +63,33 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   Future<void> updateComment(String comment) async =>
       contactsRepository.saveContact(state.contact!.copyWith(comment: comment));
 
+  Future<void> updateName(String name) async =>
+      contactsRepository.saveContact(state.contact!.copyWith(name: name));
+
   Future<void> delete(String coagContactId) async =>
       contactsRepository.removeContact(coagContactId);
+
+  // TODO: This takes looong, can we speed it up?
+  Future<bool> refresh() async {
+    if (state.contact == null) {
+      return false;
+    }
+    final receiveSuccess =
+        await contactsRepository.updateContactFromDHT(state.contact!);
+    await contactsRepository
+        .updateContactSharedProfile(state.contact!.coagContactId);
+
+    final updatedContact =
+        contactsRepository.getContact(state.contact!.coagContactId);
+    if (updatedContact != null) {
+      final shareSuccess =
+          await contactsRepository.tryShareWithContactDHT(updatedContact);
+      // TODO: Report more nuanced?
+      return receiveSuccess && shareSuccess;
+    }
+
+    return receiveSuccess;
+  }
 
   @override
   Future<void> close() {

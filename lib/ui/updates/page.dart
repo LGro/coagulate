@@ -76,10 +76,10 @@ String compareContacts(CoagContact oldContact, CoagContact newContact) {
   }
 
   // TODO: Make this consistent with the yesterday filtering we do elsewhere?
-  if (!oldContact.temporaryLocations
+  if (!oldContact.temporaryLocations.values
       .where((l) => l.end.isAfter(DateTime.now()))
       .toList()
-      .equals(newContact.temporaryLocations
+      .equals(newContact.temporaryLocations.values
           .where((l) => l.end.isAfter(DateTime.now()))
           .toList())) {
     results.add('locations');
@@ -126,8 +126,10 @@ class UpdatesPage extends StatelessWidget {
           child: BlocConsumer<UpdatesCubit, UpdatesState>(
               listener: (context, state) async {},
               builder: (context, state) => RefreshIndicator(
-                  onRefresh: () => context.read<UpdatesCubit>().refresh().then(
-                      (success) => context.mounted
+                  onRefresh: () async => context
+                      .read<UpdatesCubit>()
+                      .refresh()
+                      .then((success) => context.mounted
                           ? (success
                               ? ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(

@@ -4,6 +4,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
@@ -12,8 +13,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
+import '../locations/check_in/widget.dart';
+import '../locations/cubit.dart';
 import '../locations/schedule/widget.dart';
 import 'cubit.dart';
+
+// TODO: check out 'package:flutter_map_example/pages/bundled_offline_map.dart'
 
 class SliderExample extends StatefulWidget {
   const SliderExample({super.key});
@@ -23,14 +28,13 @@ class SliderExample extends StatefulWidget {
 }
 
 int _getWeekNumber() {
-  DateTime date = DateTime.now();
-  DateTime firstDayOfYear = DateTime(date.year, 1, 1);
-  int daysOffset = firstDayOfYear.weekday - 1;
-  DateTime firstMondayOfYear =
-      firstDayOfYear.subtract(Duration(days: daysOffset));
+  final date = DateTime.now();
+  final firstDayOfYear = DateTime(date.year, 1, 1);
+  final daysOffset = firstDayOfYear.weekday - 1;
+  final firstMondayOfYear = firstDayOfYear.subtract(Duration(days: daysOffset));
 
-  int daysSinceFirstMonday = date.difference(firstMondayOfYear).inDays;
-  int weekNumber = (daysSinceFirstMonday / 7).ceil() + 1;
+  final daysSinceFirstMonday = date.difference(firstMondayOfYear).inDays;
+  final weekNumber = (daysSinceFirstMonday / 7).ceil() + 1;
 
   return weekNumber;
 }
@@ -57,6 +61,105 @@ class _SliderExampleState extends State<SliderExample> {
 
 String mapboxToken() =>
     const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN');
+
+Future<void> showModalLocationDetails(
+        BuildContext context, Location location) async =>
+    showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (modalContext) => Padding(
+            padding: EdgeInsets.only(
+                left: 16,
+                top: 16,
+                right: 16,
+                bottom: 12 + MediaQuery.of(modalContext).viewInsets.bottom),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Row(children: [Text(location.details)]),
+              const SizedBox(height: 16),
+              // TODO: only display if not already scheduled this (or conflicting)
+              if (location.coagContactId != null) ...[
+                FilledButton.tonal(
+                    child: const Text('Contact details'),
+                    onPressed: () async => Navigator.push(
+                        context,
+                        MaterialPageRoute<ContactPage>(
+                            builder: (_) => ContactPage(
+                                coagContactId: location.coagContactId!)))),
+                const SizedBox(height: 8),
+                FilledButton.tonal(
+                    child: const Text('Add to my locations'),
+                    onPressed: () async => Navigator.push(
+                        context,
+                        MaterialPageRoute<ScheduleWidget>(
+                            builder: (_) => const ScheduleWidget()))),
+              ],
+
+              // Offer to delete app user locations
+              if (location.coagContactId == null && location.locationId != null)
+                FilledButton(
+                  onPressed: null,
+                  // FIXME: There is no provider found for this cubit
+                  //  () async => context
+                  //     .read<LocationsCubit>()
+                  //     .removeLocation(location.locationId!),
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStatePropertyAll(
+                        Theme.of(context).colorScheme.error),
+                  ),
+                  child: const Text('Delete'),
+                ),
+            ])));
+
+Widget checkInAndScheduleButtons() => BlocProvider(
+    create: (context) => LocationsCubit(context.read<ContactsRepository>()),
+    child: BlocConsumer<LocationsCubit, LocationsState>(
+        listener: (context, state) async {},
+        builder: (context, state) => Align(
+            alignment: AlignmentDirectional.bottomStart,
+            child: Padding(
+                padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+                child: Row(children: [
+                  const Expanded(child: SizedBox()),
+                  FilledButton(
+                      onPressed: () async => showModalBottomSheet<void>(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (modalContext) => Padding(
+                              padding: EdgeInsets.only(
+                                  left: 16,
+                                  top: 16,
+                                  right: 16,
+                                  bottom: MediaQuery.of(modalContext)
+                                      .viewInsets
+                                      .bottom),
+                              child: const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [CheckInWidget()]))),
+                      child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.pin_drop),
+                            SizedBox(width: 8),
+                            Text('Check-in')
+                          ])),
+                  const Expanded(child: SizedBox()),
+                  FilledButton(
+                      onPressed: (state.circleMembersips.isEmpty)
+                          ? null
+                          : () async => Navigator.push(
+                              context,
+                              MaterialPageRoute<ScheduleWidget>(
+                                  builder: (_) => const ScheduleWidget())),
+                      child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.calendar_month),
+                            SizedBox(width: 8),
+                            Text('Schedule')
+                          ])),
+                  const Expanded(child: SizedBox()),
+                ])))));
 
 class MapPage extends StatelessWidget {
   const MapPage({super.key});
@@ -95,18 +198,33 @@ class MapPage extends StatelessWidget {
                             fontWeight: FontWeight.w600, fontSize: 10),
                       ),
                     ])),
-                Icon(
-                    (location.marker == MarkerType.address)
-                        ? Icons.home_rounded
-                        : Icons.location_pin,
-                    size: 50,
-                    color: Theme.of(context).colorScheme.primary),
+                if (location.picture?.isNotEmpty ?? false)
+                  CircleAvatar(
+                      backgroundImage:
+                          MemoryImage(Uint8List.fromList(location.picture!))),
+                if (location.picture?.isEmpty ?? true)
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Theme.of(context).colorScheme.secondary,
+                      // border: Border.all(
+                      //     color: Theme.of(context).colorScheme.primary,
+                      //     width: 4), // Blue border
+                    ),
+                    child: Icon(
+                      Icons.person,
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
+                  ),
               ])));
 
   @override
   Widget build(BuildContext context) => FlutterMap(
         options: const MapOptions(
-            // TODO: Pick reasonable center without requiring all markers first; e.g. based on profile contact locations or current GPS
+            // TODO: Pick reasonable center without requiring all markers first;
+            // e.g. based on profile contact locations or current GPS
             initialCenter: LatLng(50.5, 30.51),
             initialZoom: 3,
             maxZoom: 15,
@@ -144,38 +262,8 @@ class MapPage extends StatelessWidget {
                                     location.marker == MarkerType.address)
                                 ? null
                                 : (location.marker == MarkerType.temporary)
-                                    ? () async => showModalBottomSheet<void>(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        builder: (modalContext) => Padding(
-                                            padding: EdgeInsets.only(
-                                                left: 16,
-                                                top: 16,
-                                                right: 16,
-                                                bottom: 12 +
-                                                    MediaQuery.of(modalContext)
-                                                        .viewInsets
-                                                        .bottom),
-                                            child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Text(location.details),
-                                                  // TODO: only display if not already scheduled this (or conflicting)
-                                                  Center(
-                                                      child: FilledButton.tonal(
-                                                          child: const Text(
-                                                              'Add to my locations'),
-                                                          onPressed: () async =>
-                                                              Navigator.push(
-                                                                  context,
-                                                                  MaterialPageRoute<
-                                                                          ScheduleWidget>(
-                                                                      builder:
-                                                                          (_) =>
-                                                                              ScheduleWidget())))),
-                                                ])))
+                                    ? () async => showModalLocationDetails(
+                                        context, location)
                                     : () {
                                         // Provoke a null result in case no id
                                         final contact = context
@@ -202,11 +290,13 @@ class MapPage extends StatelessWidget {
                       builder: (context, markers) => DecoratedBox(
                           decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
-                              color: Colors.deepPurple),
+                              color: Theme.of(context).colorScheme.primary),
                           child: Center(
                               child: Text(markers.length.toString(),
-                                  style:
-                                      const TextStyle(color: Colors.white)))),
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimary)))),
                     ));
                   })),
           // TODO: Consider replacing it with a start and end date selection
@@ -228,7 +318,9 @@ class MapPage extends StatelessWidget {
                     onTap: () async => launchUrl(
                         Uri.parse('https://www.mapbox.com/about/maps/')),
                   )
-              ])
+              ]),
+          // Check-in and schedule buttons
+          checkInAndScheduleButtons(),
         ],
       );
 }
