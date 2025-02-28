@@ -226,13 +226,11 @@ class _ContactPageState extends State<ContactPage> {
                   backgroundColor: WidgetStatePropertyAll(
                       Theme.of(context).colorScheme.error),
                 ),
-                // TODO: Add subtext that this will retain the system contact in case it was linked
-                child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Text(
-                      'Delete from Coagulate',
-                      style: TextStyle(color: Colors.black),
-                    )))),
+                child: Text(
+                  'Delete from Coagulate',
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.onError),
+                ))),
 
         // if (!kReleaseMode)
         // Debug output about update timestamps and receive / share DHT records

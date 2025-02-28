@@ -51,11 +51,6 @@ const navBarItems = [
     BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile')
   ),
   (
-    '/locations',
-    ['locations'],
-    BottomNavigationBarItem(icon: Icon(Icons.pin_drop), label: 'Locations')
-  ),
-  (
     '/circles',
     ['circles'],
     BottomNavigationBarItem(
@@ -105,10 +100,6 @@ class AppRouter {
               name: 'profile',
               builder: (_, __) => const ProfilePage(),
             ),
-            GoRoute(
-                path: '/locations',
-                name: 'locations',
-                builder: (_, __) => const LocationsPage()),
             GoRoute(
                 path: '/circles',
                 name: 'circles',

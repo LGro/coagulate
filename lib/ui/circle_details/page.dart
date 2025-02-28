@@ -1,9 +1,8 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
-import 'dart:typed_data';
-
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -38,7 +37,9 @@ Widget contactsListView(
     SearchableList<CoagContact>(
         items: contacts,
         buildItemWidget: (contact) => CheckboxListTile(
-            value: circleMemberships[contact.coagContactId]?.contains(circleId),
+            value:
+                circleMemberships[contact.coagContactId]?.contains(circleId) ??
+                    false,
             title: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () async =>
@@ -162,52 +163,37 @@ Map<String, List<int>> filterCirclePictureDuplicates(
 }
 
 Widget _pictureSelection(BuildContext context, CircleDetailsState state) =>
-    Wrap(children: [
-      if (state.profileInfo!.pictures.isNotEmpty)
-        GestureDetector(
-          onTap: () async =>
-              context.read<CircleDetailsCubit>().updateCirclePicture(null),
-          child: const Padding(
-            padding: EdgeInsets.all(8),
-            child: CircleAvatar(radius: 48, child: Icon(Icons.close)),
-          ),
-        ),
-      ...filterCirclePictureDuplicates(
-              state.circleId!, state.profileInfo!.pictures)
-          .entries
-          .map((p) => GestureDetector(
-              onTap: () async => context
-                  .read<CircleDetailsCubit>()
-                  .updateCirclePicture(p.value),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Container(
-                  width: 96,
-                  height: 96,
-                  decoration: (p.key != state.circleId)
-                      ? null
-                      : BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 4), // Blue border
-                        ),
-                  child: ClipOval(
-                      child: Image.memory(
-                    Uint8List.fromList(p.value),
-                    gaplessPlayback: true,
-                    fit: BoxFit.cover,
-                  )),
-                ),
-              ))),
+    Row(children: [
       GestureDetector(
-        onTap: () async => pickCirclePicture(
-            context, context.read<CircleDetailsCubit>().updateCirclePicture),
-        child: const Padding(
-          padding: EdgeInsets.all(8),
-          child: CircleAvatar(radius: 48, child: Icon(Icons.add)),
-        ),
-      ),
+          onTap: () async => pickCirclePicture(
+              context, context.read<CircleDetailsCubit>().updateCirclePicture),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: state.profileInfo!.pictures.containsKey(state.circleId)
+                ? Column(children: [
+                    ClipOval(
+                        child: Image.memory(
+                      width: 96,
+                      height: 96,
+                      Uint8List.fromList(
+                          state.profileInfo!.pictures[state.circleId]!),
+                      gaplessPlayback: true,
+                      fit: BoxFit.cover,
+                    )),
+                    const SizedBox(height: 4),
+                    FilledButton.tonal(
+                        style: const ButtonStyle(
+                            visualDensity: VisualDensity.compact),
+                        onPressed: () async => context
+                            .read<CircleDetailsCubit>()
+                            .updateCirclePicture(null),
+                        child: const Text('Remove')),
+                  ])
+                : const CircleAvatar(radius: 48, child: Icon(Icons.add)),
+          )),
+      const SizedBox(width: 8),
+      Expanded(
+          child: Text(context.loc.profilePictureExplainer, softWrap: true)),
     ]);
 
 Widget _sharedInformationList(BuildContext context, CircleDetailsState state) =>
@@ -231,8 +217,19 @@ Widget _sharedInformationList(BuildContext context, CircleDetailsState state) =>
               state.profileInfo!.sharingSettings.names[l],
           circles: state.circles,
           circleMemberships: state.circleMemberships,
-          deleteCallback: (i) {},
-          editCallback: (i, checked) {},
+          editCallback: (i, doShare) async => updateSharedInformationWithCircle(
+              state: state,
+              detailSharingSettings: {
+                ...state.profileInfo!.sharingSettings.names
+              },
+              label: state.profileInfo!.details.names.entries.toList()[i].key,
+              doShare: doShare,
+              updateDetailSharingSettings: (sharingSettings) async => context
+                  .read<CircleDetailsCubit>()
+                  .contactsRepository
+                  .setProfileInfo(state.profileInfo!.copyWith(
+                      sharingSettings: state.profileInfo!.sharingSettings
+                          .copyWith(names: sharingSettings)))),
           // addCallback: () async => showModalBottomSheet<void>(
           //     context: context,
           //     isScrollControlled: true,
@@ -454,8 +451,9 @@ Widget _sharedInformationList(BuildContext context, CircleDetailsState state) =>
                     color: Theme.of(context).colorScheme.primary)),
             [
               Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: _pictureSelection(context, state)),
+                  padding: const EdgeInsets.only(
+                      top: 8, left: 8, right: 8, bottom: 4),
+                  child: _pictureSelection(context, state))
             ]),
       if (state.profileInfo?.temporaryLocations.isNotEmpty ?? false)
         ..._card(

@@ -106,7 +106,11 @@ Future<void> showModalLocationDetails(
                     backgroundColor: WidgetStatePropertyAll(
                         Theme.of(context).colorScheme.error),
                   ),
-                  child: const Text('Delete'),
+                  child: Text(
+                    'Delete',
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.onError),
+                  ),
                 ),
             ])));
 
