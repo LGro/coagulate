@@ -33,7 +33,7 @@
 //   ),
 // );
 
-// void main() {
+void main() {
 //   testWidgets('Test Chosen Profile Displayed', (tester) async {
 //     final contactsRepository = ContactsRepository(
 //         DummyPersistentStorage([_profileContact]
@@ -124,4 +124,4 @@
 //   //   contactsRepository.timerDhtRefresh?.cancel();
 //   //   contactsRepository.timerPersistentStorageRefresh?.cancel();
 //   // });
-// }
+}

@@ -30,7 +30,7 @@
 //           Contact(emails: [Email('test@mail.com')])
 //         ]));
 
-// void main() {
+void main() {
 //   group('Contact Details Page Widget Tests', () {
 //     // TODO: Replace with unit test of the details merging functionality when it arrives
 //     testWidgets('Testing Details Displayed', (tester) async {
@@ -76,4 +76,4 @@
 //       expect(find.text('Add them to circles'), findsNothing);
 //     });
 //   });
-// }
+}

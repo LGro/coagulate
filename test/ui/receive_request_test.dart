@@ -22,7 +22,7 @@
 //         DummyDistributedStorage(),
 //         DummySystemContacts([]));
 
-// void main() {
+void main() {
 //   group('Test Cubit State Transitions', () {
 //     ContactsRepository? contactsRepository;
 
@@ -294,4 +294,4 @@
 //           expect(contacts['1']?.details?.names.values.first, 'From DHT');
 //         });
 //   });
-// }
+}

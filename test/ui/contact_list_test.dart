@@ -21,7 +21,7 @@
 //           child: ContactListPage(),
 //         )));
 
-// void main() {
+void main() {
 //   group('Utilities', () {
 //     test('extractAllValuesToString', () {
 //       expect(
@@ -67,4 +67,4 @@
 //       expect(find.text('Contact 1'), findsNothing);
 //     });
 //   });
-// }
+}
