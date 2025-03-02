@@ -1,11 +1,13 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -14,6 +16,45 @@ import '../../data/repositories/contacts.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
+
+// For search, nominatim.openstreetmap.org allows basic use for free
+// we could host our own if needed
+// GET https://nominatim.openstreetmap.org/search?format=json&q=<search query>
+
+class OsmLocation {
+  OsmLocation(
+      {required this.lat, required this.lon, required this.displayName});
+
+  factory OsmLocation.fromJson(Map<String, dynamic> json) => OsmLocation(
+        lat: double.parse(json['lat'] as String),
+        lon: double.parse(json['lon'] as String),
+        displayName: json['display_name'] as String,
+      );
+
+  final double lat;
+  final double lon;
+  final String displayName;
+}
+
+Future<List<OsmLocation>> fetchOsmLocations(String query) async {
+  final url = Uri(
+      scheme: 'https',
+      host: 'nominatim.openstreetmap.org',
+      path: '/search',
+      queryParameters: {'format': 'json', 'q': query});
+
+  // TODO: Add current app version instead of testing
+  final response = await http
+      .get(url, headers: {'User-Agent': 'social.coagulate.app / testing'});
+
+  // TODO: Handle decoding errors
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body) as List<Map<String, dynamic>>;
+    return data.map(OsmLocation.fromJson).toList();
+  } else {
+    throw Exception('Failed to load locations');
+  }
+}
 
 Iterable<Location> addressLocationsToLocations(
         Iterable<ContactAddressLocation> addressLocations,

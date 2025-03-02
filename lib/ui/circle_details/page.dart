@@ -540,7 +540,7 @@ class _ExpandableScrollViewsState extends State<ExpandableScrollViews>
     _maxHeight = MediaQuery.of(context).size.height -
         kToolbarHeight -
         kBottomNavigationBarHeight -
-        // TODO: This fails with UI scaling, right?
+        // TODO: This fails with UI scaling, right? it also fails on ios
         158;
 
     _topHeight = 0;
@@ -609,7 +609,7 @@ class _ExpandableScrollViewsState extends State<ExpandableScrollViews>
                   child: Row(children: [
                     Expanded(
                         child: Text(
-                            'Circle members '
+                            'Circle membership '
                             '(${widget.state.circleMemberships.values.where((cIds) => cIds.contains(widget.state.circleId)).length})',
                             textScaler: const TextScaler.linear(1.4),
                             style: TextStyle(

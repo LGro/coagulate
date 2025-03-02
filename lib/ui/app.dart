@@ -151,6 +151,8 @@ class _CoagulateAppState extends State<CoagulateApp>
     with WidgetsBindingObserver {
   String? _providedNameOnFirstLaunch;
 
+  final _seedColor = Colors.indigo;
+
   @override
   void initState() {
     super.initState();
@@ -267,12 +269,12 @@ class _CoagulateAppState extends State<CoagulateApp>
               title: 'Coagulate',
               themeMode: ThemeMode.system,
               theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+                colorScheme: ColorScheme.fromSeed(seedColor: _seedColor),
                 useMaterial3: true,
               ),
               darkTheme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(
-                    seedColor: Colors.indigo, brightness: Brightness.dark),
+                    seedColor: _seedColor, brightness: Brightness.dark),
                 useMaterial3: true,
               ),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -289,12 +291,12 @@ class _CoagulateAppState extends State<CoagulateApp>
             title: 'Coagulate',
             themeMode: ThemeMode.system,
             theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+              colorScheme: ColorScheme.fromSeed(seedColor: _seedColor),
               useMaterial3: true,
             ),
             darkTheme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
-                  seedColor: Colors.indigo, brightness: Brightness.dark),
+                  seedColor: _seedColor, brightness: Brightness.dark),
               useMaterial3: true,
             ),
             routerDelegate: AppRouter().router.routerDelegate,

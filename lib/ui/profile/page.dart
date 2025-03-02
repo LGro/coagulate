@@ -168,6 +168,7 @@ class EditOrAddWidget extends StatefulWidget {
     required this.circles,
     required this.valueController,
     this.onDelete,
+    this.valueHintText,
     this.labelController,
     this.labelHelperText,
     this.hideLabel = false,
@@ -178,6 +179,7 @@ class EditOrAddWidget extends StatefulWidget {
   final bool hideLabel;
   final String headlineSuffix;
   final String? labelHelperText;
+  final String? valueHintText;
   final TextEditingController? labelController;
   final TextEditingController valueController;
   final VoidCallback? onDelete;
@@ -264,6 +266,9 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                       border: const OutlineInputBorder(),
                     ),
                     validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'Please specify a label.';
+                      }
                       if (widget.existingLabels
                           .map((l) => l.toLowerCase())
                           .contains(value?.toLowerCase())) {
@@ -275,14 +280,20 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                   )),
               const SizedBox(height: 8),
             ],
-            TextField(
+            TextFormField(
               controller: widget.valueController,
               autocorrect: false,
               decoration: InputDecoration(
                 isDense: true,
-                labelText: widget.headlineSuffix,
+                hintText: widget.valueHintText ?? widget.headlineSuffix,
                 border: const OutlineInputBorder(),
               ),
+              validator: (value) {
+                if (value?.isEmpty ?? true) {
+                  return 'Please enter a value.';
+                }
+                return null;
+              },
             ),
 
             const SizedBox(height: 16),
@@ -339,21 +350,13 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                   onPressed: Navigator.of(context).pop,
                   child: Text(context.loc.cancel.capitalize()),
                 ),
-                // TODO: Give hints that label and text need to be filled out?
                 FilledButton(
-                  onPressed: () => (widget.valueController.text
-                              .trim()
-                              .isEmpty ||
-                          (!widget.hideLabel &&
-                              (widget.labelController?.text.trim().isEmpty ??
-                                  false)))
-                      ? null
-                      : (_formKey.currentState!.validate())
-                          ? widget.onAddOrSave(
-                              widget.labelController?.text.trim() ?? '',
-                              widget.valueController.text.trim(),
-                              _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
-                          : null,
+                  onPressed: () => (_formKey.currentState!.validate())
+                      ? widget.onAddOrSave(
+                          widget.labelController?.text.trim() ?? '',
+                          widget.valueController.text.trim(),
+                          _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
+                      : null,
                   child: Text((widget.isEditing)
                       ? context.loc.save.capitalize()
                       : context.loc.add.capitalize()),
@@ -664,6 +667,8 @@ Future<void> onAddDetail(
         required Future<void> Function(String label, String value,
                 List<(String, String, bool)> selectedCircles)
             onAdd,
+        String? defaultLabel,
+        String? valueHintText,
         String? labelHelperText,
         List<String> existingLabels = const []}) async =>
     showModalBottomSheet<void>(
@@ -691,8 +696,9 @@ Future<void> onAddDetail(
                         .values
                         .toList(),
                     headlineSuffix: headlineSuffix,
+                    valueHintText: valueHintText,
                     labelHelperText: labelHelperText,
-                    labelController: TextEditingController(),
+                    labelController: TextEditingController(text: defaultLabel),
                     existingLabels: existingLabels,
                     valueController: TextEditingController(),
                     onAddOrSave: (label, number, circlesWithSelection) async =>
@@ -713,6 +719,7 @@ Future<void> onEditDetail({
           List<(String, String, bool)> circlesWithSelection)
       onSave,
   required Future<void> Function() onDelete,
+  String? valueHintText,
   String? labelHelperText,
   bool hideLabel = false,
   List<String> existingLabels = const [],
@@ -742,6 +749,7 @@ Future<void> onEditDetail({
                         .values
                         .toList(),
                     headlineSuffix: headlineSuffix,
+                    valueHintText: valueHintText,
                     labelHelperText: labelHelperText,
                     hideLabel: hideLabel,
                     existingLabels: [...existingLabels]..remove(label),
@@ -824,6 +832,7 @@ class ProfileViewState extends State<ProfileView> {
                               isEditing: false,
                               valueController: TextEditingController(),
                               headlineSuffix: context.loc.name,
+                              valueHintText: 'Name (pronouns)',
                               circles: circles
                                   .map((cId, cLabel) => MapEntry(cId, (
                                         cId,
@@ -892,6 +901,7 @@ class ProfileViewState extends State<ProfileView> {
               context: context,
               headlineSuffix: context.loc.phoneNumber,
               labelHelperText: 'e.g. home, mobile or work',
+              defaultLabel: (contact.phones.isEmpty) ? 'mobile' : null,
               existingLabels: contact.phones
                   .map((v) =>
                       (v.label.name != 'custom') ? v.label.name : v.customLabel)
@@ -954,6 +964,7 @@ class ProfileViewState extends State<ProfileView> {
               context: context,
               headlineSuffix: context.loc.emailAddress,
               labelHelperText: 'e.g. private or work',
+              defaultLabel: (contact.emails.isEmpty) ? 'private' : null,
               existingLabels: contact.emails
                   .map((v) =>
                       (v.label.name != 'custom') ? v.label.name : v.customLabel)
@@ -1017,6 +1028,8 @@ class ProfileViewState extends State<ProfileView> {
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: context.loc.address,
+              defaultLabel: (contact.addresses.isEmpty) ? 'home' : null,
+              valueHintText: 'Street, City, Country',
               labelHelperText: 'e.g. home or cabin',
               existingLabels: contact.addresses
                   .map((v) =>
@@ -1081,6 +1094,7 @@ class ProfileViewState extends State<ProfileView> {
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: 'social media profile',
+              valueHintText: '@profileName',
               labelHelperText: 'e.g. Signal or Instagram',
               existingLabels: contact.socialMedias
                   .map((v) =>
@@ -1144,7 +1158,9 @@ class ProfileViewState extends State<ProfileView> {
           addCallback: () async => onAddDetail(
               context: context,
               headlineSuffix: context.loc.website,
-              labelHelperText: 'e.g. blog or portfolio',
+              defaultLabel: (contact.websites.isEmpty) ? 'website' : null,
+              // labelHelperText: 'e.g. blog or portfolio',
+              valueHintText: 'my-awesome-site.com',
               existingLabels: contact.websites
                   .map((v) =>
                       (v.label.name != 'custom') ? v.label.name : v.customLabel)
