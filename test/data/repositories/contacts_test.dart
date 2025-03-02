@@ -42,7 +42,7 @@ void main() {
       Phone('123', label: PhoneLabel.home),
       Phone('321', label: PhoneLabel.work)
     ], {
-      '1|work': ['C2']
+      'work': ['C2']
     }, [
       'C1',
       'C2'
