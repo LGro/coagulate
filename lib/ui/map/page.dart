@@ -97,11 +97,11 @@ Future<void> showModalLocationDetails(
               // Offer to delete app user locations
               if (location.coagContactId == null && location.locationId != null)
                 FilledButton(
-                  onPressed: null,
-                  // FIXME: There is no provider found for this cubit
-                  //  () async => context
-                  //     .read<LocationsCubit>()
-                  //     .removeLocation(location.locationId!),
+                  onPressed: () async => context
+                      .read<MapCubit>()
+                      .removeLocation(location.locationId!)
+                      .then((_) =>
+                          (context.mounted) ? Navigator.pop(context) : null),
                   style: ButtonStyle(
                     backgroundColor: WidgetStatePropertyAll(
                         Theme.of(context).colorScheme.error),

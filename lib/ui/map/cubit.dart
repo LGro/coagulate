@@ -97,6 +97,7 @@ class MapCubit extends Cubit<MapState> {
       if (contact == null) {
         return;
       }
+      // TODO: Just refresh() instead?
       emit(MapState([
         ...state.locations.where((l) => l.coagContactId != coagContactId),
         ...addressLocationsToLocations(contact.addressLocations.values,
@@ -141,6 +142,16 @@ class MapCubit extends Cubit<MapState> {
               ])
           .flattened
     ], MapStatus.success));
+  }
+
+  Future<void> removeLocation(String locationId) async {
+    final profileInfo = contactsRepository.getProfileInfo();
+    if (profileInfo == null) {
+      return;
+    }
+    await contactsRepository.setProfileInfo(profileInfo.copyWith(
+        temporaryLocations: {...profileInfo.temporaryLocations}
+          ..remove(locationId)));
   }
 
   @override
