@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 
@@ -88,6 +89,8 @@ Location temporaryLocationToLocation(String label, ContactTemporaryLocation l,
 class MapCubit extends Cubit<MapState> {
   MapCubit(this.contactsRepository)
       : super(const MapState([], MapStatus.initial)) {
+    _profileInfoSubscription =
+        contactsRepository.getProfileInfoStream().listen((_) => refresh());
     _contactsSubscription =
         contactsRepository.getContactStream().listen((coagContactId) {
       final contact = contactsRepository.getContact(coagContactId);
@@ -103,11 +106,17 @@ class MapCubit extends Cubit<MapState> {
                 coagContactId: contact.coagContactId,
                 locationId: l.key,
                 picture: contact.details?.picture))
-      ], MapStatus.success,
-          mapboxApiToken:
-              String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN')));
+      ], MapStatus.success));
     });
 
+    refresh();
+  }
+
+  final ContactsRepository contactsRepository;
+  late final StreamSubscription<String> _contactsSubscription;
+  late final StreamSubscription<ProfileInfo> _profileInfoSubscription;
+
+  void refresh() {
     final profileInfo = contactsRepository.getProfileInfo();
     final contacts = contactsRepository.getContacts().values.toList();
 
@@ -134,12 +143,10 @@ class MapCubit extends Cubit<MapState> {
     ], MapStatus.success));
   }
 
-  final ContactsRepository contactsRepository;
-  late final StreamSubscription<String> _contactsSubscription;
-
   @override
   Future<void> close() {
     _contactsSubscription.cancel();
+    _profileInfoSubscription.cancel();
     return super.close();
   }
 }
