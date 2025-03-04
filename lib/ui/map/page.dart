@@ -74,7 +74,9 @@ Future<void> showModalLocationDetails(
                 right: 16,
                 bottom: 12 + MediaQuery.of(modalContext).viewInsets.bottom),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Row(children: [Text(location.details)]),
+              Row(children: [
+                Expanded(child: Text(location.details, softWrap: true))
+              ]),
               const SizedBox(height: 16),
               // TODO: only display if not already scheduled this (or conflicting)
               if (location.coagContactId != null) ...[
