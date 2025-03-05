@@ -168,9 +168,10 @@ CoagContactDHTSchema filterAccordingToSharingProfile(
         {required ProfileInfo profile,
         required Map<String, int> activeCirclesWithMemberCount,
         required DhtSettings dhtSettings,
+        required bool sharePersonalUniqueId,
         List<String> knownPersonalContactIds = const []}) =>
     CoagContactDHTSchema(
-      personalUniqueId: knownPersonalContactIds.isEmpty ? null : profile.id,
+      personalUniqueId: sharePersonalUniqueId ? profile.id : null,
       details: filterDetails(profile.pictures, profile.details,
           profile.sharingSettings, activeCirclesWithMemberCount),
       // Only share locations up to 1 day ago
@@ -570,9 +571,11 @@ class ContactsRepository {
             dhtSettings: contact.dhtSettings,
             // TODO: Do we need to trigger updating the sharing profile more often to keep this list up to date?
             // TODO: Allow opt-out (per circle or globally?)
+            sharePersonalUniqueId: true,
             knownPersonalContactIds: getContacts()
                 .values
                 .map((c) => c.theirPersonalUniqueId)
+                .where((id) => id != contact.theirPersonalUniqueId)
                 // Remove null entries
                 .whereType<String>()
                 // Remove duplicates
