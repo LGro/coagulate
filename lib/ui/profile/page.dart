@@ -678,8 +678,6 @@ Future<void> onAddDetail(
         builder: (buildContext) => DraggableScrollableSheet(
             expand: false,
             maxChildSize: 0.9,
-            minChildSize: 0.3,
-            initialChildSize: 0.9,
             builder: (_, scrollController) => SingleChildScrollView(
                 controller: scrollController,
                 child: EditOrAddWidget(
@@ -730,8 +728,6 @@ Future<void> onEditDetail({
         builder: (buildContext) => DraggableScrollableSheet(
             expand: false,
             maxChildSize: 0.9,
-            minChildSize: 0.3,
-            initialChildSize: 0.9,
             builder: (_, scrollController) => SingleChildScrollView(
                 controller: scrollController,
                 child: EditOrAddWidget(
@@ -824,8 +820,6 @@ class ProfileViewState extends State<ProfileView> {
                 builder: (buildContext) => DraggableScrollableSheet(
                       expand: false,
                       maxChildSize: 0.9,
-                      minChildSize: 0.3,
-                      initialChildSize: 0.9,
                       builder: (_, scrollController) => SingleChildScrollView(
                           controller: scrollController,
                           child: EditOrAddWidget(
