@@ -29,13 +29,13 @@ class ContactListCubit extends Cubit<ContactListState> {
             circleMemberships: contactsRepository.getCircleMemberships(),
             circles: contactsRepository.getCircles(),
             contacts: contactsRepository.getContacts().values.toList()
-              ..sortedBy((c) => c.name)));
+              ..sortBy((c) => c.name.toLowerCase())));
       }
     });
 
     emit(ContactListState(ContactListStatus.success,
         contacts: contactsRepository.getContacts().values.toList()
-          ..sortedBy((c) => c.name),
+          ..sortBy((c) => c.name.toLowerCase()),
         circles: contactsRepository.getCircles(),
         circleMemberships: contactsRepository.getCircleMemberships()));
   }
