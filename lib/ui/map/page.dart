@@ -93,7 +93,11 @@ Future<void> showModalLocationDetails(
                     onPressed: () async => Navigator.push(
                         context,
                         MaterialPageRoute<ScheduleWidget>(
-                            builder: (_) => const ScheduleWidget()))),
+                            builder: (_) => ScheduleWidget(
+                                // TODO: Add start and end to location type and pass here
+                                initialState: ScheduleFormState(
+                                    title: location.label,
+                                    details: location.details))))),
               ],
 
               // Offer to delete app user locations

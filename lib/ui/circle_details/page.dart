@@ -45,17 +45,7 @@ Widget contactsListView(
               onTap: () async =>
                   Navigator.of(context).push(ContactPage.route(contact)),
               child: Row(children: [
-                if (contact.details?.picture == null)
-                  const CircleAvatar(radius: 18, child: Icon(Icons.person))
-                else
-                  ClipOval(
-                      child: Image.memory(
-                    Uint8List.fromList(contact.details!.picture!),
-                    gaplessPlayback: true,
-                    width: 36,
-                    height: 36,
-                    fit: BoxFit.cover,
-                  )),
+                roundPictureOrPlaceholder(contact.details?.picture, radius: 18),
                 const SizedBox(width: 8),
                 Text(contact.name)
               ]),
@@ -171,15 +161,9 @@ Widget _pictureSelection(BuildContext context, CircleDetailsState state) =>
             padding: const EdgeInsets.all(8),
             child: state.profileInfo!.pictures.containsKey(state.circleId)
                 ? Column(children: [
-                    ClipOval(
-                        child: Image.memory(
-                      width: 96,
-                      height: 96,
-                      Uint8List.fromList(
-                          state.profileInfo!.pictures[state.circleId]!),
-                      gaplessPlayback: true,
-                      fit: BoxFit.cover,
-                    )),
+                    roundPictureOrPlaceholder(
+                        state.profileInfo!.pictures[state.circleId],
+                        radius: 48),
                     const SizedBox(height: 4),
                     FilledButton.tonal(
                         style: const ButtonStyle(

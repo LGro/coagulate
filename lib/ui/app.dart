@@ -267,6 +267,7 @@ class _CoagulateAppState extends State<CoagulateApp>
             _providedNameOnFirstLaunch!.isEmpty) {
           return MaterialApp(
               title: 'Coagulate',
+              debugShowCheckedModeBanner: true,
               themeMode: ThemeMode.system,
               theme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(seedColor: _seedColor),
@@ -289,6 +290,7 @@ class _CoagulateAppState extends State<CoagulateApp>
               SystemContacts(), _providedNameOnFirstLaunch!),
           child: MaterialApp.router(
             title: 'Coagulate',
+            debugShowCheckedModeBanner: true,
             themeMode: ThemeMode.system,
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: _seedColor),

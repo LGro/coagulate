@@ -1,8 +1,6 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:veilid/veilid.dart';
@@ -23,16 +21,8 @@ Widget contactsListView(BuildContext context, List<CoagContact> contacts,
     SearchableList<CoagContact>(
         items: contacts,
         buildItemWidget: (contact) => ListTile(
-            leading: (contact.details?.picture == null)
-                ? const CircleAvatar(radius: 18, child: Icon(Icons.person))
-                : ClipOval(
-                    child: Image.memory(
-                    Uint8List.fromList(contact.details!.picture!),
-                    gaplessPlayback: true,
-                    width: 36,
-                    height: 36,
-                    fit: BoxFit.cover,
-                  )),
+            leading:
+                roundPictureOrPlaceholder(contact.details?.picture, radius: 18),
             title: Text(contact.name),
             trailing: contactSharingReceivingStatus(contact,
                 circleMemberships[contact.coagContactId]?.isNotEmpty ?? false),

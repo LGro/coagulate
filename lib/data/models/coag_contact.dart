@@ -200,16 +200,17 @@ class ContactDetails extends Equatable {
           List<SocialMedia>? socialMedias,
           List<Event>? events}) =>
       ContactDetails(
-        picture: picture ?? this.picture,
+        picture:
+            picture ?? ((this.picture == null) ? null : [...this.picture!]),
         publicKey: publicKey ?? this.publicKey,
-        names: names ?? this.names,
-        phones: phones ?? this.phones,
-        emails: emails ?? this.emails,
-        addresses: addresses ?? this.addresses,
-        organizations: organizations ?? this.organizations,
-        websites: websites ?? this.websites,
-        socialMedias: socialMedias ?? this.socialMedias,
-        events: events ?? this.events,
+        names: names ?? {...this.names},
+        phones: phones ?? [...this.phones],
+        emails: emails ?? [...this.emails],
+        addresses: addresses ?? [...this.addresses],
+        organizations: organizations ?? [...this.organizations],
+        websites: websites ?? [...this.websites],
+        socialMedias: socialMedias ?? [...this.socialMedias],
+        events: events ?? [...this.events],
       );
 
   @override
@@ -259,11 +260,11 @@ class ProfileInfo extends Equatable {
   }) =>
       ProfileInfo(
         id,
-        details: details ?? this.details,
-        pictures: pictures ?? this.pictures,
-        addressLocations: addressLocations ?? this.addressLocations,
-        temporaryLocations: temporaryLocations ?? this.temporaryLocations,
-        sharingSettings: sharingSettings ?? this.sharingSettings,
+        details: details ?? this.details.copyWith(),
+        pictures: pictures ?? {...this.pictures},
+        addressLocations: addressLocations ?? {...this.addressLocations},
+        temporaryLocations: temporaryLocations ?? {...this.temporaryLocations},
+        sharingSettings: sharingSettings ?? this.sharingSettings.copyWith(),
       );
 
   @override
@@ -284,6 +285,8 @@ class CoagContact extends Equatable {
     required this.name,
     required this.dhtSettings,
     this.details,
+    this.theirPersonalUniqueId,
+    this.knownPersonalContactIds = const [],
     this.systemContact,
     this.addressLocations = const {},
     this.temporaryLocations = const {},
@@ -294,6 +297,13 @@ class CoagContact extends Equatable {
   });
 
   final String coagContactId;
+
+  /// A unique ID provided by the contact to identified shared connections and
+  /// avoid proposing introductions for contacts that already know each other
+  final String? theirPersonalUniqueId;
+
+  /// All unique contact IDs that this contact told us they know
+  final List<String> knownPersonalContactIds;
 
   /// Name given to the contact by the app user
   final String name;
@@ -357,6 +367,8 @@ class CoagContact extends Equatable {
     String? comment,
     Contact? systemContact,
     ContactDetails? details,
+    String? theirPersonalUniqueId,
+    List<String>? knownPersonalContactIds,
     Map<int, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
     DhtSettings? dhtSettings,
@@ -366,13 +378,17 @@ class CoagContact extends Equatable {
   }) =>
       CoagContact(
         coagContactId: coagContactId ?? this.coagContactId,
-        details: details ?? this.details,
+        details: details ?? this.details?.copyWith(),
         systemContact: systemContact ?? this.systemContact,
-        addressLocations: addressLocations ?? this.addressLocations,
-        temporaryLocations: temporaryLocations ?? this.temporaryLocations,
-        dhtSettings: dhtSettings ?? this.dhtSettings,
-        sharedProfile: sharedProfile ?? this.sharedProfile,
+        addressLocations: addressLocations ?? {...this.addressLocations},
+        temporaryLocations: temporaryLocations ?? {...this.temporaryLocations},
+        dhtSettings: dhtSettings ?? this.dhtSettings.copyWith(),
+        sharedProfile: sharedProfile ?? this.sharedProfile?.copyWith(),
         name: name ?? this.name,
+        theirPersonalUniqueId:
+            theirPersonalUniqueId ?? this.theirPersonalUniqueId,
+        knownPersonalContactIds:
+            knownPersonalContactIds ?? [...this.knownPersonalContactIds],
         comment: comment ?? this.comment,
         mostRecentUpdate: mostRecentUpdate ?? this.mostRecentUpdate,
         mostRecentChange: mostRecentChange ?? this.mostRecentChange,
@@ -385,6 +401,8 @@ class CoagContact extends Equatable {
         systemContact,
         dhtSettings,
         sharedProfile,
+        theirPersonalUniqueId,
+        knownPersonalContactIds,
         name,
         comment,
         addressLocations,
@@ -458,9 +476,11 @@ class CoagContactDHTSchemaV2 extends Equatable {
     required this.shareBackDHTKey,
     required this.shareBackPubKey,
     this.shareBackDHTWriter,
+    this.personalUniqueId,
     this.addressLocations = const {},
     this.temporaryLocations = const {},
     this.ackHandshakeComplete = false,
+    this.knownPersonalContactIds = const [],
     DateTime? mostRecentUpdate,
   }) {
     this.mostRecentUpdate = mostRecentUpdate ?? DateTime.now();
@@ -477,10 +497,12 @@ class CoagContactDHTSchemaV2 extends Equatable {
   final ContactDetails details;
   final Map<int, ContactAddressLocation> addressLocations;
   final Map<String, ContactTemporaryLocation> temporaryLocations;
+  final String? personalUniqueId;
   final String? shareBackDHTKey;
   final String? shareBackDHTWriter;
   final String? shareBackPubKey;
   final bool ackHandshakeComplete;
+  final List<String> knownPersonalContactIds;
   late final DateTime? mostRecentUpdate;
 
   Map<String, dynamic> toJson() => _$CoagContactDHTSchemaV2ToJson(this);
@@ -493,8 +515,10 @@ class CoagContactDHTSchemaV2 extends Equatable {
     String? shareBackDHTKey,
     String? shareBackDHTWriter,
     String? shareBackPubKey,
+    String? personalUniqueId,
     Map<int, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
+    List<String>? knownPersonalContactIds,
     bool? ackHandshakeComplete,
   }) =>
       CoagContactDHTSchemaV2(
@@ -502,8 +526,11 @@ class CoagContactDHTSchemaV2 extends Equatable {
         shareBackDHTKey: shareBackDHTKey ?? this.shareBackDHTKey,
         shareBackPubKey: shareBackPubKey ?? this.shareBackPubKey,
         shareBackDHTWriter: shareBackDHTWriter ?? this.shareBackDHTWriter,
+        personalUniqueId: personalUniqueId ?? this.personalUniqueId,
         addressLocations: addressLocations ?? this.addressLocations,
         temporaryLocations: temporaryLocations ?? this.temporaryLocations,
+        knownPersonalContactIds:
+            knownPersonalContactIds ?? this.knownPersonalContactIds,
         ackHandshakeComplete: ackHandshakeComplete ?? this.ackHandshakeComplete,
       );
 
@@ -515,8 +542,10 @@ class CoagContactDHTSchemaV2 extends Equatable {
         shareBackDHTKey,
         shareBackPubKey,
         shareBackDHTWriter,
+        personalUniqueId,
         addressLocations,
         temporaryLocations,
+        knownPersonalContactIds,
         ackHandshakeComplete,
       ];
 }
@@ -524,6 +553,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
 CoagContactDHTSchemaV2 schemaV1toV2(CoagContactDHTSchemaV1 old) =>
     CoagContactDHTSchemaV2(
         details: old.details,
+        personalUniqueId: old.coagContactId,
         shareBackDHTKey: old.shareBackDHTKey,
         shareBackDHTWriter: old.shareBackDHTWriter,
         // NOTE: This will cause downstream errors when trying to decrypt

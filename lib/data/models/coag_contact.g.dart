@@ -165,6 +165,12 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
       details: json['details'] == null
           ? null
           : ContactDetails.fromJson(json['details'] as Map<String, dynamic>),
+      theirPersonalUniqueId: json['their_personal_unique_id'] as String?,
+      knownPersonalContactIds:
+          (json['known_personal_contact_ids'] as List<dynamic>?)
+                  ?.map((e) => e as String)
+                  .toList() ??
+              const [],
       systemContact: json['system_contact'] == null
           ? null
           : Contact.fromJson(json['system_contact'] as Map<String, dynamic>),
@@ -196,6 +202,8 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
 Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
     <String, dynamic>{
       'coag_contact_id': instance.coagContactId,
+      'their_personal_unique_id': instance.theirPersonalUniqueId,
+      'known_personal_contact_ids': instance.knownPersonalContactIds,
       'name': instance.name,
       'system_contact': instance.systemContact?.toJson(),
       'details': instance.details?.toJson(),
@@ -253,6 +261,7 @@ CoagContactDHTSchemaV2 _$CoagContactDHTSchemaV2FromJson(
       shareBackDHTKey: json['share_back_d_h_t_key'] as String?,
       shareBackPubKey: json['share_back_pub_key'] as String?,
       shareBackDHTWriter: json['share_back_d_h_t_writer'] as String?,
+      personalUniqueId: json['personal_unique_id'] as String?,
       addressLocations:
           (json['address_locations'] as Map<String, dynamic>?)?.map(
                 (k, e) => MapEntry(int.parse(k),
@@ -266,6 +275,11 @@ CoagContactDHTSchemaV2 _$CoagContactDHTSchemaV2FromJson(
           ) ??
           const {},
       ackHandshakeComplete: json['ack_handshake_complete'] as bool? ?? false,
+      knownPersonalContactIds:
+          (json['known_personal_contact_ids'] as List<dynamic>?)
+                  ?.map((e) => e as String)
+                  .toList() ??
+              const [],
       mostRecentUpdate: json['most_recent_update'] == null
           ? null
           : DateTime.parse(json['most_recent_update'] as String),
@@ -279,9 +293,11 @@ Map<String, dynamic> _$CoagContactDHTSchemaV2ToJson(
           .map((k, e) => MapEntry(k.toString(), e.toJson())),
       'temporary_locations':
           instance.temporaryLocations.map((k, e) => MapEntry(k, e.toJson())),
+      'personal_unique_id': instance.personalUniqueId,
       'share_back_d_h_t_key': instance.shareBackDHTKey,
       'share_back_d_h_t_writer': instance.shareBackDHTWriter,
       'share_back_pub_key': instance.shareBackPubKey,
       'ack_handshake_complete': instance.ackHandshakeComplete,
+      'known_personal_contact_ids': instance.knownPersonalContactIds,
       'most_recent_update': instance.mostRecentUpdate?.toIso8601String(),
     };

@@ -32,12 +32,12 @@ class MyForm extends StatefulWidget {
   final Map<String, List<String>> circleMemberships;
 
   @override
-  State<MyForm> createState() => _MyFormState();
+  State<MyForm> createState() => _ScheduleFormState();
 }
 
-class _MyFormState extends State<MyForm> {
+class _ScheduleFormState extends State<MyForm> {
   final _key = GlobalKey<FormState>();
-  late MyFormState _state;
+  late ScheduleFormState _state;
   late final TextEditingController _titleController;
   late final TextEditingController _detailsController;
 
@@ -136,7 +136,7 @@ class _MyFormState extends State<MyForm> {
   @override
   void initState() {
     super.initState();
-    _state = MyFormState(
+    _state = ScheduleFormState(
         circles: widget.circles
             .map((id, label) => MapEntry(id, (
                   id,
@@ -336,8 +336,8 @@ class _MyFormState extends State<MyForm> {
           ])));
 }
 
-class MyFormState with FormzMixin {
-  MyFormState({
+class ScheduleFormState with FormzMixin {
+  ScheduleFormState({
     this.title = '',
     this.details = '',
     this.start,
@@ -355,7 +355,7 @@ class MyFormState with FormzMixin {
   final PickedData? location;
   final List<(String, String, bool, int)> circles;
 
-  MyFormState copyWith({
+  ScheduleFormState copyWith({
     DateTime? start,
     DateTime? end,
     PickedData? location,
@@ -364,7 +364,7 @@ class MyFormState with FormzMixin {
     List<(String, String, bool, int)>? circles,
     FormzSubmissionStatus? status,
   }) =>
-      MyFormState(
+      ScheduleFormState(
         start: start ?? this.start,
         end: end ?? this.end,
         location: location ?? this.location,
@@ -379,7 +379,7 @@ class MyFormState with FormzMixin {
 }
 
 class ScheduleWidget extends StatelessWidget {
-  const ScheduleWidget({super.key});
+  const ScheduleWidget({ScheduleFormState? initialState, super.key});
 
   @override
   Widget build(BuildContext context) => BlocProvider(

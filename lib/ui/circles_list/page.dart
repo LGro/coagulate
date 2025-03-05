@@ -61,7 +61,9 @@ class _GridCircleItem extends StatelessWidget {
                 mainAxisSpacing: 0,
                 crossAxisSpacing: 0,
                 children: pictures
-                    .map((p) => Image.memory(p, gaplessPlayback: true))
+                    .map(roundPictureOrPlaceholder)
+                    // Remove the placeholders, we only want images here
+                    .whereType<Image>()
                     .toList(),
               ),
       ),

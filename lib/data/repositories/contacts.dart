@@ -167,8 +167,10 @@ Map<String, ContactTemporaryLocation> filterTemporaryLocations(
 CoagContactDHTSchema filterAccordingToSharingProfile(
         {required ProfileInfo profile,
         required Map<String, int> activeCirclesWithMemberCount,
-        required DhtSettings dhtSettings}) =>
+        required DhtSettings dhtSettings,
+        List<String> knownPersonalContactIds = const []}) =>
     CoagContactDHTSchema(
+      personalUniqueId: knownPersonalContactIds.isEmpty ? null : profile.id,
       details: filterDetails(profile.pictures, profile.details,
           profile.sharingSettings, activeCirclesWithMemberCount),
       // Only share locations up to 1 day ago
@@ -179,6 +181,7 @@ CoagContactDHTSchema filterAccordingToSharingProfile(
       shareBackDHTKey: dhtSettings.recordKeyThemSharing.toString(),
       shareBackDHTWriter: dhtSettings.writerThemSharing.toString(),
       shareBackPubKey: dhtSettings.myKeyPair.key.toString(),
+      knownPersonalContactIds: knownPersonalContactIds,
       ackHandshakeComplete: dhtSettings.theirPublicKey != null,
     );
 
@@ -564,7 +567,17 @@ class ContactsRepository {
                         _circleMemberships.values
                             .where((ids) => ids.contains(circleId))
                             .length))),
-            dhtSettings: contact.dhtSettings)));
+            dhtSettings: contact.dhtSettings,
+            // TODO: Do we need to trigger updating the sharing profile more often to keep this list up to date?
+            // TODO: Allow opt-out (per circle or globally?)
+            knownPersonalContactIds: getContacts()
+                .values
+                .map((c) => c.theirPersonalUniqueId)
+                // Remove null entries
+                .whereType<String>()
+                // Remove duplicates
+                .toSet()
+                .toList())));
   }
 
   Future<void> _dhtRecordUpdateCallback(Typed<FixedEncodedString43> key) async {

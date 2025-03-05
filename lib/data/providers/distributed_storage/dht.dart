@@ -261,6 +261,8 @@ class VeilidDhtStorage extends DistributedStorage {
         json.decode(contactJson!) as Map<String, dynamic>);
 
     return contact.copyWith(
+        theirPersonalUniqueId: dhtContact.personalUniqueId,
+        knownPersonalContactIds: dhtContact.knownPersonalContactIds,
         details: dhtContact.details.copyWith(picture: contactPicture),
         addressLocations: dhtContact.addressLocations,
         temporaryLocations: dhtContact.temporaryLocations,

@@ -18,6 +18,7 @@ import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
 import '../locations/page.dart';
 import '../profile/page.dart';
+import '../utils.dart';
 import '../widgets/circles/cubit.dart';
 import '../widgets/circles/widget.dart';
 import '../widgets/dht_status/widget.dart';
@@ -159,14 +160,8 @@ class _ContactPageState extends State<ContactPage> {
           Center(
               child: Padding(
             padding: const EdgeInsets.only(left: 12, top: 16, right: 12),
-            child: ClipOval(
-                child: Image.memory(
-              Uint8List.fromList(contact.details!.picture!),
-              gaplessPlayback: true,
-              width: 128,
-              height: 128,
-              fit: BoxFit.cover,
-            )),
+            child:
+                roundPictureOrPlaceholder(contact.details?.picture, radius: 64),
           )),
 
         // Contact details
@@ -212,6 +207,15 @@ class _ContactPageState extends State<ContactPage> {
               //       We need the latter not the former.
               maxLines: 4,
             )),
+
+        const SizedBox(height: 16),
+        // TODO: Display the shared contacts (summary) instead
+        if (contact.theirPersonalUniqueId == null)
+          const Text('They do not share information about contacts they know.'),
+        if (contact.theirPersonalUniqueId != null)
+          Text('They are connected with at least '
+              '${contact.knownPersonalContactIds.length} other folks on '
+              'Coagulate'),
 
         // Delete contact
         const SizedBox(height: 16),
@@ -441,8 +445,10 @@ Widget _connectingCard(BuildContext context, CoagContact contact) =>
               Row(children: [
                 const Icon(Icons.private_connectivity),
                 const SizedBox(width: 4),
-                Text('To connect with ${contact.name}:',
-                    textScaler: const TextScaler.linear(1.2))
+                Expanded(
+                    child: Text('To connect with ${contact.name}:',
+                        textScaler: const TextScaler.linear(1.2),
+                        softWrap: true))
               ]),
               const SizedBox(height: 4),
               // TODO: Only show share back button when receiving key and psk but not writer are set i.e. is receiving updates and has share back settings
@@ -489,16 +495,8 @@ Iterable<Widget> _displaySharedProfile(
       if (details.picture != null)
         Center(
             child: Padding(
-          padding: const EdgeInsets.only(left: 12, top: 4, right: 12),
-          child: ClipOval(
-              child: Image.memory(
-            Uint8List.fromList(details.picture!),
-            gaplessPlayback: true,
-            width: 96,
-            height: 96,
-            fit: BoxFit.cover,
-          )),
-        )),
+                padding: const EdgeInsets.only(left: 12, top: 4, right: 12),
+                child: roundPictureOrPlaceholder(details.picture, radius: 48))),
       if (details.names.isNotEmpty)
         ...detailsList<String>(
           context,
@@ -548,6 +546,14 @@ Iterable<Widget> _displaySharedProfile(
               (v.label.name != 'custom') ? v.label.name : v.customLabel,
           getValue: (v) => v.url,
         ),
+      // TODO: Check if opted out
+      const Padding(
+          padding: EdgeInsets.only(left: 12, right: 12, bottom: 8, top: 4),
+          child: Text(
+              'They also see how many contacts you are connected with, but can '
+              'only find out who an individual contact is if they are '
+              'connected with them as well and only see the information that '
+              'contact shared with them.')),
       const Padding(
           padding: EdgeInsets.only(left: 12, right: 12, bottom: 8, top: 4),
           child: Text(

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -18,3 +20,15 @@ String extractAllValuesToString(dynamic value) {
     return value.toString();
   }
 }
+
+Widget roundPictureOrPlaceholder(List<int>? picture, {double? radius}) =>
+    ClipOval(
+        child: Image.memory(
+      Uint8List.fromList(picture ?? []),
+      gaplessPlayback: true,
+      width: (radius == null) ? null : radius * 2,
+      height: (radius == null) ? null : radius * 2,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) =>
+          CircleAvatar(radius: radius, child: const Icon(Icons.person)),
+    ));
