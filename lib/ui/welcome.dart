@@ -27,35 +27,47 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         body: Padding(
-            padding: const EdgeInsets.all(16),
-            child: SingleChildScrollView(
-                child: Column(
+          padding: const EdgeInsets.all(16),
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                  const SizedBox(height: 32),
-                  Text(
-                    context.loc.welcomeHeadline,
-                    style: const TextStyle(
-                        fontSize: 32, fontWeight: FontWeight.bold),
+                      Text(
+                        context.loc.welcomeHeadline,
+                        style: const TextStyle(
+                            fontSize: 32, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(context.loc.welcomeText,
+                          style: const TextStyle(fontSize: 16)),
+                      const SizedBox(height: 24),
+                      TextField(
+                        controller: _nameController,
+                        decoration: InputDecoration(
+                          labelText: context.loc.name.capitalize(),
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Align(
+                          alignment: Alignment.centerRight,
+                          child: FilledButton(
+                            onPressed: _onSubmit,
+                            child: Text(context.loc.welcomeCallToActionButton),
+                          )),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(context.loc.welcomeText,
-                      style: const TextStyle(fontSize: 16)),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: context.loc.name.capitalize(),
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Align(
-                      alignment: Alignment.centerRight,
-                      child: FilledButton(
-                        onPressed: _onSubmit,
-                        child: Text(context.loc.welcomeCallToActionButton),
-                      )),
-                ]))),
+                ),
+              ),
+            ),
+          ),
+        ),
       );
 }
