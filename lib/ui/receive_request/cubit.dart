@@ -37,11 +37,15 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     ClipboardData? clipboardData =
         await Clipboard.getData(Clipboard.kTextPlain);
     if (clipboardData?.text != null) {
-      final fragment = Uri.parse(clipboardData!.text!.trim()).fragment;
-      if (fragment.isEmpty) {
+      try {
+        final fragment = Uri.parse(clipboardData!.text!.trim()).fragment;
+        if (fragment.isEmpty) {
+          // TODO: signal back faulty URL
+        } else {
+          return handleFragment(fragment);
+        }
+      } on FormatException {
         // TODO: signal back faulty URL
-      } else {
-        return handleFragment(fragment);
       }
     }
   }
@@ -75,7 +79,8 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
 
   // name?:dhtRecordKey:psk
   Future<void> handlePersonalInvite(List<String> components) async {
-    final name = (components.length == 4) ? components[0] : null;
+    final name =
+        (components.length == 4) ? Uri.decodeComponent(components[0]) : null;
     final iKey = (components.length == 4) ? 1 : 0;
     final iPsk = (components.length == 4) ? 3 : 2;
     final recordKey = Typed<FixedEncodedString43>.fromString(

@@ -47,32 +47,46 @@ class _ContactListPageState extends State<ContactListPage> {
   Widget _noContactsBody() => Padding(
       padding: const EdgeInsets.only(left: 8, right: 8),
       child: Column(children: [
-        const SizedBox(height: 8),
-        const Text('Add your first contact.',
-            textScaler: TextScaler.linear(1.4)),
+        const Expanded(
+          child: Row(children: [
+            Expanded(
+                child: Text(
+              'You do not have any contacts yet. Create an invite for someone, '
+              'or accept an invite from someone else.',
+              textScaler: TextScaler.linear(1.2),
+            ))
+          ]),
+        ),
         const SizedBox(height: 24),
-        const Text('Invite someone', textScaler: TextScaler.linear(1.2)),
-        const SizedBox(height: 8),
-        Center(
-            child: FilledButton(
-                child: const Text('Create invite'),
-                onPressed: () async {
-                  await Navigator.of(context).push(
-                      MaterialPageRoute<CreateNewContactPage>(
-                          builder: (_) => CreateNewContactPage()));
-                })),
-        const SizedBox(height: 8),
-        const Text('or accept an invite you received',
-            textScaler: TextScaler.linear(1.2)),
-        const SizedBox(height: 8),
-        Center(
-            child: FilledButton(
-                child: const Text('Accept invite'),
-                onPressed: () async {
-                  await Navigator.of(context).push(
-                      MaterialPageRoute<ReceiveRequestPage>(
-                          builder: (_) => ReceiveRequestPage()));
-                })),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          FilledButton(
+              child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // This could be qr_code_2_add if available, is that better?
+                    Icon(Icons.person_add),
+                    SizedBox(width: 8),
+                    Text('Create invite'),
+                  ]),
+              onPressed: () async {
+                await Navigator.of(context).push(
+                    MaterialPageRoute<CreateNewContactPage>(
+                        builder: (_) => CreateNewContactPage()));
+              }),
+          FilledButton(
+              child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.qr_code_scanner),
+                    SizedBox(width: 8),
+                    Text('Accept invite'),
+                  ]),
+              onPressed: () async {
+                await Navigator.of(context).push(
+                    MaterialPageRoute<ReceiveRequestPage>(
+                        builder: (_) => ReceiveRequestPage()));
+              }),
+        ]),
       ]));
 
   Widget _contactsBody(BuildContext context, ContactListState state) =>

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -515,122 +514,121 @@ class _ExpandableScrollViewsState extends State<ExpandableScrollViews>
     with SingleTickerProviderStateMixin {
   double _topHeight = 0;
   double _bottomHeight = 10000;
-  final double _minHeight = 0;
-  late double _maxHeight;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _maxHeight = MediaQuery.of(context).size.height -
-        kToolbarHeight -
-        kBottomNavigationBarHeight -
-        // TODO: This fails with UI scaling, right? it also fails on ios
-        158;
-
-    _topHeight = 0;
-    _bottomHeight = _maxHeight;
-  }
-
-  void toggleView(bool expandTop) {
+  void toggleView(bool expandTop, double maxHeight) {
+    // Subtracting the toolbar heights and the size of the sized box
+    // NOTE: This is just coincidence that the toolbar and navigation bar are
+    //       the correct height to subtract, though, right?
+    final height = maxHeight - kToolbarHeight - kBottomNavigationBarHeight - 2;
     setState(() {
       if (expandTop) {
-        _topHeight = _maxHeight;
-        _bottomHeight = _minHeight;
+        _topHeight = height;
+        _bottomHeight = 0;
       } else {
-        _topHeight = _minHeight;
-        _bottomHeight = _maxHeight;
+        _topHeight = 0;
+        _bottomHeight = height;
       }
     });
   }
 
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: () => toggleView(_topHeight == 0),
-            child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                color: Theme.of(context).colorScheme.secondaryContainer,
-                child: Row(children: [
-                  Expanded(
-                      child: Text('Shared information',
-                          textScaler: const TextScaler.linear(1.4),
-                          style: TextStyle(
+  Widget build(BuildContext context) => LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+              child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: () => toggleView(_topHeight == 0, constraints.maxHeight),
+                child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    child: Row(children: [
+                      Expanded(
+                          child: Text('Shared information',
+                              textScaler: const TextScaler.linear(1.4),
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer))),
+                      IconButton(
+                          onPressed: () => toggleView(
+                              _topHeight == 0, constraints.maxHeight),
+                          icon: Icon(
+                              (_topHeight == 0)
+                                  ? Icons.expand_more
+                                  : Icons.expand_less,
                               color: Theme.of(context)
                                   .colorScheme
-                                  .onSecondaryContainer))),
-                  IconButton(
-                      onPressed: () => toggleView(_topHeight == 0),
-                      icon: Icon(
-                          (_topHeight == 0)
-                              ? Icons.expand_more
-                              : Icons.expand_less,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSecondaryContainer)),
-                ])),
-          ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            height: _topHeight,
-            alignment: Alignment.topCenter,
-            child: SingleChildScrollView(
-                child: Padding(
-                    padding: const EdgeInsets.only(top: 10, left: 8, right: 8),
-                    child:
-                        _sharedInformationList(widget.context, widget.state))),
-          ),
-          const SizedBox(height: 2),
-          GestureDetector(
-              onTap: () => toggleView(_topHeight == 0),
-              child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  color: Theme.of(context).colorScheme.secondaryContainer,
-                  child: Row(children: [
-                    Expanded(
-                        child: Text(
-                            'Circle membership '
-                            '(${widget.state.circleMemberships.values.where((cIds) => cIds.contains(widget.state.circleId)).length})',
-                            textScaler: const TextScaler.linear(1.4),
-                            style: TextStyle(
+                                  .onSecondaryContainer)),
+                    ])),
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeInOut,
+                height: _topHeight,
+                alignment: Alignment.topCenter,
+                child: SingleChildScrollView(
+                    child: Padding(
+                        padding:
+                            const EdgeInsets.only(top: 10, left: 8, right: 8),
+                        child: _sharedInformationList(
+                            widget.context, widget.state))),
+              ),
+              const SizedBox(height: 2),
+              GestureDetector(
+                  onTap: () =>
+                      toggleView(_topHeight == 0, constraints.maxHeight),
+                  child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
+                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      child: Row(children: [
+                        Expanded(
+                            child: Text(
+                                'Circle membership '
+                                '(${widget.state.circleMemberships.values.where((cIds) => cIds.contains(widget.state.circleId)).length})',
+                                textScaler: const TextScaler.linear(1.4),
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSecondaryContainer))),
+                        IconButton(
+                            onPressed: () => toggleView(
+                                _topHeight == 0, constraints.maxHeight),
+                            icon: Icon(
+                                (_bottomHeight == 0)
+                                    ? Icons.expand_more
+                                    : Icons.expand_less,
                                 color: Theme.of(context)
                                     .colorScheme
-                                    .onSecondaryContainer))),
-                    IconButton(
-                        onPressed: () => toggleView(_topHeight == 0),
-                        icon: Icon(
-                            (_bottomHeight == 0)
-                                ? Icons.expand_more
-                                : Icons.expand_less,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSecondaryContainer)),
-                  ]))),
-          const SizedBox(height: 10),
-          // TODO:  Check for expiration date
-          if (widget.state.circleId?.startsWith('VLD') ?? false) ...[
-            const Text(
-                'This circle is linked to a batch of invites. This means that as '
-                'others use their invites, they will automatically be added '
-                'here.'),
-            const SizedBox(height: 8),
-          ],
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            height: _bottomHeight,
-            alignment: Alignment.topCenter,
-            child: contactsListView(
-                context,
-                widget.state.circleId ?? '',
-                widget.state.contacts.toList(),
-                widget.state.circleMemberships,
-                context.read<CircleDetailsCubit>().updateCircleMembership),
-          ),
-        ],
-      );
+                                    .onSecondaryContainer)),
+                      ]))),
+              // TODO:  Check for expiration date
+              // TODO: Get into the animated container so it doesn't mess up our size calculations
+              // if (widget.state.circleId?.startsWith('VLD') ?? false) ...[
+              //   const Text(
+              //       'This circle is linked to a batch of invites. This means that as '
+              //       'others use their invites, they will automatically be added '
+              //       'here.'),
+              //   const SizedBox(height: 8),
+              // ],
+              AnimatedContainer(
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.easeInOut,
+                  height: _bottomHeight,
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: contactsListView(
+                        context,
+                        widget.state.circleId ?? '',
+                        widget.state.contacts.toList(),
+                        widget.state.circleMemberships,
+                        context
+                            .read<CircleDetailsCubit>()
+                            .updateCircleMembership),
+                  )),
+            ],
+          )));
 }
