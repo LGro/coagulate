@@ -61,7 +61,7 @@ class _GridCircleItem extends StatelessWidget {
         child: (images.isEmpty)
             ? const Icon(Icons.group, size: 42)
             : StaggeredGrid.count(
-                crossAxisCount: crossAxisCountFromNumPictures(pictures.length),
+                crossAxisCount: crossAxisCountFromNumPictures(images.length),
                 children: images,
               ),
       ),
