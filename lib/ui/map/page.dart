@@ -8,7 +8,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:location_picker_flutter_map/location_picker_flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/repositories/contacts.dart';
@@ -62,6 +64,11 @@ class _SliderExampleState extends State<SliderExample> {
 String mapboxToken() =>
     const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN');
 
+String dateFormat(DateTime d, String languageCode) => [
+      DateFormat.yMMMd(languageCode).format(d),
+      DateFormat.Hm(languageCode).format(d),
+    ].join(' ');
+
 Future<void> showModalLocationDetails(
         BuildContext context, Location location) async =>
     showModalBottomSheet<void>(
@@ -74,8 +81,20 @@ Future<void> showModalLocationDetails(
                 right: 16,
                 bottom: 12 + MediaQuery.of(modalContext).viewInsets.bottom),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
+              // TODO: Add information about who this is shared with
               Row(children: [
-                Expanded(child: Text(location.details, softWrap: true))
+                Expanded(
+                    child: Text(
+                        [
+                          location.label,
+                          location.subLabel,
+                          if (location.start != null)
+                            '\nFrom: ${dateFormat(location.start!, Localizations.localeOf(context).languageCode)}',
+                          if (location.end != null)
+                            'Until: ${dateFormat(location.end!, Localizations.localeOf(context).languageCode)}\n',
+                          location.details
+                        ].join('\n'),
+                        softWrap: true))
               ]),
               const SizedBox(height: 16),
               // TODO: only display if not already scheduled this (or conflicting)
@@ -94,10 +113,17 @@ Future<void> showModalLocationDetails(
                         context,
                         MaterialPageRoute<ScheduleWidget>(
                             builder: (_) => ScheduleWidget(
-                                // TODO: Add start and end to location type and pass here
                                 initialState: ScheduleFormState(
                                     title: location.label,
-                                    details: location.details))))),
+                                    details: location.details,
+                                    location: PickedData(
+                                        LatLong(location.latitude,
+                                            location.longitude),
+                                        '',
+                                        {},
+                                        ''),
+                                    start: location.start,
+                                    end: location.end))))),
               ],
 
               // Offer to delete app user locations

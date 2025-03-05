@@ -79,11 +79,10 @@ Location temporaryLocationToLocation(String label, ContactTemporaryLocation l,
         subLabel: l.name,
         longitude: l.longitude,
         latitude: l.latitude,
-        // TODO: Format on page, keep data raw here
-        details: '${DateFormat("yyyy-MM-dd HH:mm").format(l.start)} - '
-            '${DateFormat("yyyy-MM-dd HH:mm").format(l.end)}'
-            '\n${l.details}',
+        details: l.details,
         picture: picture,
+        start: l.start,
+        end: l.end,
         marker: MarkerType.temporary);
 
 class MapCubit extends Cubit<MapState> {

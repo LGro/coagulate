@@ -15,7 +15,7 @@ enum MarkerType { address, temporary, checkedIn }
 
 @JsonSerializable()
 class Location extends Equatable {
-  Location({
+  const Location({
     required this.longitude,
     required this.latitude,
     required this.label,
@@ -25,6 +25,8 @@ class Location extends Equatable {
     this.coagContactId,
     this.locationId,
     this.picture,
+    this.start,
+    this.end,
   });
   factory Location.fromJson(Map<String, dynamic> json) =>
       _$LocationFromJson(json);
@@ -37,6 +39,8 @@ class Location extends Equatable {
   final String label;
   final String subLabel;
   final String details;
+  final DateTime? start;
+  final DateTime? end;
   final MarkerType marker;
   Map<String, dynamic> toJson() => _$LocationToJson(this);
 
@@ -50,6 +54,8 @@ class Location extends Equatable {
         subLabel,
         details,
         marker,
+        start,
+        end,
         picture,
       ];
 }

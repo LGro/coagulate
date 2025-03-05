@@ -18,6 +18,10 @@ Location _$LocationFromJson(Map<String, dynamic> json) => Location(
       picture: (json['picture'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
           .toList(),
+      start: json['start'] == null
+          ? null
+          : DateTime.parse(json['start'] as String),
+      end: json['end'] == null ? null : DateTime.parse(json['end'] as String),
     );
 
 Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
@@ -29,6 +33,8 @@ Map<String, dynamic> _$LocationToJson(Location instance) => <String, dynamic>{
       'label': instance.label,
       'sub_label': instance.subLabel,
       'details': instance.details,
+      'start': instance.start?.toIso8601String(),
+      'end': instance.end?.toIso8601String(),
       'marker': _$MarkerTypeEnumMap[instance.marker]!,
     };
 

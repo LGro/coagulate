@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'package:collection/collection.dart';
@@ -17,7 +17,10 @@ class MyForm extends StatefulWidget {
       {required this.callback,
       super.key,
       this.circles = const {},
-      this.circleMemberships = const {}});
+      this.circleMemberships = const {},
+      this.initialState});
+
+  final ScheduleFormState? initialState;
 
   final Future<void> Function({
     required String name,
@@ -41,19 +44,49 @@ class _ScheduleFormState extends State<MyForm> {
   late final TextEditingController _titleController;
   late final TextEditingController _detailsController;
 
+  @override
+  void initState() {
+    super.initState();
+    _state = (widget.initialState ?? ScheduleFormState()).copyWith(
+        circles: widget.circles
+            .map((id, label) => MapEntry(id, (
+                  id,
+                  label,
+                  false,
+                  widget.circleMemberships.values
+                      .where((circles) => circles.contains(id))
+                      .length
+                )))
+            .values
+            .toList());
+    _titleController = TextEditingController(text: _state.title)
+      ..addListener(_onTitleChanged);
+    _detailsController = TextEditingController(text: _state.details)
+      ..addListener(_onDetailsChanged);
+  }
+
   void _onTitleChanged() {
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _state = _state.copyWith(title: _titleController.text);
     });
   }
 
   void _onDetailsChanged() {
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _state = _state.copyWith(details: _detailsController.text);
     });
   }
 
   void _onStartTimeChanged(TimeOfDay value) {
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _state = _state.copyWith(
           start: DateTime(_state.start!.year, _state.start!.month,
@@ -62,6 +95,9 @@ class _ScheduleFormState extends State<MyForm> {
   }
 
   void _onEndTimeChanged(TimeOfDay value) {
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _state = _state.copyWith(
           end: DateTime(_state.end!.year, _state.end!.month, _state.end!.day,
@@ -70,12 +106,18 @@ class _ScheduleFormState extends State<MyForm> {
   }
 
   void _onLocationChanged(PickedData value) {
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _state = _state.copyWith(location: value);
     });
   }
 
   void _onDateRangeChanged(DateTimeRange value) {
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _state = _state.copyWith(
           start: DateTime(
@@ -96,6 +138,9 @@ class _ScheduleFormState extends State<MyForm> {
   }
 
   void _updateCircleSelection(int i, bool selected) {
+    if (!mounted) {
+      return;
+    }
     final circles = List<(String, String, bool, int)>.from(_state.circles);
     circles[i] = (circles[i].$1, circles[i].$2, selected, circles[i].$4);
     setState(() {
@@ -104,7 +149,9 @@ class _ScheduleFormState extends State<MyForm> {
   }
 
   Future<void> _onSubmit() async {
-    if (!_key.currentState!.validate()) return;
+    if (!_key.currentState!.validate() || !mounted) {
+      return;
+    }
 
     setState(() {
       _state = _state.copyWith(status: FormzSubmissionStatus.inProgress);
@@ -131,27 +178,6 @@ class _ScheduleFormState extends State<MyForm> {
     if (mounted) {
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _state = ScheduleFormState(
-        circles: widget.circles
-            .map((id, label) => MapEntry(id, (
-                  id,
-                  label,
-                  false,
-                  widget.circleMemberships.values
-                      .where((circles) => circles.contains(id))
-                      .length
-                )))
-            .values
-            .toList());
-    _titleController = TextEditingController(text: _state.title)
-      ..addListener(_onTitleChanged);
-    _detailsController = TextEditingController(text: _state.details)
-      ..addListener(_onDetailsChanged);
   }
 
   @override
@@ -379,7 +405,9 @@ class ScheduleFormState with FormzMixin {
 }
 
 class ScheduleWidget extends StatelessWidget {
-  const ScheduleWidget({ScheduleFormState? initialState, super.key});
+  const ScheduleWidget({this.initialState, super.key});
+
+  final ScheduleFormState? initialState;
 
   @override
   Widget build(BuildContext context) => BlocProvider(
@@ -395,8 +423,10 @@ class ScheduleWidget extends StatelessWidget {
                       children: [
                     const SizedBox(height: 4),
                     MyForm(
-                        circles: state.circles,
-                        circleMemberships: state.circleMemberships,
-                        callback: context.read<ScheduleCubit>().schedule)
+                      circles: state.circles,
+                      circleMemberships: state.circleMemberships,
+                      callback: context.read<ScheduleCubit>().schedule,
+                      initialState: initialState,
+                    )
                   ])))));
 }
