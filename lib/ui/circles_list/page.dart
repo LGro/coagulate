@@ -20,7 +20,7 @@ int crossAxisCountFromNumPictures(int numPictures) {
   if (numPictures <= 7) {
     return 2;
   }
-  // TODO: Figure out how this continues
+  // TODO: Add more steps for larger number of pictures available?
   return 3;
 }
 
@@ -47,24 +47,22 @@ class _GridCircleItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final images = pictures
+        .map((p) => roundPictureOrPlaceholder(p, clipOval: false))
+        // Remove the placeholders, we only want images here
+        .whereType<Image>()
+        .toList();
     final image = Semantics(
       label: '$circleName\n$numCircleMembers members',
       child: Material(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
         clipBehavior: Clip.antiAlias,
         color: Theme.of(context).colorScheme.surfaceBright,
-        child: (pictures.isEmpty)
+        child: (images.isEmpty)
             ? const Icon(Icons.group, size: 42)
             : StaggeredGrid.count(
-                // TODO: Add more steps for larger number of pictures available?
                 crossAxisCount: crossAxisCountFromNumPictures(pictures.length),
-                mainAxisSpacing: 0,
-                crossAxisSpacing: 0,
-                children: pictures
-                    .map(roundPictureOrPlaceholder)
-                    // Remove the placeholders, we only want images here
-                    .whereType<Image>()
-                    .toList(),
+                children: images,
               ),
       ),
     );

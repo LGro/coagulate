@@ -21,14 +21,19 @@ String extractAllValuesToString(dynamic value) {
   }
 }
 
-Widget roundPictureOrPlaceholder(List<int>? picture, {double? radius}) =>
-    ClipOval(
-        child: Image.memory(
-      Uint8List.fromList(picture ?? []),
-      gaplessPlayback: true,
-      width: (radius == null) ? null : radius * 2,
-      height: (radius == null) ? null : radius * 2,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) =>
-          CircleAvatar(radius: radius, child: const Icon(Icons.person)),
-    ));
+Widget roundPictureOrPlaceholder(List<int>? picture,
+    {double? radius, bool clipOval = true}) {
+  final image = Image.memory(
+    Uint8List.fromList(picture ?? []),
+    gaplessPlayback: true,
+    width: (radius == null) ? null : radius * 2,
+    height: (radius == null) ? null : radius * 2,
+    fit: BoxFit.cover,
+    errorBuilder: (context, error, stackTrace) =>
+        CircleAvatar(radius: radius, child: const Icon(Icons.person)),
+  );
+  if (clipOval) {
+    return ClipOval(child: image);
+  }
+  return image;
+}
