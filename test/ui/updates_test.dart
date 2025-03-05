@@ -243,7 +243,7 @@ void main() {
               start: DateTime(2000),
               end: DateTime(2000).add(const Duration(days: 1)))
         });
-    expect(c1.hashCode, c1.copyWith());
+    expect(c1.hashCode, c1.copyWith().hashCode);
 
     final c2 = CoagContact(
         coagContactId: '',
