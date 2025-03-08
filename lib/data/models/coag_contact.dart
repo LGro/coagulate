@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:convert';
@@ -522,15 +522,15 @@ class CoagContactDHTSchemaV2 extends Equatable {
     bool? ackHandshakeComplete,
   }) =>
       CoagContactDHTSchemaV2(
-        details: details ?? this.details,
+        details: details ?? this.details.copyWith(),
         shareBackDHTKey: shareBackDHTKey ?? this.shareBackDHTKey,
         shareBackPubKey: shareBackPubKey ?? this.shareBackPubKey,
         shareBackDHTWriter: shareBackDHTWriter ?? this.shareBackDHTWriter,
         personalUniqueId: personalUniqueId ?? this.personalUniqueId,
-        addressLocations: addressLocations ?? this.addressLocations,
-        temporaryLocations: temporaryLocations ?? this.temporaryLocations,
+        addressLocations: addressLocations ?? {...this.addressLocations},
+        temporaryLocations: temporaryLocations ?? {...this.temporaryLocations},
         knownPersonalContactIds:
-            knownPersonalContactIds ?? this.knownPersonalContactIds,
+            knownPersonalContactIds ?? [...this.knownPersonalContactIds],
         ackHandshakeComplete: ackHandshakeComplete ?? this.ackHandshakeComplete,
       );
 

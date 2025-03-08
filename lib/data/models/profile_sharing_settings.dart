@@ -59,14 +59,14 @@ class ProfileSharingSettings extends Equatable {
     Map<String, List<String>>? events,
   }) =>
       ProfileSharingSettings(
-        names: names ?? this.names,
-        phones: phones ?? this.phones,
-        emails: emails ?? this.emails,
-        addresses: addresses ?? this.addresses,
-        organizations: organizations ?? this.organizations,
-        websites: websites ?? this.websites,
-        socialMedias: socialMedias ?? this.socialMedias,
-        events: events ?? this.events,
+        names: names ?? {...this.names},
+        phones: phones ?? {...this.phones},
+        emails: emails ?? {...this.emails},
+        addresses: addresses ?? {...this.addresses},
+        organizations: organizations ?? {...this.organizations},
+        websites: websites ?? {...this.websites},
+        socialMedias: socialMedias ?? {...this.socialMedias},
+        events: events ?? {...this.events},
       );
 
   @override
