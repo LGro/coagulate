@@ -60,11 +60,11 @@ jobs:
       run: |
         source "$HOME/.cargo/env"
         PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
-        flutter build apk --release --no-shrink
+        flutter build apk --debug
     - uses: actions/upload-artifact@v4
       with:
         name: coagulate.apk
-        path: build/app/outputs/flutter-apk/app-release.apk
+        path: build/app/outputs/flutter-apk/app-debug.apk
     - name: Upload APK
       if: github.ref == 'refs/heads/main'
       uses: Dylan700/sftp-upload-action@latest
