@@ -166,10 +166,10 @@ class EditOrAddWidget extends StatefulWidget {
     required this.headlineSuffix,
     required this.onAddOrSave,
     required this.circles,
-    required this.valueController,
+    this.value,
+    this.label,
     this.onDelete,
     this.valueHintText,
-    this.labelController,
     this.labelHelperText,
     this.hideLabel = false,
     this.existingLabels = const [],
@@ -180,8 +180,8 @@ class EditOrAddWidget extends StatefulWidget {
   final String headlineSuffix;
   final String? labelHelperText;
   final String? valueHintText;
-  final TextEditingController? labelController;
-  final TextEditingController valueController;
+  final String? label;
+  final String? value;
   final VoidCallback? onDelete;
   final void Function(String label, String value,
       List<(String, String, bool)> selectedCircles) onAddOrSave;
@@ -196,11 +196,16 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
   late List<(String, String, bool, int)> _circles;
   late final TextEditingController _newCircleNameController;
 
+  String? _value;
+  String? _label;
+
   @override
   void initState() {
     super.initState();
     _circles = [...widget.circles];
     _newCircleNameController = TextEditingController();
+    _value = widget.value;
+    _label = widget.label;
   }
 
   @override
@@ -253,12 +258,12 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                     icon: const Icon(Icons.delete_forever, color: Colors.red)),
             ]),
             const SizedBox(height: 8),
-            if (!widget.hideLabel && widget.labelController != null) ...[
+            if (!widget.hideLabel) ...[
               const SizedBox(height: 8),
               FractionallySizedBox(
                   widthFactor: 0.5,
                   child: TextFormField(
-                    controller: widget.labelController,
+                    initialValue: _label,
                     decoration: InputDecoration(
                       labelText: 'label',
                       isDense: true,
@@ -276,12 +281,18 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                       }
                       return null;
                     },
-                    onChanged: (_) => _formKey.currentState!.validate(),
+                    onChanged: (label) {
+                      if (_formKey.currentState!.validate()) {
+                        setState(() {
+                          _label = label;
+                        });
+                      }
+                    },
                   )),
               const SizedBox(height: 8),
             ],
             TextFormField(
-              controller: widget.valueController,
+              initialValue: _value,
               autocorrect: false,
               decoration: InputDecoration(
                 isDense: true,
@@ -293,6 +304,13 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                   return 'Please enter a value.';
                 }
                 return null;
+              },
+              onChanged: (value) {
+                if (_formKey.currentState!.validate()) {
+                  setState(() {
+                    _value = value;
+                  });
+                }
               },
             ),
 
@@ -353,8 +371,8 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                 FilledButton(
                   onPressed: () => (_formKey.currentState!.validate())
                       ? widget.onAddOrSave(
-                          widget.labelController?.text.trim() ?? '',
-                          widget.valueController.text.trim(),
+                          (_label ?? '').trim(),
+                          (_value ?? '').trim(),
                           _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
                       : null,
                   child: Text((widget.isEditing)
@@ -678,6 +696,7 @@ Future<void> onAddDetail(
         builder: (buildContext) => DraggableScrollableSheet(
             expand: false,
             maxChildSize: 0.9,
+            initialChildSize: 0.9,
             builder: (_, scrollController) => SingleChildScrollView(
                 controller: scrollController,
                 child: EditOrAddWidget(
@@ -696,9 +715,8 @@ Future<void> onAddDetail(
                     headlineSuffix: headlineSuffix,
                     valueHintText: valueHintText,
                     labelHelperText: labelHelperText,
-                    labelController: TextEditingController(text: defaultLabel),
+                    label: defaultLabel,
                     existingLabels: existingLabels,
-                    valueController: TextEditingController(),
                     onAddOrSave: (label, number, circlesWithSelection) async =>
                         onAdd(label, number, circlesWithSelection).then((_) =>
                             (buildContext.mounted)
@@ -728,6 +746,7 @@ Future<void> onEditDetail({
         builder: (buildContext) => DraggableScrollableSheet(
             expand: false,
             maxChildSize: 0.9,
+            initialChildSize: 0.9,
             builder: (_, scrollController) => SingleChildScrollView(
                 controller: scrollController,
                 child: EditOrAddWidget(
@@ -749,8 +768,8 @@ Future<void> onEditDetail({
                     labelHelperText: labelHelperText,
                     hideLabel: hideLabel,
                     existingLabels: [...existingLabels]..remove(label),
-                    labelController: TextEditingController(text: label),
-                    valueController: TextEditingController(text: value),
+                    label: label,
+                    value: value,
                     onDelete: () async => onDelete().then((_) =>
                         (buildContext.mounted)
                             ? Navigator.of(buildContext).pop()
@@ -820,11 +839,11 @@ class ProfileViewState extends State<ProfileView> {
                 builder: (buildContext) => DraggableScrollableSheet(
                       expand: false,
                       maxChildSize: 0.9,
+                      initialChildSize: 0.9,
                       builder: (_, scrollController) => SingleChildScrollView(
                           controller: scrollController,
                           child: EditOrAddWidget(
                               isEditing: false,
-                              valueController: TextEditingController(),
                               headlineSuffix: context.loc.name,
                               valueHintText: 'Name (pronouns)',
                               circles: circles
