@@ -1,10 +1,11 @@
-// Copyright 2025 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:veilid_support/veilid_support.dart';
 
@@ -26,16 +27,35 @@ Future<DHTRecordReport?> getRecordReport(
   }
 }
 
-class DhtSharingStatusCubit extends Cubit<DhtSharingStatusState> {
+class DhtSharingStatusCubit extends Cubit<DhtSharingStatusState>
+    with WidgetsBindingObserver {
   DhtSharingStatusCubit({required this.recordKeys})
       : super(const DhtSharingStatusState('initial')) {
-    timerPersistentStorageRefresh =
-        Timer.periodic(const Duration(seconds: 5), (_) async => updateStatus());
+    WidgetsBinding.instance.addObserver(this);
+    _startTimer();
     unawaited(updateStatus());
   }
 
   final Iterable<Typed<FixedEncodedString43>> recordKeys;
   late final Timer? timerPersistentStorageRefresh;
+
+  void _startTimer() {
+    timerPersistentStorageRefresh =
+        Timer.periodic(const Duration(seconds: 5), (_) async => updateStatus());
+  }
+
+  void _stopTimer() => timerPersistentStorageRefresh?.cancel();
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // App is in the foreground
+      _startTimer();
+    } else if (state == AppLifecycleState.paused) {
+      // App is in the background
+      _stopTimer();
+    }
+  }
 
   Future<void> updateStatus() async {
     final numSubkeys = recordKeys.length * 32;
@@ -63,7 +83,8 @@ class DhtSharingStatusCubit extends Cubit<DhtSharingStatusState> {
 
   @override
   Future<void> close() {
-    timerPersistentStorageRefresh?.cancel();
+    _stopTimer();
+    WidgetsBinding.instance.removeObserver(this);
     return super.close();
   }
 }

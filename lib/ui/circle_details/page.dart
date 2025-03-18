@@ -496,7 +496,13 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
                     title: (state.circles[state.circleId] == null)
                         ? null
                         : Text(state.circles[state.circleId]!)),
-                body: ExpandableScrollViews(context, state)),
+                body: (state.circleId != defaultEveryoneCircleId)
+                    ? ExpandableScrollViews(context, state)
+                    : SingleChildScrollView(
+                        child: Padding(
+                            padding: const EdgeInsets.only(
+                                top: 10, left: 8, right: 8),
+                            child: _sharedInformationList(context, state)))),
           ));
 }
 
