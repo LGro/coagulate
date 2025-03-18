@@ -60,9 +60,7 @@ jobs:
       run: |
         source "$HOME/.cargo/env"
         PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
-        flutter clean
-        flutter pub get
-        flutter build apk --release
+        flutter build apk --release --no-shrink
     - uses: actions/upload-artifact@v4
       with:
         name: coagulate.apk
