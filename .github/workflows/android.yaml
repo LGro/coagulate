@@ -15,108 +15,93 @@ jobs:
     runs-on: ubuntu-latest
     container: ubuntu:24.04
     steps:
-    - name: System dependencies with apt
-      run: apt -qq update && apt -q install build-essential git curl jq android-sdk -y
+      - name: System dependencies with apt
+        run: apt -qq update && apt -q install build-essential git curl jq android-sdk -y
 
-    - name: Set up JDK
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '17'
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v3
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-    - name: Install Android SDK components
-      run: |
-        sdkmanager --install "platforms;android-29" "build-tools;28.0.3" "ndk;27.0.12077973"
+      - name: Install Android SDK components
+        run: |
+          sdkmanager --install "platforms;android-29" "build-tools;28.0.3" "ndk;27.0.12077973"
 
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        channel: stable
-        flutter-version: 3.27.0
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.27.0
 
-    - name: Rust
-      run: curl -proto '=https' -tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - name: Rust
+        run: curl -proto '=https' -tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-    - name: Checkout Veilid
-      run: cd .. && git clone https://gitlab.com/veilid/veilid.git
+      - name: Checkout Veilid
+        run: cd .. && git clone https://gitlab.com/veilid/veilid.git
 
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Add Rust Targets
-      shell: bash
-      env:
-        LC_ALL: en_US.UTF-8
-        LANG: en_US.UTF-8
-      run: |
-        source "$HOME/.cargo/env"
-        rustup target add armv7-linux-androideabi
-        rustup target add aarch64-linux-android
-        rustup target add i686-linux-android
-        rustup target add x86_64-linux-android
+      - name: Add Rust Targets
+        shell: bash
+        env:
+          LC_ALL: en_US.UTF-8
+          LANG: en_US.UTF-8
+        run: |
+          source "$HOME/.cargo/env"
+          rustup target add armv7-linux-androideabi
+          rustup target add aarch64-linux-android
+          rustup target add i686-linux-android
+          rustup target add x86_64-linux-android
 
-    - name: Test
-      shell: bash
-      env:
-        LC_ALL: en_US.UTF-8
-        LANG: en_US.UTF-8
-      run: |
-        source "$HOME/.cargo/env"
-        git config --global --add safe.directory /__t/flutter/stable-3.27.0-x64
-        flutter config --no-analytics
-        flutter pub get
-        flutter test
+      - name: Test
+        shell: bash
+        env:
+          LC_ALL: en_US.UTF-8
+          LANG: en_US.UTF-8
+        run: |
+          source "$HOME/.cargo/env"
+          git config --global --add safe.directory /__t/flutter/stable-3.27.0-x64
+          flutter config --no-analytics
+          flutter pub get
+          flutter test
 
-    - name: Build APK
-      if: github.ref == 'refs/heads/main'
-      shell: bash
-      env:
-        LC_ALL: en_US.UTF-8
-        LANG: en_US.UTF-8
-      run: |
-        source "$HOME/.cargo/env"
-        flutter clean
-        flutter pub get
-        flutter build apk --profile
+      - name: Build APK
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          LC_ALL: en_US.UTF-8
+          LANG: en_US.UTF-8
+        run: |
+          source "$HOME/.cargo/env"
+          flutter clean
+          flutter pub get
+          flutter build apk --profile
 
-    - uses: actions/upload-artifact@v4
-      if: github.ref == 'refs/heads/main'
-      with:
-        name: android
-        path: build/app/outputs/flutter-apk/app-profile.apk
+      - uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          name: android
+          path: build/app/outputs/flutter-apk/app-profile.apk
 
   upload-apk:
     needs: [android]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    container: ubuntu:24.04
     steps:
+      - name: System dependencies with apt
+        run: apt -qq update && apt -q install curl -y
+
       - name: Download APK Artifact
         uses: actions/download-artifact@v4
         with:
           name: android
           path: android
 
-      - name: Upload APK via SFTP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{secrets.FTP_SERVER}}
-          username: ${{secrets.FTP_USER}}
-          password: ${{secrets.FTP_PASSWORD}}
-          source: "android/app-profile.apk"
-          target: "public_html/releases/"
-          rm: true
-
-  # TODO: Set up signing certificates and re-enable
-  # ios:
-  #   runs-on: macos-latest
-  #   steps:
-  #   - name: Checkout Veilid
-  #     run: cd .. && git clone https://gitlab.com/veilid/veilid.git
-  #   - uses: actions/checkout@v3
-  #   - uses: subosito/flutter-action@v2
-  #     with:
-  #       flutter-version: '3.19.1'
-  #   - run: flutter pub get
-  #   - run: flutter build ipa
+      - name: Upload APK
+        if: github.ref == 'refs/heads/main'
+        run: curl -T ./android/app-profile.apk --ssl-reqd ftp://${{secrets.FTP_SERVER}}/public_html/releases/ -u ${{secrets.FTP_USER}}:${{secrets.FTP_PASSWORD}}
