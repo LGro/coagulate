@@ -1,3 +1,5 @@
+name: Test and Build Android
+
 on:
   push:
     branches:
@@ -80,20 +82,8 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: coagulate.apk
+        name: android
         path: build/app/outputs/flutter-apk/app-profile.apk
-
-    - name: Upload APK
-      if: github.ref == 'refs/heads/main'
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ${{secrets.FTP_SERVER}}
-        username: ${{secrets.FTP_USER}}
-        password: ${{secrets.FTP_PASSWORD}}
-        protocol: ftps
-        port: 21
-        local-dir: ./build/app/outputs/flutter-apk/
-        server-dir: public_html/releases/
 
   # TODO: Set up signing certificates and re-enable
   # ios:

@@ -1,0 +1,28 @@
+name: Upload APK to Website
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Test and Build Android"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android
+          path: android
+
+      - name: Upload APK via SFTP
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{secrets.FTP_SERVER}}
+          username: ${{secrets.FTP_USER}}
+          password: ${{secrets.FTP_PASSWORD}}
+          source: "android/app-profile.apk"
+          target: "public_html/releases/"
