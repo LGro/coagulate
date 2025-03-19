@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     container: thyrlian/android-sdk
     steps:
+    - name: System dependencies with apt
+      run: apt -qq update && apt -q install build-essential curl jq -y
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
