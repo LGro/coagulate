@@ -11,7 +11,7 @@ on:
 jobs:
   android:
     runs-on: ubuntu-latest
-    container: thyrlian/android-sdk
+    container: ubuntu:24.04
     steps:
     - name: System dependencies with apt
       run: apt -qq update && apt -q install build-essential curl jq -y
@@ -32,7 +32,6 @@ jobs:
         LANG: en_US.UTF-8
       run: |
         source "$HOME/.cargo/env"
-        PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
         rustup target add armv7-linux-androideabi
         rustup target add aarch64-linux-android
         rustup target add i686-linux-android
@@ -44,7 +43,7 @@ jobs:
         LANG: en_US.UTF-8
       run: |
         source "$HOME/.cargo/env"
-        PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
+        flutter config --no-analytics
         flutter pub get
         flutter test
     - name: Build APK
@@ -54,7 +53,6 @@ jobs:
         LANG: en_US.UTF-8
       run: |
         source "$HOME/.cargo/env"
-        PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
         flutter clean
         flutter pub get
         flutter build apk --profile
