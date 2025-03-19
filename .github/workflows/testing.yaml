@@ -15,16 +15,34 @@ jobs:
     steps:
     - name: System dependencies with apt
       run: apt -qq update && apt -q install build-essential git curl jq android-sdk -y
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Install Android SDK components
+      run: |
+        sdkmanager --install "platforms;android-29" "build-tools;28.0.3" "ndk;27.0.12077973"
+
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: stable
         flutter-version: 3.27.0
+
     - name: Rust
       run: curl -proto '=https' -tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
     - name: Checkout Veilid
       run: cd .. && git clone https://gitlab.com/veilid/veilid.git
+
     - uses: actions/checkout@v4
+
     - name: Add Rust Targets
       shell: bash
       env:
@@ -36,6 +54,7 @@ jobs:
         rustup target add aarch64-linux-android
         rustup target add i686-linux-android
         rustup target add x86_64-linux-android
+
     - name: Test
       shell: bash
       env:
@@ -47,6 +66,7 @@ jobs:
         flutter config --no-analytics
         flutter pub get
         flutter test
+
     - name: Build APK
       shell: bash
       env:
@@ -57,10 +77,12 @@ jobs:
         flutter clean
         flutter pub get
         flutter build apk --profile
+
     - uses: actions/upload-artifact@v4
       with:
         name: coagulate.apk
         path: build/app/outputs/flutter-apk/app-profile.apk
+
     - name: Upload APK
       if: github.ref == 'refs/heads/main'
       uses: Dylan700/sftp-upload-action@latest
