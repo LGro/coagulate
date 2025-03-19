@@ -99,14 +99,14 @@ jobs:
           path: android
 
       - name: Upload APK via SFTP
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{secrets.FTP_SERVER}}
           username: ${{secrets.FTP_USER}}
           password: ${{secrets.FTP_PASSWORD}}
           source: "android/app-profile.apk"
           target: "public_html/releases/"
-
+          rm: true
 
   # TODO: Set up signing certificates and re-enable
   # ios:
