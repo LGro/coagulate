@@ -193,6 +193,8 @@ class EditOrAddWidget extends StatefulWidget {
 
 class _EditOrAddWidgetState extends State<EditOrAddWidget> {
   final _formKey = GlobalKey<FormState>();
+  final _valueFieldKey = GlobalKey<FormFieldState>();
+  final _labelFieldKey = GlobalKey<FormFieldState>();
   late List<(String, String, bool, int)> _circles;
   late final TextEditingController _newCircleNameController;
 
@@ -263,6 +265,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
               FractionallySizedBox(
                   widthFactor: 0.5,
                   child: TextFormField(
+                    key: _labelFieldKey,
                     initialValue: _label,
                     decoration: InputDecoration(
                       labelText: 'label',
@@ -282,7 +285,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                       return null;
                     },
                     onChanged: (label) {
-                      if (_formKey.currentState!.validate()) {
+                      if (_labelFieldKey.currentState?.validate() ?? false) {
                         setState(() {
                           _label = label;
                         });
@@ -292,6 +295,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
               const SizedBox(height: 8),
             ],
             TextFormField(
+              key: _valueFieldKey,
               initialValue: _value,
               autocorrect: false,
               decoration: InputDecoration(
@@ -300,13 +304,13 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                 border: const OutlineInputBorder(),
               ),
               validator: (value) {
-                if (value?.isEmpty ?? true) {
+                if ((_label?.isNotEmpty ?? false) && (value?.isEmpty ?? true)) {
                   return 'Please enter a value.';
                 }
                 return null;
               },
               onChanged: (value) {
-                if (_formKey.currentState!.validate()) {
+                if (_valueFieldKey.currentState?.validate() ?? false) {
                   setState(() {
                     _value = value;
                   });
