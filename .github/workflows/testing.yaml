@@ -43,6 +43,7 @@ jobs:
         LANG: en_US.UTF-8
       run: |
         source "$HOME/.cargo/env"
+        git config --global --add safe.directory /__t/flutter/stable-3.27.0-x64
         flutter config --no-analytics
         flutter pub get
         flutter test
