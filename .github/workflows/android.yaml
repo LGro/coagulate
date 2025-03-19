@@ -70,6 +70,7 @@ jobs:
         flutter test
 
     - name: Build APK
+      if: github.ref == 'refs/heads/main'
       shell: bash
       env:
         LC_ALL: en_US.UTF-8
@@ -81,9 +82,31 @@ jobs:
         flutter build apk --profile
 
     - uses: actions/upload-artifact@v4
+      if: github.ref == 'refs/heads/main'
       with:
         name: android
         path: build/app/outputs/flutter-apk/app-profile.apk
+
+  upload-apk:
+    needs: [android]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android
+          path: android
+
+      - name: Upload APK via SFTP
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{secrets.FTP_SERVER}}
+          username: ${{secrets.FTP_USER}}
+          password: ${{secrets.FTP_PASSWORD}}
+          source: "android/app-profile.apk"
+          target: "public_html/releases/"
+
 
   # TODO: Set up signing certificates and re-enable
   # ios:
