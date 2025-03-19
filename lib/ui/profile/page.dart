@@ -489,10 +489,14 @@ List<Widget> detailsList<T>(
                                         textScaler:
                                             const TextScaler.linear(1.1),
                                         overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
+                                        maxLines: (T == Address) ? null : 1,
                                         style: Theme.of(context)
                                             .textTheme
-                                            .bodyLarge),
+                                            .bodyLarge
+                                            ?.copyWith(
+                                                height: (T == Address)
+                                                    ? 1.2
+                                                    : null)),
                                     if (circleNames != null &&
                                         numSharedContacts != null)
                                       Text(
