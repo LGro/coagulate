@@ -85,13 +85,15 @@ jobs:
 
     - name: Upload APK
       if: github.ref == 'refs/heads/main'
-      uses: Dylan700/sftp-upload-action@latest
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{secrets.FTP_SERVER}}
         username: ${{secrets.FTP_USER}}
         password: ${{secrets.FTP_PASSWORD}}
-        port: 22
-        uploads: ./build/app/outputs/flutter-apk/ => ./public_html/releases/
+        protocol: ftps
+        port: 21
+        local-dir: ./build/app/outputs/flutter-apk/
+        server-dir: public_html/releases/
 
   # TODO: Set up signing certificates and re-enable
   # ios:
