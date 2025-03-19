@@ -14,7 +14,7 @@ jobs:
     container: ubuntu:24.04
     steps:
     - name: System dependencies with apt
-      run: apt -qq update && apt -q install build-essential git curl jq -y
+      run: apt -qq update && apt -q install build-essential git curl jq android-sdk -y
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
