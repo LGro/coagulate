@@ -16,4 +16,12 @@ class ProcessorConnectionState with _$ProcessorConnectionState {
       attachment.state == AttachmentState.attaching);
 
   bool get isPublicInternetReady => attachment.publicInternetReady;
+
+  @override
+  // TODO: implement attachment
+  VeilidStateAttachment get attachment => throw UnimplementedError();
+
+  @override
+  // TODO: implement network
+  VeilidStateNetwork get network => throw UnimplementedError();
 }

@@ -6,8 +6,8 @@ import 'package:veilid_support/veilid_support.dart';
 import 'tools/tools.dart';
 import 'veilid_processor/veilid_processor.dart';
 
-class VeilidChatGlobalInit {
-  VeilidChatGlobalInit._();
+class CoagulateGlobalInit {
+  CoagulateGlobalInit._();
 
   // Initialize Veilid
   Future<void> _initializeVeilid() async {
@@ -26,12 +26,12 @@ class VeilidChatGlobalInit {
         logger: (message) => log.debug('DHTRecordPool: $message'));
   }
 
-  static Future<VeilidChatGlobalInit> initialize() async {
-    final veilidChatGlobalInit = VeilidChatGlobalInit._();
+  static Future<CoagulateGlobalInit> initialize() async {
+    final coagulateGlobalInit = CoagulateGlobalInit._();
 
     log.info('Initializing Veilid');
-    await veilidChatGlobalInit._initializeVeilid();
+    await coagulateGlobalInit._initializeVeilid();
 
-    return veilidChatGlobalInit;
+    return coagulateGlobalInit;
   }
 }

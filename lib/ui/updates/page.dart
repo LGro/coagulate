@@ -4,13 +4,12 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
+import '../utils.dart';
 import 'cubit.dart';
 
 String formatTimeDifference(Duration d) {
@@ -24,68 +23,6 @@ String formatTimeDifference(Duration d) {
     return '${d.inHours}h';
   }
   return '${d.inDays}d';
-}
-
-String compareContacts(CoagContact oldContact, CoagContact newContact) {
-  final results = <String>[];
-
-  final oldDetails = oldContact.details ?? const ContactDetails();
-  final newDetails = newContact.details ?? const ContactDetails();
-
-  if (!(oldDetails.picture ?? []).equals(newDetails.picture ?? [])) {
-    results.add('picture');
-  }
-
-  if (oldDetails.names.values
-          .toSet()
-          .difference(newDetails.names.values.toSet())
-          .isNotEmpty ||
-      newDetails.names.values
-          .toSet()
-          .difference(oldDetails.names.values.toSet())
-          .isNotEmpty) {
-    results.add('names');
-  }
-
-  if (!oldDetails.emails.equals(newDetails.emails)) {
-    results.add('emails');
-  }
-
-  if (!oldDetails.addresses.equals(newDetails.addresses)) {
-    results.add('addresses');
-  }
-
-  if (!oldDetails.phones.equals(newDetails.phones)) {
-    results.add('phones');
-  }
-
-  if (!oldDetails.websites.equals(newDetails.websites)) {
-    results.add('websites');
-  }
-
-  if (!oldDetails.socialMedias.equals(newDetails.socialMedias)) {
-    results.add('socials');
-  }
-
-  if (!oldDetails.organizations.equals(newDetails.organizations)) {
-    results.add('organizations');
-  }
-
-  if (!oldDetails.events.equals(newDetails.events)) {
-    results.add('events');
-  }
-
-  // TODO: Make this consistent with the yesterday filtering we do elsewhere?
-  if (!oldContact.temporaryLocations.values
-      .where((l) => l.end.isAfter(DateTime.now()))
-      .toList()
-      .equals(newContact.temporaryLocations.values
-          .where((l) => l.end.isAfter(DateTime.now()))
-          .toList())) {
-    results.add('locations');
-  }
-
-  return results.join(', ');
 }
 
 Widget updateTile(String name, String timing, String change,
@@ -158,7 +95,8 @@ class UpdatesPage extends StatelessWidget {
                                         .join(' / '),
                                 formatTimeDifference(
                                     DateTime.now().difference(u.timestamp)),
-                                compareContacts(u.oldContact, u.newContact),
+                                contactUpdateSummary(
+                                    u.oldContact, u.newContact),
                                 // TODO: For location updates, bring to map, centered around location with time slider at right time instead
                                 onTap: (u.coagContactId == null)
                                     ? null

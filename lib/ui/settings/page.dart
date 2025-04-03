@@ -4,8 +4,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../data/repositories/contacts.dart';
+import '../../notification_service.dart';
 import '../batch_invite_management/page.dart';
 import '../widgets/veilid_status/widget.dart';
 import 'cubit.dart';
@@ -80,5 +82,14 @@ class SettingsPage extends StatelessWidget {
                           onTap: blocContext
                               .read<SettingsCubit>()
                               .addDummyContact),
+                    if (!kReleaseMode)
+                      ListTile(
+                          title: const Text('Notify'),
+                          onTap: () async =>
+                              NotificationService().showNotification(
+                                0,
+                                'Simple Notification',
+                                'This is a simple notification example.',
+                              )),
                   ]))));
 }

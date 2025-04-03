@@ -1,11 +1,13 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:veilid_support/veilid_support.dart';
 
 import '../../models/coag_contact.dart';
@@ -18,7 +20,7 @@ String? tryUtf8Decode(Uint8List? content) {
   try {
     return utf8.decode(content);
   } on FormatException catch (e) {
-    dev.log('$e');
+    debugPrint('$e');
     return null;
   }
 }
@@ -68,7 +70,7 @@ class VeilidDhtStorage extends DistributedStorage {
     // Write to it once, so push it into the network. (Is this really needed?)
     await record.tryWriteBytes(Uint8List(0));
     await record.close();
-    dev.log(
+    debugPrint(
         'created and wrote once to ${record.key.toString().substring(5, 10)}');
     return (record.key, record.writer!);
   }
@@ -109,13 +111,13 @@ class VeilidDhtStorage extends DistributedStorage {
               final (jsonString, picture) =
                   await _getJsonProfileAndPictureFromRecord(
                       record, dhCrypto, refreshMode);
-              dev.log('read pub ${recordKey.toString().substring(5, 10)}');
+              debugPrint('read pub ${recordKey.toString().substring(5, 10)}');
               return (jsonString, picture);
             } on FormatException catch (e) {
               // This can happen due to "not enough data to decrypt" when a record
               // was written empty without encryption during initialization
               // TODO: Only accept "not enough data to decrypt" here, make sure "Unexpected exentsion byte" is passed down as an error
-              dev.log('pub ${recordKey.toString().substring(5, 10)} $e');
+              debugPrint('pub ${recordKey.toString().substring(5, 10)} $e');
             } finally {
               await record.close();
             }
@@ -137,13 +139,13 @@ class VeilidDhtStorage extends DistributedStorage {
               final (jsonString, picture) =
                   await _getJsonProfileAndPictureFromRecord(
                       record, pskCrypto, refreshMode);
-              dev.log('read psk ${recordKey.toString().substring(5, 10)}');
+              debugPrint('read psk ${recordKey.toString().substring(5, 10)}');
               return (jsonString, picture);
             } on FormatException catch (e) {
               // This can happen due to "not enough data to decrypt" when a record
               // was written empty without encryption during initialization
               // TODO: Only accept "not enough data to decrypt" here, make sure "Unexpected exentsion byte" is passed down as an error
-              dev.log('psk ${recordKey.toString().substring(5, 10)} $e');
+              debugPrint('psk ${recordKey.toString().substring(5, 10)} $e');
             } finally {
               await record.close();
             }
@@ -189,7 +191,7 @@ class VeilidDhtStorage extends DistributedStorage {
 
     // Ensure that if both parties are ready, we encrypt with DH derived key
     if (settings.theirPublicKey != null && settings.theyAckHandshakeComplete) {
-      dev.log(
+      debugPrint(
           'using pubkey ${settings.theirPublicKey.toString().substring(0, 6)} '
           'for writing ${_recordKey.toString().substring(5, 10)}');
       // Derive DH secret
@@ -202,11 +204,11 @@ class VeilidDhtStorage extends DistributedStorage {
       // and psk or would it make sense to include the crypto system prefix in
       // the psk and using a TypedSecret.fromString() here?
       secret = settings.initialSecret!;
-      dev.log('using psk crypto ${secret.toString().substring(0, 6)} '
+      debugPrint('using psk crypto ${secret.toString().substring(0, 6)} '
           'for writing ${_recordKey.toString().substring(5, 10)}');
     } else {
       // TODO: Raise Exception
-      dev.log('no crypto for ${_recordKey.toString().substring(5, 10)}');
+      debugPrint('no crypto for ${_recordKey.toString().substring(5, 10)}');
       return;
     }
     final crypto =
@@ -225,10 +227,10 @@ class VeilidDhtStorage extends DistributedStorage {
             record.tryWriteBytes(crypto: crypto, e.value, subkey: e.key + 1)));
     await record.close();
 
-    dev.log('wrote ${_recordKey.toString().substring(5, 10)}');
+    debugPrint('wrote ${_recordKey.toString().substring(5, 10)}');
     if (written != null) {
       // This shouldn't happen, but it does sometimes; do we issue parallel update requests?
-      dev.log('found newer for ${_recordKey.toString().substring(5, 10)}');
+      debugPrint('found newer for ${_recordKey.toString().substring(5, 10)}');
     }
   }
 
@@ -254,7 +256,7 @@ class VeilidDhtStorage extends DistributedStorage {
         psk: contact.dhtSettings.initialSecret,
         publicKey: contact.dhtSettings.theirPublicKey,
         keyPair: contact.dhtSettings.myKeyPair);
-    if (contactJson?.isEmpty ?? true) {
+    if ((contactJson?.isEmpty ?? true) || contactJson == 'null') {
       return null;
     }
     final dhtContact = CoagContactDHTSchema.fromJson(

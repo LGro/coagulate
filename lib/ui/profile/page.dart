@@ -11,7 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
+import 'package:veilid/veilid.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
@@ -795,7 +797,8 @@ class ProfileViewState extends State<ProfileView> {
           required Map<String, Uint8List> pictures,
           required Map<String, String> circles,
           required Map<String, List<String>> circleMemberships,
-          required ProfileSharingSettings profileSharingSettings}) =>
+          required ProfileSharingSettings profileSharingSettings,
+          required PublicKey? profilePubKey}) =>
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const SizedBox(height: 8),
         // NAMES
@@ -852,6 +855,7 @@ class ProfileViewState extends State<ProfileView> {
                           controller: scrollController,
                           child: EditOrAddWidget(
                               isEditing: false,
+                              hideLabel: true,
                               headlineSuffix: context.loc.name,
                               valueHintText: 'Name (pronouns)',
                               circles: circles
@@ -1217,30 +1221,42 @@ class ProfileViewState extends State<ProfileView> {
           deleteCallback: context.read<ProfileCubit>().removeAvatar,
         ),
 
-        // TODO: Do one of these per name and include the name?
+        // TODO: Do one of these per name and include the name? or allow customizing the name?
         // TODO: Also feature this as an option on the create invite page?
-        // _card(
-        //     Text('Public invite link',
-        //         textScaler: const TextScaler.linear(1.4),
-        //         style: TextStyle(
-        //             fontWeight: FontWeight.bold,
-        //             color: Theme.of(context).colorScheme.primary)),
-        //     [
-        //       const SizedBox(height: 4),
-        //       const Text('You can add the following link to your social media '
-        //           'profiles, website, e-mail signature or any place where you '
-        //           'want to show others an opportunity to connect with you via '
-        //           'Coagulate. Others can use this link to generate a personal '
-        //           'sharing offer for you that they can send you through '
-        //           'existing means of communication.'),
-        //       Row(children: [
-        //         const Text('https://coagulate.social/c/#PUBKEY'),
-        //         IconButton(
-        //             onPressed: () async =>
-        //                 Share.share('https://coagulate.social/c/#PUBKEY'),
-        //             icon: const Icon(Icons.copy)),
-        //       ]),
-        //     ]),
+        if (profilePubKey != null)
+          ..._card(
+              title: Text('Public invite link',
+                  textScaler: const TextScaler.linear(1.4),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary)),
+              children: [
+                const SizedBox(height: 10),
+                const Text(
+                    'You can add the following link to your social media '
+                    'profiles, website, e-mail signature or any place where '
+                    'you want to show others an opportunity to connect with '
+                    'you via Coagulate. Others can use this link to generate a '
+                    'personal sharing offer for you that they can send you '
+                    'through existing means of communication for you to add '
+                    'them to Coagulate.'),
+                Row(children: [
+                  Expanded(
+                      child: Text(
+                          profileUrl(contact.names.values.firstOrNull ?? '???',
+                                  profilePubKey)
+                              .toString(),
+                          softWrap: true,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis)),
+                  IconButton(
+                      onPressed: () async => Share.share(profileUrl(
+                              contact.names.values.firstOrNull ?? '???',
+                              profilePubKey)
+                          .toString()),
+                      icon: const Icon(Icons.copy)),
+                ]),
+              ]),
       ]);
 
   Widget _scaffoldBody(ProfileState state) => (state.profileInfo == null)
@@ -1249,14 +1265,16 @@ class ProfileViewState extends State<ProfileView> {
           SliverFillRemaining(
             hasScrollBody: false,
             child: buildProfileScrollView(
-                contact: state.profileInfo!.details,
-                pictures: state.profileInfo!.pictures
-                    .map((k, v) => MapEntry(k, Uint8List.fromList(v))),
-                addressLocations:
-                    state.profileInfo!.addressLocations.values.asList(),
-                circles: state.circles,
-                circleMemberships: state.circleMemberships,
-                profileSharingSettings: state.profileInfo!.sharingSettings),
+              contact: state.profileInfo!.details,
+              pictures: state.profileInfo!.pictures
+                  .map((k, v) => MapEntry(k, Uint8List.fromList(v))),
+              addressLocations:
+                  state.profileInfo!.addressLocations.values.asList(),
+              circles: state.circles,
+              circleMemberships: state.circleMemberships,
+              profileSharingSettings: state.profileInfo!.sharingSettings,
+              profilePubKey: state.profileInfo!.mainKeyPair?.key,
+            ),
           )
         ]);
 

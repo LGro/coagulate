@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
@@ -8,7 +8,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,31 +17,18 @@ import '../data/providers/distributed_storage/dht.dart';
 import '../data/providers/persistent_storage/sqlite.dart';
 import '../data/providers/system_contacts/system_contacts.dart';
 import '../data/repositories/contacts.dart';
+import '../notification_service.dart';
 import '../tick.dart';
-import '../veilid_init.dart';
 import 'circles_list/page.dart';
 import 'contact_details/page.dart';
 import 'contact_list/page.dart';
-import 'locations/page.dart';
 import 'map/page.dart';
 import 'profile/page.dart';
 import 'receive_request/cubit.dart';
 import 'receive_request/page.dart';
 import 'settings/page.dart';
-import 'updates/page.dart';
+import 'package:coagulate/veilid_init.dart';
 import 'welcome.dart';
-
-class Splash extends StatelessWidget {
-  const Splash({super.key});
-
-  @override
-  Widget build(BuildContext context) => PopScope(
-      canPop: false,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [SvgPicture.asset('assets/images/icon.svg')],
-      ));
-}
 
 // TODO: It seems odd to require the knowledge about which other route names should map to the relevant navigation items here
 const navBarItems = [
@@ -126,12 +113,32 @@ class AppRouter {
                 name: 'settings',
                 builder: (_, __) => const SettingsPage()),
             GoRoute(
-                // TODO: Figure out how to handle language on coagulate.social so that we don't need to add the language to the links
-                path: '/en/c',
-                name: 'receiveRequest',
+                path: '/c',
+                name: 'handleDirectSharing',
                 builder: (_, state) => ReceiveRequestPage(
                     initialState: ReceiveRequestState(
-                        ReceiveRequestStatus.receivedUriFragment,
+                        ReceiveRequestStatus.handleDirectSharing,
+                        fragment: state.uri.fragment))),
+            GoRoute(
+                path: '/p',
+                name: 'handleProfileLink',
+                builder: (_, state) => ReceiveRequestPage(
+                    initialState: ReceiveRequestState(
+                        ReceiveRequestStatus.handleProfileLink,
+                        fragment: state.uri.fragment))),
+            GoRoute(
+                path: '/o',
+                name: 'handleSharingOffer',
+                builder: (_, state) => ReceiveRequestPage(
+                    initialState: ReceiveRequestState(
+                        ReceiveRequestStatus.handleSharingOffer,
+                        fragment: state.uri.fragment))),
+            GoRoute(
+                path: '/b',
+                name: 'handleBatchInvite',
+                builder: (_, state) => ReceiveRequestPage(
+                    initialState: ReceiveRequestState(
+                        ReceiveRequestStatus.handleBatchInvite,
                         fragment: state.uri.fragment))),
           ])
     ],
@@ -161,7 +168,7 @@ class _CoagulateAppState extends State<CoagulateApp>
     unawaited(_checkFirstLaunch());
 
     // Configure background fetch
-    BackgroundFetch.configure(
+    unawaited(BackgroundFetch.configure(
         BackgroundFetchConfig(
           minimumFetchInterval: 15,
           stopOnTerminate: false,
@@ -179,7 +186,8 @@ class _CoagulateAppState extends State<CoagulateApp>
       // TODO: Passing an empty string for initial name seems hacky
       final repo = ContactsRepository(
           SqliteStorage(), VeilidDhtStorage(), SystemContacts(), '',
-          initialize: false);
+          initialize: false,
+          notificationCallback: NotificationService().showNotification);
 
       // Await initialization with potential initial DHT updates unless it
       // exceeds 25s to respect the background task limit of 30s on iOS
@@ -208,14 +216,19 @@ class _CoagulateAppState extends State<CoagulateApp>
       print('[BackgroundFetch] configure success: $status');
     }).catchError((e) {
       print('[BackgroundFetch] configure ERROR: $e');
-    });
+    }));
+
+    // BackgroundFetch.scheduleTask(TaskConfig(
+    //     taskId: 'com.foo.customtask',
+    //     delay: 60000, // milliseconds
+    //     forceAlarmManager: true));
   }
 
   Future<void> _checkFirstLaunch() async {
     final sharedPreferences = await SharedPreferences.getInstance();
     setState(() {
       _providedNameOnFirstLaunch =
-          sharedPreferences.getString('providedNameOnFirstLaunch');
+          sharedPreferences.getString('providedNameOnFirstLaunch') ?? '';
     });
   }
 
@@ -237,32 +250,45 @@ class _CoagulateAppState extends State<CoagulateApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
       // App goes to background
-      BackgroundFetch.start().then((int status) {
+      unawaited(BackgroundFetch.start().then((int status) {
         print('[BackgroundFetch] start success: $status');
       }).catchError((e) {
         print('[BackgroundFetch] start ERROR: $e');
-      });
+      }));
     } else if (state == AppLifecycleState.resumed) {
       // App comes to foreground
-      BackgroundFetch.stop().then((int status) {
+      unawaited(BackgroundFetch.stop().then((int status) {
         print('[BackgroundFetch] stop success: $status');
       }).catchError((e) {
         print('[BackgroundFetch] stop ERROR: $e');
-      });
+      }));
     }
   }
 
+  Future<void> onDidReceiveNotificationResponse(
+      NotificationResponse notificationResponse) async {
+    final payload = notificationResponse.payload;
+    if (notificationResponse.payload != null) {
+      debugPrint('notification payload: $payload');
+    }
+    // await Navigator.push(
+    //   context,
+    //   MaterialPageRoute<void>(builder: (context) => SecondScreen(payload)),
+    // );
+  }
+
   @override
-  Widget build(BuildContext context) => FutureProvider<VeilidChatGlobalInit?>(
+  Widget build(BuildContext context) => FutureProvider<CoagulateGlobalInit?>(
       initialData: null,
-      create: (context) async => VeilidChatGlobalInit.initialize(),
+      create: (context) async => CoagulateGlobalInit.initialize(),
+      // CoagulateGlobalInit.initialize can throw Already attached VeilidAPIException which is fine
+      catchError: (context, error) => null,
       builder: (context, child) {
-        final globalInit = context.watch<VeilidChatGlobalInit?>();
+        final globalInit = context.watch<CoagulateGlobalInit?>();
         // Splash screen until we're done with init
         if (globalInit == null) {
-          return const Splash();
+          return const Center(child: CircularProgressIndicator());
         }
-
         if (_providedNameOnFirstLaunch == null ||
             _providedNameOnFirstLaunch!.isEmpty) {
           return MaterialApp(

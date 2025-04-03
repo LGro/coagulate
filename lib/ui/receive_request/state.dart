@@ -1,15 +1,18 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 part of 'cubit.dart';
 
 enum ReceiveRequestStatus {
+  handleBatchInvite,
+  handleDirectSharing,
+  handleProfileLink,
+  handleSharingOffer,
   qrcode,
   processing,
   success,
   batchInviteSuccess,
-  receivedUriFragment,
-  receivedBatchInvite,
+  malformedUrl,
 }
 
 extension ReceiveRequestStatusX on ReceiveRequestStatus {
@@ -18,8 +21,15 @@ extension ReceiveRequestStatusX on ReceiveRequestStatus {
   bool get isSuccess => this == ReceiveRequestStatus.success;
   bool get isBatchInviteSuccess =>
       this == ReceiveRequestStatus.batchInviteSuccess;
-  bool get isReceivedUriFragment =>
-      this == ReceiveRequestStatus.receivedUriFragment;
+  bool get isHandleDirectSharing =>
+      this == ReceiveRequestStatus.handleDirectSharing;
+  bool get isHandleProfileLink =>
+      this == ReceiveRequestStatus.handleProfileLink;
+  bool get isHandleSharingOffer =>
+      this == ReceiveRequestStatus.handleSharingOffer;
+  bool get isHandleBatchInvite =>
+      this == ReceiveRequestStatus.handleBatchInvite;
+  bool get isMalformedUrl => this == ReceiveRequestStatus.malformedUrl;
 }
 
 @JsonSerializable()
@@ -27,9 +37,7 @@ final class ReceiveRequestState extends Equatable {
   const ReceiveRequestState(
     this.status, {
     this.profile,
-    this.requestSettings,
     this.fragment,
-    this.contactProposalsForLinking = const [],
   });
 
   factory ReceiveRequestState.fromJson(Map<String, dynamic> json) =>
@@ -38,9 +46,6 @@ final class ReceiveRequestState extends Equatable {
   final ReceiveRequestStatus status;
   final CoagContact? profile;
   final String? fragment;
-  // TODO: Consider renaming these if they really apply to both when a contact is requesting as well as sharing
-  final ContactDHTSettings? requestSettings;
-  final List<CoagContact> contactProposalsForLinking;
 
   Map<String, dynamic> toJson() => _$ReceiveRequestStateToJson(this);
 
@@ -48,19 +53,13 @@ final class ReceiveRequestState extends Equatable {
     ReceiveRequestStatus? status,
     CoagContact? profile,
     String? fragment,
-    ContactDHTSettings? requestSettings,
-    List<CoagContact>? contactProposalsForLinking,
   }) =>
       ReceiveRequestState(
         status ?? this.status,
         profile: profile ?? this.profile,
         fragment: fragment ?? this.fragment,
-        requestSettings: requestSettings ?? this.requestSettings,
-        contactProposalsForLinking:
-            contactProposalsForLinking ?? this.contactProposalsForLinking,
       );
 
   @override
-  List<Object?> get props =>
-      [status, profile, requestSettings, fragment, contactProposalsForLinking];
+  List<Object?> get props => [status, profile, fragment];
 }

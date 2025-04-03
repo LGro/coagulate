@@ -79,16 +79,11 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
     await contactsRepository
         .updateContactSharedProfile(state.contact!.coagContactId);
 
-    final updatedContact =
-        contactsRepository.getContact(state.contact!.coagContactId);
-    if (updatedContact != null) {
-      final shareSuccess =
-          await contactsRepository.tryShareWithContactDHT(updatedContact);
-      // TODO: Report more nuanced?
-      return receiveSuccess && shareSuccess;
-    }
+    final shareSuccess = await contactsRepository
+        .tryShareWithContactDHT(state.contact!.coagContactId);
 
-    return receiveSuccess;
+    // TODO: Report more nuanced?
+    return receiveSuccess && shareSuccess;
   }
 
   @override

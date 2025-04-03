@@ -1,11 +1,10 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/repositories/contacts.dart';
-import '../batch_invite_management/page.dart';
 import '../contact_details/page.dart';
 
 class CreateNewContactPage extends StatefulWidget {

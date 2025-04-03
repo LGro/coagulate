@@ -467,11 +467,11 @@ Widget _sharedInformationList(BuildContext context, CircleDetailsState state) =>
     ]);
 
 class CircleDetailsPage extends StatefulWidget {
-  const CircleDetailsPage({this.circleId, super.key});
+  const CircleDetailsPage({required this.circleId, super.key});
 
-  final String? circleId;
+  final String circleId;
 
-  static Route<void> route(String? circleId) => MaterialPageRoute(
+  static Route<void> route(String circleId) => MaterialPageRoute(
       builder: (context) => CircleDetailsPage(circleId: circleId));
 
   @override

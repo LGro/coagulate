@@ -204,7 +204,8 @@ Widget? contactSharingReceivingStatus(
   }
   // We're both sharing, but haven't received the ack
   if (contact.dhtSettings.recordKeyMeSharing != null &&
-      contact.dhtSettings.recordKeyThemSharing != null) {
+      contact.dhtSettings.recordKeyThemSharing != null &&
+      contact.details != null) {
     // TODO: Use Icons.done to differentiate from full handshake DH switch?
     return const Icon(Icons.done_all);
   }

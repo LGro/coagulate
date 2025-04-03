@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../utils.dart';
 import 'cubit.dart';
 
 class BatchInvitesPage extends StatefulWidget {
@@ -178,18 +179,6 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
               builder: _body)));
 }
 
-String generateInviteLinks(Batch batch) => batch.subkeyWriters
-    .toList()
-    .asMap()
-    .entries
-    .map(
-        // The index of the writer in the list + 1 is the corresponding subkey
-        // TODO: Do we need to URL encode? Maybe use Url().toString()?
-        // TODO: Forbid colons in label
-        (w) => 'https://coagulate.social/c/'
-            '#${batch.label}:${batch.dhtRecordKey}:${batch.psk}:${w.key + 1}:${w.value}')
-    .join(', ');
-
 Widget existingBatchWidget(Batch batch) => Row(children: [
       Text(batch.label),
       const SizedBox(width: 4),
@@ -197,6 +186,7 @@ Widget existingBatchWidget(Batch batch) => Row(children: [
       const SizedBox(width: 4),
       IconButton.filledTonal(
           // Share.shareXFiles([XFile.fromData(utf8.encode(text), mimeType: 'text/plain')], fileNameOverrides: ['myfile.txt']),
-          onPressed: () async => Share.share(generateInviteLinks(batch)),
+          onPressed: () async =>
+              Share.share(generateBatchInviteLinks(batch).join(', ')),
           icon: const Icon(Icons.share)),
     ]);

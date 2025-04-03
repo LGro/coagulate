@@ -181,12 +181,10 @@ Widget checkInAndScheduleButtons() => BlocProvider(
                           ])),
                   const Expanded(child: SizedBox()),
                   FilledButton(
-                      onPressed: (state.circleMembersips.isEmpty)
-                          ? null
-                          : () async => Navigator.push(
-                              context,
-                              MaterialPageRoute<ScheduleWidget>(
-                                  builder: (_) => const ScheduleWidget())),
+                      onPressed: () async => Navigator.push(
+                          context,
+                          MaterialPageRoute<ScheduleWidget>(
+                              builder: (_) => const ScheduleWidget())),
                       child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

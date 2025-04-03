@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:veilid/veilid.dart';
@@ -237,6 +238,7 @@ class ProfileInfo extends Equatable {
     this.addressLocations = const {},
     this.temporaryLocations = const {},
     this.sharingSettings = const ProfileSharingSettings(),
+    this.mainKeyPair,
   });
 
   factory ProfileInfo.fromJson(Map<String, dynamic> json) =>
@@ -250,6 +252,10 @@ class ProfileInfo extends Equatable {
   final Map<int, ContactAddressLocation> addressLocations;
   final Map<String, ContactTemporaryLocation> temporaryLocations;
   final ProfileSharingSettings sharingSettings;
+
+  /// The main key pair used for connecting with folks via the profile link
+  final TypedKeyPair? mainKeyPair;
+
   Map<String, dynamic> toJson() => _$ProfileInfoToJson(this);
   ProfileInfo copyWith({
     ContactDetails? details,
@@ -257,6 +263,7 @@ class ProfileInfo extends Equatable {
     Map<int, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
     ProfileSharingSettings? sharingSettings,
+    TypedKeyPair? mainKeyPair,
   }) =>
       ProfileInfo(
         id,
@@ -265,6 +272,7 @@ class ProfileInfo extends Equatable {
         addressLocations: addressLocations ?? {...this.addressLocations},
         temporaryLocations: temporaryLocations ?? {...this.temporaryLocations},
         sharingSettings: sharingSettings ?? this.sharingSettings.copyWith(),
+        mainKeyPair: mainKeyPair ?? this.mainKeyPair,
       );
 
   @override
@@ -275,6 +283,7 @@ class ProfileInfo extends Equatable {
         addressLocations,
         temporaryLocations,
         sharingSettings,
+        mainKeyPair,
       ];
 }
 
@@ -287,7 +296,7 @@ class CoagContact extends Equatable {
     this.details,
     this.theirPersonalUniqueId,
     this.knownPersonalContactIds = const [],
-    this.systemContact,
+    this.systemContactId,
     this.addressLocations = const {},
     this.temporaryLocations = const {},
     this.comment = '',
@@ -309,7 +318,7 @@ class CoagContact extends Equatable {
   final String name;
 
   /// Associated system contact
-  final Contact? systemContact;
+  final String? systemContactId;
 
   /// Details shared by the contact
   final ContactDetails? details;
@@ -365,7 +374,7 @@ class CoagContact extends Equatable {
     String? coagContactId,
     String? name,
     String? comment,
-    Contact? systemContact,
+    String? systemContactId,
     ContactDetails? details,
     String? theirPersonalUniqueId,
     List<String>? knownPersonalContactIds,
@@ -379,7 +388,7 @@ class CoagContact extends Equatable {
       CoagContact(
         coagContactId: coagContactId ?? this.coagContactId,
         details: details ?? this.details?.copyWith(),
-        systemContact: systemContact ?? this.systemContact,
+        systemContactId: systemContactId ?? this.systemContactId,
         addressLocations: addressLocations ?? {...this.addressLocations},
         temporaryLocations: temporaryLocations ?? {...this.temporaryLocations},
         dhtSettings: dhtSettings ?? this.dhtSettings.copyWith(),
@@ -398,7 +407,7 @@ class CoagContact extends Equatable {
   List<Object?> get props => [
         coagContactId,
         details,
-        systemContact,
+        systemContactId,
         dhtSettings,
         sharedProfile,
         theirPersonalUniqueId,
@@ -562,3 +571,135 @@ CoagContactDHTSchemaV2 schemaV1toV2(CoagContactDHTSchemaV1 old) =>
         temporaryLocations: old.temporaryLocations);
 
 typedef CoagContactDHTSchema = CoagContactDHTSchemaV2;
+
+const coagulateManagedLabelSuffix = '[coagulate]';
+
+bool filterNotCoagulateLabel<T>(T detail) {
+  if (detail is Phone) {
+    return !detail.customLabel.endsWith(coagulateManagedLabelSuffix);
+  }
+  if (detail is Email) {
+    return !detail.customLabel.endsWith(coagulateManagedLabelSuffix);
+  }
+  if (detail is Address) {
+    return !detail.customLabel.endsWith(coagulateManagedLabelSuffix);
+  }
+  if (detail is Website) {
+    return !detail.customLabel.endsWith(coagulateManagedLabelSuffix);
+  }
+  if (detail is SocialMedia) {
+    return !detail.customLabel.endsWith(coagulateManagedLabelSuffix);
+  }
+  if (detail is Event) {
+    return !detail.customLabel.endsWith(coagulateManagedLabelSuffix);
+  }
+  if (detail is Note) {
+    return !detail.note.endsWith(coagulateManagedLabelSuffix);
+  }
+  return true;
+}
+
+T addCoagulateLabel<T>(T detail) {
+  if (detail is Phone) {
+    return Phone(
+      detail.number,
+      label: PhoneLabel.custom,
+      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+      normalizedNumber: detail.normalizedNumber,
+      isPrimary: detail.isPrimary,
+    ) as T;
+  }
+  if (detail is Email) {
+    return Email(
+      detail.address,
+      label: EmailLabel.custom,
+      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+      isPrimary: detail.isPrimary,
+    ) as T;
+  }
+  if (detail is Address) {
+    return Address(
+      detail.address,
+      label: detail.label = AddressLabel.custom,
+      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+      street: detail.street,
+      pobox: detail.pobox,
+      neighborhood: detail.neighborhood,
+      city: detail.city,
+      state: detail.state,
+      postalCode: detail.postalCode,
+      country: detail.country,
+      isoCountry: detail.isoCountry,
+      subAdminArea: detail.subAdminArea,
+      subLocality: detail.subLocality,
+    ) as T;
+  }
+  if (detail is Website) {
+    return Website(
+      detail.url,
+      label: WebsiteLabel.custom,
+      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+    ) as T;
+  }
+  if (detail is SocialMedia) {
+    return SocialMedia(
+      detail.userName,
+      label: SocialMediaLabel.custom,
+      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+    ) as T;
+  }
+  if (detail is Event) {
+    return Event(
+      year: detail.year,
+      month: detail.month,
+      day: detail.day,
+      label: EventLabel.custom,
+      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+    ) as T;
+  }
+  if (detail is Note) {
+    return Note('${detail.note}\n$coagulateManagedLabelSuffix') as T;
+  }
+  return detail;
+}
+
+Contact mergeSystemContacts(Contact system, Contact coagulate) => Contact(
+      id: system.id,
+      // TODO: Figure out what to do about the display name
+      displayName: system.displayName,
+      thumbnail: system.thumbnail,
+      photo: system.photo,
+      isStarred: system.isStarred,
+      name: system.name,
+      organizations: system.organizations,
+      accounts: system.accounts,
+      groups: system.groups,
+      phones: [
+        ...system.phones.where(filterNotCoagulateLabel),
+        ...coagulate.phones.map(addCoagulateLabel)
+      ],
+      emails: [
+        ...system.emails.where(filterNotCoagulateLabel),
+        ...coagulate.emails.map(addCoagulateLabel)
+      ],
+      addresses: [
+        ...system.addresses.where(filterNotCoagulateLabel),
+        ...coagulate.addresses.map(addCoagulateLabel)
+      ],
+      websites: [
+        ...system.websites.where(filterNotCoagulateLabel),
+        ...coagulate.websites.map(addCoagulateLabel)
+      ],
+      socialMedias: [
+        ...system.socialMedias.where(filterNotCoagulateLabel),
+        ...coagulate.socialMedias.map(addCoagulateLabel)
+      ],
+      events: [
+        ...system.events.where(filterNotCoagulateLabel),
+        ...coagulate.events.map(addCoagulateLabel)
+      ],
+      notes: [
+        ...system.notes.where(filterNotCoagulateLabel),
+        ...coagulate.notes.map(addCoagulateLabel)
+      ],
+    );

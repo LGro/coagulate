@@ -1,28 +1,104 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../circle_details/page.dart';
 import '../contact_details/page.dart';
 import '../contact_list/page.dart';
-import '../widgets/avatar.dart';
 import '../widgets/scan_qr_code.dart';
 import 'cubit.dart';
+
+class ReceivedBatchInviteWidget extends StatefulWidget {
+  const ReceivedBatchInviteWidget(
+      {super.key, required this.batchName, required this.names});
+
+  final String batchName;
+  final Map<String, String> names;
+  @override
+  _ReceivedBatchInviteWidgetState createState() =>
+      _ReceivedBatchInviteWidgetState();
+}
+
+class _ReceivedBatchInviteWidgetState extends State<ReceivedBatchInviteWidget> {
+  String? _selectedNameId;
+
+  @override
+  void initState() {
+    _selectedNameId = widget.names.keys.firstOrNull;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Text('Invited via ${widget.batchName}'),
+          actions: [
+            IconButton(
+                onPressed: context.read<ReceiveRequestCubit>().scanQrCode,
+                icon: const Icon(Icons.qr_code_scanner))
+          ],
+        ),
+        body: SingleChildScrollView(
+            child: Padding(
+                padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('You have been invited in a batch with others. '
+                          'Everyone in that batch gets to see each other. '
+                          'As others use their invites, they appear automatically '
+                          'as contacts and are added to your circle "${widget.batchName}", '
+                          'which you can manage as usual and set what to share.'),
+                      const SizedBox(height: 16),
+                      // TODO: Handle no names available
+                      const Text('Pick the name you want to share with others. '
+                          'You can select more information to share later.'),
+                      const SizedBox(height: 16),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            DropdownMenu<String>(
+                              initialSelection: _selectedNameId,
+                              // requestFocusOnTap is enabled/disabled by platforms when it is null.
+                              // On mobile platforms, this is false by default. Setting this to true will
+                              // trigger focus request on the text field and virtual keyboard will appear
+                              // afterward. On desktop platforms however, this defaults to true.
+                              requestFocusOnTap: false,
+                              label: const Text('Name'),
+                              onSelected: (nameId) {
+                                setState(() {
+                                  _selectedNameId = nameId;
+                                });
+                              },
+                              dropdownMenuEntries: widget.names.entries
+                                  .map((e) => DropdownMenuEntry(
+                                      label: e.value, value: e.key))
+                                  .toList(),
+                            ),
+                            const SizedBox(width: 16),
+                            // TODO: This also needs state to react to changes in selection
+                            FilledButton(
+                                onPressed: (_selectedNameId == null)
+                                    ? null
+                                    : () async => context
+                                        .read<ReceiveRequestCubit>()
+                                        .handleBatchInvite(
+                                            myNameId: _selectedNameId!),
+                                child: const Text('Accept')),
+                          ])
+                    ]))),
+      );
+}
 
 // TODO: Move cubit initialization outside to parent scope (potentially leaving
 // the BlocConsumer inside) instead of passing initial state here?
 class ReceiveRequestPage extends StatelessWidget {
-  ReceiveRequestPage({super.key, this.initialState});
+  const ReceiveRequestPage({super.key, this.initialState});
 
   final ReceiveRequestState? initialState;
-
-  final TextEditingController batchInviteMyNameController =
-      TextEditingController();
 
   @override
   Widget build(BuildContext _) => BlocProvider(
@@ -31,17 +107,19 @@ class ReceiveRequestPage extends StatelessWidget {
           initialState: initialState),
       child: BlocConsumer<ReceiveRequestCubit, ReceiveRequestState>(
           listener: (context, state) async {
-        if (state.status.isSuccess && state.profile != null) {
+        if (state.status.isMalformedUrl) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Invalid URL')));
+          context.read<ReceiveRequestCubit>().scanQrCode();
+        } else if (state.status.isSuccess && state.profile != null) {
           await Navigator.of(context).pushAndRemoveUntil(
               ContactPage.route(state.profile!), (route) => route.isFirst);
         } else if (state.status.isBatchInviteSuccess) {
           // TODO: Remove redundancy by processing into state schema?
-          final components = state.fragment!.split(':');
-          final recordKey = '${components[1]}:${components[2]}';
+          final parts = state.fragment!.split('~');
+          final recordKey = parts[parts.length - 4];
           await Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute<ContactListPage>(
-                  builder: (context) => CircleDetailsPage(circleId: recordKey)),
-              (route) => route.isFirst);
+              CircleDetailsPage.route(recordKey), (route) => route.isFirst);
         }
       }, builder: (context, state) {
         switch (state.status) {
@@ -58,70 +136,17 @@ class ReceiveRequestPage extends StatelessWidget {
                 ),
                 body: const Center(child: CircularProgressIndicator()));
 
-          case ReceiveRequestStatus.receivedBatchInvite:
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(
-                    'Invited via ${state.fragment?.split(':').first ?? '???'}'),
-                actions: [
-                  IconButton(
-                      onPressed: context.read<ReceiveRequestCubit>().scanQrCode,
-                      icon: const Icon(Icons.qr_code_scanner))
-                ],
-              ),
-              body: SingleChildScrollView(
-                  child: Column(children: [
-                Text('You have been invited in a batch with others. '
-                    'Everyone in that batch gets to see each other. '
-                    'As others use their invites, they appear automatically '
-                    'as contacts and are added to your circle '
-                    '"${state.fragment?.split(':').first ?? '???'}", '
-                    'which you can manage as usual and set what to share.'),
-                const SizedBox(height: 16),
-                const Text('Pick the name you want to share with others:'),
-                DropdownMenu<(String, String)>(
-                  initialSelection: null,
-                  controller: batchInviteMyNameController,
-                  // requestFocusOnTap is enabled/disabled by platforms when it is null.
-                  // On mobile platforms, this is false by default. Setting this to true will
-                  // trigger focus request on the text field and virtual keyboard will appear
-                  // afterward. On desktop platforms however, this defaults to true.
-                  requestFocusOnTap: true,
-                  label: const Text('Name'),
-                  onSelected: (name) {
-                    // TODO: Can we make due without a state?
-                    // setState(() {
-                    //   selectedColor = color;
-                    // });
-                    // TODO: We need to set the controller but also store the id
-                    batchInviteMyNameController.text = name?.$1 ?? '';
-                  },
-                  dropdownMenuEntries: (context
-                              .read<ReceiveRequestCubit>()
-                              .contactsRepository
-                              .getProfileInfo()
-                              ?.details
-                              .names ??
-                          {})
-                      .entries
-                      .map((e) => DropdownMenuEntry(
-                          label: e.value, value: (e.key, e.value)))
-                      .toList(),
-                ),
-                const SizedBox(height: 16),
-                // TODO: This also needs state to react to changes in text
-                FilledButton(
-                    onPressed:
-                        //  (batchInviteMyNameController.text.isEmpty)
-                        //     ? null
-                        //     :
-                        () async => context
-                            .read<ReceiveRequestCubit>()
-                            .handleBatchInvite(
-                                batchInviteMyNameController.text),
-                    child: const Text('Accept')),
-              ])),
-            );
+          case ReceiveRequestStatus.handleBatchInvite:
+            return ReceivedBatchInviteWidget(
+                names: context
+                        .read<ReceiveRequestCubit>()
+                        .contactsRepository
+                        .getProfileInfo()
+                        ?.details
+                        .names ??
+                    {},
+                // TODO: Allow ~ in name, by dropping the last couple splits and rejoining with ~
+                batchName: state.fragment?.split('~').first ?? '???');
 
           case ReceiveRequestStatus.qrcode:
             return Scaffold(
@@ -165,29 +190,12 @@ class ReceiveRequestPage extends StatelessWidget {
             );
 
           case ReceiveRequestStatus.success:
-            return const Center(child: CircularProgressIndicator());
-
           case ReceiveRequestStatus.batchInviteSuccess:
-            return const Center(child: CircularProgressIndicator());
-
-          case ReceiveRequestStatus.receivedUriFragment:
+          case ReceiveRequestStatus.handleDirectSharing:
+          case ReceiveRequestStatus.handleProfileLink:
+          case ReceiveRequestStatus.malformedUrl:
+          case ReceiveRequestStatus.handleSharingOffer:
             return const Center(child: CircularProgressIndicator());
         }
       }));
 }
-
-Widget pickExistingContact(Iterable<CoagContact> contactProporsalsForLinking,
-        Future<void> Function(String coagContactId) linkExistingCallback) =>
-    ListView(
-      children: contactProporsalsForLinking
-          // TODO: Filter out the profile contact
-          .where((c) => c.details != null || c.systemContact != null)
-          .map((c) => ListTile(
-              leading: avatar(c.systemContact, radius: 18),
-              title: Text(c.details?.names.values.join(', ') ??
-                  c.systemContact?.displayName ??
-                  '???'),
-              //trailing: Text(_contactSyncStatus(c)),
-              onTap: () => unawaited(linkExistingCallback(c.coagContactId))))
-          .toList(),
-    );

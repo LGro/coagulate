@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as flutter_contacts;
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -23,21 +24,6 @@ import '../widgets/circles/widget.dart';
 import '../widgets/dht_status/widget.dart';
 import '../widgets/veilid_status/widget.dart';
 import 'cubit.dart';
-
-Uri _shareUrl({required String key, required String psk, String? name}) {
-  final fragment = <String>[];
-  if (name != null) {
-    fragment.add(name);
-  }
-  fragment.addAll([key, psk]);
-
-  return Uri(
-      scheme: 'https',
-      host: 'coagulate.social',
-      // TODO: Make language dependent on local language setting?
-      path: 'en/c',
-      fragment: fragment.join(':'));
-}
 
 String _shorten(String str) => str.substring(0, min(10, str.length));
 
@@ -385,11 +371,21 @@ Widget _sharingSettings(
     Card(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _circlesCard(context, contact.coagContactId, circleNames),
-      if (circleNames.isNotEmpty &&
-          contact.dhtSettings.writerMeSharing != null &&
-          contact.dhtSettings.initialSecret != null &&
-          contact.sharedProfile != null &&
-          !contact.dhtSettings.theyAckHandshakeComplete) ...[
+      if (
+          // TODO: Adding contacts from a profile link does this while the DHT record is still being created
+          (contact.dhtSettings.theirPublicKey != null &&
+                  contact.dhtSettings.initialSecret == null &&
+                  contact.dhtSettings.recordKeyMeSharing == null &&
+                  contact.dhtSettings.recordKeyThemSharing == null) ||
+              // Summarizing all other conditions
+              (circleNames.isNotEmpty &&
+                  contact.dhtSettings.writerMeSharing != null &&
+                  (contact.dhtSettings.initialSecret != null ||
+                      contact.dhtSettings.theirPublicKey != null) &&
+                  contact.sharedProfile != null &&
+                  // For when scanning QR code and handshake not completed
+                  contact.details == null &&
+                  !contact.dhtSettings.theyAckHandshakeComplete)) ...[
         _paddedDivider(),
         _connectingCard(context, contact),
       ],
@@ -433,53 +429,94 @@ Widget _temporaryLocationsCard(
                       .asList())))
     ]);
 
-Widget _connectingCard(BuildContext context, CoagContact contact) =>
-    Stack(children: [
+Widget _connectingCard(BuildContext context, CoagContact contact) => Padding(
+    padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        const Icon(Icons.private_connectivity),
+        const SizedBox(width: 4),
+        Expanded(
+            child: Text('To connect with ${contact.name}:',
+                textScaler: const TextScaler.linear(1.2), softWrap: true))
+      ]),
+      const SizedBox(height: 4),
+      if (contact.dhtSettings.theirPublicKey != null &&
+          contact.dhtSettings.recordKeyMeSharing != null &&
+          contact.dhtSettings.initialSecret == null &&
+          contact.dhtSettings.recordKeyThemSharing != null &&
+          !contact.dhtSettings.theyAckHandshakeComplete &&
+          contact.details == null) ...[
+        const Text('You added them from their profile link. To finish '
+            'connecting, send them this link via your favorite messenger:'),
+        Row(children: [
+          Expanded(
+              child: Text(
+                  profileBasedOfferUrl(
+                          contact.sharedProfile!.details.names.values
+                                  .firstOrNull ??
+                              '???',
+                          contact.dhtSettings.recordKeyMeSharing!,
+                          contact.dhtSettings.myKeyPair.key)
+                      .toString(),
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.ellipsis)),
+          IconButton(
+              onPressed: () async => Share.share(profileBasedOfferUrl(
+                      contact.sharedProfile!.details.names.values.firstOrNull ??
+                          '???',
+                      contact.dhtSettings.recordKeyMeSharing!,
+                      contact.dhtSettings.myKeyPair.key)
+                  .toString()),
+              icon: const Icon(Icons.copy)),
+        ])
+      ],
       if (contact.dhtSettings.recordKeyMeSharing != null &&
-          contact.dhtSettings.initialSecret != null)
-        Padding(
-            padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                const Icon(Icons.private_connectivity),
-                const SizedBox(width: 4),
-                Expanded(
-                    child: Text('To connect with ${contact.name}:',
-                        textScaler: const TextScaler.linear(1.2),
-                        softWrap: true))
-              ]),
-              const SizedBox(height: 4),
-              // TODO: Only show share back button when receiving key and psk but not writer are set i.e. is receiving updates and has share back settings
-              _qrCodeButton(context,
-                  buttonText: 'Show them this QR code',
-                  alertTitle: 'Show to ${contact.name}',
-                  qrCodeData: _shareUrl(
-                    key: contact.dhtSettings.recordKeyMeSharing.toString(),
-                    psk: contact.dhtSettings.initialSecret.toString(),
-                    name:
-                        contact.sharedProfile!.details.names.values.firstOrNull,
-                  ).toString()),
-              // TextButton(
-              //   child: const Row(
-              //       mainAxisSize: MainAxisSize.min,
-              //       children: <Widget>[
-              //         Icon(Icons.share),
-              //         SizedBox(width: 8),
-              //         Text('Paste their profile link'),
-              //         SizedBox(width: 4),
-              //       ]),
-              //       // TODO: Paste from clipboard and generate invite text to share
-              //   onPressed: () {},
-              // ),
-              const SizedBox(height: 4),
-              // TODO: Link "create an invite" to the corresponding page, and maybe also "contact page" to contacts list?
-              Text('This QR code is specifically for ${contact.name}. '
-                  'If you want to connect with someone else, go to their '
-                  'respective contact details or create a new invite.'),
-              const SizedBox(height: 8),
-            ]))
-    ]);
+          contact.dhtSettings.initialSecret != null) ...[
+        const SizedBox(height: 4),
+        // TODO: Only show share back button when receiving key and psk but not writer are set i.e. is receiving updates and has share back settings
+        _qrCodeButton(context,
+            buttonText: 'Show them this QR code',
+            alertTitle: 'Show to ${contact.name}',
+            qrCodeData: directSharingUrl(
+                    contact.sharedProfile!.details.names.values.firstOrNull ??
+                        '???',
+                    contact.dhtSettings.recordKeyMeSharing!,
+                    contact.dhtSettings.initialSecret!)
+                .toString()),
+        // TextButton(
+        //   child: const Row(
+        //       mainAxisSize: MainAxisSize.min,
+        //       children: <Widget>[
+        //         Icon(Icons.share),
+        //         SizedBox(width: 8),
+        //         Text('Paste their profile link'),
+        //         SizedBox(width: 4),
+        //       ]),
+        //       // TODO: Paste from clipboard and generate invite text to share
+        //   onPressed: () {},
+        // ),
+        TextButton(
+          child: const Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+            Icon(Icons.share),
+            SizedBox(width: 8),
+            Text('Share link via trusted channel'),
+            SizedBox(width: 4),
+          ]),
+          // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
+          onPressed: () async => Share.share(
+              "Hi ${contact.name}, I'd like to share with you: "
+              '${directSharingUrl(contact.sharedProfile!.details.names.values.firstOrNull ?? '???', contact.dhtSettings.recordKeyMeSharing!, contact.dhtSettings.initialSecret!)}\n'
+              "Keep this link a secret, it's just for you."),
+        ),
+        const SizedBox(height: 4),
+        // TODO: Link "create an invite" to the corresponding page, and maybe also "contact page" to contacts list?
+        Text('This QR code and link are specifically for ${contact.name}. '
+            'If you want to connect with someone else, go to their '
+            'respective contact details or create a new invite.'),
+      ],
+      const SizedBox(height: 8),
+    ]));
 
 Iterable<Widget> _displaySharedProfile(
         BuildContext context, ContactDetails details) =>

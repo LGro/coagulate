@@ -143,6 +143,9 @@ ProfileInfo _$ProfileInfoFromJson(Map<String, dynamic> json) => ProfileInfo(
           ? const ProfileSharingSettings()
           : ProfileSharingSettings.fromJson(
               json['sharing_settings'] as Map<String, dynamic>),
+      mainKeyPair: json['main_key_pair'] == null
+          ? null
+          : TypedKeyPair.fromJson(json['main_key_pair']),
     );
 
 Map<String, dynamic> _$ProfileInfoToJson(ProfileInfo instance) =>
@@ -155,6 +158,7 @@ Map<String, dynamic> _$ProfileInfoToJson(ProfileInfo instance) =>
       'temporary_locations':
           instance.temporaryLocations.map((k, e) => MapEntry(k, e.toJson())),
       'sharing_settings': instance.sharingSettings.toJson(),
+      'main_key_pair': instance.mainKeyPair?.toJson(),
     };
 
 CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
@@ -171,9 +175,7 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
                   ?.map((e) => e as String)
                   .toList() ??
               const [],
-      systemContact: json['system_contact'] == null
-          ? null
-          : Contact.fromJson(json['system_contact'] as Map<String, dynamic>),
+      systemContactId: json['system_contact_id'] as String?,
       addressLocations:
           (json['address_locations'] as Map<String, dynamic>?)?.map(
                 (k, e) => MapEntry(int.parse(k),
@@ -205,7 +207,7 @@ Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
       'their_personal_unique_id': instance.theirPersonalUniqueId,
       'known_personal_contact_ids': instance.knownPersonalContactIds,
       'name': instance.name,
-      'system_contact': instance.systemContact?.toJson(),
+      'system_contact_id': instance.systemContactId,
       'details': instance.details?.toJson(),
       'comment': instance.comment,
       'address_locations': instance.addressLocations

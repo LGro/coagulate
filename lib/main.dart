@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'bloc_observer.dart';
+import 'notification_service.dart';
 import 'tools/loggy.dart';
 import 'ui/app.dart';
 
@@ -21,6 +22,8 @@ void main() async {
 
     // Observer for logging Bloc related things
     Bloc.observer = const CoagulateBlocObserver();
+
+    await NotificationService().init();
 
     // Let's coagulate :)
     runApp(CoagulateApp());

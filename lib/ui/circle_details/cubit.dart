@@ -17,20 +17,20 @@ part 'state.dart';
 class CircleDetailsCubit extends Cubit<CircleDetailsState> {
   CircleDetailsCubit(this.contactsRepository, [String? circleId])
       : super(const CircleDetailsState(CircleDetailsStatus.initial)) {
-    _circlesSubscription = contactsRepository.getCirclesStream().listen((_) {
-      if (!isClosed) {
-        emit(state.copyWith(
-            circleMemberships: contactsRepository.getCircleMemberships(),
-            circles: contactsRepository.getCircles()));
-      }
-    });
-    _profileInfoSubscription =
-        contactsRepository.getProfileInfoStream().listen((profileInfo) {
-      if (!isClosed) {
-        emit(state.copyWith(profileInfo: profileInfo));
-      }
-    });
+    unawaited(_updateState(circleId));
+    _circlesSubscription = contactsRepository
+        .getCirclesStream()
+        .listen((_) => unawaited(_updateState(circleId)));
+    _profileInfoSubscription = contactsRepository
+        .getProfileInfoStream()
+        .listen((profileInfo) => unawaited(_updateState(circleId)));
+  }
 
+  final ContactsRepository contactsRepository;
+  late final StreamSubscription<void> _circlesSubscription;
+  late final StreamSubscription<ProfileInfo> _profileInfoSubscription;
+
+  Future<void> _updateState(String? circleId) async {
     final circleMemberships = contactsRepository.getCircleMemberships();
     final contacts = contactsRepository.getContacts().values.toList()
       ..sortBy((c) => c.name.toLowerCase());
@@ -49,10 +49,6 @@ class CircleDetailsCubit extends Cubit<CircleDetailsState> {
                   false)),
         ]));
   }
-
-  final ContactsRepository contactsRepository;
-  late final StreamSubscription<void> _circlesSubscription;
-  late final StreamSubscription<ProfileInfo> _profileInfoSubscription;
 
   Future<void> updateCircleMembership(
           String coagContactId, bool member) async =>
