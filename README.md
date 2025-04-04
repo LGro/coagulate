@@ -29,6 +29,16 @@ To (re-)generate all code from templates, run
 dart run build_runner build
 ```
 
+### Testing
+
+Using `lcov`, run:
+```
+flutter test --coverage
+genhtml coverage/lcov.info -o coverage/html
+open coverage/html/index.html
+
+```
+
 ### Fastlane
 
 For Fastlane setup see https://docs.fastlane.tools/
@@ -118,6 +128,20 @@ On each trigger (app open, background location change, ...?):
   - find the current value on the DHT given the contact's public key
 - publish any updated information for all contacts shared with
   - create/update the current value for each contact in a respective DHT entry
+
+### App links
+
+Scan QR code  
+-> /c/#name~typedRecordKey~psk
+
+Click/paste profile link  
+-> /p/#name~pubKey
+
+Click/paste profile based invite offer  
+-> /o/#name~typedRecordKey~pubKey
+
+Click/paste batch invite
+-> /b/#label~typedRecordKey~psk~subkeyIndex~subkeyWriter
 
 ### Open Questions
 

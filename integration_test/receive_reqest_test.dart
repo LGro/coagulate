@@ -36,7 +36,8 @@ Future<ContactsRepository> _contactsRepositoryFromContacts(
             Map.fromEntries(contacts.map((c) => MapEntry(c.coagContactId, c)))),
         DummyDistributedStorage(initialDht: initialDht),
         DummySystemContacts([]),
-        appUserName);
+        appUserName,
+        initialize: false);
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -82,18 +83,20 @@ void main() {
       };
       contactsRepository = await _contactsRepositoryFromContacts(
           contacts: [...initialContacts], initialDht: {...initialDht});
+      await contactsRepository!.initialize();
     });
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
         'successful direct sharing qt scanning, no dht info available yet',
         build: () => ReceiveRequestCubit(contactsRepository!),
-        act: (c) async =>
-            c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
+        act: (c) async => c.qrCodeCaptured(
+            mobile_scanner.BarcodeCapture(barcodes: [
               mobile_scanner.Barcode(
                   rawValue: directSharingUrl(
                           'Direct Sharer', _dummyDhtRecordKey(4), _dummyPsk(5))
                       .toString())
-            ])),
+            ]),
+            awaitDhtOperations: true),
         expect: () => [
               const ReceiveRequestState(ReceiveRequestStatus.processing),
               const TypeMatcher<ReceiveRequestState>()
@@ -123,13 +126,14 @@ void main() {
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
         'direct sharing qr code, dht available',
         build: () => ReceiveRequestCubit(contactsRepository!),
-        act: (c) async =>
-            c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
+        act: (c) async => c.qrCodeCaptured(
+            mobile_scanner.BarcodeCapture(barcodes: [
               mobile_scanner.Barcode(
                   rawValue: directSharingUrl(
                           'Direct Sharer', _dummyDhtRecordKey(0), _dummyPsk(0))
                       .toString())
-            ])),
+            ]),
+            awaitDhtOperations: true),
         expect: () => [
               const ReceiveRequestState(ReceiveRequestStatus.processing),
               const TypeMatcher<ReceiveRequestState>()
@@ -166,13 +170,14 @@ void main() {
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
         'successful profile qr scanning',
         build: () => ReceiveRequestCubit(contactsRepository!),
-        act: (c) async =>
-            c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
+        act: (c) async => c.qrCodeCaptured(
+            mobile_scanner.BarcodeCapture(barcodes: [
               mobile_scanner.Barcode(
                   rawValue: profileUrl('Profile Sharer',
                           initialContacts[0].dhtSettings.myKeyPair.key)
                       .toString())
-            ])),
+            ]),
+            awaitDhtOperations: true),
         expect: () => [
               const ReceiveRequestState(ReceiveRequestStatus.processing),
               const TypeMatcher<ReceiveRequestState>()
@@ -203,15 +208,16 @@ void main() {
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
         'successful profile based offer qr scanning',
         build: () => ReceiveRequestCubit(contactsRepository!),
-        act: (c) async =>
-            c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
+        act: (c) async => c.qrCodeCaptured(
+            mobile_scanner.BarcodeCapture(barcodes: [
               mobile_scanner.Barcode(
                   rawValue: profileBasedOfferUrl(
                           'Offering Sharer',
                           _dummyDhtRecordKey(4),
                           initialContacts[0].dhtSettings.myKeyPair.key)
                       .toString())
-            ])),
+            ]),
+            awaitDhtOperations: true),
         expect: () => [
               const ReceiveRequestState(ReceiveRequestStatus.processing),
               const TypeMatcher<ReceiveRequestState>()

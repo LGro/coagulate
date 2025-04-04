@@ -77,7 +77,8 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
   void scanQrCode() =>
       emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
 
-  Future<void> qrCodeCaptured(BarcodeCapture capture) async {
+  Future<void> qrCodeCaptured(BarcodeCapture capture,
+      {bool awaitDhtOperations = false}) async {
     // Avoid duplicate calls, which apparently happen from the qr detect
     // callback and cause creation of multiple (e.g. 2) contacts
     if (state.status.isProcessing) {
@@ -104,13 +105,16 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
           continue;
         }
         if (path.first == 'c') {
-          return handleDirectSharing(url.fragment);
+          return handleDirectSharing(url.fragment,
+              awaitDhtOperations: awaitDhtOperations);
         }
         if (path.first == 'p') {
-          return handleProfileLink(url.fragment);
+          return handleProfileLink(url.fragment,
+              awaitDhtOperations: awaitDhtOperations);
         }
         if (path.first == 'o') {
-          return handleSharingOffer(url.fragment);
+          return handleSharingOffer(url.fragment,
+              awaitDhtOperations: awaitDhtOperations);
         }
         if (path.first == 'b') {
           return emit(state.copyWith(

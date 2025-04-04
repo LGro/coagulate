@@ -1,99 +1,308 @@
-// // Copyright 2024 The Coagulate Authors. All rights reserved.
-// // SPDX-License-Identifier: MPL-2.0
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 
-// import 'dart:convert';
+import 'dart:typed_data';
 
-// import 'package:bloc_test/bloc_test.dart';
-// import 'package:coagulate/data/models/coag_contact.dart';
-// import 'package:coagulate/data/repositories/contacts.dart';
-// import 'package:coagulate/ui/receive_request/cubit.dart';
-// import 'package:flutter/services.dart';
-// import 'package:flutter_contacts/flutter_contacts.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
+import 'package:bloc_test/bloc_test.dart';
+import 'package:coagulate/data/models/coag_contact.dart';
+import 'package:coagulate/data/repositories/contacts.dart';
+import 'package:coagulate/ui/receive_request/cubit.dart';
+import 'package:coagulate/ui/utils.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
+import 'package:veilid_support/veilid_support.dart';
 
-// import '../mocked_providers.dart';
+import '../mocked_providers.dart';
 
-// ContactsRepository _contactsRepositoryFromContacts(
-//         List<CoagContact> contacts) =>
-//     ContactsRepository(
-//         DummyPersistentStorage(
-//             contacts.asMap().map((_, v) => MapEntry(v.coagContactId, v))),
-//         DummyDistributedStorage(),
-//         DummySystemContacts([]));
+const appUserName = 'App User Name';
+
+TypedKeyPair _dummyTypedKeyPair(
+        [int pub = 0, int sec = 1]) =>
+    TypedKeyPair.fromKeyPair(
+        cryptoKindVLD0,
+        KeyPair(
+            key: FixedEncodedString43.fromBytes(
+                Uint8List.fromList(List.filled(32, pub))),
+            secret: FixedEncodedString43.fromBytes(
+                Uint8List.fromList(List.filled(32, sec)))));
+
+Typed<FixedEncodedString43> _dummyDhtRecordKey(int i) =>
+    Typed<FixedEncodedString43>(
+        kind: cryptoKindVLD0,
+        value: FixedEncodedString43.fromBytes(
+            Uint8List.fromList(List.filled(32, i))));
+
+FixedEncodedString43 _dummyPsk(int i) =>
+    FixedEncodedString43.fromBytes(Uint8List.fromList(List.filled(32, i)));
+
+ContactsRepository _contactsRepositoryFromContacts(
+        List<CoagContact> contacts) =>
+    ContactsRepository(
+        DummyPersistentStorage(
+            Map.fromEntries(contacts.map((c) => MapEntry(c.coagContactId, c)))),
+        DummyDistributedStorage(initialDht: {
+          _dummyDhtRecordKey(0): CoagContactDHTSchema(
+            details: const ContactDetails(names: {'0': 'DHT 0'}),
+            shareBackDHTKey: _dummyDhtRecordKey(9).toString(),
+            shareBackPubKey: _dummyTypedKeyPair(9, 9).key.toString(),
+          ),
+          _dummyDhtRecordKey(1): CoagContactDHTSchema(
+            details: const ContactDetails(names: {'1': 'DHT 1'}),
+            shareBackDHTKey: _dummyDhtRecordKey(8).toString(),
+            shareBackPubKey: _dummyTypedKeyPair(8, 8).key.toString(),
+          ),
+          _dummyDhtRecordKey(2): CoagContactDHTSchema(
+            details: const ContactDetails(names: {'2': 'DHT 2'}),
+            shareBackDHTKey: _dummyDhtRecordKey(8).toString(),
+            shareBackPubKey: _dummyTypedKeyPair(8, 8).key.toString(),
+          ),
+        }),
+        DummySystemContacts([]),
+        appUserName,
+        initialize: false,
+        generateTypedKeyPair: () async => _dummyTypedKeyPair());
 
 void main() {
-//   group('Test Cubit State Transitions', () {
-//     ContactsRepository? contactsRepository;
+  group('Test Cubit State Transitions', () {
+    ContactsRepository? contactsRepository;
 
-//     setUp(() {
-//       TestWidgetsFlutterBinding.ensureInitialized();
-//       contactsRepository = _contactsRepositoryFromContacts([
-//         const CoagContact(
-//             coagContactId: '1',
-//             details: ContactDetails(names: {'0': 'Existing Contact'}))
-//       ]);
-//     });
+    setUp(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      contactsRepository = _contactsRepositoryFromContacts([
+        CoagContact(
+            coagContactId: '2',
+            name: 'Existing Contact A',
+            dhtSettings: DhtSettings(myKeyPair: _dummyTypedKeyPair(2, 2))),
+        CoagContact(
+            coagContactId: '5',
+            name: 'Existing Contact B',
+            dhtSettings: DhtSettings(myKeyPair: _dummyTypedKeyPair(5, 5))),
+      ]);
+      await contactsRepository!.initialize();
+    });
 
-//     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
-//       'emits [] when nothing is called',
-//       build: () => ReceiveRequestCubit(contactsRepository!),
-//       expect: () => const <ReceiveRequestState>[],
-//     );
+    blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+      'emits no state changes when nothing is called',
+      build: () => ReceiveRequestCubit(contactsRepository!),
+      expect: () => const <ReceiveRequestState>[],
+    );
 
-//     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
-//       'emits qrcode state when non-coagulate code is scanned',
-//       build: () => ReceiveRequestCubit(contactsRepository!),
-//       act: (c) async => c.qrCodeCaptured(mobile_scanner.BarcodeCapture(
-//           barcodes: [
-//             const mobile_scanner.Barcode(rawValue: 'not.coag.social')
-//           ])),
-//       expect: () => const [
-//         ReceiveRequestState(ReceiveRequestStatus.processing),
-//         ReceiveRequestState(ReceiveRequestStatus.qrcode)
-//       ],
-//     );
+    blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+      'scan qr code',
+      build: () => ReceiveRequestCubit(contactsRepository!),
+      act: (c) async => c.scanQrCode(),
+      expect: () => const [ReceiveRequestState(ReceiveRequestStatus.qrcode)],
+    );
 
-//     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
-//       'scan request qr code',
-//       build: () => ReceiveRequestCubit(contactsRepository!),
-//       act: (c) async =>
-//           c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
-//         const mobile_scanner.Barcode(
-//             rawValue: 'https://coagulate.social#VLD0:key:psk:wri:ter')
-//       ])),
-//       expect: () => const [
-//         ReceiveRequestState(ReceiveRequestStatus.processing),
-//         ReceiveRequestState(ReceiveRequestStatus.receivedRequest,
-//             requestSettings: ContactDHTSettings(
-//                 key: 'VLD0:key', psk: 'psk', writer: 'wri:ter'))
-//       ],
-//     );
+    blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+      'emits qrcode state when non-coagulate code is scanned',
+      build: () => ReceiveRequestCubit(contactsRepository!),
+      act: (c) async => c.qrCodeCaptured(const mobile_scanner.BarcodeCapture(
+          barcodes: [mobile_scanner.Barcode(rawValue: 'not.coag.social')])),
+      expect: () => const [
+        ReceiveRequestState(ReceiveRequestStatus.processing),
+        ReceiveRequestState(ReceiveRequestStatus.qrcode),
+      ],
+    );
 
-//     blocTest<ReceiveRequestCubit, ReceiveRequestState>('scan sharing qr code',
-//         build: () => ReceiveRequestCubit(ContactsRepository(
-//             DummyPersistentStorage({}),
-//             DummyDistributedStorage(initialDht: {
-//               'VLD0:key': json.encode(const CoagContactDHTSchemaV1(
-//                       coagContactId: '',
-//                       details: ContactDetails(names: {'0': 'Existing Contact'}))
-//                   .toJson())
-//             }),
-//             DummySystemContacts([]))),
-//         act: (c) async => c.qrCodeCaptured(mobile_scanner.BarcodeCapture(
-//                 barcodes: [
-//                   const mobile_scanner.Barcode(
-//                       rawValue: 'https://coagulate.social#VLD0:key:psk')
-//                 ])),
-//         verify: (c) async {
-//           expect(c.state.status, ReceiveRequestStatus.receivedShare);
-//           expect(c.state.profile!.details!.displayName, 'From DHT');
-//           expect(c.state.profile!.dhtSettingsForReceiving,
-//               const ContactDHTSettings(key: 'VLD0:key', psk: 'psk'));
-//           expect(c.state.requestSettings,
-//               const ContactDHTSettings(key: 'VLD0:key', psk: 'psk'));
-//         });
+    blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+      'emits qrcode state when coagulate link is scanned but fragment missing',
+      build: () => ReceiveRequestCubit(contactsRepository!),
+      act: (c) async => c.qrCodeCaptured(const mobile_scanner.BarcodeCapture(
+          barcodes: [
+            mobile_scanner.Barcode(rawValue: 'https://coagulate.social/c/')
+          ])),
+      expect: () => const [
+        ReceiveRequestState(ReceiveRequestStatus.processing),
+        ReceiveRequestState(ReceiveRequestStatus.qrcode),
+      ],
+    );
 
+    blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+        'successful direct sharing qt scanning, no dht info available yet',
+        build: () => ReceiveRequestCubit(contactsRepository!),
+        act: (c) async =>
+            c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
+              mobile_scanner.Barcode(
+                  rawValue: directSharingUrl(
+                          'Direct Sharer', _dummyDhtRecordKey(4), _dummyPsk(5))
+                      .toString())
+            ])),
+        expect: () => [
+              const ReceiveRequestState(ReceiveRequestStatus.processing),
+              const TypeMatcher<ReceiveRequestState>()
+                  .having((s) => s.status.isSuccess, 'isSuccess', isTrue),
+            ],
+        verify: (c) {
+          // Check state
+          expect(c.state.status, ReceiveRequestStatus.success);
+          expect(c.state.profile!.name, 'Direct Sharer');
+          expect(c.state.profile!.dhtSettings.initialSecret, _dummyPsk(5));
+          expect(c.state.profile!.dhtSettings.recordKeyThemSharing,
+              _dummyDhtRecordKey(4));
+          expect(c.state.profile!.dhtSettings.recordKeyMeSharing, null);
+
+          // Check repo
+          expect(
+              c.contactsRepository
+                  .getContact(c.state.profile!.coagContactId)
+                  ?.name,
+              'Direct Sharer');
+          expect(
+              c.contactsRepository
+                  .getCirclesForContact(c.state.profile!.coagContactId),
+              contains(defaultEveryoneCircleId));
+        });
+
+    blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+        'direct sharing qr code, dht available',
+        build: () => ReceiveRequestCubit(contactsRepository!),
+        act: (c) async =>
+            c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
+              mobile_scanner.Barcode(
+                  rawValue: directSharingUrl(
+                          'Direct Sharer', _dummyDhtRecordKey(0), _dummyPsk(0))
+                      .toString())
+            ])),
+        expect: () => [
+              const ReceiveRequestState(ReceiveRequestStatus.processing),
+              const TypeMatcher<ReceiveRequestState>()
+                  .having((s) => s.status.isSuccess, 'isSuccess', isTrue),
+            ],
+        verify: (c) {
+          // Check state
+          expect(c.state.status, ReceiveRequestStatus.success);
+          expect(c.state.profile!.name, 'Direct Sharer');
+          expect(c.state.profile!.dhtSettings.initialSecret, _dummyPsk(0));
+          expect(c.state.profile!.dhtSettings.recordKeyThemSharing,
+              _dummyDhtRecordKey(0));
+          // Still null, but populated from DHT in the repo below
+          expect(c.state.profile!.dhtSettings.recordKeyMeSharing, isNull);
+
+          // Check repo
+          expect(
+              c.contactsRepository
+                  .getContact(c.state.profile!.coagContactId)
+                  ?.name,
+              'Direct Sharer');
+          expect(
+              c.contactsRepository
+                  .getCirclesForContact(c.state.profile!.coagContactId),
+              contains(defaultEveryoneCircleId));
+          expect(
+              c.contactsRepository
+                  .getContact(c.state.profile!.coagContactId)
+                  ?.dhtSettings
+                  .recordKeyMeSharing,
+              _dummyDhtRecordKey(9));
+        });
+
+    // blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+    //     'successful profile qr scanning',
+    //     build: () => ReceiveRequestCubit(contactsRepository!),
+    //     act: (c) async =>
+    //         c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
+    //           mobile_scanner.Barcode(
+    //               rawValue:
+    //                   profileUrl('Profile Sharer', _dummyTypedKeyPair(4, 4).key)
+    //                       .toString())
+    //         ])),
+    //     expect: () => [
+    //           const ReceiveRequestState(ReceiveRequestStatus.processing),
+    //           const TypeMatcher<ReceiveRequestState>()
+    //               .having((s) => s.status.isSuccess, 'isSuccess', isTrue),
+    //         ],
+    //     verify: (c) {
+    //       // Check state
+    //       expect(c.state.status, ReceiveRequestStatus.success);
+    //       expect(c.state.profile!.name, 'Profile Sharer');
+    //       expect(c.state.profile!.dhtSettings.theirPublicKey,
+    //           _dummyTypedKeyPair(4, 4).key);
+    //       expect(c.state.profile!.dhtSettings.initialSecret, isNull);
+    //       expect(c.state.profile!.dhtSettings.recordKeyThemSharing, isNotNull);
+    //       expect(c.state.profile!.dhtSettings.recordKeyMeSharing, isNotNull);
+
+    //       // Check repo
+    //       expect(
+    //           c.contactsRepository
+    //               .getContact(c.state.profile!.coagContactId)
+    //               ?.name,
+    //           'Profile Sharer');
+    //       expect(
+    //           c.contactsRepository
+    //               .getCirclesForContact(c.state.profile!.coagContactId),
+    //           contains(defaultEveryoneCircleId));
+    //     });
+
+    blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+        'successful profile based offer qr scanning',
+        build: () => ReceiveRequestCubit(contactsRepository!),
+        act: (c) async =>
+            c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
+              mobile_scanner.Barcode(
+                  rawValue: profileBasedOfferUrl('Offering Sharer',
+                          _dummyDhtRecordKey(4), _dummyTypedKeyPair(4, 4).key)
+                      .toString())
+            ])),
+        expect: () => [
+              const ReceiveRequestState(ReceiveRequestStatus.processing),
+              const TypeMatcher<ReceiveRequestState>()
+                  .having((s) => s.status.isSuccess, 'isSuccess', isTrue),
+            ],
+        verify: (c) {
+          // Check state
+          expect(c.state.status, ReceiveRequestStatus.success);
+          expect(c.state.profile!.name, 'Offering Sharer');
+          expect(c.state.profile!.dhtSettings.theirPublicKey,
+              _dummyTypedKeyPair(4, 4).key);
+          expect(c.state.profile!.dhtSettings.initialSecret, isNull);
+          expect(c.state.profile!.dhtSettings.recordKeyThemSharing,
+              _dummyDhtRecordKey(4));
+          expect(c.state.profile!.dhtSettings.recordKeyMeSharing, isNull);
+
+          // Check repo
+          expect(
+              c.contactsRepository
+                  .getContact(c.state.profile!.coagContactId)
+                  ?.name,
+              'Offering Sharer');
+          expect(
+              c.contactsRepository
+                  .getCirclesForContact(c.state.profile!.coagContactId),
+              contains(defaultEveryoneCircleId));
+        });
+
+    blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+      'batch invite qr scanning',
+      build: () => ReceiveRequestCubit(contactsRepository!),
+      act: (c) async =>
+          c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
+        mobile_scanner.Barcode(
+            rawValue: batchInviteUrl('Batch Label', _dummyDhtRecordKey(4),
+                    _dummyPsk(4), 4, _dummyTypedKeyPair(4, 4).toKeyPair())
+                .toString())
+      ])),
+      expect: () => [
+        const ReceiveRequestState(ReceiveRequestStatus.processing),
+        const TypeMatcher<ReceiveRequestState>().having(
+            (s) => s.status.isHandleBatchInvite, 'isHandleBatchInvite', isTrue),
+      ],
+    );
+
+    // blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+    //   'scan direct sharing qr code triggers matching state',
+    //   build: () => ReceiveRequestCubit(contactsRepository!),
+    //   act: (c) async =>
+    //       c.qrCodeCaptured(const mobile_scanner.BarcodeCapture(barcodes: [
+    //     mobile_scanner.Barcode(
+    //         rawValue: 'https://coagulate.social/c/#VLD0:key:psk:wri:ter')
+    //   ])),
+    //   expect: () => const [
+    //     ReceiveRequestState(ReceiveRequestStatus.processing),
+    //     ReceiveRequestState(ReceiveRequestStatus.handleDirectSharing),
+    //     ReceiveRequestState(ReceiveRequestStatus.success),
+    //   ],
+    // );
 //     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
 //         'create coagulate contact for request, no system contact access',
 //         setUp: () {
@@ -175,123 +384,5 @@ void main() {
 //               const ContactDHTSettings(
 //                   key: 'sharingOfferKey', psk: 'psk', writer: 'writer'));
 //         });
-
-//     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
-//         'link existing coagulate contact for a request for the user to share',
-//         build: () => ReceiveRequestCubit(ContactsRepository(
-//             DummyPersistentStorage({
-//               '1': CoagContact(
-//                   coagContactId: '1',
-//                   details: ContactDetails(
-//                       displayName: 'Existing Contact',
-//                       name: Name(first: 'Existing', last: 'Contact')))
-//             }),
-//             DummyDistributedStorage(),
-//             DummySystemContacts([
-//               Contact(
-//                   id: 'sysID0',
-//                   displayName: 'Recent Sys Profile Name',
-//                   name: Name(first: 'Profile'))
-//             ]),
-//             // Explicitly initialize during act to ensure it finished
-//             initialize: false)),
-//         seed: () => const ReceiveRequestState(
-//             ReceiveRequestStatus.receivedRequest,
-//             requestSettings: ContactDHTSettings(
-//                 key: 'requestedSharingKey', psk: 'psk', writer: 'writer')),
-//         act: (c) async {
-//           // Ensure profile contact is present, because it's required for
-//           //  fulfilling the request
-//           await c.contactsRepository.initialize();
-//           // Add profile contact only now to ensure fetching the most recent
-//           //  version happens also after initialize
-//           await c.contactsRepository.saveContact(CoagContact(
-//               coagContactId: '0',
-//               systemContact: Contact(
-//                   id: 'sysID0',
-//                   displayName: 'Profile Contact',
-//                   name: Name(first: 'Profile'))));
-//           await c.contactsRepository.updateProfileContact('0');
-//           // Link the request to share to an existing contact
-//           await c.linkExistingContactRequested('1');
-//         },
-//         verify: (c) {
-//           final dht = (c.contactsRepository.distributedStorage
-//                   as DummyDistributedStorage)
-//               .dht;
-//           expect(dht.length, 2);
-//           // The requested sharing key and a key auto generated for receiving
-//           expect(dht.keys.toSet(), {
-//             'requestedSharingKey',
-//             'VLD0:DUMMYwPaM1X1-d45IYDGLAAKQRpW2bf8cNKCIPNuW0M'
-//           });
-
-//           expect(c.state.profile?.coagContactId, '1');
-//           expect(c.state.profile?.dhtSettingsForReceiving?.key,
-//               'VLD0:DUMMYwPaM1X1-d45IYDGLAAKQRpW2bf8cNKCIPNuW0M');
-//           expect(c.state.profile?.dhtSettingsForSharing?.key,
-//               'requestedSharingKey');
-//           expect(
-//               c.state.profile?.details,
-//               ContactDetails(
-//                   displayName: 'Existing Contact',
-//                   name: Name(first: 'Existing', last: 'Contact')));
-//         });
-
-//     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
-//         'link existing coagulate contact to sharing offer',
-//         // Init with on existing contact and a DHT ready with one key
-//         build: () => ReceiveRequestCubit(ContactsRepository(
-//             DummyPersistentStorage({
-//               '1': CoagContact(
-//                   coagContactId: '1',
-//                   details: ContactDetails(
-//                       displayName: 'Existing Contact',
-//                       name: Name(first: 'Existing', last: 'Contact')))
-//             }),
-//             DummyDistributedStorage(initialDht: {
-//               'sharingOfferKey': json.encode(CoagContactDHTSchemaV1(
-//                       coagContactId: '',
-//                       details: ContactDetails(
-//                           displayName: 'From DHT',
-//                           name: Name(first: 'From', last: 'DHT')))
-//                   .toJson())
-//             }),
-//             DummySystemContacts([]),
-//             // Explicitly initialize during act to ensure it finished
-//             initialize: false)),
-//         // Seed with a contact offering to share via our prepared dht record
-//         seed: () => const ReceiveRequestState(
-//             ReceiveRequestStatus.receivedShare,
-//             requestSettings:
-//                 ContactDHTSettings(key: 'sharingOfferKey', psk: 'psk')),
-//         // Link the sharing offer to our one existing contact
-//         act: (c) async => c.contactsRepository
-//             .initialize()
-//             .then((_) => c.linkExistingContactSharing('1')),
-//         verify: (c) {
-//           // Verify that contact to contain the dht settings for receiving more
-//           //  updates as well as the details from the DHT
-//           expect(c.state.status, ReceiveRequestStatus.success);
-//           expect(c.state.profile?.coagContactId, '1');
-//           expect(c.state.profile?.dhtSettingsForReceiving,
-//               const ContactDHTSettings(key: 'sharingOfferKey', psk: 'psk'));
-//           expect(
-//               c.state.profile?.details,
-//               ContactDetails(
-//                   displayName: 'From DHT',
-//                   name: Name(first: 'From', last: 'DHT')));
-//           // Verify that this is also reflected in the repository with still only
-//           //  one contact
-//           expect(
-//               (c.contactsRepository.distributedStorage
-//                       as DummyDistributedStorage)
-//                   .dht
-//                   .length,
-//               1);
-//           final contacts = c.contactsRepository.getContacts();
-//           expect(contacts.length, 1);
-//           expect(contacts['1']?.details?.names.values.first, 'From DHT');
-//         });
-//   });
+  });
 }

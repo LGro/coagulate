@@ -30,7 +30,10 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http" android:host="coagulate.social" android:path="/en/c" />
+                <data android:scheme="http" android:host="coagulate.social" android:path="/c" />
+                <data android:scheme="http" android:host="coagulate.social" android:path="/p" />
+                <data android:scheme="http" android:host="coagulate.social" android:path="/o" />
+                <data android:scheme="http" android:host="coagulate.social" android:path="/b" />
                 <data android:scheme="https" />
             </intent-filter>
         </activity>
@@ -48,5 +51,6 @@
     <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
 </manifest>

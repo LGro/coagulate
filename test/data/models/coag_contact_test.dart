@@ -82,4 +82,26 @@ void main() {
         end: DateTime(2000).add(const Duration(days: 1)));
     expect(contact == copy, false);
   });
+
+  test('merge system contacts', () {
+    final merged = mergeSystemContacts(
+        Contact(id: 'sys', displayName: 'Sys Name', phones: [
+          Phone('1234-sys'),
+          Phone('0000-coag',
+              label: PhoneLabel.custom,
+              customLabel: 'old mansion $coagulateManagedLabelSuffix')
+        ]),
+        Contact(id: 'coag', displayName: 'Coag Name', phones: [
+          Phone('54321-coag', label: PhoneLabel.custom, customLabel: 'mansion')
+        ]));
+    expect(merged.id, 'sys');
+    expect(merged.displayName, 'Sys Name');
+    expect(merged.phones.length, 2,
+        reason: 'old mansion should be removed and mansion added '
+            'alongside existing system phone');
+    expect(merged.phones[0].number, '1234-sys');
+    expect(merged.phones[1].number, '54321-coag');
+    expect(
+        merged.phones[1].customLabel, 'mansion $coagulateManagedLabelSuffix');
+  });
 }

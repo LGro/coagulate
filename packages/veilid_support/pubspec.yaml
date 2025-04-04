@@ -14,7 +14,7 @@ dependencies:
   collection: ^1.18.0
   equatable: ^2.0.5
   fast_immutable_collections: ^10.2.3
-  freezed_annotation: ^2.4.1
+  freezed_annotation: ^3.0.0
   json_annotation: ^4.9.0
   loggy: ^2.0.3
   meta: ^1.12.0

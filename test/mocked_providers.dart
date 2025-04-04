@@ -1,218 +1,292 @@
-// // Copyright 2024 The Coagulate Authors. All rights reserved.
-// // SPDX-License-Identifier: MPL-2.0
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
 
-// import 'dart:async';
-// import 'dart:convert';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
 
-// import 'package:coagulate/data/models/coag_contact.dart';
-// import 'package:coagulate/data/models/contact_update.dart';
-// import 'package:coagulate/data/models/profile_sharing_settings.dart';
-// import 'package:coagulate/data/providers/distributed_storage/dht.dart';
-// import 'package:coagulate/data/providers/persistent_storage/base.dart';
-// import 'package:coagulate/data/providers/system_contacts/base.dart';
-// import 'package:coagulate/data/providers/system_contacts/system_contacts.dart';
-// import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-// import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:coagulate/data/models/batch_invites.dart';
+import 'package:coagulate/data/models/coag_contact.dart';
+import 'package:coagulate/data/models/contact_update.dart';
+import 'package:coagulate/data/models/profile_sharing_settings.dart';
+import 'package:coagulate/data/providers/distributed_storage/dht.dart';
+import 'package:coagulate/data/providers/persistent_storage/base.dart';
+import 'package:coagulate/data/providers/system_contacts/base.dart';
+import 'package:coagulate/data/providers/system_contacts/system_contacts.dart';
+import 'package:coagulate/data/repositories/contacts.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:veilid_support/veilid_support.dart';
 
-// class DummyPersistentStorage extends PersistentStorage {
-//   DummyPersistentStorage(this.contacts, {this.profileContactId});
+const dummyAppUserName = 'App User Name';
 
-//   Map<String, CoagContact> contacts;
-//   String? profileContactId;
-//   List<String> log = [];
-//   Map<String, String> circles = {};
-//   ProfileSharingSettings profileSharingSettings =
-//       const ProfileSharingSettings();
-//   Map<String, List<String>> circleMemberships = {};
-//   List<ContactUpdate> updates = [];
+Uint8List randomUint8List(int length) {
+  final random = Random.secure();
+  return Uint8List.fromList(List.generate(length, (_) => random.nextInt(256)));
+}
 
-//   @override
-//   Future<void> addUpdate(ContactUpdate update) async {
-//     log.add('addUpdate');
-//     updates.add(update);
-//   }
+Typed<FixedEncodedString43> dummyDhtRecordKey([int? i]) =>
+    Typed<FixedEncodedString43>(
+        kind: cryptoKindVLD0,
+        value: (i == null)
+            ? FixedEncodedString43.fromBytes(randomUint8List(32))
+            : FixedEncodedString43.fromBytes(
+                Uint8List.fromList(List.filled(32, i))));
 
-//   @override
-//   Future<Map<String, CoagContact>> getAllContacts() async {
-//     log.add('getAllContacts');
-//     return Future.value(contacts);
-//   }
+FixedEncodedString43 dummyPsk(int i) =>
+    FixedEncodedString43.fromBytes(Uint8List.fromList(List.filled(32, i)));
 
-//   @override
-//   Future<CoagContact> getContact(String coagContactId) async {
-//     log.add('getContact:$coagContactId');
-//     return Future.value(contacts[coagContactId]);
-//   }
+Future<ContactsRepository> contactsRepositoryFromContacts(
+        {required List<CoagContact> contacts,
+        required Map<Typed<FixedEncodedString43>, CoagContactDHTSchema?>
+            initialDht,
+        String appUserName = dummyAppUserName}) async =>
+    ContactsRepository(
+        DummyPersistentStorage(
+            Map.fromEntries(contacts.map((c) => MapEntry(c.coagContactId, c)))),
+        DummyDistributedStorage(initialDht: initialDht),
+        DummySystemContacts([]),
+        appUserName);
 
-//   @override
-//   Future<String?> getProfileContactId() async {
-//     log.add('getProfileContactId');
-//     return Future.value(profileContactId);
-//   }
+class DummyPersistentStorage extends PersistentStorage {
+  DummyPersistentStorage(this.contacts, {this.profileContactId});
 
-//   @override
-//   Future<List<ContactUpdate>> getUpdates() async {
-//     log.add('getUpdates');
-//     return Future.value([]);
-//   }
+  Map<String, CoagContact> contacts;
+  String? profileContactId;
+  List<String> log = [];
+  Map<String, String> circles = {};
+  ProfileSharingSettings profileSharingSettings =
+      const ProfileSharingSettings();
+  Map<String, List<String>> circleMemberships = {};
+  List<ContactUpdate> updates = [];
+  ProfileInfo? profileInfo;
+  List<BatchInvite> batches = [];
 
-//   @override
-//   Future<void> removeContact(String coagContactId) async {
-//     log.add('removeContact:$coagContactId');
-//     contacts.remove(coagContactId);
-//   }
+  @override
+  Future<void> addUpdate(ContactUpdate update) async {
+    log.add('addUpdate');
+    updates.add(update);
+  }
 
-//   @override
-//   Future<void> setProfileContactId(String profileContactId) async {
-//     log.add('setProfileContactId:$profileContactId');
-//     this.profileContactId = profileContactId;
-//   }
+  @override
+  Future<Map<String, CoagContact>> getAllContacts() async {
+    log.add('getAllContacts');
+    return contacts;
+  }
 
-//   @override
-//   Future<void> updateContact(CoagContact contact) async {
-//     log.add('updateContact:${contact.coagContactId}');
-//     contacts[contact.coagContactId] = contact;
-//   }
+  @override
+  Future<CoagContact> getContact(String coagContactId) async {
+    log.add('getContact:$coagContactId');
+    final c = contacts[coagContactId];
+    if (c == null) {
+      // TODO: handle error case more specifically
+      throw Exception('Contact ID $coagContactId could not be found');
+    }
+    return c;
+  }
 
-//   @override
-//   Future<Map<String, List<String>>> getCircleMemberships() async =>
-//       circleMemberships;
+  @override
+  Future<String?> getProfileContactId() async {
+    log.add('getProfileContactId');
+    return profileContactId;
+  }
 
-//   @override
-//   Future<Map<String, String>> getCircles() async => circles;
+  @override
+  Future<List<ContactUpdate>> getUpdates() async {
+    log.add('getUpdates');
+    return [];
+  }
 
-//   @override
-//   Future<ProfileSharingSettings> getProfileSharingSettings() async =>
-//       profileSharingSettings;
+  @override
+  Future<void> removeContact(String coagContactId) async {
+    log.add('removeContact:$coagContactId');
+    contacts.remove(coagContactId);
+  }
 
-//   @override
-//   Future<void> updateCircleMemberships(
-//       Map<String, List<String>> circleMemberships) async {
-//     log.add('updateCircleMemberships');
-//     this.circleMemberships = circleMemberships;
-//   }
+  @override
+  Future<void> setProfileContactId(String profileContactId) async {
+    log.add('setProfileContactId:$profileContactId');
+    this.profileContactId = profileContactId;
+  }
 
-//   @override
-//   Future<void> updateCircles(Map<String, String> circles) async {
-//     log.add('updateCircles');
-//     this.circles = circles;
-//   }
+  @override
+  Future<void> updateContact(CoagContact contact) async {
+    log.add('updateContact:${contact.coagContactId}');
+    contacts[contact.coagContactId] = contact;
+  }
 
-//   @override
-//   Future<void> updateProfileSharingSettings(
-//       ProfileSharingSettings settings) async {
-//     log.add('updateProfileSharingSettings');
-//     profileSharingSettings = settings;
-//   }
+  @override
+  Future<Map<String, List<String>>> getCircleMemberships() async =>
+      circleMemberships;
 
-//   @override
-//   Future<void> removeProfileContactId() async {
-//     profileContactId = null;
-//   }
-// }
+  @override
+  Future<Map<String, String>> getCircles() async => circles;
 
-// class DummyDistributedStorage extends VeilidDhtStorage {
-//   DummyDistributedStorage({Map<String, String>? initialDht}) {
-//     if (initialDht != null) {
-//       dht = initialDht;
-//     }
-//   }
-//   List<String> log = [];
-//   Map<String, String> dht = {};
-//   Map<String, Future<void> Function(String key)> watchedRecords = {};
+  @override
+  Future<void> updateCircleMemberships(
+      Map<String, List<String>> circleMemberships) async {
+    log.add('updateCircleMemberships');
+    this.circleMemberships = circleMemberships;
+  }
 
-//   @override
-//   Future<(String, String)> createRecord() async {
-//     log.add('createDHTRecord');
-//     return ('VLD0:DUMMYwPaM1X1-d45IYDGLAAKQRpW2bf8cNKCIPNuW0M', 'writer');
-//   }
+  @override
+  Future<void> updateCircles(Map<String, String> circles) async {
+    log.add('updateCircles');
+    this.circles = circles;
+  }
 
-//   @override
-//   Future<String> readRecord(
-//       {required String recordKey,
-//       String? psk,
-//       String? keyPair,
-//       int maxRetries = 3}) async {
-//     log.add('readRecord:$recordKey:${psk ?? keyPair}');
-//     return dht[recordKey]!;
-//   }
+  @override
+  Future<void> removeProfileContactId() async {
+    profileContactId = null;
+  }
 
-//   @override
-//   Future<CoagContact> updateContact(CoagContact contact, String appUserKeyPair,
-//       {Future<String> Function()? pskGenerator}) {
-//     log.add('updateContact:${contact.coagContactId}:$appUserKeyPair');
-//     return super.updateContact(contact, appUserKeyPair);
-//   }
+  @override
+  Future<void> addBatch(BatchInvite batch) async {
+    batches.add(batch);
+  }
 
-//   @override
-//   Future<void> updateRecord(
-//       {required String key,
-//       required String writer,
-//       required String content,
-//       String? publicKey,
-//       String? psk}) async {
-//     log.add('updateRecord:$key');
-//     dht[key] = content;
-//   }
+  @override
+  Future<List<BatchInvite>> getBatches() async => batches;
 
-//   @override
-//   Future<void> watchRecord(
-//       String key, Future<void> Function(String key) onNetworkUpdate) async {
-//     log.add('watchRecord:$key');
-//     // TODO: Also call the updates when updates happen
-//     watchedRecords[key] = onNetworkUpdate;
-//   }
-// }
+  @override
+  Future<ProfileInfo?> getProfileInfo() async => profileInfo;
 
-// class DummySystemContacts extends SystemContactsBase {
-//   DummySystemContacts(this.contacts, {this.permissionGranted = true});
+  @override
+  Future<void> updateProfileInfo(ProfileInfo info) async {
+    profileInfo = info;
+  }
+}
 
-//   List<Contact> contacts;
-//   List<String> log = [];
-//   bool permissionGranted;
+class DummyDistributedStorage extends VeilidDhtStorage {
+  DummyDistributedStorage(
+      {Map<Typed<FixedEncodedString43>, CoagContactDHTSchema?>? initialDht,
+      this.transparent = false}) {
+    if (initialDht != null) {
+      dht = {...initialDht};
+    }
+  }
+  final bool transparent;
+  List<String> log = [];
+  Map<Typed<FixedEncodedString43>, CoagContactDHTSchema?> dht = {};
+  Map<Typed<FixedEncodedString43>,
+          Future<void> Function(Typed<FixedEncodedString43> key)>
+      watchedRecords = {};
 
-//   @override
-//   Future<Contact> getContact(String id) async {
-//     if (!permissionGranted) {
-//       throw MissingSystemContactsPermissionError();
-//     }
-//     log.add('getContact:$id');
-//     return Future.value(contacts.where((c) => c.id == id).first);
-//   }
+  @override
+  Future<(Typed<FixedEncodedString43>, KeyPair)> createRecord(
+      {String? writer}) async {
+    log.add('createDHTRecord');
+    if (transparent) {
+      final recordAndWriter = await super.createRecord(writer: writer);
+      dht[recordAndWriter.$1] = null;
+      return recordAndWriter;
+    }
+    final recordKey = dummyDhtRecordKey();
+    dht[recordKey] = null;
+    return (
+      recordKey,
+      await generateTypedKeyPairBest().then((tkp) => tkp.toKeyPair())
+    );
+  }
 
-//   @override
-//   Future<List<Contact>> getContacts() async {
-//     if (!permissionGranted) {
-//       throw MissingSystemContactsPermissionError();
-//     }
-//     log.add('getContacts');
-//     return Future.value(contacts);
-//   }
+  @override
+  Future<(String?, Uint8List?)> readRecord(
+      {required Typed<FixedEncodedString43> recordKey,
+      required TypedKeyPair keyPair,
+      FixedEncodedString43? psk,
+      PublicKey? publicKey,
+      int maxRetries = 3,
+      DHTRecordRefreshMode refreshMode = DHTRecordRefreshMode.network}) async {
+    if (transparent) {
+      return super.readRecord(
+          recordKey: recordKey,
+          keyPair: keyPair,
+          psk: psk,
+          publicKey: publicKey,
+          maxRetries: maxRetries,
+          refreshMode: DHTRecordRefreshMode.local);
+    }
+    return (jsonEncode(dht[recordKey]?.toJson()), null);
+  }
 
-//   @override
-//   Future<Contact> updateContact(Contact contact) {
-//     if (!permissionGranted) {
-//       throw MissingSystemContactsPermissionError();
-//     }
-//     log.add('updateContact:${json.encode(contact.toJson())}');
-//     if (contacts.where((c) => c.id == contact.id).isNotEmpty) {
-//       contacts =
-//           contacts.map((c) => (c.id == contact.id) ? contact : c).asList();
-//     } else {
-//       contacts.add(contact);
-//     }
-//     return Future.value(contact);
-//   }
+  @override
+  Future<void> updateRecord(
+      CoagContactDHTSchema? sharedProfile, DhtSettings settings) async {
+    if (settings.recordKeyMeSharing == null ||
+        settings.writerMeSharing == null) {
+      return;
+    }
+    log.add('updateRecord:${settings.recordKeyMeSharing}');
+    dht[settings.recordKeyMeSharing!] = sharedProfile;
+    if (transparent) {
+      return super.updateRecord(sharedProfile, settings);
+    }
+  }
 
-//   @override
-//   Future<Contact> insertContact(Contact contact) {
-//     if (!permissionGranted) {
-//       throw MissingSystemContactsPermissionError();
-//     }
-//     contacts.add(contact);
-//     return Future.value(contact);
-//   }
+  @override
+  Future<void> watchRecord(
+      Typed<FixedEncodedString43> key,
+      Future<void> Function(Typed<FixedEncodedString43> key)
+          onNetworkUpdate) async {
+    log.add('watchRecord:$key');
+    if (transparent) {
+      return super.watchRecord(key, onNetworkUpdate);
+    }
+    // TODO: Also call the updates when updates happen
+    watchedRecords[key] = onNetworkUpdate;
+  }
+}
 
-//   @override
-//   Future<bool> requestPermission() async => permissionGranted;
-// }
+class DummySystemContacts extends SystemContactsBase {
+  DummySystemContacts(this.contacts, {this.permissionGranted = true});
+
+  List<Contact> contacts;
+  List<String> log = [];
+  bool permissionGranted;
+
+  @override
+  Future<Contact> getContact(String id) async {
+    if (!permissionGranted) {
+      throw MissingSystemContactsPermissionError();
+    }
+    log.add('getContact:$id');
+    return Future.value(contacts.where((c) => c.id == id).first);
+  }
+
+  @override
+  Future<List<Contact>> getContacts() async {
+    if (!permissionGranted) {
+      throw MissingSystemContactsPermissionError();
+    }
+    log.add('getContacts');
+    return Future.value(contacts);
+  }
+
+  @override
+  Future<Contact> updateContact(Contact contact) {
+    if (!permissionGranted) {
+      throw MissingSystemContactsPermissionError();
+    }
+    log.add('updateContact:${json.encode(contact.toJson())}');
+    if (contacts.where((c) => c.id == contact.id).isNotEmpty) {
+      contacts =
+          contacts.map((c) => (c.id == contact.id) ? contact : c).asList();
+    } else {
+      contacts.add(contact);
+    }
+    return Future.value(contact);
+  }
+
+  @override
+  Future<Contact> insertContact(Contact contact) {
+    if (!permissionGranted) {
+      throw MissingSystemContactsPermissionError();
+    }
+    contacts.add(contact);
+    return Future.value(contact);
+  }
+
+  @override
+  Future<bool> requestPermission() async => permissionGranted;
+}

@@ -695,11 +695,7 @@ class ContactsRepository {
         coagContactId: Uuid().v4(),
         name: name,
         dhtSettings: DhtSettings(
-            myKeyPair: await DHTRecordPool.instance.veilid
-                .bestCryptoSystem()
-                .then((cs) => cs
-                    .generateKeyPair()
-                    .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp))),
+            myKeyPair: await generateTypedKeyPair(),
             // If we already have a pubkey, consider the handshake complete
             theyAckHandshakeComplete: pubKey != null));
     await saveContact(contact);

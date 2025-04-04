@@ -5,7 +5,7 @@ import 'dart:typed_data';
 
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_location.dart';
-import 'package:coagulate/ui/updates/page.dart';
+import 'package:coagulate/ui/utils.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:veilid/veilid.dart';
@@ -18,7 +18,7 @@ final dummyKeyPair = TypedKeyPair(
 
 void main() {
   test('compare contact details no difference', () {
-    final result = compareContacts(
+    final result = contactUpdateSummary(
         CoagContact(
             coagContactId: '',
             name: 'name',
@@ -35,7 +35,7 @@ void main() {
   });
 
   test('compare contact details different emails', () {
-    final result = compareContacts(
+    final result = contactUpdateSummary(
         CoagContact(
             coagContactId: '',
             name: 'name',
@@ -52,7 +52,7 @@ void main() {
   });
 
   test('compare contact details different names', () {
-    final result = compareContacts(
+    final result = contactUpdateSummary(
         CoagContact(
             coagContactId: '',
             name: 'name',
@@ -67,7 +67,7 @@ void main() {
   });
 
   test('compare contact details different names and phones', () {
-    final result = compareContacts(
+    final result = contactUpdateSummary(
         CoagContact(
             coagContactId: '',
             name: 'name',
@@ -90,7 +90,7 @@ void main() {
   });
 
   test('compare contact  same locations', () {
-    final result = compareContacts(
+    final result = contactUpdateSummary(
         CoagContact(
           coagContactId: '',
           name: 'name',
@@ -123,7 +123,7 @@ void main() {
   });
 
   test('compare contact updated location', () {
-    final result = compareContacts(
+    final result = contactUpdateSummary(
         CoagContact(
           coagContactId: '',
           name: 'name',
@@ -156,7 +156,7 @@ void main() {
   });
 
   test('compare contact different locations', () {
-    final result = compareContacts(
+    final result = contactUpdateSummary(
         CoagContact(
           coagContactId: '',
           name: 'name',
@@ -189,7 +189,7 @@ void main() {
   });
 
   test('compare contact different but outdated locations', () {
-    final result = compareContacts(
+    final result = contactUpdateSummary(
         CoagContact(
             coagContactId: '',
             name: 'name',
@@ -212,7 +212,7 @@ void main() {
   });
 
   test('compare contact details different pictures', () {
-    final result = compareContacts(
+    final result = contactUpdateSummary(
         CoagContact(
           coagContactId: '',
           name: 'name',
