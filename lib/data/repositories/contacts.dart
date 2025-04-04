@@ -568,6 +568,13 @@ class ContactsRepository {
 
   //////////////////
   // SYSTEM CONTACTS
+
+  Set<String> getAllLinkedSystemContactIds() => getContacts()
+      .values
+      .map((c) => c.systemContactId)
+      .whereType<String>()
+      .toSet();
+
   Future<void> updateSystemContact(String coagContactId) async {
     final contact = getContact(coagContactId);
     if (contact?.systemContactId == null) {
@@ -579,12 +586,18 @@ class ContactsRepository {
       return;
     }
 
-    final systemContact =
-        await FlutterContacts.getContact(contact!.systemContactId!);
+    final systemContact = await FlutterContacts.getContact(
+        contact!.systemContactId!,
+        withAccounts: true,
+        withGroups: true);
     if (systemContact == null) {
       // TODO: Is there a better way to remove it?
-      final contactJson = contact.toJson()..remove('systemContactId');
+      final contactJson = contact.toJson()..remove('system_contact_id');
       await saveContact(CoagContact.fromJson(contactJson));
+      return;
+    }
+
+    if (contact.details == null) {
       return;
     }
 

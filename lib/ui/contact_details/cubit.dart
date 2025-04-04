@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/src/widgets/framework.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -68,6 +69,15 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
 
   Future<void> delete(String coagContactId) async =>
       contactsRepository.removeContact(coagContactId);
+
+  Future<void> unlinkFromSystemContact() async =>
+      (state.contact?.systemContactId == null)
+          ? null
+          : contactsRepository
+              .saveContact(state.contact!.copyWith(
+                  systemContactId: 'coag-non-existing-id-to-trigger-drop'))
+              .then((_) => contactsRepository
+                  .updateSystemContact(state.contact!.coagContactId));
 
   // TODO: This takes looong, can we speed it up?
   Future<bool> refresh() async {

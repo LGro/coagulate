@@ -663,43 +663,33 @@ T addCoagulateLabel<T>(T detail) {
   return detail;
 }
 
-Contact mergeSystemContacts(Contact system, Contact coagulate) => Contact(
-      id: system.id,
-      // TODO: Figure out what to do about the display name
-      displayName: system.displayName,
-      thumbnail: system.thumbnail,
-      photo: system.photo,
-      isStarred: system.isStarred,
-      name: system.name,
-      organizations: system.organizations,
-      accounts: system.accounts,
-      groups: system.groups,
-      phones: [
-        ...system.phones.where(filterNotCoagulateLabel),
-        ...coagulate.phones.map(addCoagulateLabel)
-      ],
-      emails: [
-        ...system.emails.where(filterNotCoagulateLabel),
-        ...coagulate.emails.map(addCoagulateLabel)
-      ],
-      addresses: [
-        ...system.addresses.where(filterNotCoagulateLabel),
-        ...coagulate.addresses.map(addCoagulateLabel)
-      ],
-      websites: [
-        ...system.websites.where(filterNotCoagulateLabel),
-        ...coagulate.websites.map(addCoagulateLabel)
-      ],
-      socialMedias: [
-        ...system.socialMedias.where(filterNotCoagulateLabel),
-        ...coagulate.socialMedias.map(addCoagulateLabel)
-      ],
-      events: [
-        ...system.events.where(filterNotCoagulateLabel),
-        ...coagulate.events.map(addCoagulateLabel)
-      ],
-      notes: [
-        ...system.notes.where(filterNotCoagulateLabel),
-        ...coagulate.notes.map(addCoagulateLabel)
-      ],
-    );
+// TODO: Figure out what to do about the (display) name
+Contact mergeSystemContacts(Contact system, Contact coagulate) => system
+  ..phones = [
+    ...system.phones.where(filterNotCoagulateLabel),
+    ...coagulate.phones.map(addCoagulateLabel)
+  ]
+  ..emails = [
+    ...system.emails.where(filterNotCoagulateLabel),
+    ...coagulate.emails.map(addCoagulateLabel)
+  ]
+  ..addresses = [
+    ...system.addresses.where(filterNotCoagulateLabel),
+    ...coagulate.addresses.map(addCoagulateLabel)
+  ]
+  ..websites = [
+    ...system.websites.where(filterNotCoagulateLabel),
+    ...coagulate.websites.map(addCoagulateLabel)
+  ]
+  ..socialMedias = [
+    ...system.socialMedias.where(filterNotCoagulateLabel),
+    ...coagulate.socialMedias.map(addCoagulateLabel)
+  ]
+  ..events = [
+    ...system.events.where(filterNotCoagulateLabel),
+    ...coagulate.events.map(addCoagulateLabel)
+  ]
+  ..notes = [
+    ...system.notes.where(filterNotCoagulateLabel),
+    ...coagulate.notes.map(addCoagulateLabel)
+  ];

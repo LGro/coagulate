@@ -4,6 +4,7 @@
 import 'dart:math';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,6 +25,7 @@ import '../widgets/circles/widget.dart';
 import '../widgets/dht_status/widget.dart';
 import '../widgets/veilid_status/widget.dart';
 import 'cubit.dart';
+import 'link_to_system_contact/page.dart';
 
 String _shorten(String str) => str.substring(0, min(10, str.length));
 
@@ -73,6 +75,18 @@ class _ContactPageState extends State<ContactPage> {
       TextEditingController();
 
   var _isEditingName = false;
+  var _dummyToTriggerRebuild = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Trigger a rebuild to make sure that when we edited the name of a contact
+    // it shows up in the list up-to-date
+    setState(() {
+      _dummyToTriggerRebuild = _dummyToTriggerRebuild + 1;
+    });
+  }
 
   @override
   Widget build(BuildContext context) => MultiBlocProvider(
@@ -193,17 +207,34 @@ class _ContactPageState extends State<ContactPage> {
               maxLines: 4,
             )),
 
-        const SizedBox(height: 16),
-        // TODO: Display the shared contacts (summary) instead
-        if (contact.theirPersonalUniqueId == null)
-          const Text('They do not share information about contacts they know.'),
-        if (contact.theirPersonalUniqueId != null)
-          Text('They are connected with at least '
-              '${contact.knownPersonalContactIds.length} other folks on '
-              'Coagulate'),
+        // TODO: Display note about which contact is linked?
+        Padding(
+          padding: const EdgeInsets.only(left: 16, top: 12, right: 16),
+          child: (contact.systemContactId == null)
+              ? FilledButton.tonal(
+                  onPressed: () async => Navigator.of(context).push(
+                      MaterialPageRoute<LinkToSystemContactPage>(
+                          builder: (_) => LinkToSystemContactPage(
+                              coagContactId: contact.coagContactId))),
+                  child: const Text('Link to address book contact'))
+              : FilledButton.tonal(
+                  onPressed: () async => context
+                      .read<ContactDetailsCubit>()
+                      .unlinkFromSystemContact(),
+                  child: const Text('Unlink from address book contact')),
+        ),
 
+        // TODO: Display the shared contacts (summary) instead
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: (contact.theirPersonalUniqueId == null)
+              ? const Text(
+                  'They do not share information about contacts they know.')
+              : Text('They are connected with at least '
+                  '${contact.knownPersonalContactIds.length} other folks on '
+                  'Coagulate'),
+        ),
         // Delete contact
-        const SizedBox(height: 16),
         Center(
             child: TextButton(
                 onPressed: () async => context
@@ -221,50 +252,50 @@ class _ContactPageState extends State<ContactPage> {
                       TextStyle(color: Theme.of(context).colorScheme.onError),
                 ))),
 
-        // if (!kReleaseMode)
         // Debug output about update timestamps and receive / share DHT records
-        Column(children: [
-          const SizedBox(height: 16),
-          const Text('Developer debug information',
-              textScaler: TextScaler.linear(1.2)),
-          const SizedBox(height: 8),
-          const VeilidStatusWidget(statusWidgets: {}),
-          const SizedBox(height: 8),
-          if (contact.dhtSettings.recordKeyMeSharing != null)
-            DhtStatusWidget(
-              recordKey: contact.dhtSettings.recordKeyMeSharing!,
-              statusWidgets: const {},
-            ),
-          if (contact.dhtSettings.recordKeyThemSharing != null)
-            DhtStatusWidget(
-              recordKey: contact.dhtSettings.recordKeyThemSharing!,
-              statusWidgets: const {},
-            ),
-          const SizedBox(height: 8),
-          Text('Updated: ${contact.mostRecentUpdate}'),
-          Text('Changed: ${contact.mostRecentChange}'),
-          _paddedDivider(),
-          Text(
-              'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair.key.toString())}...'),
-          if (contact.dhtSettings.recordKeyMeSharing != null)
+        if (!kReleaseMode)
+          Column(children: [
+            const SizedBox(height: 16),
+            const Text('Developer debug information',
+                textScaler: TextScaler.linear(1.2)),
+            const SizedBox(height: 8),
+            const VeilidStatusWidget(statusWidgets: {}),
+            const SizedBox(height: 8),
+            if (contact.dhtSettings.recordKeyMeSharing != null)
+              DhtStatusWidget(
+                recordKey: contact.dhtSettings.recordKeyMeSharing!,
+                statusWidgets: const {},
+              ),
+            if (contact.dhtSettings.recordKeyThemSharing != null)
+              DhtStatusWidget(
+                recordKey: contact.dhtSettings.recordKeyThemSharing!,
+                statusWidgets: const {},
+              ),
+            const SizedBox(height: 8),
+            Text('Updated: ${contact.mostRecentUpdate}'),
+            Text('Changed: ${contact.mostRecentChange}'),
+            _paddedDivider(),
             Text(
-                'MeDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
-          if (contact.dhtSettings.theirPublicKey != null)
-            Text(
-                'ThemPubKey: ${_shorten(contact.dhtSettings.theirPublicKey.toString())}...'),
-          if (contact.dhtSettings.recordKeyThemSharing != null)
-            Text(
-                'ThemDhtKey: ${_shorten(contact.dhtSettings.recordKeyThemSharing.toString())}...'),
-          if (contact.dhtSettings.initialSecret != null)
-            Text(
-                'InitSec: ${_shorten(contact.dhtSettings.initialSecret.toString())}...'),
-          const SizedBox(height: 16),
-        ]),
+                'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair.key.toString())}...'),
+            if (contact.dhtSettings.recordKeyMeSharing != null)
+              Text(
+                  'MeDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
+            if (contact.dhtSettings.theirPublicKey != null)
+              Text(
+                  'ThemPubKey: ${_shorten(contact.dhtSettings.theirPublicKey.toString())}...'),
+            if (contact.dhtSettings.recordKeyThemSharing != null)
+              Text(
+                  'ThemDhtKey: ${_shorten(contact.dhtSettings.recordKeyThemSharing.toString())}...'),
+            if (contact.dhtSettings.initialSecret != null)
+              Text(
+                  'InitSec: ${_shorten(contact.dhtSettings.initialSecret.toString())}...'),
+            const SizedBox(height: 16),
+          ]),
       ]));
 }
 
-void _launchUrl(String url) async {
-  Uri uri = Uri.parse(url);
+Future<void> _launchUrl(String url) async {
+  final uri = Uri.parse(url);
   try {
     final success = await launchUrl(uri);
   } on PlatformException {

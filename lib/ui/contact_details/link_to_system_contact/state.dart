@@ -13,11 +13,14 @@ extension LinkToSystemContactStatusX on LinkToSystemContactStatus {
 
 @JsonSerializable()
 final class LinkToSystemContactState extends Equatable {
-  const LinkToSystemContactState(
-      {this.status = LinkToSystemContactStatus.initial,
-      this.contact,
-      this.contacts = const [],
-      this.permissionGranted = false});
+  const LinkToSystemContactState({
+    this.status = LinkToSystemContactStatus.initial,
+    this.contact,
+    this.contacts = const [],
+    this.accounts = const {},
+    this.permissionGranted = false,
+    this.selectedAccount,
+  });
 
   factory LinkToSystemContactState.fromJson(Map<String, dynamic> json) =>
       _$LinkToSystemContactStateFromJson(json);
@@ -26,6 +29,8 @@ final class LinkToSystemContactState extends Equatable {
   final bool permissionGranted;
   final CoagContact? contact;
   final List<Contact> contacts;
+  final Set<Account> accounts;
+  final Account? selectedAccount;
 
   Map<String, dynamic> toJson() => _$LinkToSystemContactStateToJson(this);
 
@@ -34,14 +39,19 @@ final class LinkToSystemContactState extends Equatable {
     bool? permissionGranted,
     CoagContact? contact,
     List<Contact>? contacts,
+    Set<Account>? accounts,
+    Account? selectedAccount,
   }) =>
       LinkToSystemContactState(
         status: status ?? this.status,
         permissionGranted: permissionGranted ?? this.permissionGranted,
         contact: contact ?? this.contact?.copyWith(),
         contacts: contacts ?? [...this.contacts],
+        accounts: accounts ?? {...this.accounts},
+        selectedAccount: selectedAccount ?? selectedAccount,
       );
 
   @override
-  List<Object?> get props => [status, permissionGranted, contact, contacts];
+  List<Object?> get props =>
+      [status, permissionGranted, accounts, selectedAccount, contact, contacts];
 }

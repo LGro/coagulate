@@ -7,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/contacts.dart';
 import '../circle_details/page.dart';
 import '../contact_details/page.dart';
-import '../contact_list/page.dart';
 import '../widgets/scan_qr_code.dart';
 import 'cubit.dart';
 
@@ -57,38 +56,36 @@ class _ReceivedBatchInviteWidgetState extends State<ReceivedBatchInviteWidget> {
                       const Text('Pick the name you want to share with others. '
                           'You can select more information to share later.'),
                       const SizedBox(height: 16),
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            DropdownMenu<String>(
-                              initialSelection: _selectedNameId,
-                              // requestFocusOnTap is enabled/disabled by platforms when it is null.
-                              // On mobile platforms, this is false by default. Setting this to true will
-                              // trigger focus request on the text field and virtual keyboard will appear
-                              // afterward. On desktop platforms however, this defaults to true.
-                              requestFocusOnTap: false,
-                              label: const Text('Name'),
-                              onSelected: (nameId) {
-                                setState(() {
-                                  _selectedNameId = nameId;
-                                });
-                              },
-                              dropdownMenuEntries: widget.names.entries
-                                  .map((e) => DropdownMenuEntry(
-                                      label: e.value, value: e.key))
-                                  .toList(),
-                            ),
-                            const SizedBox(width: 16),
-                            // TODO: This also needs state to react to changes in selection
-                            FilledButton(
-                                onPressed: (_selectedNameId == null)
-                                    ? null
-                                    : () async => context
-                                        .read<ReceiveRequestCubit>()
-                                        .handleBatchInvite(
-                                            myNameId: _selectedNameId!),
-                                child: const Text('Accept')),
-                          ])
+                      Row(children: [
+                        DropdownMenu<String>(
+                          initialSelection: _selectedNameId,
+                          // requestFocusOnTap is enabled/disabled by platforms when it is null.
+                          // On mobile platforms, this is false by default. Setting this to true will
+                          // trigger focus request on the text field and virtual keyboard will appear
+                          // afterward. On desktop platforms however, this defaults to true.
+                          requestFocusOnTap: false,
+                          label: const Text('Name'),
+                          onSelected: (nameId) {
+                            setState(() {
+                              _selectedNameId = nameId;
+                            });
+                          },
+                          dropdownMenuEntries: widget.names.entries
+                              .map((e) => DropdownMenuEntry(
+                                  label: e.value, value: e.key))
+                              .toList(),
+                        ),
+                        const SizedBox(width: 16),
+                        // TODO: This also needs state to react to changes in selection
+                        FilledButton(
+                            onPressed: (_selectedNameId == null)
+                                ? null
+                                : () async => context
+                                    .read<ReceiveRequestCubit>()
+                                    .handleBatchInvite(
+                                        myNameId: _selectedNameId!),
+                            child: const Text('Accept')),
+                      ])
                     ]))),
       );
 }
@@ -151,40 +148,43 @@ class ReceiveRequestPage extends StatelessWidget {
           case ReceiveRequestStatus.qrcode:
             return Scaffold(
               appBar: AppBar(title: const Text('Accept personal invite')),
-              body: Padding(
-                padding: EdgeInsets.only(
-                    top: 16,
-                    left: MediaQuery.sizeOf(context).width * 0.1,
-                    right: MediaQuery.sizeOf(context).width * 0.1),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // TODO: Instructions / re-request access if denied previously
-                    const Text('Scan QR code:'),
-                    const SizedBox(height: 8),
-                    Align(
-                        alignment: Alignment.center,
-                        child: SizedBox.square(
-                            dimension: MediaQuery.sizeOf(context).width * 0.8,
-                            child: BarcodeScannerPageView(
-                                onDetectCallback: context
-                                    .read<ReceiveRequestCubit>()
-                                    .qrCodeCaptured))),
-                    const SizedBox(height: 8),
-                    const Text(
-                        'Scan only QR codes that were specifically generated for you.'),
-                    const SizedBox(height: 32),
-                    const Text(
-                        'Or if you have copied an invite to your clipboard:'),
-                    const SizedBox(height: 8),
-                    FilledButton(
-                        onPressed:
-                            context.read<ReceiveRequestCubit>().pasteInvite,
-                        child: const Text('Paste invite')),
-                    const SizedBox(height: 8),
-                    const Text(
-                        'Only paste invites that were specifically generated for you.'),
-                  ],
+              body: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      top: 16,
+                      left: MediaQuery.sizeOf(context).width * 0.1,
+                      right: MediaQuery.sizeOf(context).width * 0.1),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // TODO: Instructions / re-request access if denied previously
+                      const Text('Scan QR code:'),
+                      const SizedBox(height: 8),
+                      Align(
+                          alignment: Alignment.center,
+                          child: SizedBox.square(
+                              dimension: MediaQuery.sizeOf(context).width * 0.8,
+                              child: BarcodeScannerPageView(
+                                  onDetectCallback: context
+                                      .read<ReceiveRequestCubit>()
+                                      .qrCodeCaptured))),
+                      const SizedBox(height: 8),
+                      const Text(
+                          'Scan only QR codes that were specifically generated for you.'),
+                      const SizedBox(height: 32),
+                      const Text(
+                          'Or if you have copied an invite to your clipboard:'),
+                      const SizedBox(height: 8),
+                      FilledButton(
+                          onPressed:
+                              context.read<ReceiveRequestCubit>().pasteInvite,
+                          child: const Text('Paste invite')),
+                      const SizedBox(height: 8),
+                      const Text(
+                          'Only paste invites that were specifically generated for you.'),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
                 ),
               ),
             );
