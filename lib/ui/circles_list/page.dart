@@ -1,6 +1,7 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
@@ -186,9 +187,13 @@ class _CirclesListPageState extends State<CirclesListPage> {
   String _newCircleName = '';
   late final TextEditingController _newCircleController;
 
+  /// Randomness for re-opening the page but consistency across re-paints
+  int? _sessionSeed;
+
   @override
   void initState() {
     super.initState();
+    _sessionSeed = Random().nextInt(1 << 32);
     _newCircleController = TextEditingController()
       ..addListener(_onNewCircleNameChanges);
   }
@@ -210,7 +215,10 @@ class _CirclesListPageState extends State<CirclesListPage> {
           Map<String, List<String>> circleMemberships) =>
       GridView.count(
         restorationId: 'circles_grid_view',
-        crossAxisCount: 2,
+        crossAxisCount: (MediaQuery.of(context).size.width >
+                MediaQuery.of(context).size.height)
+            ? 5
+            : 2,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
         padding: const EdgeInsets.all(8),
@@ -238,7 +246,8 @@ class _CirclesListPageState extends State<CirclesListPage> {
                       .whereType<List<int>>()
                       .map(Uint8List.fromList)
                       .toList()
-                    ..shuffle(),
+                    // Shuffle when opening the page but not at each re-draw
+                    ..shuffle(Random(_sessionSeed)),
                 )))
             .toList(),
       );
