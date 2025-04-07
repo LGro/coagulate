@@ -13,6 +13,12 @@ import '../../utils.dart';
 import '../../widgets/searchable_list.dart';
 import 'cubit.dart';
 
+String systemContactName(Contact contact) => (contact.displayName.isNotEmpty)
+    ? contact.displayName
+    : contact.emails.firstOrNull?.address ??
+        contact.phones.firstOrNull?.number ??
+        '(no name)';
+
 class LinkToSystemContactPage extends StatefulWidget {
   const LinkToSystemContactPage({super.key, required this.coagContactId});
 
@@ -72,7 +78,8 @@ class _LinkToSystemContactPageState extends State<LinkToSystemContactPage> {
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-                child: Row(children: [
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   if (state.accounts.length > 1)
                     Expanded(
                       child: DropdownMenu<Account>(
@@ -118,15 +125,57 @@ class _LinkToSystemContactPageState extends State<LinkToSystemContactPage> {
                             leading: roundPictureOrPlaceholder(
                                 contact.photoOrThumbnail,
                                 radius: 18),
-                            // TODO: Handle empty display name, can happen on iOS I think if only email or phone is provided
-                            title: Text((contact.displayName.isNotEmpty)
-                                ? contact.displayName
-                                : contact.emails.firstOrNull?.address ??
-                                    contact.phones.firstOrNull?.number ??
-                                    '(no name)'),
-                            onTap: () async => context
-                                .read<LinkToSystemContactCubit>()
-                                .linkExistingSystemContact(contact.id),
+                            title: Text(systemContactName(contact)),
+                            onTap: () async => showDialog<void>(
+                              context: context,
+                              builder: (alertContext) => AlertDialog(
+                                titlePadding: const EdgeInsets.only(
+                                    left: 16, right: 16, top: 16),
+                                title: Text(
+                                    'Link with ${systemContactName(contact)}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
+                                content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                          'Coagulate will automatically update '
+                                          'this contact in your address book '
+                                          'with the details they share here. '
+                                          'If they stop sharing a contact '
+                                          'detail with you, it will also be '
+                                          'removed from the corresponding '
+                                          'address book entry.',
+                                          softWrap: true),
+                                      const SizedBox(height: 16),
+                                      Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            FilledButton.tonal(
+                                              onPressed:
+                                                  Navigator.of(alertContext)
+                                                      .pop,
+                                              child: const Text('Cancel'),
+                                            ),
+                                            FilledButton(
+                                              onPressed: () async => context
+                                                  .read<
+                                                      LinkToSystemContactCubit>()
+                                                  .linkExistingSystemContact(
+                                                      contact.id)
+                                                  .then((_) =>
+                                                      (alertContext.mounted)
+                                                          ? Navigator.of(
+                                                                  alertContext)
+                                                              .pop()
+                                                          : null),
+                                              child: const Text('Confirm'),
+                                            ),
+                                          ]),
+                                    ]),
+                              ),
+                            ),
                             enabled: !context
                                 .read<ContactsRepository>()
                                 .getAllLinkedSystemContactIds()
