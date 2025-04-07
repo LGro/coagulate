@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'utils.dart';
 
 class WelcomeScreen extends StatefulWidget {
-  WelcomeScreen(this.setNameCallback);
-  final Future<void> Function(String name) setNameCallback;
+  WelcomeScreen(this.setInitialInfoCallback);
+  final Future<void> Function(
+      {required String name,
+      required String bootstrapUrl}) setInitialInfoCallback;
 
   @override
   _WelcomeScreenState createState() => _WelcomeScreenState();
@@ -13,10 +16,14 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _bootstrapServerController =
+      TextEditingController();
 
   Future<void> _onSubmit() async {
     if (_nameController.text.isNotEmpty) {
-      await widget.setNameCallback(_nameController.text.trim());
+      await widget.setInitialInfoCallback(
+          name: _nameController.text.trim(),
+          bootstrapUrl: _bootstrapServerController.text.trim());
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.loc.welcomeErrorNameMissing)),
@@ -39,6 +46,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      const Expanded(child: SizedBox()),
                       Text(
                         context.loc.welcomeHeadline,
                         style: const TextStyle(
@@ -62,6 +70,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             onPressed: _onSubmit,
                             child: Text(context.loc.welcomeCallToActionButton),
                           )),
+                      const Expanded(child: SizedBox()),
+                      // TextField(
+                      //   controller: _bootstrapServerController,
+                      //   decoration: const InputDecoration(
+                      //     labelText: 'Custom Veilid bootstrap URL',
+                      //     border: OutlineInputBorder(),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),

@@ -28,7 +28,7 @@ class ProcessorRepository {
 
   static ProcessorRepository instance = ProcessorRepository._();
 
-  Future<void> startup() async {
+  Future<void> startup(String bootstrapUrl) async {
     if (startedUp) {
       return;
     }
@@ -49,9 +49,12 @@ class ProcessorRepository {
     } on Exception {
       // Do nothing on failure here
     }
-
-    final updateStream = await Veilid.instance
-        .startupVeilidCore(await getVeilidConfig(kIsWeb, 'Coagulate'));
+    final veilidConfig = await getVeilidConfig(kIsWeb, 'Coagulate').then((c) =>
+        c.copyWith(
+            network: c.network.copyWith(
+                routingTable: c.network.routingTable
+                    .copyWith(bootstrap: [bootstrapUrl]))));
+    final updateStream = await Veilid.instance.startupVeilidCore(veilidConfig);
     _updateSubscription = updateStream.listen((update) {
       if (update is VeilidLog) {
         processLog(update);

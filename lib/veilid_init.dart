@@ -10,7 +10,7 @@ class CoagulateGlobalInit {
   CoagulateGlobalInit._();
 
   // Initialize Veilid
-  Future<void> _initializeVeilid() async {
+  Future<void> _initializeVeilid(String bootstrapUrl) async {
     // Init Veilid
     Veilid.instance.initializeVeilidCore(
         await getDefaultVeilidPlatformConfig(false, 'Coagulate'));
@@ -19,18 +19,18 @@ class CoagulateGlobalInit {
     initVeilidLog(kDebugMode);
 
     // Startup Veilid
-    await ProcessorRepository.instance.startup();
+    await ProcessorRepository.instance.startup(bootstrapUrl);
 
     // DHT Record Pool
     await DHTRecordPool.init(
         logger: (message) => log.debug('DHTRecordPool: $message'));
   }
 
-  static Future<CoagulateGlobalInit> initialize() async {
+  static Future<CoagulateGlobalInit> initialize(String bootstrapUrl) async {
     final coagulateGlobalInit = CoagulateGlobalInit._();
 
     log.info('Initializing Veilid');
-    await coagulateGlobalInit._initializeVeilid();
+    await coagulateGlobalInit._initializeVeilid(bootstrapUrl);
 
     return coagulateGlobalInit;
   }

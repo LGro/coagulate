@@ -232,9 +232,12 @@ class _CoagulateAppState extends State<CoagulateApp>
     });
   }
 
-  Future<void> _setFirstLaunchComplete(String name) async {
-    await SharedPreferences.getInstance()
-        .then((p) => p.setString('providedNameOnFirstLaunch', name));
+  Future<void> _setFirstLaunchComplete(
+      {required String name, required String bootstrapUrl}) async {
+    await SharedPreferences.getInstance().then((p) async {
+      await p.setString('providedNameOnFirstLaunch', name);
+      await p.setString('veilidBootstrapUrl', bootstrapUrl);
+    });
     setState(() {
       _providedNameOnFirstLaunch = name;
     });
@@ -280,7 +283,9 @@ class _CoagulateAppState extends State<CoagulateApp>
   @override
   Widget build(BuildContext context) => FutureProvider<CoagulateGlobalInit?>(
       initialData: null,
-      create: (context) async => CoagulateGlobalInit.initialize(),
+      create: (context) async =>
+          // TODO: Pass initially specified boostrap url
+          CoagulateGlobalInit.initialize('bootstrap.veilid.net'),
       // CoagulateGlobalInit.initialize can throw Already attached VeilidAPIException which is fine
       catchError: (context, error) => null,
       builder: (context, child) {
