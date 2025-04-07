@@ -60,7 +60,8 @@ Future<List<OsmLocation>> fetchOsmLocations(String query) async {
 Iterable<Location> addressLocationsToLocations(
         Iterable<ContactAddressLocation> addressLocations,
         String label,
-        String? coagContactId) =>
+        String? coagContactId,
+        List<int>? picture) =>
     addressLocations.map((l) => Location(
         coagContactId: coagContactId,
         longitude: l.longitude,
@@ -68,6 +69,7 @@ Iterable<Location> addressLocationsToLocations(
         label: label,
         subLabel: l.name,
         details: '',
+        picture: picture,
         marker: MarkerType.address));
 
 Location temporaryLocationToLocation(String label, ContactTemporaryLocation l,
@@ -100,7 +102,7 @@ class MapCubit extends Cubit<MapState> {
       emit(MapState([
         ...state.locations.where((l) => l.coagContactId != coagContactId),
         ...addressLocationsToLocations(contact.addressLocations.values,
-            contact.name, contact.coagContactId),
+            contact.name, contact.coagContactId, contact.details?.picture),
         ...filterTemporaryLocations(contact.temporaryLocations).entries.map(
             (l) => temporaryLocationToLocation(contact.name, l.value,
                 coagContactId: contact.coagContactId,
@@ -123,7 +125,7 @@ class MapCubit extends Cubit<MapState> {
     emit(MapState([
       // TODO: Localize "me"
       ...addressLocationsToLocations(
-          profileInfo?.addressLocations.values ?? [], 'Me', null),
+          profileInfo?.addressLocations.values ?? [], 'Me', null, null),
       ...filterTemporaryLocations(profileInfo?.temporaryLocations ?? {})
           .entries
           .map((l) => temporaryLocationToLocation('Me', l.value,
@@ -131,8 +133,8 @@ class MapCubit extends Cubit<MapState> {
               picture: profileInfo?.pictures.values.firstOrNull)),
       ...contacts
           .map((c) => [
-                ...addressLocationsToLocations(
-                    c.addressLocations.values, c.name, c.coagContactId),
+                ...addressLocationsToLocations(c.addressLocations.values,
+                    c.name, c.coagContactId, c.details?.picture),
                 ...filterTemporaryLocations(c.temporaryLocations).entries.map(
                     (l) => temporaryLocationToLocation(c.name, l.value,
                         coagContactId: c.coagContactId,

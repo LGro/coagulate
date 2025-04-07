@@ -58,8 +58,9 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   Future<void> addDummyContact() async {
     final faker = Faker();
+    final coagContactId = Uuid().v4();
     final c1 = CoagContact(
-        coagContactId: Uuid().v4(),
+        coagContactId: coagContactId,
         name: faker.person.name(),
         details: ContactDetails(
             // TODO: do too large noisy images break things?
@@ -68,6 +69,13 @@ class SettingsCubit extends Cubit<SettingsState> {
               Phone(faker.phoneNumber.de(),
                   label: PhoneLabel.custom, customLabel: 'mobile')
             ]),
+        addressLocations: Map.fromEntries([1, 2, 3].map((index) => MapEntry(
+            index,
+            ContactAddressLocation(
+                longitude: faker.geo.longitude(),
+                latitude: faker.geo.latitude(),
+                name: faker.address.streetAddress(),
+                coagContactId: coagContactId)))),
         temporaryLocations:
             Map.fromEntries([Uuid().v4(), Uuid().v4(), Uuid().v4()].map((id) {
           final start = faker.date.dateTime();

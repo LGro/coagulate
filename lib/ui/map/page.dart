@@ -232,26 +232,53 @@ class MapPage extends StatelessWidget {
                             fontWeight: FontWeight.w600, fontSize: 10),
                       ),
                     ])),
-                if (location.picture?.isNotEmpty ?? false)
-                  CircleAvatar(
-                      backgroundImage:
-                          MemoryImage(Uint8List.fromList(location.picture!))),
-                if (location.picture?.isEmpty ?? true)
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Theme.of(context).colorScheme.secondary,
-                      // border: Border.all(
-                      //     color: Theme.of(context).colorScheme.primary,
-                      //     width: 4), // Blue border
-                    ),
-                    child: Icon(
-                      Icons.person,
-                      color: Theme.of(context).colorScheme.onSecondary,
-                    ),
-                  ),
+                Stack(
+                    clipBehavior: Clip
+                        .none, // Allows the icon to overflow outside the circle
+                    children: [
+                      if (location.picture?.isNotEmpty ?? false)
+                        CircleAvatar(
+                            backgroundImage: MemoryImage(
+                                Uint8List.fromList(location.picture!)))
+                      else
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Theme.of(context).colorScheme.secondary,
+                            border: Border.all(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .inversePrimary,
+                                width: 4), // Blue border
+                          ),
+                          child: Icon(
+                            Icons.person,
+                            color: Theme.of(context).colorScheme.onSecondary,
+                          ),
+                        ),
+                      // Icon overlay
+                      Positioned(
+                          top: -5,
+                          right: -5,
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.all(2),
+                            child: Icon(
+                              (location.marker == MarkerType.temporary)
+                                  ? Icons.schedule
+                                  : Icons.home_filled,
+                              size: 16,
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary,
+                            ),
+                          ))
+                    ]),
               ])));
 
   @override
