@@ -104,4 +104,35 @@ void main() {
     expect(
         merged.phones[1].customLabel, 'mansion $coagulateManagedLabelSuffix');
   });
+
+  test('coveredByCoagulate Email with mismatched label still covers', () {
+    final isCovered = coveredByCoagulate(Email('covered@coag.org'), [
+      Email('other@corp.co'),
+      Email('covered@coag.org', label: EmailLabel.school)
+    ]);
+    expect(isCovered, true);
+  });
+
+  test('removeCoagManagedSuffixes for phone', () {
+    final withoutSuffixes = removeCoagManagedSuffixes(Contact(phones: [
+      Phone('123',
+          label: PhoneLabel.custom, customLabel: addCoagSuffix('mobile'))
+    ]));
+    expect(withoutSuffixes.phones.length, 1);
+    expect(withoutSuffixes.phones.first.customLabel, 'mobile');
+  });
+
+  test('add and remove coagulate managed suffix', () {
+    const withSuffix = 'mobile $coagulateManagedLabelSuffix';
+    expect(removeCoagSuffix(addCoagSuffix(withSuffix)), 'mobile');
+
+    const withoutSuffix = 'mobile';
+    expect(removeCoagSuffix(addCoagSuffix(withoutSuffix)), withoutSuffix);
+
+    const withNewlinesAndSuffix = 'foo\n\n $coagulateManagedLabelSuffix';
+    expect(removeCoagSuffix(addCoagSuffix(withNewlinesAndSuffix)), 'foo');
+
+    expect(addCoagSuffixNewline('my note\n\n\n'),
+        'my note\n\n$coagulateManagedLabelSuffix');
+  });
 }

@@ -71,13 +71,7 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
       contactsRepository.removeContact(coagContactId);
 
   Future<void> unlinkFromSystemContact() async =>
-      (state.contact?.systemContactId == null)
-          ? null
-          : contactsRepository
-              .saveContact(state.contact!.copyWith(
-                  systemContactId: 'coag-non-existing-id-to-trigger-drop'))
-              .then((_) => contactsRepository
-                  .updateSystemContact(state.contact!.coagContactId));
+      contactsRepository.unlinkSystemContact(state.contact!.coagContactId);
 
   // TODO: This takes looong, can we speed it up?
   Future<bool> refresh() async {

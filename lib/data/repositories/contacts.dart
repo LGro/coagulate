@@ -602,11 +602,36 @@ class ContactsRepository {
     }
 
     // We combine into a display name but the system display name is kept
+    // TODO: Claim existing values
     final updatedSystemContact = mergeSystemContacts(
         systemContact,
         contact.details!
             .toSystemContact(contact.details!.names.values.join(' | ')));
     await FlutterContacts.updateContact(updatedSystemContact);
+  }
+
+  Future<void> unlinkSystemContact(String coagContactId) async {
+    final contact = getContact(coagContactId);
+    if (contact?.systemContactId == null) {
+      return;
+    }
+
+    final permission = await Permission.contacts.status;
+    if (!permission.isGranted) {
+      return;
+    }
+
+    final systemContact = await FlutterContacts.getContact(
+        contact!.systemContactId!,
+        withAccounts: true,
+        withGroups: true);
+    if (systemContact != null) {
+      await FlutterContacts.updateContact(
+          removeCoagManagedSuffixes(systemContact));
+    }
+    // TODO: Is there a better way to remove it?
+    final contactJson = contact.toJson()..remove('system_contact_id');
+    await saveContact(CoagContact.fromJson(contactJson));
   }
 
   ///////////

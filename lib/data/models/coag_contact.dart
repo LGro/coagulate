@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:veilid/veilid.dart';
@@ -574,7 +574,7 @@ typedef CoagContactDHTSchema = CoagContactDHTSchemaV2;
 
 const coagulateManagedLabelSuffix = '[coagulate]';
 
-bool filterNotCoagulateLabel<T>(T detail) {
+bool noCoagulateLabelSuffix<T>(T detail) {
   if (detail is Phone) {
     return !detail.customLabel.endsWith(coagulateManagedLabelSuffix);
   }
@@ -599,12 +599,13 @@ bool filterNotCoagulateLabel<T>(T detail) {
   return true;
 }
 
-T addCoagulateLabel<T>(T detail) {
+T updateContactDetailLabel<T>(
+    T detail, String Function(String label) updateFunction) {
   if (detail is Phone) {
     return Phone(
       detail.number,
       label: PhoneLabel.custom,
-      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+      customLabel: updateFunction(detail.customLabel),
       normalizedNumber: detail.normalizedNumber,
       isPrimary: detail.isPrimary,
     ) as T;
@@ -613,7 +614,7 @@ T addCoagulateLabel<T>(T detail) {
     return Email(
       detail.address,
       label: EmailLabel.custom,
-      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+      customLabel: updateFunction(detail.customLabel),
       isPrimary: detail.isPrimary,
     ) as T;
   }
@@ -621,7 +622,7 @@ T addCoagulateLabel<T>(T detail) {
     return Address(
       detail.address,
       label: detail.label = AddressLabel.custom,
-      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+      customLabel: updateFunction(detail.customLabel),
       street: detail.street,
       pobox: detail.pobox,
       neighborhood: detail.neighborhood,
@@ -638,14 +639,14 @@ T addCoagulateLabel<T>(T detail) {
     return Website(
       detail.url,
       label: WebsiteLabel.custom,
-      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+      customLabel: updateFunction(detail.customLabel),
     ) as T;
   }
   if (detail is SocialMedia) {
     return SocialMedia(
       detail.userName,
       label: SocialMediaLabel.custom,
-      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+      customLabel: updateFunction(detail.customLabel),
     ) as T;
   }
   if (detail is Event) {
@@ -654,42 +655,136 @@ T addCoagulateLabel<T>(T detail) {
       month: detail.month,
       day: detail.day,
       label: EventLabel.custom,
-      customLabel: '${detail.customLabel} $coagulateManagedLabelSuffix',
+      customLabel: updateFunction(detail.customLabel),
     ) as T;
   }
   if (detail is Note) {
-    return Note('${detail.note}\n$coagulateManagedLabelSuffix') as T;
+    return Note(updateFunction(detail.note)) as T;
   }
   return detail;
 }
 
+String removeCountryCodePrefix(String number) {
+  if (!number.startsWith('+')) {
+    return number;
+  }
+  final parsed = PhoneNumber.parse(number);
+  return number.replaceFirst(parsed.countryCode, '');
+}
+
+bool coveredByCoagulate<T>(T detail, List<T> coagDetails) {
+  if (detail is Phone) {
+    // TODO: Be smart about country codes
+    return coagDetails.map((d) => (d as Phone).number).contains(detail.number);
+  }
+  if (detail is Email) {
+    return coagDetails
+        .map((d) => (d as Email).address)
+        .contains(detail.address);
+  }
+  if (detail is Address) {
+    return coagDetails
+        .map((d) => (d as Address).address)
+        .contains(detail.address);
+  }
+  if (detail is Website) {
+    return coagDetails.map((d) => (d as Website).url).contains(detail.url);
+  }
+  if (detail is SocialMedia) {
+    return coagDetails
+        .map((d) => (d as SocialMedia).userName)
+        .contains(detail.userName);
+  }
+  if (detail is Note) {
+    return coagDetails.map((d) => (d as Note).note).contains(detail.note);
+  }
+  if (detail is Event) {
+    // TODO: Figure out how to match these
+    return false;
+  }
+  return false;
+}
+
+String addCoagSuffix(String value) =>
+    '${removeCoagSuffix(value)} $coagulateManagedLabelSuffix';
+
+String removeCoagSuffix(String value) =>
+    value.trimRight().replaceAll(coagulateManagedLabelSuffix, '').trimRight();
+
+String addCoagSuffixNewline(String value) =>
+    '${removeCoagSuffix(value)}\n\n$coagulateManagedLabelSuffix';
+
 // TODO: Figure out what to do about the (display) name
 Contact mergeSystemContacts(Contact system, Contact coagulate) => system
   ..phones = [
-    ...system.phones.where(filterNotCoagulateLabel),
-    ...coagulate.phones.map(addCoagulateLabel)
+    ...system.phones
+        .where(noCoagulateLabelSuffix)
+        .where((v) => !coveredByCoagulate(v, coagulate.phones)),
+    ...coagulate.phones.map((v) => updateContactDetailLabel(v, addCoagSuffix)),
   ]
   ..emails = [
-    ...system.emails.where(filterNotCoagulateLabel),
-    ...coagulate.emails.map(addCoagulateLabel)
+    ...system.emails
+        .where(noCoagulateLabelSuffix)
+        .where((v) => !coveredByCoagulate(v, coagulate.emails)),
+    ...coagulate.emails.map((v) => updateContactDetailLabel(v, addCoagSuffix)),
   ]
   ..addresses = [
-    ...system.addresses.where(filterNotCoagulateLabel),
-    ...coagulate.addresses.map(addCoagulateLabel)
+    ...system.addresses
+        .where(noCoagulateLabelSuffix)
+        .where((v) => !coveredByCoagulate(v, coagulate.addresses)),
+    ...coagulate.addresses
+        .map((v) => updateContactDetailLabel(v, addCoagSuffix)),
   ]
   ..websites = [
-    ...system.websites.where(filterNotCoagulateLabel),
-    ...coagulate.websites.map(addCoagulateLabel)
+    ...system.websites
+        .where(noCoagulateLabelSuffix)
+        .where((v) => !coveredByCoagulate(v, coagulate.websites)),
+    ...coagulate.websites
+        .map((v) => updateContactDetailLabel(v, addCoagSuffix)),
   ]
   ..socialMedias = [
-    ...system.socialMedias.where(filterNotCoagulateLabel),
-    ...coagulate.socialMedias.map(addCoagulateLabel)
+    ...system.socialMedias
+        .where(noCoagulateLabelSuffix)
+        .where((v) => !coveredByCoagulate(v, coagulate.socialMedias)),
+    ...coagulate.socialMedias
+        .map((v) => updateContactDetailLabel(v, addCoagSuffix)),
   ]
   ..events = [
-    ...system.events.where(filterNotCoagulateLabel),
-    ...coagulate.events.map(addCoagulateLabel)
+    ...system.events
+        .where(noCoagulateLabelSuffix)
+        .where((v) => !coveredByCoagulate(v, coagulate.events)),
+    ...coagulate.events.map((v) => updateContactDetailLabel(v, addCoagSuffix)),
   ]
   ..notes = [
-    ...system.notes.where(filterNotCoagulateLabel),
-    ...coagulate.notes.map(addCoagulateLabel)
+    ...system.notes
+        .where(noCoagulateLabelSuffix)
+        .where((v) => !coveredByCoagulate(v, coagulate.notes)),
+    ...coagulate.notes
+        .map((v) => updateContactDetailLabel(v, addCoagSuffixNewline)),
+  ];
+
+Contact removeCoagManagedSuffixes(Contact contact) => contact
+  ..phones = [
+    ...contact.phones.map((v) => updateContactDetailLabel(v, removeCoagSuffix))
+  ]
+  ..emails = [
+    ...contact.emails.map((v) => updateContactDetailLabel(v, removeCoagSuffix))
+  ]
+  ..addresses = [
+    ...contact.addresses
+        .map((v) => updateContactDetailLabel(v, removeCoagSuffix))
+  ]
+  ..websites = [
+    ...contact.websites
+        .map((v) => updateContactDetailLabel(v, removeCoagSuffix))
+  ]
+  ..socialMedias = [
+    ...contact.socialMedias
+        .map((v) => updateContactDetailLabel(v, removeCoagSuffix))
+  ]
+  ..events = [
+    ...contact.events.map((v) => updateContactDetailLabel(v, removeCoagSuffix))
+  ]
+  ..notes = [
+    ...contact.notes.map((v) => updateContactDetailLabel(v, removeCoagSuffix))
   ];
