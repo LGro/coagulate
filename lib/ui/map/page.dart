@@ -114,7 +114,7 @@ Future<void> showModalLocationDetails(
                         MaterialPageRoute<ScheduleWidget>(
                             builder: (_) => ScheduleWidget(
                                 initialState: ScheduleFormState(
-                                    title: location.label,
+                                    title: location.subLabel,
                                     details: location.details,
                                     location: PickedData(
                                         LatLong(location.latitude,
