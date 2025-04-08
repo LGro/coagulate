@@ -14,60 +14,22 @@ extension MapStatusX on MapStatus {
 enum MarkerType { address, temporary, checkedIn }
 
 @JsonSerializable()
-class Location extends Equatable {
-  const Location({
-    required this.longitude,
-    required this.latitude,
-    required this.label,
-    required this.subLabel,
-    required this.details,
-    required this.marker,
-    this.coagContactId,
-    this.locationId,
-    this.picture,
-    this.start,
-    this.end,
-  });
-  factory Location.fromJson(Map<String, dynamic> json) =>
-      _$LocationFromJson(json);
-
-  final String? coagContactId;
-  final String? locationId;
-  final List<int>? picture;
-  final double longitude;
-  final double latitude;
-  final String label;
-  final String subLabel;
-  final String details;
-  final DateTime? start;
-  final DateTime? end;
-  final MarkerType marker;
-  Map<String, dynamic> toJson() => _$LocationToJson(this);
-
-  @override
-  List<Object?> get props => [
-        coagContactId,
-        locationId,
-        longitude,
-        latitude,
-        label,
-        subLabel,
-        details,
-        marker,
-        start,
-        end,
-        picture,
-      ];
-}
-
-@JsonSerializable()
 final class MapState extends Equatable {
-  const MapState(this.locations, this.status, {this.mapboxApiToken = ''});
+  const MapState(
+      {required this.status,
+      this.contacts = const [],
+      this.circleMemberships = const {},
+      this.circles = const {},
+      this.profileInfo,
+      this.mapboxApiToken = ''});
 
   factory MapState.fromJson(Map<String, dynamic> json) =>
       _$MapStateFromJson(json);
 
-  final Iterable<Location> locations;
+  final List<CoagContact> contacts;
+  final Map<String, List<String>> circleMemberships;
+  final Map<String, String> circles;
+  final ProfileInfo? profileInfo;
   final MapStatus status;
   // TODO: Use this or remove it again.
   final String mapboxApiToken;
@@ -75,5 +37,13 @@ final class MapState extends Equatable {
   Map<String, dynamic> toJson() => _$MapStateToJson(this);
 
   @override
-  List<Object?> get props => [locations, status, mapboxApiToken];
+  List<Object?> get props => [
+        contacts,
+        circleMemberships,
+        circles,
+        profileInfo,
+        contacts,
+        status,
+        mapboxApiToken,
+      ];
 }

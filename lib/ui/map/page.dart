@@ -13,6 +13,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:location_picker_flutter_map/location_picker_flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
 import '../locations/check_in/widget.dart';
@@ -69,8 +70,49 @@ String dateFormat(DateTime d, String languageCode) => [
       DateFormat.Hm(languageCode).format(d),
     ].join(' ');
 
-Future<void> showModalLocationDetails(
-        BuildContext context, Location location) async =>
+Future<void> showModalAddressLocationDetails(
+  BuildContext context, {
+  required String contactName,
+  required ContactAddressLocation location,
+}) async =>
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (modalContext) => Padding(
+        padding: EdgeInsets.only(
+            left: 16,
+            top: 16,
+            right: 16,
+            bottom: 12 + MediaQuery.of(modalContext).viewInsets.bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          // TODO: Add information about who this is shared with
+          Row(children: [
+            Expanded(
+                child: Text([contactName, location.name].join('\n\n'),
+                    softWrap: true))
+          ]),
+          const SizedBox(height: 16),
+          // TODO: only display if not already scheduled this (or conflicting)
+          if (location.coagContactId != null) ...[
+            FilledButton.tonal(
+                child: const Text('Contact details'),
+                onPressed: () async => Navigator.push(
+                    context,
+                    MaterialPageRoute<ContactPage>(
+                        builder: (_) => ContactPage(
+                            coagContactId: location.coagContactId!)))),
+          ],
+        ]),
+      ),
+    );
+
+Future<void> showModalTemporaryLocationDetails(
+  BuildContext context, {
+  required String contactName,
+  required ContactTemporaryLocation location,
+  required String locationId,
+  required bool showDelete,
+}) async =>
     showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
@@ -86,12 +128,12 @@ Future<void> showModalLocationDetails(
                 Expanded(
                     child: Text(
                         [
-                          location.label,
-                          location.subLabel,
-                          if (location.start != null)
-                            '\nFrom: ${dateFormat(location.start!, Localizations.localeOf(context).languageCode)}',
-                          if (location.end != null)
-                            'Until: ${dateFormat(location.end!, Localizations.localeOf(context).languageCode)}\n',
+                          contactName,
+                          location.name,
+                          '',
+                          'From: ${dateFormat(location.start, Localizations.localeOf(context).languageCode)}',
+                          'Until: ${dateFormat(location.end, Localizations.localeOf(context).languageCode)}',
+                          '',
                           location.details
                         ].join('\n'),
                         softWrap: true))
@@ -114,7 +156,7 @@ Future<void> showModalLocationDetails(
                         MaterialPageRoute<ScheduleWidget>(
                             builder: (_) => ScheduleWidget(
                                 initialState: ScheduleFormState(
-                                    title: location.subLabel,
+                                    title: location.name,
                                     details: location.details,
                                     location: PickedData(
                                         LatLong(location.latitude,
@@ -126,12 +168,11 @@ Future<void> showModalLocationDetails(
                                     end: location.end))))),
               ],
 
-              // Offer to delete app user locations
-              if (location.coagContactId == null && location.locationId != null)
+              if (showDelete)
                 FilledButton(
                   onPressed: () async => context
                       .read<MapCubit>()
-                      .removeLocation(location.locationId!)
+                      .removeLocation(locationId)
                       .then((_) =>
                           (context.mounted) ? Navigator.pop(context) : null),
                   style: ButtonStyle(
@@ -198,14 +239,20 @@ Widget checkInAndScheduleButtons() => BlocProvider(
 class MapPage extends StatelessWidget {
   const MapPage({super.key});
 
-  Marker _buildMarker(BuildContext context,
-          {required Location location,
-          required GestureTapCallback? onTap,
-          bool isDarkMode = false}) =>
+  Marker _buildMarker(
+    BuildContext context, {
+    required double longitude,
+    required double latitude,
+    required String label,
+    required String subLabel,
+    required MarkerType type,
+    required GestureTapCallback? onTap,
+    List<int>? picture,
+  }) =>
       Marker(
           height: 90,
           width: 100,
-          point: LatLng(location.latitude, location.longitude),
+          point: LatLng(latitude, longitude),
           alignment: Alignment.topCenter,
           child: GestureDetector(
               onTap: onTap,
@@ -214,19 +261,22 @@ class MapPage extends StatelessWidget {
                     padding: const EdgeInsets.only(
                         bottom: 4, left: 8, right: 8, top: 3),
                     decoration: BoxDecoration(
-                        color: (isDarkMode ? Colors.black : Colors.white)
+                        color: ((MediaQuery.of(context).platformBrightness ==
+                                    Brightness.dark)
+                                ? Colors.black
+                                : Colors.white)
                             .withAlpha(240),
                         borderRadius:
                             const BorderRadius.all(Radius.circular(5))),
                     child: Column(children: [
                       Text(
-                        location.label,
+                        label,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontWeight: FontWeight.w600, fontSize: 12),
                       ),
                       Text(
-                        location.subLabel,
+                        subLabel,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontWeight: FontWeight.w600, fontSize: 10),
@@ -236,10 +286,10 @@ class MapPage extends StatelessWidget {
                     clipBehavior: Clip
                         .none, // Allows the icon to overflow outside the circle
                     children: [
-                      if (location.picture?.isNotEmpty ?? false)
+                      if (picture?.isNotEmpty ?? false)
                         CircleAvatar(
-                            backgroundImage: MemoryImage(
-                                Uint8List.fromList(location.picture!)))
+                            backgroundImage:
+                                MemoryImage(Uint8List.fromList(picture!)))
                       else
                         Container(
                           width: 40,
@@ -269,10 +319,11 @@ class MapPage extends StatelessWidget {
                             ),
                             alignment: Alignment.centerRight,
                             padding: const EdgeInsets.all(2),
+                            // TODO: Handle MarkerType.checkedIn
                             child: Icon(
-                              (location.marker == MarkerType.temporary)
-                                  ? Icons.schedule
-                                  : Icons.home_filled,
+                              (type == MarkerType.address)
+                                  ? Icons.home_filled
+                                  : Icons.schedule,
                               size: 16,
                               color:
                                   Theme.of(context).colorScheme.inversePrimary,
@@ -312,33 +363,94 @@ class MapPage extends StatelessWidget {
               child: BlocConsumer<MapCubit, MapState>(
                   listener: (context, state) async {},
                   builder: (context, state) {
-                    final markers = state.locations
-                        .map((location) => _buildMarker(context,
-                            location: location,
-                            isDarkMode:
-                                MediaQuery.of(context).platformBrightness ==
-                                    Brightness.dark,
-                            // TODO: Style profile contact locations differently
-                            onTap: (location.coagContactId == null &&
-                                    location.marker == MarkerType.address)
-                                ? null
-                                : (location.marker == MarkerType.temporary)
-                                    ? () async => showModalLocationDetails(
-                                        context, location)
-                                    : () {
-                                        // Provoke a null result in case no id
-                                        final contact = context
-                                            .read<ContactsRepository>()
-                                            .getContact(
-                                                location.coagContactId ?? '-');
-                                        if (contact == null) {
-                                          // TODO: display error?
-                                          return;
-                                        }
-                                        unawaited(Navigator.push(context,
-                                            ContactPage.route(contact)));
-                                      }))
-                        .toList();
+                    final markers = <Marker>[
+                      // Profile temporary locations
+                      ...(state.profileInfo?.temporaryLocations.entries ?? [])
+                          .map(
+                        (l) => _buildMarker(
+                          context,
+                          longitude: l.value.longitude,
+                          latitude: l.value.latitude,
+                          label: 'Me',
+                          subLabel: l.value.name,
+                          type: (l.value.checkedIn)
+                              ? MarkerType.checkedIn
+                              : MarkerType.temporary,
+                          picture:
+                              state.profileInfo?.pictures.values.firstOrNull,
+                          onTap: () async => showModalTemporaryLocationDetails(
+                            context,
+                            contactName: 'Me',
+                            location: l.value,
+                            locationId: l.key,
+                            showDelete: true,
+                          ),
+                        ),
+                      ),
+                      // Contacts temporary locations
+                      ...state.contacts
+                          .map(
+                            (c) => c.temporaryLocations.entries.map(
+                              (l) => _buildMarker(
+                                context,
+                                longitude: l.value.longitude,
+                                latitude: l.value.latitude,
+                                label: c.name,
+                                subLabel: l.value.name,
+                                type: MarkerType.temporary,
+                                picture: state
+                                    .profileInfo?.pictures.values.firstOrNull,
+                                onTap: () async =>
+                                    showModalTemporaryLocationDetails(
+                                  context,
+                                  contactName: c.name,
+                                  location: l.value
+                                      .copyWith(coagContactId: c.coagContactId),
+                                  locationId: l.key,
+                                  showDelete: false,
+                                ),
+                              ),
+                            ),
+                          )
+                          .expand((l) => l),
+                      // Profile address locations
+                      ...(state.profileInfo?.addressLocations.values ?? []).map(
+                        (l) => _buildMarker(
+                          context,
+                          longitude: l.longitude,
+                          latitude: l.latitude,
+                          label: 'Me',
+                          subLabel: l.name,
+                          type: MarkerType.address,
+                          picture:
+                              state.profileInfo?.pictures.values.firstOrNull,
+                          onTap: () async => showModalAddressLocationDetails(
+                              context,
+                              contactName: 'Me',
+                              location: l),
+                        ),
+                      ),
+                      // Contacts address locations
+                      ...state.contacts
+                          .map(
+                            (c) => c.addressLocations.values.map(
+                              (l) => _buildMarker(
+                                context,
+                                longitude: l.longitude,
+                                latitude: l.latitude,
+                                label: c.name,
+                                subLabel: l.name,
+                                type: MarkerType.address,
+                                picture: state
+                                    .profileInfo?.pictures.values.firstOrNull,
+                                onTap: () async =>
+                                    showModalAddressLocationDetails(context,
+                                        contactName: c.name, location: l),
+                              ),
+                            ),
+                          )
+                          .expand((l) => l),
+                    ];
 
                     return MarkerClusterLayerWidget(
                         options: MarkerClusterLayerOptions(

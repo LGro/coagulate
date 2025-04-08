@@ -267,11 +267,11 @@ class ProfileInfo extends Equatable {
   }) =>
       ProfileInfo(
         id,
-        details: details ?? this.details.copyWith(),
-        pictures: pictures ?? {...this.pictures},
-        addressLocations: addressLocations ?? {...this.addressLocations},
-        temporaryLocations: temporaryLocations ?? {...this.temporaryLocations},
-        sharingSettings: sharingSettings ?? this.sharingSettings.copyWith(),
+        details: (details ?? this.details).copyWith(),
+        pictures: {...pictures ?? this.pictures},
+        addressLocations: {...addressLocations ?? this.addressLocations},
+        temporaryLocations: {...temporaryLocations ?? this.temporaryLocations},
+        sharingSettings: (sharingSettings ?? this.sharingSettings).copyWith(),
         mainKeyPair: mainKeyPair ?? this.mainKeyPair,
       );
 
