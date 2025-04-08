@@ -3,6 +3,7 @@
 
 import 'dart:async';
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -112,6 +113,8 @@ Future<void> showModalTemporaryLocationDetails(
   required ContactTemporaryLocation location,
   required String locationId,
   required bool showDelete,
+  Map<String, String> circles = const {},
+  Map<String, List<String>> circleMemberships = const {},
 }) async =>
     showModalBottomSheet<void>(
         context: context,
@@ -123,20 +126,40 @@ Future<void> showModalTemporaryLocationDetails(
                 right: 16,
                 bottom: 12 + MediaQuery.of(modalContext).viewInsets.bottom),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              // TODO: Add information about who this is shared with
               Row(children: [
                 Expanded(
-                    child: Text(
-                        [
-                          contactName,
-                          location.name,
-                          '',
-                          'From: ${dateFormat(location.start, Localizations.localeOf(context).languageCode)}',
-                          'Until: ${dateFormat(location.end, Localizations.localeOf(context).languageCode)}',
-                          '',
-                          location.details
-                        ].join('\n'),
-                        softWrap: true))
+                  child: Text(
+                      [
+                        contactName,
+                        location.name,
+                        '',
+                        'From: ${dateFormat(location.start, Localizations.localeOf(context).languageCode)}',
+                        'Until: ${dateFormat(location.end, Localizations.localeOf(context).languageCode)}',
+                        '',
+                        location.details,
+                        '',
+                        if (location.circles.isNotEmpty &&
+                            circles.isNotEmpty) ...[
+                          'Shared with {N} contacts via circles: {C}'
+                              .replaceFirst(
+                                  '{N}',
+                                  circleMemberships.values
+                                      .where((cIds) => cIds
+                                          .asSet()
+                                          .intersectsWith(
+                                              location.circles.asSet()))
+                                      .length
+                                      .toString())
+                              .replaceFirst(
+                                  '{C}',
+                                  location.circles
+                                      .map((cId) => circles[cId])
+                                      .whereType<String>()
+                                      .join(', '))
+                        ],
+                      ].join('\n'),
+                      softWrap: true),
+                ),
               ]),
               const SizedBox(height: 16),
               // TODO: only display if not already scheduled this (or conflicting)
@@ -384,6 +407,8 @@ class MapPage extends StatelessWidget {
                             location: l.value,
                             locationId: l.key,
                             showDelete: true,
+                            circles: state.circles,
+                            circleMemberships: state.circleMemberships,
                           ),
                         ),
                       ),
