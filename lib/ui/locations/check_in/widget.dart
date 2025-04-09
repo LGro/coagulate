@@ -104,17 +104,15 @@ class _MyFormState extends State<MyForm> {
 
     if (!mounted) return;
 
-    setState(() {});
-
-    Navigator.of(context).popUntil((route) => route.isFirst);
-
     if (!_state.status.isSuccess) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Something went wrong... 🚨')),
+          const SnackBar(
+              content: Text('Could not determine current GPS location')),
         );
     } else {
+      Navigator.of(context).popUntil((route) => route.isFirst);
       _resetForm();
     }
   }
