@@ -2,6 +2,7 @@
 report.xml
 /coverage/
 secrets/
+/android/build/
 
 # Miscellaneous
 *.class
