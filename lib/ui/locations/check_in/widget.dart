@@ -56,10 +56,8 @@ class _MyFormState extends State<MyForm> {
   late MyFormState _state;
   late final TextEditingController _titleController;
   late final TextEditingController _detailsController;
-  late final TextEditingController _hoursController =
-      TextEditingController(text: '0');
-  late final TextEditingController _minutesController =
-      TextEditingController(text: '0');
+  late final TextEditingController _hoursController;
+  late final TextEditingController _minutesController;
 
   void _onTitleChanged() {
     setState(() {
@@ -70,6 +68,14 @@ class _MyFormState extends State<MyForm> {
   void _onDetailsChanged() {
     setState(() {
       _state = _state.copyWith(details: _detailsController.text);
+    });
+  }
+
+  void _onTimeChanged() {
+    setState(() {
+      _state = _state.copyWith(
+          hours: int.tryParse(_hoursController.text) ?? 0,
+          minutes: int.tryParse(_minutesController.text) ?? 0);
     });
   }
 
@@ -145,6 +151,8 @@ class _MyFormState extends State<MyForm> {
       ..addListener(_onTitleChanged);
     _detailsController = TextEditingController(text: _state.details)
       ..addListener(_onDetailsChanged);
+    _hoursController = TextEditingController()..addListener(_onTimeChanged);
+    _minutesController = TextEditingController()..addListener(_onTimeChanged);
   }
 
   @override
@@ -257,8 +265,7 @@ class _MyFormState extends State<MyForm> {
                 key: const Key('checkInForm_submit'),
                 onPressed:
                     (_state.circles.firstWhereOrNull((c) => c.$3) != null &&
-                            (int.parse(_minutesController.text) > 0 ||
-                                int.parse(_hoursController.text) > 0) &&
+                            (_state.hours > 0 || _state.minutes > 0) &&
                             _state.title.isNotEmpty)
                         ? _onSubmit
                         : null,
