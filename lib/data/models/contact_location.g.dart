@@ -34,6 +34,7 @@ ContactTemporaryLocation _$ContactTemporaryLocationFromJson(
       end: DateTime.parse(json['end'] as String),
       details: json['details'] as String,
       coagContactId: json['coag_contact_id'] as String?,
+      address: json['address'] as String?,
       circles: (json['circles'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
@@ -51,6 +52,7 @@ Map<String, dynamic> _$ContactTemporaryLocationToJson(
       'start': instance.start.toIso8601String(),
       'end': instance.end.toIso8601String(),
       'details': instance.details,
+      'address': instance.address,
       'circles': instance.circles,
       'checked_in': instance.checkedIn,
     };

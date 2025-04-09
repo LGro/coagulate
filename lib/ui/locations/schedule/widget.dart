@@ -25,6 +25,7 @@ class MyForm extends StatefulWidget {
   final Future<void> Function({
     required String name,
     required String details,
+    required String address,
     required DateTime start,
     required DateTime end,
     required LatLng coordinates,
@@ -47,18 +48,19 @@ class _ScheduleFormState extends State<MyForm> {
   @override
   void initState() {
     super.initState();
-    _state = (widget.initialState ?? ScheduleFormState()).copyWith(
-        circles: widget.circles
-            .map((id, label) => MapEntry(id, (
-                  id,
-                  label,
-                  false,
-                  widget.circleMemberships.values
-                      .where((circles) => circles.contains(id))
-                      .length
-                )))
-            .values
-            .toList());
+    _state = widget.initialState ??
+        ScheduleFormState(
+            circles: widget.circles
+                .map((id, label) => MapEntry(id, (
+                      id,
+                      label,
+                      false,
+                      widget.circleMemberships.values
+                          .where((circles) => circles.contains(id))
+                          .length
+                    )))
+                .values
+                .toList());
     _titleController = TextEditingController(text: _state.title)
       ..addListener(_onTitleChanged);
     _detailsController = TextEditingController(text: _state.details)
@@ -160,9 +162,8 @@ class _ScheduleFormState extends State<MyForm> {
     try {
       await widget.callback(
           name: _state.title,
-          details: (_state.details.isEmpty)
-              ? _state.location!.address
-              : '${_state.location!.address}\n${_state.details}',
+          details: _state.details,
+          address: _state.location!.address,
           circles: _state.circles.where((c) => c.$3).map((c) => c.$1).toList(),
           start: _state.start!,
           end: _state.end!,
@@ -405,28 +406,73 @@ class ScheduleFormState with FormzMixin {
 }
 
 class ScheduleWidget extends StatelessWidget {
-  const ScheduleWidget({this.initialState, super.key});
+  const ScheduleWidget({this.locationId, super.key});
 
-  final ScheduleFormState? initialState;
+  final String? locationId;
 
   @override
   Widget build(BuildContext context) => BlocProvider(
       create: (context) => ScheduleCubit(context.read<ContactsRepository>()),
       child: BlocConsumer<ScheduleCubit, ScheduleState>(
           listener: (context, state) async {},
-          builder: (context, state) => Scaffold(
-              appBar: AppBar(title: const Text('Schedule a visit')),
-              body: SingleChildScrollView(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                    const SizedBox(height: 4),
-                    MyForm(
-                      circles: state.circles,
-                      circleMemberships: state.circleMemberships,
-                      callback: context.read<ScheduleCubit>().schedule,
-                      initialState: initialState,
-                    )
-                  ])))));
+          builder: (context, state) {
+            final location = context
+                .read<ContactsRepository>()
+                .getProfileInfo()
+                ?.temporaryLocations[locationId];
+            final initialFormState = (location == null)
+                ? null
+                : ScheduleFormState(
+                    title: location.name,
+                    details: location.details,
+                    location: PickedData(
+                        LatLong(location.latitude, location.longitude),
+                        location.address ?? '',
+                        {},
+                        ''),
+                    start: location.start,
+                    end: location.end,
+                    circles: state.circles.entries
+                        .map((c) => (
+                              c.key,
+                              c.value,
+                              location.circles.contains(c.key),
+                              state.circleMemberships.values
+                                  .where((cIds) => cIds.contains(c.key))
+                                  .length
+                            ))
+                        .toList());
+
+            return Scaffold(
+                appBar: AppBar(title: const Text('Schedule a visit')),
+                body: SingleChildScrollView(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                      const SizedBox(height: 4),
+                      MyForm(
+                        circles: state.circles,
+                        circleMemberships: state.circleMemberships,
+                        callback: (
+                                {required name,
+                                required details,
+                                required address,
+                                required start,
+                                required end,
+                                required coordinates,
+                                required circles}) async =>
+                            context.read<ScheduleCubit>().schedule(
+                                locationId: locationId,
+                                name: name,
+                                details: details,
+                                address: address,
+                                start: start,
+                                end: end,
+                                coordinates: coordinates,
+                                circles: circles),
+                        initialState: initialFormState,
+                      )
+                    ])));
+          }));
 }

@@ -112,7 +112,7 @@ Future<void> showModalTemporaryLocationDetails(
   required String contactName,
   required ContactTemporaryLocation location,
   required String locationId,
-  required bool showDelete,
+  bool showEditAndDelete = false,
   Map<String, String> circles = const {},
   Map<String, List<String>> circleMemberships = const {},
 }) async =>
@@ -133,11 +133,17 @@ Future<void> showModalTemporaryLocationDetails(
                         contactName,
                         location.name,
                         '',
+                        if (location.address != null) ...[
+                          'Address: ${location.address}',
+                          ''
+                        ],
                         'From: ${dateFormat(location.start, Localizations.localeOf(context).languageCode)}',
                         'Until: ${dateFormat(location.end, Localizations.localeOf(context).languageCode)}',
                         '',
-                        location.details,
-                        '',
+                        if (location.details.isNotEmpty) ...[
+                          'Details: ${location.details}',
+                          ''
+                        ],
                         if (location.circles.isNotEmpty &&
                             circles.isNotEmpty) ...[
                           'Shared with {N} contacts via circles: {C}'
@@ -173,41 +179,45 @@ Future<void> showModalTemporaryLocationDetails(
                                 coagContactId: location.coagContactId!)))),
                 const SizedBox(height: 8),
                 FilledButton.tonal(
-                    child: const Text('Add to my locations'),
-                    onPressed: () async => Navigator.push(
-                        context,
-                        MaterialPageRoute<ScheduleWidget>(
-                            builder: (_) => ScheduleWidget(
-                                initialState: ScheduleFormState(
-                                    title: location.name,
-                                    details: location.details,
-                                    location: PickedData(
-                                        LatLong(location.latitude,
-                                            location.longitude),
-                                        '',
-                                        {},
-                                        ''),
-                                    start: location.start,
-                                    end: location.end))))),
+                  child: const Text('Add to my locations'),
+                  onPressed: () async => Navigator.push(
+                      context,
+                      MaterialPageRoute<ScheduleWidget>(
+                          builder: (_) =>
+                              ScheduleWidget(locationId: locationId))),
+                ),
               ],
 
-              if (showDelete)
-                FilledButton(
-                  onPressed: () async => context
-                      .read<MapCubit>()
-                      .removeLocation(locationId)
-                      .then((_) =>
-                          (context.mounted) ? Navigator.pop(context) : null),
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                        Theme.of(context).colorScheme.error),
-                  ),
-                  child: Text(
-                    'Delete',
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.onError),
-                  ),
-                ),
+              if (showEditAndDelete)
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      FilledButton(
+                        onPressed: () async => context
+                            .read<MapCubit>()
+                            .removeLocation(locationId)
+                            .then((_) => (context.mounted)
+                                ? Navigator.pop(context)
+                                : null),
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(
+                              Theme.of(context).colorScheme.error),
+                        ),
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.onError),
+                        ),
+                      ),
+                      FilledButton(
+                        onPressed: () async => Navigator.push(
+                            context,
+                            MaterialPageRoute<ScheduleWidget>(
+                                builder: (_) =>
+                                    ScheduleWidget(locationId: locationId))),
+                        child: const Text('Edit'),
+                      ),
+                    ]),
             ])));
 
 Widget checkInAndScheduleButtons() => BlocProvider(
@@ -406,7 +416,7 @@ class MapPage extends StatelessWidget {
                             contactName: 'Me',
                             location: l.value,
                             locationId: l.key,
-                            showDelete: true,
+                            showEditAndDelete: true,
                             circles: state.circles,
                             circleMemberships: state.circleMemberships,
                           ),
@@ -432,7 +442,6 @@ class MapPage extends StatelessWidget {
                                   location: l.value
                                       .copyWith(coagContactId: c.coagContactId),
                                   locationId: l.key,
-                                  showDelete: false,
                                 ),
                               ),
                             ),

@@ -26,7 +26,8 @@ class CoagulateGlobalInit {
         logger: (message) => log.debug('DHTRecordPool: $message'));
   }
 
-  static Future<CoagulateGlobalInit> initialize(String bootstrapUrl) async {
+  static Future<CoagulateGlobalInit> initialize(
+      [String bootstrapUrl = 'bootstrap.veilid.net']) async {
     final coagulateGlobalInit = CoagulateGlobalInit._();
 
     log.info('Initializing Veilid');
