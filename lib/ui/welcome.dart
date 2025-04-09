@@ -71,6 +71,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             child: Text(context.loc.welcomeCallToActionButton),
                           )),
                       const Expanded(child: SizedBox()),
+                      const Text(
+                        'Disclaimer: Coagulate is still beta software, things '
+                        'might break, please tell us about these cases. '
+                        'Also, privacy and security are implemented diligently '
+                        'but have not been audited by an independent third '
+                        'party yet.',
+                        softWrap: true,
+                      ),
+                      const Expanded(child: SizedBox()),
                       // TextField(
                       //   controller: _bootstrapServerController,
                       //   decoration: const InputDecoration(
