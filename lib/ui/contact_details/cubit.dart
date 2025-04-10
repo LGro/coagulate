@@ -67,7 +67,7 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   Future<void> updateName(String name) async =>
       contactsRepository.saveContact(state.contact!.copyWith(name: name));
 
-  Future<void> delete(String coagContactId) async =>
+  Future<bool> delete(String coagContactId) async =>
       contactsRepository.removeContact(coagContactId);
 
   Future<void> unlinkFromSystemContact() async =>

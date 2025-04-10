@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as flutter_contacts;
+import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,6 +18,7 @@ import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
+import '../contact_list/page.dart';
 import '../locations/page.dart';
 import '../profile/page.dart';
 import '../utils.dart';
@@ -61,9 +63,9 @@ class ContactPage extends StatefulWidget {
 
   final String coagContactId;
 
-  static Route<void> route(CoagContact contact) => MaterialPageRoute(
+  static Route<void> route(String coagContactId) => MaterialPageRoute(
       fullscreenDialog: true,
-      builder: (context) => ContactPage(coagContactId: contact.coagContactId));
+      builder: (context) => ContactPage(coagContactId: coagContactId));
 
   @override
   State<ContactPage> createState() => _ContactPageState();
@@ -86,6 +88,75 @@ class _ContactPageState extends State<ContactPage> {
     setState(() {
       _dummyToTriggerRebuild = _dummyToTriggerRebuild + 1;
     });
+  }
+
+  Future<void> _showDeleteContactDialog(
+      CoagContact contact, Future<bool> Function(String) deleteCallback) async {
+    var isLoading = false;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, void Function(void Function()) setState) =>
+            AlertDialog(
+          titlePadding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+          title: Text('Delete ${contact.name}',
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(
+                [
+                  // ignore: no_adjacent_strings_in_list
+                  'Deleting this contact from Coagulate can not guarantee '
+                      'that all information that you shared with them is '
+                      'removed on their side, because they might have '
+                      'taken a screenshot or retain your info otherwise. '
+                      'It will only ensure that none of your future '
+                      'updates will be shared with them. ',
+                  if (contact.systemContactId != null)
+                    // ignore: no_adjacent_strings_in_list
+                    'The linked contact in your local address book will '
+                        'remain, but it will no longer be updated by '
+                        'Coagulate.',
+                ].join(),
+                softWrap: true),
+            const SizedBox(height: 16),
+          ]),
+          actions: isLoading
+              ? <Widget>[const Center(child: CircularProgressIndicator())]
+              : <Widget>[
+                  FilledButton.tonal(
+                    onPressed: Navigator.of(dialogContext).pop,
+                    child: const Text('Cancel'),
+                  ),
+                  FilledButton(
+                    onPressed: () async {
+                      setState(() => isLoading = true);
+                      final dhtSuccess =
+                          await deleteCallback(contact.coagContactId);
+                      if (context.mounted && !dhtSuccess) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Could not clear shared '
+                                  'information. Make sure you '
+                                  'are online and try again.')),
+                        );
+                        setState(() => isLoading = false);
+                        return;
+                      }
+                      if (dialogContext.mounted) {
+                        dialogContext.pop();
+                      }
+                      if (context.mounted) {
+                        context.goNamed('contacts');
+                      }
+                    },
+                    child: const Text('Delete'),
+                  ),
+                ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -234,14 +305,12 @@ class _ContactPageState extends State<ContactPage> {
                   '${contact.knownPersonalContactIds.length} other folks on '
                   'Coagulate'),
         ),
+
         // Delete contact
         Center(
             child: TextButton(
-                onPressed: () async => context
-                    .read<ContactDetailsCubit>()
-                    .delete(contact.coagContactId)
-                    .then((_) =>
-                        (context.mounted) ? Navigator.of(context).pop() : null),
+                onPressed: () async => _showDeleteContactDialog(
+                    contact, context.read<ContactDetailsCubit>().delete),
                 style: ButtonStyle(
                   backgroundColor: WidgetStatePropertyAll(
                       Theme.of(context).colorScheme.error),

@@ -41,8 +41,8 @@ Widget contactsListView(
                     false,
             title: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () async =>
-                  Navigator.of(context).push(ContactPage.route(contact)),
+              onTap: () async => Navigator.of(context)
+                  .push(ContactPage.route(contact.coagContactId)),
               child: Row(children: [
                 roundPictureOrPlaceholder(contact.details?.picture, radius: 18),
                 const SizedBox(width: 8),

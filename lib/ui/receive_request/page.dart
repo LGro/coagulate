@@ -110,7 +110,8 @@ class ReceiveRequestPage extends StatelessWidget {
           context.read<ReceiveRequestCubit>().scanQrCode();
         } else if (state.status.isSuccess && state.profile != null) {
           await Navigator.of(context).pushAndRemoveUntil(
-              ContactPage.route(state.profile!), (route) => route.isFirst);
+              ContactPage.route(state.profile!.coagContactId),
+              (route) => route.isFirst);
         } else if (state.status.isBatchInviteSuccess) {
           // TODO: Remove redundancy by processing into state schema?
           final parts = state.fragment!.split('~');

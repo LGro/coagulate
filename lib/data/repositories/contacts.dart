@@ -648,7 +648,13 @@ class ContactsRepository {
           .firstWhereOrNull((c) => c.systemContactId == systemContactId)
           ?.copyWith();
 
-  Future<void> removeContact(String coagContactId) async {
+  Future<bool> removeContact(String coagContactId) async {
+    await unlinkSystemContact(coagContactId);
+    await updateCirclesForContact(coagContactId, [], triggerDhtUpdate: false);
+    final dhtUpdateSuccess = await tryShareWithContactDHT(coagContactId);
+    if (!dhtUpdateSuccess) {
+      return false;
+    }
     _contacts.remove(coagContactId);
     _contactsStreamController.add(coagContactId);
     _circleMemberships.remove(coagContactId);
@@ -662,6 +668,7 @@ class ContactsRepository {
         _contactUpdates.where((u) => u.coagContactId != coagContactId).toList();
 
     await Future.wait(updateFutures);
+    return true;
   }
 
   /// Ensure the most recent profile contact details are shared with the contact

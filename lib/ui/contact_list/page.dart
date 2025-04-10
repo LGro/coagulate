@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:veilid/veilid.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -26,8 +27,8 @@ Widget contactsListView(BuildContext context, List<CoagContact> contacts,
             title: Text(contact.name),
             trailing: contactSharingReceivingStatus(contact,
                 circleMemberships[contact.coagContactId]?.isNotEmpty ?? false),
-            onTap: () async =>
-                Navigator.of(context).push(ContactPage.route(contact))),
+            onTap: () async => context.goNamed('contactDetails',
+                pathParameters: {'coagContactId': contact.coagContactId})),
         // TODO: Also allow searching shared locations?
         matchesItem: (search, contact) =>
             contact.name.toLowerCase().contains(search.toLowerCase()) ||

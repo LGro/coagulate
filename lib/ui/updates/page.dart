@@ -108,8 +108,10 @@ class UpdatesPage extends StatelessWidget {
                                           // TODO: display error?
                                           return;
                                         }
-                                        unawaited(Navigator.push(context,
-                                            ContactPage.route(contact)));
+                                        unawaited(Navigator.push(
+                                            context,
+                                            ContactPage.route(
+                                                contact.coagContactId)));
                                       },
                                 picture: u.newContact.details?.picture))
                             .toList(),
