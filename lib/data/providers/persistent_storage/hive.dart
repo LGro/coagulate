@@ -81,18 +81,6 @@ class HiveStorage extends PersistentStorage {
       Hive.openBox('hive_coag_settings_box');
 
   @override
-  Future<void> setProfileContactId(String profileContactId) async =>
-      (await _lazyGetSettingsBox()).put('profile_contact_id', profileContactId);
-
-  @override
-  Future<String?> getProfileContactId() async =>
-      (await _lazyGetSettingsBox()).get('profile_contact_id');
-
-  @override
-  Future<void> removeProfileContactId() async =>
-      (await _lazyGetSettingsBox()).delete('profile_contact_id');
-
-  @override
   Future<void> removeContact(String coagContactId) async =>
       (await _lazyGetSettingsBox()).delete(coagContactId);
 

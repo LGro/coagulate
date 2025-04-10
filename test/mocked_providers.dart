@@ -87,12 +87,6 @@ class DummyPersistentStorage extends PersistentStorage {
   }
 
   @override
-  Future<String?> getProfileContactId() async {
-    log.add('getProfileContactId');
-    return profileContactId;
-  }
-
-  @override
   Future<List<ContactUpdate>> getUpdates() async {
     log.add('getUpdates');
     return [];
@@ -102,12 +96,6 @@ class DummyPersistentStorage extends PersistentStorage {
   Future<void> removeContact(String coagContactId) async {
     log.add('removeContact:$coagContactId');
     contacts.remove(coagContactId);
-  }
-
-  @override
-  Future<void> setProfileContactId(String profileContactId) async {
-    log.add('setProfileContactId:$profileContactId');
-    this.profileContactId = profileContactId;
   }
 
   @override
@@ -134,11 +122,6 @@ class DummyPersistentStorage extends PersistentStorage {
   Future<void> updateCircles(Map<String, String> circles) async {
     log.add('updateCircles');
     this.circles = circles;
-  }
-
-  @override
-  Future<void> removeProfileContactId() async {
-    profileContactId = null;
   }
 
   @override

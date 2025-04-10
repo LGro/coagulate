@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
@@ -73,19 +73,6 @@ class SqliteStorage extends PersistentStorage {
       });
     }
   }
-
-  @override
-  Future<void> setProfileContactId(String profileContactId) async =>
-      (await SharedPreferences.getInstance())
-          .setString('profile_contact_id', profileContactId);
-
-  @override
-  Future<String?> getProfileContactId() async =>
-      (await SharedPreferences.getInstance()).getString('profile_contact_id');
-
-  @override
-  Future<void> removeProfileContactId() async =>
-      (await SharedPreferences.getInstance()).remove('profile_contact_id');
 
   @override
   Future<void> removeContact(String coagContactId) async =>

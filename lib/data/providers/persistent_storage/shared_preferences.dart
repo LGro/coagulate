@@ -53,19 +53,6 @@ class SharedPreferencesStorage extends PersistentStorage {
           .setString(contact.coagContactId, _recordFromContact(contact));
 
   @override
-  Future<void> setProfileContactId(String profileContactId) async =>
-      (await SharedPreferences.getInstance())
-          .setString('profile_contact_id', profileContactId);
-
-  @override
-  Future<String?> getProfileContactId() async =>
-      (await SharedPreferences.getInstance()).getString('profile_contact_id');
-
-  @override
-  Future<void> removeProfileContactId() async =>
-      (await SharedPreferences.getInstance()).remove('profile_contact_id');
-
-  @override
   Future<void> removeContact(String coagContactId) async =>
       (await SharedPreferences.getInstance()).remove(coagContactId);
 

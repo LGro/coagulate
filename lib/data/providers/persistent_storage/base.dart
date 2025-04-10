@@ -7,21 +7,11 @@ import '../../models/contact_update.dart';
 
 abstract class PersistentStorage {
   Future<CoagContact> getContact(String coagContactId);
-
   Future<Map<String, CoagContact>> getAllContacts();
-
   Future<void> updateContact(CoagContact contact);
-
-  Future<void> setProfileContactId(String profileContactId);
-
-  Future<String?> getProfileContactId();
-
-  Future<void> removeProfileContactId();
-
   Future<void> removeContact(String coagContactId);
 
   Future<List<ContactUpdate>> getUpdates();
-
   Future<void> addUpdate(ContactUpdate update);
 
   Future<Map<String, String>> getCircles();
@@ -35,6 +25,5 @@ abstract class PersistentStorage {
   Future<void> updateProfileInfo(ProfileInfo info);
 
   Future<void> addBatch(BatchInvite batch);
-
   Future<List<BatchInvite>> getBatches();
 }
