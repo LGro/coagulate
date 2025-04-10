@@ -9,6 +9,7 @@ import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:coagulate/ui/receive_request/cubit.dart';
 import 'package:coagulate/ui/utils.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geocoding_platform_interface/src/models/location.dart';
 import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
 import 'package:veilid_support/veilid_support.dart';
 
@@ -16,51 +17,46 @@ import '../mocked_providers.dart';
 
 const appUserName = 'App User Name';
 
-TypedKeyPair _dummyTypedKeyPair(
-        [int pub = 0, int sec = 1]) =>
-    TypedKeyPair.fromKeyPair(
-        cryptoKindVLD0,
-        KeyPair(
-            key: FixedEncodedString43.fromBytes(
-                Uint8List.fromList(List.filled(32, pub))),
-            secret: FixedEncodedString43.fromBytes(
-                Uint8List.fromList(List.filled(32, sec)))));
-
-Typed<FixedEncodedString43> _dummyDhtRecordKey(int i) =>
-    Typed<FixedEncodedString43>(
-        kind: cryptoKindVLD0,
-        value: FixedEncodedString43.fromBytes(
-            Uint8List.fromList(List.filled(32, i))));
-
 FixedEncodedString43 _dummyPsk(int i) =>
     FixedEncodedString43.fromBytes(Uint8List.fromList(List.filled(32, i)));
+
+class DummyGeocoder extends PlatformGeocoder {
+  @override
+  Future<bool> isPresent() async => true;
+
+  @override
+  Future<List<Location>> locationFromAddress(String address) async =>
+      [Location(longitude: 0, latitude: 0, timestamp: DateTime(1900))];
+}
 
 ContactsRepository _contactsRepositoryFromContacts(
         List<CoagContact> contacts) =>
     ContactsRepository(
-        DummyPersistentStorage(
-            Map.fromEntries(contacts.map((c) => MapEntry(c.coagContactId, c)))),
-        DummyDistributedStorage(initialDht: {
-          _dummyDhtRecordKey(0): CoagContactDHTSchema(
-            details: const ContactDetails(names: {'0': 'DHT 0'}),
-            shareBackDHTKey: _dummyDhtRecordKey(9).toString(),
-            shareBackPubKey: _dummyTypedKeyPair(9, 9).key.toString(),
-          ),
-          _dummyDhtRecordKey(1): CoagContactDHTSchema(
-            details: const ContactDetails(names: {'1': 'DHT 1'}),
-            shareBackDHTKey: _dummyDhtRecordKey(8).toString(),
-            shareBackPubKey: _dummyTypedKeyPair(8, 8).key.toString(),
-          ),
-          _dummyDhtRecordKey(2): CoagContactDHTSchema(
-            details: const ContactDetails(names: {'2': 'DHT 2'}),
-            shareBackDHTKey: _dummyDhtRecordKey(8).toString(),
-            shareBackPubKey: _dummyTypedKeyPair(8, 8).key.toString(),
-          ),
-        }),
-        DummySystemContacts([]),
-        appUserName,
-        initialize: false,
-        generateTypedKeyPair: () async => _dummyTypedKeyPair());
+      DummyPersistentStorage(
+          Map.fromEntries(contacts.map((c) => MapEntry(c.coagContactId, c)))),
+      DummyDistributedStorage(initialDht: {
+        dummyDhtRecordKey(0): CoagContactDHTSchema(
+          details: const ContactDetails(names: {'0': 'DHT 0'}),
+          shareBackDHTKey: dummyDhtRecordKey(9).toString(),
+          shareBackPubKey: dummyTypedKeyPair(9, 9).key.toString(),
+        ),
+        dummyDhtRecordKey(1): CoagContactDHTSchema(
+          details: const ContactDetails(names: {'1': 'DHT 1'}),
+          shareBackDHTKey: dummyDhtRecordKey(8).toString(),
+          shareBackPubKey: dummyTypedKeyPair(8, 8).key.toString(),
+        ),
+        dummyDhtRecordKey(2): CoagContactDHTSchema(
+          details: const ContactDetails(names: {'2': 'DHT 2'}),
+          shareBackDHTKey: dummyDhtRecordKey(8).toString(),
+          shareBackPubKey: dummyTypedKeyPair(8, 8).key.toString(),
+        ),
+      }),
+      DummySystemContacts([]),
+      appUserName,
+      initialize: false,
+      generateTypedKeyPair: () async => dummyTypedKeyPair(),
+      geocoder: DummyGeocoder(),
+    );
 
 void main() {
   group('Test Cubit State Transitions', () {
@@ -72,11 +68,11 @@ void main() {
         CoagContact(
             coagContactId: '2',
             name: 'Existing Contact A',
-            dhtSettings: DhtSettings(myKeyPair: _dummyTypedKeyPair(2, 2))),
+            dhtSettings: DhtSettings(myKeyPair: dummyTypedKeyPair(2, 2))),
         CoagContact(
             coagContactId: '5',
             name: 'Existing Contact B',
-            dhtSettings: DhtSettings(myKeyPair: _dummyTypedKeyPair(5, 5))),
+            dhtSettings: DhtSettings(myKeyPair: dummyTypedKeyPair(5, 5))),
       ]);
       await contactsRepository!.initialize();
     });
@@ -125,7 +121,7 @@ void main() {
             c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
               mobile_scanner.Barcode(
                   rawValue: directSharingUrl(
-                          'Direct Sharer', _dummyDhtRecordKey(4), _dummyPsk(5))
+                          'Direct Sharer', dummyDhtRecordKey(4), _dummyPsk(5))
                       .toString())
             ])),
         expect: () => [
@@ -139,7 +135,7 @@ void main() {
           expect(c.state.profile!.name, 'Direct Sharer');
           expect(c.state.profile!.dhtSettings.initialSecret, _dummyPsk(5));
           expect(c.state.profile!.dhtSettings.recordKeyThemSharing,
-              _dummyDhtRecordKey(4));
+              dummyDhtRecordKey(4));
           expect(c.state.profile!.dhtSettings.recordKeyMeSharing, null);
 
           // Check repo
@@ -161,7 +157,7 @@ void main() {
             c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
               mobile_scanner.Barcode(
                   rawValue: directSharingUrl(
-                          'Direct Sharer', _dummyDhtRecordKey(0), _dummyPsk(0))
+                          'Direct Sharer', dummyDhtRecordKey(0), _dummyPsk(0))
                       .toString())
             ])),
         expect: () => [
@@ -175,7 +171,7 @@ void main() {
           expect(c.state.profile!.name, 'Direct Sharer');
           expect(c.state.profile!.dhtSettings.initialSecret, _dummyPsk(0));
           expect(c.state.profile!.dhtSettings.recordKeyThemSharing,
-              _dummyDhtRecordKey(0));
+              dummyDhtRecordKey(0));
           // Still null, but populated from DHT in the repo below
           expect(c.state.profile!.dhtSettings.recordKeyMeSharing, isNull);
 
@@ -194,7 +190,7 @@ void main() {
                   .getContact(c.state.profile!.coagContactId)
                   ?.dhtSettings
                   .recordKeyMeSharing,
-              _dummyDhtRecordKey(9));
+              dummyDhtRecordKey(9));
         });
 
     // blocTest<ReceiveRequestCubit, ReceiveRequestState>(
@@ -241,7 +237,7 @@ void main() {
             c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
               mobile_scanner.Barcode(
                   rawValue: profileBasedOfferUrl('Offering Sharer',
-                          _dummyDhtRecordKey(4), _dummyTypedKeyPair(4, 4).key)
+                          dummyDhtRecordKey(4), dummyTypedKeyPair(4, 4).key)
                       .toString())
             ])),
         expect: () => [
@@ -254,10 +250,10 @@ void main() {
           expect(c.state.status, ReceiveRequestStatus.success);
           expect(c.state.profile!.name, 'Offering Sharer');
           expect(c.state.profile!.dhtSettings.theirPublicKey,
-              _dummyTypedKeyPair(4, 4).key);
+              dummyTypedKeyPair(4, 4).key);
           expect(c.state.profile!.dhtSettings.initialSecret, isNull);
           expect(c.state.profile!.dhtSettings.recordKeyThemSharing,
-              _dummyDhtRecordKey(4));
+              dummyDhtRecordKey(4));
           expect(c.state.profile!.dhtSettings.recordKeyMeSharing, isNull);
 
           // Check repo
@@ -278,8 +274,8 @@ void main() {
       act: (c) async =>
           c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
         mobile_scanner.Barcode(
-            rawValue: batchInviteUrl('Batch Label', _dummyDhtRecordKey(4),
-                    _dummyPsk(4), 4, _dummyTypedKeyPair(4, 4).toKeyPair())
+            rawValue: batchInviteUrl('Batch Label', dummyDhtRecordKey(4),
+                    _dummyPsk(4), 4, dummyTypedKeyPair(4, 4).toKeyPair())
                 .toString())
       ])),
       expect: () => [

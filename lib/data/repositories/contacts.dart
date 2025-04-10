@@ -7,7 +7,9 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:uuid/uuid.dart';
@@ -25,6 +27,16 @@ import '../providers/persistent_storage/base.dart';
 import '../providers/system_contacts/base.dart';
 
 const String defaultEveryoneCircleId = 'coag::everyone';
+
+/// Wrapper around geocoding library so that we can stub/mock it during tests
+class PlatformGeocoder {
+  const PlatformGeocoder();
+
+  Future<List<geocoding.Location>> locationFromAddress(String address) =>
+      geocoding.locationFromAddress(address);
+
+  Future<bool> isPresent() => geocoding.isPresent();
+}
 
 String contactDetailKey<T>(T detail) {
   if (detail is Organization) {
@@ -136,32 +148,27 @@ ContactDetails filterDetails(
           details.events, settings.events, activeCirclesWithMemberCount.keys),
     );
 
+/// Remove address locations that are not shared with the circles specified for
+/// the corresponding address label
 Map<int, ContactAddressLocation> filterAddressLocations(
         Map<int, ContactAddressLocation> locations,
         ProfileSharingSettings settings,
         Iterable<String> activeCircles) =>
-    {
-      // TODO: If we were also using "label" style keys for "locations", this could be simplified
-      for (final location in locations.entries)
-        if (({
-                  for (final addressSetting in settings.addresses.entries)
-                    int.parse(addressSetting.key.split('|').first):
-                        addressSetting.value
-                }[location.key]
-                    ?.toSet() ??
-                {})
-            .intersection(activeCircles.toSet())
-            .isNotEmpty)
-          location.key: location.value
-    };
+    Map.fromEntries(locations.entries.where((l) =>
+        settings.addresses[l.value.name]
+            ?.toSet()
+            .intersectsWith(activeCircles.toSet()) ??
+        false));
 
-/// Remove locations that ended longer than a day ago,s
+/// Remove locations that ended longer than a day ago,
 /// or aren't shared with the given circles if provided
 Map<String, ContactTemporaryLocation> filterTemporaryLocations(
         Map<String, ContactTemporaryLocation> locations,
         [Iterable<String>? activeCircles]) =>
     Map.fromEntries(locations.entries.where((l) =>
         l.value.end.isAfter(DateTime.now()) &&
+        // TODO: Unify that selected circles are part of profileShareSettings
+        //       instead of the location instance?
         (activeCircles == null ||
             l.value.circles.toSet().intersectsWith(activeCircles.toSet()))));
 
@@ -197,7 +204,8 @@ class ContactsRepository {
       this.systemContactsStorage, this.initialName,
       {bool initialize = true,
       this.notificationCallback,
-      this.generateTypedKeyPair = generateTypedKeyPairBest}) {
+      this.generateTypedKeyPair = generateTypedKeyPairBest,
+      this.geocoder = const PlatformGeocoder()}) {
     if (initialize) {
       unawaited(this.initialize());
     }
@@ -257,6 +265,8 @@ class ContactsRepository {
   Timer? updateFromDhtTimer;
 
   final Future<TypedKeyPair> Function() generateTypedKeyPair;
+
+  final PlatformGeocoder geocoder;
 
   Future<void> initialize({bool scheduleRegularUpdates = true}) async {
     await initializeFromPersistentStorage();
@@ -836,8 +846,47 @@ class ContactsRepository {
   ProfileInfo? getProfileInfo() => _profileInfo?.copyWith();
 
   Future<void> setProfileInfo(ProfileInfo profileInfo) async {
+    // Automatically resolve addresses to coordinates where missing
+    // TODO: Only do this when enabled in the settings
+    final addressLocations = (!await geocoder.isPresent())
+        ? null
+        : Map.fromEntries(await Future.wait(
+                profileInfo.details.addresses.asMap().entries.map((a) async {
+            final existingAddressLocation = profileInfo.addressLocations[a.key];
+
+            if (a.value.address == existingAddressLocation?.address &&
+                existingAddressLocation?.longitude != null &&
+                existingAddressLocation?.latitude != null) {
+              return MapEntry(a.key, existingAddressLocation!);
+            }
+
+            try {
+              final locations =
+                  await geocoder.locationFromAddress(a.value.address);
+              if (locations.isEmpty) {
+                return null;
+              }
+              return MapEntry(
+                  a.key,
+                  ContactAddressLocation(
+                      address: a.value.address,
+                      longitude: locations.first.longitude,
+                      latitude: locations.first.latitude,
+                      name: (a.value.label == AddressLabel.custom)
+                          ? a.value.customLabel
+                          : a.value.label.name));
+            } on geocoding.NoResultFoundException catch (e) {
+              // TODO: Store flag somewhere that enables manual location picking?
+              debugPrintStack();
+            } on PlatformException catch (e) {
+              // Likely a rate limit for geocoding reached
+              debugPrintStack();
+            }
+          }))
+            .then((a) => a.whereType<MapEntry<int, ContactAddressLocation>>()));
+
     // Update
-    _profileInfo = profileInfo.copyWith();
+    _profileInfo = profileInfo.copyWith(addressLocations: addressLocations);
 
     // Persist
     await persistentStorage.updateProfileInfo(_profileInfo!);

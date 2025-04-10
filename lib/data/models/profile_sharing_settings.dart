@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'package:equatable/equatable.dart';
@@ -25,25 +25,27 @@ class ProfileSharingSettings extends Equatable {
   /// Map of name ID to circle IDs that have access to names
   final Map<String, List<String>> names;
 
-  /// Map of index|label to circle IDs that have access to phones
+  /// Map of phone label to circle IDs that have access to phones
   final Map<String, List<String>> phones;
 
-  /// Map of index|label to circle IDs that have access to emails
+  /// Map of email label to circle IDs that have access to emails
   final Map<String, List<String>> emails;
 
-  /// Map of index|label to circle IDs that have access to addresses
+  /// Map of address label to circle IDs that have access to addresses
   final Map<String, List<String>> addresses;
 
-  /// Map of index|label to circle IDs that have access to organizations
+  /// Map of ??? to circle IDs that have access to organizations
+  // TODO: Do organizations even have labels?
   final Map<String, List<String>> organizations;
 
-  /// Map of index|label to circle IDs that have access to websites
+  /// Map of website label to circle IDs that have access to websites
   final Map<String, List<String>> websites;
 
-  /// Map of index|label to circle IDs that have access to socialMedias
+  /// Map of social media label to circle IDs that have access to socialMedias
   final Map<String, List<String>> socialMedias;
 
-  /// Map of index|label to circle IDs that have access to events
+  /// Map of ??? to circle IDs that have access to events
+  // TODO: Do events even have labels?
   final Map<String, List<String>> events;
 
   Map<String, dynamic> toJson() => _$ProfileSharingSettingsToJson(this);

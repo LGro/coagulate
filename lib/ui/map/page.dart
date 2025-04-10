@@ -88,7 +88,13 @@ Future<void> showModalAddressLocationDetails(
           // TODO: Add information about who this is shared with
           Row(children: [
             Expanded(
-                child: Text([contactName, location.name].join('\n\n'),
+                child: Text(
+                    [
+                      contactName,
+                      'Label: ${location.name}',
+                      if (location.address != null)
+                        'Address: ${location.address}'
+                    ].join('\n\n'),
                     softWrap: true))
           ]),
           const SizedBox(height: 16),

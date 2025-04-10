@@ -37,6 +37,15 @@ Typed<FixedEncodedString43> dummyDhtRecordKey([int? i]) =>
 FixedEncodedString43 dummyPsk(int i) =>
     FixedEncodedString43.fromBytes(Uint8List.fromList(List.filled(32, i)));
 
+TypedKeyPair dummyTypedKeyPair([int pub = 0, int sec = 1]) =>
+    TypedKeyPair.fromKeyPair(
+        cryptoKindVLD0,
+        KeyPair(
+            key: FixedEncodedString43.fromBytes(
+                Uint8List.fromList(List.filled(32, pub))),
+            secret: FixedEncodedString43.fromBytes(
+                Uint8List.fromList(List.filled(32, sec)))));
+
 Future<ContactsRepository> contactsRepositoryFromContacts(
         {required List<CoagContact> contacts,
         required Map<Typed<FixedEncodedString43>, CoagContactDHTSchema?>

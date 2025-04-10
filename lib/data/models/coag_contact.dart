@@ -5,12 +5,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
-import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:veilid/veilid.dart';
+
 import 'contact_location.dart';
 import 'profile_sharing_settings.dart';
+
 part 'coag_contact.g.dart';
 
 @JsonSerializable()
@@ -249,6 +251,7 @@ class ProfileInfo extends Equatable {
   final Map<String, List<int>> pictures;
   // This is a map from index to value instead of a list because only the ith
   // address could have a location
+  // TODO: Switch this to label as index with backwards compatible migration
   final Map<int, ContactAddressLocation> addressLocations;
   final Map<String, ContactTemporaryLocation> temporaryLocations;
   final ProfileSharingSettings sharingSettings;

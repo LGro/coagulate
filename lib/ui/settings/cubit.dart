@@ -74,7 +74,8 @@ class SettingsCubit extends Cubit<SettingsState> {
             ContactAddressLocation(
                 longitude: faker.geo.longitude(),
                 latitude: faker.geo.latitude(),
-                name: faker.address.streetAddress(),
+                name: 'address $index',
+                address: faker.address.streetAddress(),
                 coagContactId: coagContactId)))),
         temporaryLocations:
             Map.fromEntries([Uuid().v4(), Uuid().v4(), Uuid().v4()].map((id) {

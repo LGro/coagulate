@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:typed_data';
@@ -10,6 +10,8 @@ import 'package:coagulate/data/providers/system_contacts/base.dart';
 import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../mocked_providers.dart';
 
 // TODO: Group tests
 void main() {
@@ -28,13 +30,13 @@ void main() {
 
   test('filter details list, no active circles', () {
     final filtered = filterContactDetailsList<Phone>([Phone('123')], {}, []);
-    expect(filtered, []);
+    expect(filtered, isEmpty);
   });
 
   test('filter details list, no allowed  circles', () {
     final filtered =
         filterContactDetailsList<Phone>([Phone('123')], {}, ['C1', 'C2']);
-    expect(filtered, []);
+    expect(filtered, isEmpty);
   });
 
   test('filter details list, one allowed circles', () {
@@ -50,75 +52,81 @@ void main() {
     expect(filtered, [Phone('321', label: PhoneLabel.work)]);
   });
 
-  // test('filter details without active circles', () {
-  //   final filteredDetails = filterDetails(
-  //       ContactDetails(
-  //         names: const {'0': 'Main Name'},
-  //         phones: [Phone('1234')],
-  //         emails: [Email('hi@mail.com')],
-  //         addresses: [Address('Home 123')],
-  //         organizations: [Organization(company: 'Corp', title: 'CEO')],
-  //         socialMedias: [SocialMedia('@beste')],
-  //         websites: [Website('awesome.org')],
-  //         events: [Event(month: 1, day: 30)],
-  //       ),
-  //       const ProfileSharingSettings(),
-  //       []);
-  //   expect(filteredDetails.names, {});
-  //   expect(filteredDetails.emails, []);
-  //   expect(filteredDetails.phones, []);
-  //   expect(filteredDetails.addresses, []);
-  //   expect(filteredDetails.organizations, []);
-  //   expect(filteredDetails.socialMedias, []);
-  //   expect(filteredDetails.websites, []);
-  //   expect(filteredDetails.events, []);
-  // });
+  test('filter details without active circles', () {
+    final pictures = <String, List<int>>{
+      'dummy': [1, 2, 3]
+    };
+    final filteredDetails = filterDetails(
+        pictures,
+        ContactDetails(
+          names: const {'0': 'Main Name'},
+          phones: [Phone('1234')],
+          emails: [Email('hi@mail.com')],
+          addresses: [Address('Home 123')],
+          organizations: [Organization(company: 'Corp', title: 'CEO')],
+          socialMedias: [SocialMedia('@beste')],
+          websites: [Website('awesome.org')],
+          events: [Event(month: 1, day: 30)],
+        ),
+        const ProfileSharingSettings(),
+        {});
+    expect(filteredDetails.names, isEmpty);
+    expect(filteredDetails.emails, isEmpty);
+    expect(filteredDetails.phones, isEmpty);
+    expect(filteredDetails.addresses, isEmpty);
+    expect(filteredDetails.organizations, isEmpty);
+    expect(filteredDetails.socialMedias, isEmpty);
+    expect(filteredDetails.websites, isEmpty);
+    expect(filteredDetails.events, isEmpty);
+    expect(filteredDetails.picture, isNull);
+  });
 
-  // test('filter to future events', () {
-  //   final contact = CoagContact(
-  //       coagContactId: '1',
-  //       systemContact: Contact(displayName: 'Contact Name'),
-  //       temporaryLocations: [
-  //         ContactTemporaryLocation(
-  //             coagContactId: '1',
-  //             name: 'past',
-  //             details: '',
-  //             start: DateTime.now().subtract(Duration(days: 2)),
-  //             end: DateTime.now().subtract(Duration(days: 1)),
-  //             longitude: 12,
-  //             latitude: 13),
-  //         ContactTemporaryLocation(
-  //             coagContactId: '1',
-  //             name: 'less than a day ago',
-  //             details: '',
-  //             start: DateTime.now().subtract(const Duration(hours: 2)),
-  //             end: DateTime.now().subtract(const Duration(hours: 1)),
-  //             circles: const ['Circle'],
-  //             longitude: 12,
-  //             latitude: 13),
-  //         ContactTemporaryLocation(
-  //             coagContactId: '1',
-  //             name: 'future',
-  //             details: '',
-  //             start: DateTime.now().add(const Duration(days: 1)),
-  //             end: DateTime.now().add(const Duration(days: 2)),
-  //             circles: const ['Circle'],
-  //             longitude: 15,
-  //             latitude: 16),
-  //       ]);
-  //   final filtered = filterAccordingToSharingProfile(
-  //       profile: contact,
-  //       settings: const ProfileSharingSettings(),
-  //       activeCircles: ['Circle'],
-  //       shareBackSettings: null);
-  //   expect(filtered.temporaryLocations.length, 1);
-  //   expect(filtered.temporaryLocations[0].name, 'future');
-  //   expect(filtered.temporaryLocations[0], contact.temporaryLocations[2]);
-  // });
+  test('filter to future events', () {
+    final profile = ProfileInfo('app-user-id',
+        // ignore: avoid_redundant_argument_values
+        sharingSettings: const ProfileSharingSettings(),
+        temporaryLocations: {
+          't1': ContactTemporaryLocation(
+              coagContactId: '1',
+              name: 'past',
+              details: '',
+              start: DateTime.now().subtract(const Duration(days: 2)),
+              end: DateTime.now().subtract(const Duration(days: 1)),
+              longitude: 12,
+              latitude: 13),
+          't2': ContactTemporaryLocation(
+              coagContactId: '1',
+              name: 'less than a day ago',
+              details: '',
+              start: DateTime.now().subtract(const Duration(hours: 2)),
+              end: DateTime.now().subtract(const Duration(hours: 1)),
+              circles: const ['Circle'],
+              longitude: 12,
+              latitude: 13),
+          't3': ContactTemporaryLocation(
+              coagContactId: '1',
+              name: 'future',
+              details: '',
+              start: DateTime.now().add(const Duration(days: 1)),
+              end: DateTime.now().add(const Duration(days: 2)),
+              circles: const ['Circle'],
+              longitude: 15,
+              latitude: 16),
+        });
+    final filtered = filterAccordingToSharingProfile(
+      profile: profile,
+      activeCirclesWithMemberCount: {'Circle': 2},
+      dhtSettings: DhtSettings(myKeyPair: dummyTypedKeyPair()),
+      sharePersonalUniqueId: true,
+    );
+    expect(filtered.temporaryLocations.length, 1);
+    expect(filtered.temporaryLocations['t3']?.name, 'future');
+    expect(filtered.temporaryLocations['t3'], profile.temporaryLocations['t3']);
+  });
 
   test('equate contacts with stripped photo', () {
     final contact = Contact(
-        displayName: 'Exampe Contact',
+        displayName: 'Example Contact',
         name: Name(first: 'Example', last: 'Contact'),
         phones: [Phone('12324')],
         photo: Uint8List(64));
@@ -138,8 +146,8 @@ void main() {
           coagContactId: '1', longitude: 10, latitude: 12, name: 'loc3'),
     };
     const settings = ProfileSharingSettings(addresses: {
-      '0|home': ['circle1'],
-      '3|work': ['circle2', 'circle3'],
+      'loc0': ['circle1'],
+      'loc3': ['circle2', 'circle3'],
     });
     const activeCircles = ['circle1'];
     final filteredLocations =
@@ -150,7 +158,7 @@ void main() {
   });
 
   test('filter names', () {
-    final fileteredNames = filterNames({
+    final filteredNames = filterNames({
       'nick': 'dudi',
       'fullname': 'Dudeli Dideli'
     }, {
@@ -159,6 +167,6 @@ void main() {
       'circle1',
       'circle2'
     ]);
-    expect(fileteredNames, {'nick': 'dudi'});
+    expect(filteredNames, {'nick': 'dudi'});
   });
 }

@@ -12,6 +12,7 @@ class ContactAddressLocation extends Equatable {
     required this.longitude,
     required this.latitude,
     required this.name,
+    this.address,
     this.coagContactId,
   });
 
@@ -30,10 +31,14 @@ class ContactAddressLocation extends Equatable {
   /// Name of the location
   final String name;
 
+  /// Address of the location
+  final String? address;
+
   Map<String, dynamic> toJson() => _$ContactAddressLocationToJson(this);
 
   @override
-  List<Object?> get props => [coagContactId, longitude, latitude, name];
+  List<Object?> get props =>
+      [coagContactId, longitude, latitude, name, address];
 }
 
 @JsonSerializable()
