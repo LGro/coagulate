@@ -21,10 +21,6 @@ class ContactListCubit extends Cubit<ContactListState> {
     _contactsSubscription =
         contactsRepository.getContactStream().listen((idUpdatedContact) {
       if (!isClosed) {
-        final contact = contactsRepository.getContact(idUpdatedContact);
-        if (contact == null) {
-          return;
-        }
         emit(state.copyWith(
             circleMemberships: contactsRepository.getCircleMemberships(),
             circles: contactsRepository.getCircles(),
