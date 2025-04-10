@@ -432,8 +432,7 @@ class MapPage extends StatelessWidget {
                                 label: c.name,
                                 subLabel: l.value.name,
                                 type: MarkerType.temporary,
-                                picture: state
-                                    .profileInfo?.pictures.values.firstOrNull,
+                                picture: c.details?.picture,
                                 onTap: () async =>
                                     showModalTemporaryLocationDetails(
                                   context,
@@ -474,8 +473,7 @@ class MapPage extends StatelessWidget {
                                 label: c.name,
                                 subLabel: l.name,
                                 type: MarkerType.address,
-                                picture: state
-                                    .profileInfo?.pictures.values.firstOrNull,
+                                picture: c.details?.picture,
                                 onTap: () async =>
                                     showModalAddressLocationDetails(context,
                                         contactName: c.name, location: l),
