@@ -97,5 +97,8 @@ class SettingsCubit extends Cubit<SettingsState> {
                     .generateKeyPair()
                     .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)))));
     await contactsRepository.saveContact(c1);
+    await contactsRepository.updateCirclesForContact(
+        c1.coagContactId, [defaultEveryoneCircleId],
+        triggerDhtUpdate: false);
   }
 }
