@@ -47,6 +47,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Expanded(child: SizedBox()),
+                      const SizedBox(height: 16),
                       Text(
                         context.loc.welcomeHeadline,
                         style: const TextStyle(

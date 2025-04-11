@@ -153,3 +153,17 @@ Uri profileBasedOfferUrl(String name, Typed<FixedEncodedString43> dhtRecordKey,
         path: '/o',
         fragment:
             [name, dhtRecordKey.toString(), publicKey.toString()].join('~'));
+
+bool showSharingInitializing(CoagContact contact) =>
+    contact.dhtSettings.recordKeyThemSharing == null ||
+    contact.dhtSettings.recordKeyMeSharing == null;
+
+bool showSharingOffer(CoagContact contact) =>
+    contact.dhtSettings.recordKeyThemSharing != null &&
+    contact.dhtSettings.initialSecret == null &&
+    contact.details == null;
+
+bool showDirectSharing(CoagContact contact) =>
+    contact.dhtSettings.recordKeyThemSharing != null &&
+    contact.dhtSettings.initialSecret != null &&
+    contact.details == null;

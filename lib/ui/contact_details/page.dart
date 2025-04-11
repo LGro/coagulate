@@ -471,21 +471,8 @@ Widget _sharingSettings(
     Card(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _circlesCard(context, contact.coagContactId, circleNames),
-      if (
-          // TODO: Adding contacts from a profile link does this while the DHT record is still being created
-          (contact.dhtSettings.theirPublicKey != null &&
-                  contact.dhtSettings.initialSecret == null &&
-                  contact.dhtSettings.recordKeyMeSharing == null &&
-                  contact.dhtSettings.recordKeyThemSharing == null) ||
-              // Summarizing all other conditions
-              (circleNames.isNotEmpty &&
-                  contact.dhtSettings.writerMeSharing != null &&
-                  (contact.dhtSettings.initialSecret != null ||
-                      contact.dhtSettings.theirPublicKey != null) &&
-                  contact.sharedProfile != null &&
-                  // For when scanning QR code and handshake not completed
-                  contact.details == null &&
-                  !contact.dhtSettings.theyAckHandshakeComplete)) ...[
+      if (contact.dhtSettings.recordKeyMeSharing == null ||
+          contact.details == null) ...[
         _paddedDivider(),
         _connectingCard(context, contact),
       ],
@@ -540,12 +527,12 @@ Widget _connectingCard(BuildContext context, CoagContact contact) => Padding(
                 textScaler: const TextScaler.linear(1.2), softWrap: true))
       ]),
       const SizedBox(height: 4),
-      if (contact.dhtSettings.theirPublicKey != null &&
-          contact.dhtSettings.recordKeyMeSharing != null &&
-          contact.dhtSettings.initialSecret == null &&
-          contact.dhtSettings.recordKeyThemSharing != null &&
-          !contact.dhtSettings.theyAckHandshakeComplete &&
-          contact.details == null) ...[
+      if (showSharingInitializing(contact)) ...[
+        const Text(
+            'Please wait a moment until sharing options are initialized.'),
+        const SizedBox(height: 4),
+        const Center(child: CircularProgressIndicator())
+      ] else if (showSharingOffer(contact)) ...[
         const Text('You added them from their profile link. To finish '
             'connecting, send them this link via your favorite messenger:'),
         Row(children: [
@@ -570,9 +557,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact) => Padding(
                   .toString()),
               icon: const Icon(Icons.copy)),
         ])
-      ],
-      if (contact.dhtSettings.recordKeyMeSharing != null &&
-          contact.dhtSettings.initialSecret != null) ...[
+      ] else if (showDirectSharing(contact)) ...[
         const SizedBox(height: 4),
         // TODO: Only show share back button when receiving key and psk but not writer are set i.e. is receiving updates and has share back settings
         _qrCodeButton(context,
@@ -614,7 +599,10 @@ Widget _connectingCard(BuildContext context, CoagContact contact) => Padding(
         Text('This QR code and link are specifically for ${contact.name}. '
             'If you want to connect with someone else, go to their '
             'respective contact details or create a new invite.'),
-      ],
+      ] else
+        const Text(
+            'Something unexpected happened, please reach out to the Coagulate '
+            'team with information about how you got here.'),
       const SizedBox(height: 8),
     ]));
 

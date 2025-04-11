@@ -53,6 +53,9 @@ void main() {
       isNotNull,
       reason: 'Receiving record prepared',
     );
+    expect(showSharingInitializing(contactBobFromProfile), false);
+    expect(showSharingOffer(contactBobFromProfile), true);
+    expect(showDirectSharing(contactBobFromProfile), false);
     final directSharingLinkFromAliceForBob = profileBasedOfferUrl(
         'Alice Sharing',
         contactBobFromProfile.dhtSettings.recordKeyMeSharing!,
@@ -83,6 +86,9 @@ void main() {
       true,
       reason: 'Handshake accepted as complete by Alice',
     );
+    expect(showSharingInitializing(contactAliceFromBobsRepo), false);
+    expect(showSharingOffer(contactAliceFromBobsRepo), false);
+    expect(showDirectSharing(contactAliceFromBobsRepo), false);
 
     // Alice checks for Bob sharing back
     contactBobFromProfile =

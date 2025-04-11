@@ -46,6 +46,9 @@ void main() {
       isNotNull,
       reason: 'Receiving record prepared',
     );
+    expect(showSharingInitializing(contactBobInvitedByA), false);
+    expect(showSharingOffer(contactBobInvitedByA), false);
+    expect(showDirectSharing(contactBobInvitedByA), true);
     final directSharingLinkFromAliceForBob = directSharingUrl(
         'Alice Sharing',
         contactBobInvitedByA.dhtSettings.recordKeyMeSharing!,
@@ -66,6 +69,9 @@ void main() {
       'UserA',
       reason: 'Name from sharing profile',
     );
+    expect(showSharingInitializing(contactAliceFromBobsRepo), false);
+    expect(showSharingOffer(contactAliceFromBobsRepo), false);
+    expect(showDirectSharing(contactAliceFromBobsRepo), false);
 
     // Alice checks for Bob sharing back
     await _cRepoA.updateContactFromDHT(contactBobInvitedByA);

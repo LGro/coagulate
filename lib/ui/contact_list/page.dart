@@ -190,25 +190,33 @@ class _ContactListPageState extends State<ContactListPage> {
 
 Widget? contactSharingReceivingStatus(
     CoagContact contact, bool isMemberAnyCircle) {
-  // Me and them are sharing
-  if (contact.dhtSettings.theyAckHandshakeComplete) {
-    return const Icon(Icons.done_all);
-  }
-  // I'm sharing but they aren't sharing back
-  if (contact.dhtSettings.recordKeyMeSharing != null &&
-      contact.dhtSettings.theirPublicKey == null) {
-    return const Icon(Icons.call_made);
+  // Initial creation of DHT records
+  if (showSharingInitializing(contact)) {
+    // TODO: Make sure this is not happening that often, because the animation might be super distracting
+    return const SizedBox(
+        width: 16,
+        height: 16,
+        child: CircularProgressIndicator(strokeWidth: 2));
   }
   // They're sharing but I'm not sharing back
+  // (with the default everyone circle, this likely doesn't happen)
   if (contact.dhtSettings.theirPublicKey != null && !isMemberAnyCircle) {
     return const Icon(Icons.call_received);
+  }
+  // I still need to send them something
+  if (showSharingOffer(contact) || showDirectSharing(contact)) {
+    return const Icon(Icons.call_made);
+  }
+  // Me and them are sharing
+  if (contact.details != null && contact.dhtSettings.theyAckHandshakeComplete) {
+    return const Icon(Icons.done_all);
   }
   // We're both sharing, but haven't received the ack
   if (contact.dhtSettings.recordKeyMeSharing != null &&
       contact.dhtSettings.recordKeyThemSharing != null &&
       contact.details != null) {
-    // TODO: Use Icons.done to differentiate from full handshake DH switch?
-    return const Icon(Icons.done_all);
+    // TODO: Does it confuse folks if we don't explain the difference between one and two checkmarks?
+    return const Icon(Icons.done);
   }
   if (contact.dhtSettings.theirPublicKey != null) {
     return const Icon(Icons.hourglass_empty);
