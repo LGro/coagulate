@@ -1201,14 +1201,18 @@ class ContactsRepository {
       await saveContact(contactA.copyWith(
           introductionsForThem: [...contactA.introductionsForThem, introForA]));
       await saveContact(contactB.copyWith(
-          introductionsForThem: [...contactA.introductionsForThem, introForB]));
+          introductionsForThem: [...contactB.introductionsForThem, introForB]));
+
+      final updateAndShareA = updateContactSharedProfile(contactIdA)
+          .then((_) => tryShareWithContactDHT(contactIdA));
+      final updateAndShareB = updateContactSharedProfile(contactIdB)
+          .then((_) => tryShareWithContactDHT(contactIdB));
 
       if (awaitDhtOperations) {
-        return await tryShareWithContactDHT(contactIdA) &&
-            await tryShareWithContactDHT(contactIdB);
+        return await updateAndShareA && await updateAndShareB;
       } else {
-        unawaited(tryShareWithContactDHT(contactIdA));
-        unawaited(tryShareWithContactDHT(contactIdB));
+        unawaited(updateAndShareA);
+        unawaited(updateAndShareB);
         return true;
       }
     } on Exception {

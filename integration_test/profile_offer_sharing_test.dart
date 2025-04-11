@@ -56,14 +56,14 @@ void main() {
     expect(showSharingInitializing(contactBobFromProfile), false);
     expect(showSharingOffer(contactBobFromProfile), true);
     expect(showDirectSharing(contactBobFromProfile), false);
-    final directSharingLinkFromAliceForBob = profileBasedOfferUrl(
+    final profileBasedOfferLinkFromAliceForBob = profileBasedOfferUrl(
         'Alice Sharing',
         contactBobFromProfile.dhtSettings.recordKeyMeSharing!,
         contactBobFromProfile.dhtSettings.myKeyPair.key);
 
     // Bob accepts profile based offer from Alice
     await ReceiveRequestCubit(_cRepoB).handleSharingOffer(
-        directSharingLinkFromAliceForBob.fragment,
+        profileBasedOfferLinkFromAliceForBob.fragment,
         awaitDhtOperations: true);
     final contactAliceFromBobsRepo = _cRepoB.getContacts().values.first;
     expect(

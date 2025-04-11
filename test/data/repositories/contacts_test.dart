@@ -118,6 +118,7 @@ void main() {
       activeCirclesWithMemberCount: {'Circle': 2},
       dhtSettings: DhtSettings(myKeyPair: dummyTypedKeyPair()),
       sharePersonalUniqueId: true,
+      introductions: [],
     );
     expect(filtered.temporaryLocations.length, 1);
     expect(filtered.temporaryLocations['t3']?.name, 'future');
