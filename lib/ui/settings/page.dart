@@ -85,13 +85,13 @@ class SettingsPage extends StatelessWidget {
                             child: Icon(Icons.arrow_right)),
                         onTap: () async =>
                             Navigator.of(context).push(LicensesPage.route())),
-                    if (!kReleaseMode)
+                    if (kDebugMode)
                       ListTile(
                           title: const Text('Add dummy contact'),
                           onTap: blocContext
                               .read<SettingsCubit>()
                               .addDummyContact),
-                    if (!kReleaseMode)
+                    if (kDebugMode)
                       ListTile(
                           title: const Text('Notify'),
                           onTap: () async =>
