@@ -48,9 +48,11 @@ class _GridCircleItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Force nulls for unavailable pictures to filter them out instead of
+    // rendering placeholders
     final images = pictures
-        .map((p) => roundPictureOrPlaceholder(p, clipOval: false))
-        // Remove the placeholders, we only want images here
+        .map((p) =>
+            (p.isEmpty) ? null : roundPictureOrPlaceholder(p, clipOval: false))
         .whereType<Image>()
         .toList();
     final image = Semantics(
@@ -84,96 +86,6 @@ class _GridCircleItem extends StatelessWidget {
         child: image);
   }
 }
-
-// class NewCirclesForm extends StatefulWidget {
-//   const NewCirclesForm({super.key});
-
-//   @override
-//   _NewCirclesFormState createState() => _NewCirclesFormState();
-// }
-
-// class _NewCirclesFormState extends State<NewCirclesForm> {
-//   final _formKey = GlobalKey<FormState>();
-//   String _newCircleName = '';
-//   late final TextEditingController _newCircleController;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _newCircleController = TextEditingController()
-//       ..addListener(_onNewCircleNameChanges);
-//   }
-
-//   void _onNewCircleNameChanges() {
-//     setState(() {
-//       _newCircleName = _newCircleController.text;
-//     });
-//   }
-
-//   void _resetState() {
-//     _newCircleController.text = '';
-//     setState(() {
-//       _newCircleName = '';
-//     });
-//   }
-
-//   Widget _body(BuildContext context) =>
-//       Column(children: [
-//         const SizedBox(height: 10),
-//         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-//           const SizedBox(width: 10),
-//           Expanded(
-//               child: TextFormField(
-//             controller: _newCircleController,
-//             autocorrect: false,
-//             decoration: const InputDecoration(
-//               isDense: true,
-//               border: OutlineInputBorder(),
-//               hintText: 'New circle name',
-//             ),
-//             validator: (value) {
-//               if (value == null || value.isEmpty) {
-//                 return 'Please enter some text';
-//               }
-//               return null;
-//             },
-//           )),
-//           const SizedBox(width: 8),
-//           IconButton.filled(
-//             onPressed: (_newCircleName.isEmpty)
-//                 ? null
-//                 : () async => context
-//                         .read<CirclesListCubit>()
-//                         .addCircle(_newCircleName)
-//                         .then((circleId) {
-//                       _resetState();
-//                       if (context.mounted) {
-//                         Navigator.of(context)
-//                             .push(CircleDetailsPage.route(circleId));
-//                       }
-//                     }),
-//             icon: const Icon(Icons.add),
-//           ),
-//           const SizedBox(width: 5),
-//         ]),
-//         const SizedBox(height: 10),
-//       ]);
-
-//   @override
-//   Widget build(BuildContext context) => Scaffold(
-//       appBar: AppBar(title: Text(context.loc.circles.capitalize())),
-//       body: MultiBlocProvider(
-//           providers: [
-//             BlocProvider(
-//                 create: (context) =>
-//                     CirclesListCubit(context.read<ContactsRepository>())),
-//           ],
-//           child: BlocConsumer<CirclesListCubit, CirclesListState>(
-//               listener: (context, state) async {},
-//               builder: (context, state) => Container(
-//                   padding: const EdgeInsets.symmetric(horizontal: 8),
-//                   child: _body(context, state)))));
-// }
 
 class CirclesListPage extends StatefulWidget {
   const CirclesListPage({super.key});
