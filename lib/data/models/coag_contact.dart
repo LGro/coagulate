@@ -10,6 +10,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:veilid/veilid.dart';
 
+import 'contact_introduction.dart';
 import 'contact_location.dart';
 import 'profile_sharing_settings.dart';
 
@@ -304,6 +305,8 @@ class CoagContact extends Equatable {
     this.temporaryLocations = const {},
     this.comment = '',
     this.sharedProfile,
+    this.introductionsForThem = const [],
+    this.introductionsByThem = const [],
     this.mostRecentUpdate,
     this.mostRecentChange,
   });
@@ -339,6 +342,12 @@ class CoagContact extends Equatable {
 
   /// Personalized selection of profile info that is shared with this contact
   final CoagContactDHTSchema? sharedProfile;
+
+  /// Introductions the app user proposed them
+  final List<ContactIntroduction> introductionsForThem;
+
+  /// Introductions this contact proposed the app user
+  final List<ContactIntroduction> introductionsByThem;
 
   // TODO: Move these two to contact details to also have the same for the system contact
   final DateTime? mostRecentUpdate;
@@ -385,23 +394,32 @@ class CoagContact extends Equatable {
     Map<String, ContactTemporaryLocation>? temporaryLocations,
     DhtSettings? dhtSettings,
     CoagContactDHTSchema? sharedProfile,
+    List<ContactIntroduction>? introductionsByThem,
+    List<ContactIntroduction>? introductionsForThem,
     DateTime? mostRecentUpdate,
     DateTime? mostRecentChange,
   }) =>
       CoagContact(
         coagContactId: coagContactId ?? this.coagContactId,
-        details: details ?? this.details?.copyWith(),
+        details: (details ?? this.details)?.copyWith(),
         systemContactId: systemContactId ?? this.systemContactId,
-        addressLocations: addressLocations ?? {...this.addressLocations},
-        temporaryLocations: temporaryLocations ?? {...this.temporaryLocations},
-        dhtSettings: dhtSettings ?? this.dhtSettings.copyWith(),
-        sharedProfile: sharedProfile ?? this.sharedProfile?.copyWith(),
+        addressLocations: {...addressLocations ?? this.addressLocations},
+        temporaryLocations: {...temporaryLocations ?? this.temporaryLocations},
+        dhtSettings: (dhtSettings ?? this.dhtSettings).copyWith(),
+        sharedProfile: (sharedProfile ?? this.sharedProfile)?.copyWith(),
         name: name ?? this.name,
         theirPersonalUniqueId:
             theirPersonalUniqueId ?? this.theirPersonalUniqueId,
-        knownPersonalContactIds:
-            knownPersonalContactIds ?? [...this.knownPersonalContactIds],
+        knownPersonalContactIds: [
+          ...knownPersonalContactIds ?? this.knownPersonalContactIds
+        ],
         comment: comment ?? this.comment,
+        introductionsByThem: [
+          ...introductionsByThem ?? this.introductionsByThem
+        ],
+        introductionsForThem: [
+          ...introductionsForThem ?? this.introductionsForThem
+        ],
         mostRecentUpdate: mostRecentUpdate ?? this.mostRecentUpdate,
         mostRecentChange: mostRecentChange ?? this.mostRecentChange,
       );
@@ -419,6 +437,8 @@ class CoagContact extends Equatable {
         comment,
         addressLocations,
         temporaryLocations,
+        introductionsByThem,
+        introductionsForThem,
         mostRecentUpdate,
         mostRecentChange,
       ];

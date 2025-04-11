@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/repositories/contacts.dart';
 import '../../notification_service.dart';
 import '../batch_invite_management/page.dart';
+import '../introduce_contacts/page.dart';
 import '../widgets/veilid_status/widget.dart';
 import 'cubit.dart';
 import 'licenses/page.dart';
@@ -100,5 +101,15 @@ class SettingsPage extends StatelessWidget {
                                 'Simple Notification',
                                 'This is a simple notification example.',
                               )),
+                    if (kDebugMode)
+                      ListTile(
+                          onTap: () async => Navigator.of(context).push(
+                              MaterialPageRoute<IntroduceContactsPage>(
+                                  builder: (_) =>
+                                      const IntroduceContactsPage())),
+                          title: const Text('Introduce contacts'),
+                          trailing: const Padding(
+                              padding: EdgeInsets.only(right: 20),
+                              child: Icon(Icons.arrow_right))),
                   ]))));
 }

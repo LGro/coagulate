@@ -19,6 +19,7 @@ import '../../ui/utils.dart';
 import '../../veilid_processor/veilid_processor.dart';
 import '../models/batch_invites.dart';
 import '../models/coag_contact.dart';
+import '../models/contact_introduction.dart';
 import '../models/contact_location.dart';
 import '../models/contact_update.dart';
 import '../models/profile_sharing_settings.dart';
@@ -1138,5 +1139,77 @@ class ContactsRepository {
         .tryWriteBytes(utf8.encode(jsonEncode(mySubkeyContent.toJson())));
     await mySubkeyRecord.close();
     // TODO: Also update the name in case someone changed the name available to the circle?
+  }
+
+  ////////////////
+  // INTRODUCTIONS
+
+  Future<bool> introduce(
+      {required String contactIdA,
+      required String nameA,
+      required String contactIdB,
+      required String nameB,
+      String? message,
+      bool awaitDhtOperations = false}) async {
+    var contactA = getContact(contactIdA);
+    var contactB = getContact(contactIdB);
+
+    if (contactA?.dhtSettings.theirPublicKey == null ||
+        contactB?.dhtSettings.theirPublicKey == null) {
+      // TODO: let user know that fully connecting is prereq
+      return false;
+    }
+
+    // TODO: check that they don't already know each other and let user know
+    if (contactA!.knownPersonalContactIds
+            .contains(contactB!.theirPersonalUniqueId) ||
+        contactB.knownPersonalContactIds
+            .contains(contactA.theirPersonalUniqueId)) {
+      return false;
+    }
+
+    // TODO: Can this fail? Do we need to try except this?
+    try {
+      final (recordKeyA, writerA) = await distributedStorage.createRecord();
+      final (recordKeyB, writerB) = await distributedStorage.createRecord();
+
+      final introForA = ContactIntroduction(
+        otherName: nameB,
+        otherPublicKey: contactB.dhtSettings.theirPublicKey!,
+        dhtRecordKeyReceiving: recordKeyB,
+        dhtRecordKeySharing: recordKeyA,
+        dhtWriterSharing: writerA,
+      );
+      final introForB = ContactIntroduction(
+          otherName: nameA,
+          otherPublicKey: contactA.dhtSettings.theirPublicKey!,
+          dhtRecordKeyReceiving: recordKeyA,
+          dhtRecordKeySharing: recordKeyB,
+          dhtWriterSharing: writerB);
+
+      // Get most up to date contacts since dht record creation might have taken
+      // a moment
+      contactA = getContact(contactIdA);
+      contactB = getContact(contactIdB);
+      if (contactA == null || contactB == null) {
+        return false;
+      }
+
+      await saveContact(contactA.copyWith(
+          introductionsForThem: [...contactA.introductionsForThem, introForA]));
+      await saveContact(contactB.copyWith(
+          introductionsForThem: [...contactA.introductionsForThem, introForB]));
+
+      if (awaitDhtOperations) {
+        return await tryShareWithContactDHT(contactIdA) &&
+            await tryShareWithContactDHT(contactIdB);
+      } else {
+        unawaited(tryShareWithContactDHT(contactIdA));
+        unawaited(tryShareWithContactDHT(contactIdB));
+        return true;
+      }
+    } on Exception {
+      return false;
+    }
   }
 }

@@ -51,13 +51,7 @@ Widget contactsListView(
             ),
             onChanged: (checked) => updateCircleMembership(
                 contact.coagContactId, checked ?? false)),
-        // TODO: Also allow searching shared locations?
-        matchesItem: (search, contact) =>
-            contact.name.toLowerCase().contains(search.toLowerCase()) ||
-            (contact.details != null &&
-                extractAllValuesToString(contact.details!.toJson())
-                    .toLowerCase()
-                    .contains(search.toLowerCase())));
+        matchesItem: searchMatchesContact);
 
 List<Widget> detailsList<T>(
   BuildContext context,

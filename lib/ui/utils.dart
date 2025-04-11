@@ -26,6 +26,14 @@ String extractAllValuesToString(dynamic value) {
   }
 }
 
+// TODO: Also search temporary locations?
+bool searchMatchesContact(String search, CoagContact contact) =>
+    contact.name.toLowerCase().contains(search.toLowerCase()) ||
+    (contact.details != null &&
+        extractAllValuesToString(contact.details!.toJson())
+            .toLowerCase()
+            .contains(search.toLowerCase()));
+
 Widget roundPictureOrPlaceholder(List<int>? picture,
     {double? radius, bool clipOval = true}) {
   final image = Image.memory(
