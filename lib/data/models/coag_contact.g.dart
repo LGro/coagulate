@@ -193,6 +193,16 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
           ? null
           : CoagContactDHTSchemaV2.fromJson(
               json['shared_profile'] as Map<String, dynamic>),
+      introductionsForThem: (json['introductions_for_them'] as List<dynamic>?)
+              ?.map((e) =>
+                  ContactIntroduction.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      introductionsByThem: (json['introductions_by_them'] as List<dynamic>?)
+              ?.map((e) =>
+                  ContactIntroduction.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       mostRecentUpdate: json['most_recent_update'] == null
           ? null
           : DateTime.parse(json['most_recent_update'] as String),
@@ -216,6 +226,10 @@ Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
           instance.temporaryLocations.map((k, e) => MapEntry(k, e.toJson())),
       'dht_settings': instance.dhtSettings.toJson(),
       'shared_profile': instance.sharedProfile?.toJson(),
+      'introductions_for_them':
+          instance.introductionsForThem.map((e) => e.toJson()).toList(),
+      'introductions_by_them':
+          instance.introductionsByThem.map((e) => e.toJson()).toList(),
       'most_recent_update': instance.mostRecentUpdate?.toIso8601String(),
       'most_recent_change': instance.mostRecentChange?.toIso8601String(),
     };
@@ -282,6 +296,11 @@ CoagContactDHTSchemaV2 _$CoagContactDHTSchemaV2FromJson(
                   ?.map((e) => e as String)
                   .toList() ??
               const [],
+      introductions: (json['introductions'] as List<dynamic>?)
+              ?.map((e) =>
+                  ContactIntroduction.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       mostRecentUpdate: json['most_recent_update'] == null
           ? null
           : DateTime.parse(json['most_recent_update'] as String),
@@ -301,5 +320,6 @@ Map<String, dynamic> _$CoagContactDHTSchemaV2ToJson(
       'share_back_pub_key': instance.shareBackPubKey,
       'ack_handshake_complete': instance.ackHandshakeComplete,
       'known_personal_contact_ids': instance.knownPersonalContactIds,
+      'introductions': instance.introductions.map((e) => e.toJson()).toList(),
       'most_recent_update': instance.mostRecentUpdate?.toIso8601String(),
     };

@@ -513,6 +513,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
     this.temporaryLocations = const {},
     this.ackHandshakeComplete = false,
     this.knownPersonalContactIds = const [],
+    this.introductions = const [],
     DateTime? mostRecentUpdate,
   }) {
     this.mostRecentUpdate = mostRecentUpdate ?? DateTime.now();
@@ -535,6 +536,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
   final String? shareBackPubKey;
   final bool ackHandshakeComplete;
   final List<String> knownPersonalContactIds;
+  final List<ContactIntroduction> introductions;
   late final DateTime? mostRecentUpdate;
 
   Map<String, dynamic> toJson() => _$CoagContactDHTSchemaV2ToJson(this);
@@ -551,18 +553,21 @@ class CoagContactDHTSchemaV2 extends Equatable {
     Map<int, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
     List<String>? knownPersonalContactIds,
+    List<ContactIntroduction>? introductions,
     bool? ackHandshakeComplete,
   }) =>
       CoagContactDHTSchemaV2(
-        details: details ?? this.details.copyWith(),
+        details: (details ?? this.details).copyWith(),
         shareBackDHTKey: shareBackDHTKey ?? this.shareBackDHTKey,
         shareBackPubKey: shareBackPubKey ?? this.shareBackPubKey,
         shareBackDHTWriter: shareBackDHTWriter ?? this.shareBackDHTWriter,
         personalUniqueId: personalUniqueId ?? this.personalUniqueId,
-        addressLocations: addressLocations ?? {...this.addressLocations},
-        temporaryLocations: temporaryLocations ?? {...this.temporaryLocations},
-        knownPersonalContactIds:
-            knownPersonalContactIds ?? [...this.knownPersonalContactIds],
+        addressLocations: {...addressLocations ?? this.addressLocations},
+        temporaryLocations: {...temporaryLocations ?? this.temporaryLocations},
+        knownPersonalContactIds: [
+          ...knownPersonalContactIds ?? this.knownPersonalContactIds
+        ],
+        introductions: [...introductions ?? this.introductions],
         ackHandshakeComplete: ackHandshakeComplete ?? this.ackHandshakeComplete,
       );
 
@@ -578,6 +583,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
         addressLocations,
         temporaryLocations,
         knownPersonalContactIds,
+        introductions,
         ackHandshakeComplete,
       ];
 }
