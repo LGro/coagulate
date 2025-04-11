@@ -178,6 +178,7 @@ CoagContactDHTSchema filterAccordingToSharingProfile(
         required Map<String, int> activeCirclesWithMemberCount,
         required DhtSettings dhtSettings,
         required bool sharePersonalUniqueId,
+        required List<ContactIntroduction> introductions,
         List<String> knownPersonalContactIds = const []}) =>
     CoagContactDHTSchema(
       personalUniqueId: sharePersonalUniqueId ? profile.id : null,
@@ -193,6 +194,7 @@ CoagContactDHTSchema filterAccordingToSharingProfile(
       shareBackPubKey: dhtSettings.myKeyPair.key.toString(),
       knownPersonalContactIds: knownPersonalContactIds,
       ackHandshakeComplete: dhtSettings.theirPublicKey != null,
+      introductions: introductions,
     );
 
 Future<TypedKeyPair> generateTypedKeyPairBest() async =>
@@ -705,9 +707,10 @@ class ContactsRepository {
                             .where((ids) => ids.contains(circleId))
                             .length))),
             dhtSettings: contact.dhtSettings,
-            // TODO: Do we need to trigger updating the sharing profile more often to keep this list up to date?
+            introductions: contact.introductionsForThem,
             // TODO: Allow opt-out (per circle or globally?)
             sharePersonalUniqueId: true,
+            // TODO: Do we need to trigger updating the sharing profile more often to keep this list up to date?
             knownPersonalContactIds: getContacts()
                 .values
                 .map((c) => c.theirPersonalUniqueId)

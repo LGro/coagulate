@@ -3,9 +3,7 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer' as dev;
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:veilid_support/veilid_support.dart';
@@ -268,6 +266,7 @@ class VeilidDhtStorage extends DistributedStorage {
         details: dhtContact.details.copyWith(picture: contactPicture),
         addressLocations: dhtContact.addressLocations,
         temporaryLocations: dhtContact.temporaryLocations,
+        introductionsByThem: dhtContact.introductions,
         // TODO: Check here if share back pub key is valid?
         // TODO: Handle parsing fromString issues
         dhtSettings: (dhtContact.shareBackDHTKey == null ||
