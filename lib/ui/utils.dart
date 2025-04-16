@@ -6,6 +6,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:veilid/veilid.dart';
 
 import '../data/models/coag_contact.dart';
+import '../data/models/contact_introduction.dart';
 import 'batch_invite_management/cubit.dart';
 
 extension LocalizationExt on BuildContext {
@@ -175,3 +176,15 @@ bool showDirectSharing(CoagContact contact) =>
     contact.dhtSettings.recordKeyThemSharing != null &&
     contact.dhtSettings.initialSecret != null &&
     contact.details == null;
+
+/// Returns introducer and introduction for pending introductions
+Iterable<(CoagContact, ContactIntroduction)> pendingIntroductions(
+        Iterable<CoagContact> contacts) =>
+    contacts
+        .map((c) => c.introductionsByThem
+            .where((i) => !contacts
+                .map((c) => c.dhtSettings.recordKeyThemSharing)
+                .whereType<Typed<FixedEncodedString43>>()
+                .contains(i.dhtRecordKeyReceiving))
+            .map((i) => (c, i)))
+        .expand((i) => i);

@@ -18,7 +18,6 @@ import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
-import '../contact_list/page.dart';
 import '../locations/page.dart';
 import '../profile/page.dart';
 import '../utils.dart';
@@ -215,14 +214,15 @@ class _ContactPageState extends State<ContactPage> {
                                         'Refreshing failed, try again later!'),
                                   )))
                             : null),
-                    child: _body(context, state.contact!, state.circleNames),
+                    child: _body(context, state.contact!, state.circleNames,
+                        state.knownContacts),
                   ),
           ),
         ),
       );
 
   Widget _body(BuildContext context, CoagContact contact,
-          List<String> circleNames) =>
+          List<String> circleNames, Map<String, String> knownContacts) =>
       SingleChildScrollView(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -295,16 +295,17 @@ class _ContactPageState extends State<ContactPage> {
                   child: const Text('Unlink from address book contact')),
         ),
 
-        // TODO: Display the shared contacts (summary) instead
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: (contact.theirPersonalUniqueId == null)
-              ? const Text(
-                  'They do not share information about contacts they know.')
-              : Text('They are connected with at least '
-                  '${contact.knownPersonalContactIds.length} other folks on '
-                  'Coagulate'),
-        ),
+        if (contact.theirPersonalUniqueId != null &&
+            contact.knownPersonalContactIds.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+                'They are connected with around '
+                '${contact.knownPersonalContactIds.length}'
+                'other folks via Coagulate, including the following ones you '
+                'also know: ${knownContacts.values.asList().join(', ')}',
+                softWrap: true),
+          ),
 
         // Delete contact
         Center(

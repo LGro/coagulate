@@ -191,9 +191,6 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     // Save contact and trigger optional DHT update if connected, this allows
     // to scan a QR code offline and fetch data later if not available now
     await contactsRepository.saveContact(contact);
-    await contactsRepository.updateCirclesForContact(
-        contact.coagContactId, [defaultEveryoneCircleId],
-        triggerDhtUpdate: false);
 
     final addedContact = contactsRepository.getContact(contact.coagContactId);
     if (addedContact == null) {
@@ -305,9 +302,7 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     // Save contact and trigger optional DHT update if connected, this allows
     // to scan a QR code offline and fetch data later if not available now
     await contactsRepository.saveContact(contact);
-    await contactsRepository.updateCirclesForContact(
-        contact.coagContactId, [defaultEveryoneCircleId],
-        triggerDhtUpdate: false);
+    await contactsRepository.updateContactSharedProfile(contact.coagContactId);
 
     final addedContact = contactsRepository.getContact(contact.coagContactId);
     if (addedContact == null) {

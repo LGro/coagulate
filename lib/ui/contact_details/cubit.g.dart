@@ -16,6 +16,10 @@ ContactDetailsState _$ContactDetailsStateFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      knownContacts: (json['known_contacts'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
     );
 
 Map<String, dynamic> _$ContactDetailsStateToJson(
@@ -24,6 +28,7 @@ Map<String, dynamic> _$ContactDetailsStateToJson(
       'contact': instance.contact?.toJson(),
       'status': _$ContactDetailsStatusEnumMap[instance.status]!,
       'circle_names': instance.circleNames,
+      'known_contacts': instance.knownContacts,
     };
 
 const _$ContactDetailsStatusEnumMap = {

@@ -176,10 +176,7 @@ class DummyDistributedStorage extends VeilidDhtStorage {
     }
     final recordKey = dummyDhtRecordKey();
     dht[recordKey] = null;
-    return (
-      recordKey,
-      await generateTypedKeyPairBest().then((tkp) => tkp.toKeyPair())
-    );
+    return (recordKey, dummyTypedKeyPair().toKeyPair());
   }
 
   @override

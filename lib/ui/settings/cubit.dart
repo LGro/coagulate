@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:math';
@@ -99,7 +99,7 @@ class SettingsCubit extends Cubit<SettingsState> {
                     .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)))));
     await contactsRepository.saveContact(c1);
     await contactsRepository.updateCirclesForContact(
-        c1.coagContactId, [defaultEveryoneCircleId],
+        c1.coagContactId, [defaultInitialCircleId],
         triggerDhtUpdate: false);
   }
 }

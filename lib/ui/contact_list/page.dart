@@ -1,6 +1,7 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,7 @@ import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
 import '../contact_details/page.dart';
 import '../create_new_contact/page.dart';
+import '../introductions/page.dart';
 import '../receive_request/page.dart';
 import '../updates/page.dart';
 import '../utils.dart';
@@ -146,46 +148,58 @@ class _ContactListPageState extends State<ContactListPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(title: const Text('Contacts'), actions: [
-        // Notifications -> show updates page
-        // TODO: Only show when there are updates?
-        IconButton(
-            onPressed: () async => Navigator.of(context).push(
-                MaterialPageRoute<ContactPage>(
-                    builder: (context) => const UpdatesPage())),
-            icon: const Icon(Icons.notifications))
-      ]),
-      body: MultiBlocProvider(
-          providers: [
-            BlocProvider(
-                create: (context) =>
-                    ContactListCubit(context.read<ContactsRepository>())),
-          ],
-          child: BlocConsumer<ContactListCubit, ContactListState>(
-              listener: (context, state) async {},
-              builder: (context, state) => Container(
-                  padding: const EdgeInsets.all(10),
-                  child: (state.contacts.isEmpty)
-                      ? _noContactsBody()
-                      // TODO: Add pull to refresh?
-                      : RefreshIndicator(
-                          onRefresh: () async => context
-                              .read<ContactListCubit>()
-                              .refresh()
-                              .then((success) => context.mounted
-                                  ? (success
-                                      ? ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content: Text(
-                                                  'Successfully refreshed!')))
-                                      : ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                          content: Text(
-                                              'Refreshing failed, try again later!'),
-                                        )))
-                                  : null),
-                          child: _contactsBody(context, state))))));
+  Widget build(BuildContext context) => MultiBlocProvider(
+        providers: [
+          BlocProvider(
+              create: (context) =>
+                  ContactListCubit(context.read<ContactsRepository>())),
+        ],
+        child: BlocConsumer<ContactListCubit, ContactListState>(
+          listener: (context, state) async {},
+          builder: (context, state) => Scaffold(
+            appBar: AppBar(title: const Text('Contacts'), actions: [
+              badges.Badge(
+                showBadge: pendingIntroductions(state.contacts).isNotEmpty,
+                badgeContent: Text(
+                    pendingIntroductions(state.contacts).length.toString()),
+                child: const Icon(Icons.inbox),
+                onTap: () async => Navigator.of(context).push(
+                    MaterialPageRoute<IntroductionsPage>(
+                        builder: (context) => const IntroductionsPage())),
+              ),
+              // TODO: Show badge for unread updates
+              IconButton(
+                  onPressed: () async => Navigator.of(context).push(
+                      MaterialPageRoute<ContactPage>(
+                          builder: (context) => const UpdatesPage())),
+                  icon: const Icon(Icons.notifications))
+            ]),
+            body: Container(
+              padding: const EdgeInsets.all(10),
+              child: (state.contacts.isEmpty)
+                  ? _noContactsBody()
+                  : RefreshIndicator(
+                      onRefresh: () async => context
+                          .read<ContactListCubit>()
+                          .refresh()
+                          .then((success) => context.mounted
+                              ? (success
+                                  ? ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                              Text('Successfully refreshed!')))
+                                  : ScaffoldMessenger.of(context)
+                                      .showSnackBar(const SnackBar(
+                                      content: Text(
+                                          'Refreshing failed, try again later!'),
+                                    )))
+                              : null),
+                      child: _contactsBody(context, state),
+                    ),
+            ),
+          ),
+        ),
+      );
 }
 
 Widget? contactSharingReceivingStatus(

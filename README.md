@@ -11,8 +11,6 @@ When you are visiting a city, find out immediately who of your old friends you c
 
 This [Flutter](flutter.dev) based implementation is derived from [VeilidChat](https://gitlab.com/veilid/veilidchat/).
 Accordingly, the Copyright to all code files belongs to the Veilid developers unless explicitly stated otherwise.
-Also, you might still find left over things called "veilidchat" that should be called "coagulate".
-If you find any, feel free to open a small pull request 😊
 
 ## Development Setup
 
@@ -65,7 +63,7 @@ If that's not possible, can I at least see most of them after I've connected wit
 
 ### Connect
 
-When I click on a contact that I haven't shared with to yet, I'd like to see a share menu for all encrypted messengers where I can share the sharing link.
+When I click on a contact that I haven't shared with yet, I'd like to see a share menu for all encrypted messengers where I can share the sharing link.
 
 When my contact accepts the invitation and shares with me, I'd like to see that highlighted.
 
@@ -132,16 +130,16 @@ On each trigger (app open, background location change, ...?):
 ### App links
 
 Scan QR code  
--> /c/#name~typedRecordKey~psk
+-> `/c/#name~typedRecordKey~psk`
 
 Click/paste profile link  
--> /p/#name~pubKey
+-> `/p/#name~pubKey`
 
 Click/paste profile based invite offer  
--> /o/#name~typedRecordKey~pubKey
+-> `/o/#name~typedRecordKey~pubKey`
 
 Click/paste batch invite
--> /b/#label~typedRecordKey~psk~subkeyIndex~subkeyWriter
+-> `/b/#label~typedRecordKey~psk~subkeyIndex~subkeyWriter`
 
 ### Open Questions
 

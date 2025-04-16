@@ -120,7 +120,7 @@ void main() {
           expect(
               c.contactsRepository
                   .getCirclesForContact(c.state.profile!.coagContactId),
-              contains(defaultEveryoneCircleId));
+              isEmpty);
         });
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
@@ -158,7 +158,7 @@ void main() {
           expect(
               c.contactsRepository
                   .getCirclesForContact(c.state.profile!.coagContactId),
-              contains(defaultEveryoneCircleId));
+              isEmpty);
           expect(
               c.contactsRepository
                   .getContact(c.state.profile!.coagContactId)
@@ -202,7 +202,7 @@ void main() {
           expect(
               c.contactsRepository
                   .getCirclesForContact(c.state.profile!.coagContactId),
-              contains(defaultEveryoneCircleId));
+              isEmpty);
         });
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
@@ -243,7 +243,7 @@ void main() {
           expect(
               c.contactsRepository
                   .getCirclesForContact(c.state.profile!.coagContactId),
-              contains(defaultEveryoneCircleId));
+              isEmpty);
         });
 
     // blocTest<ReceiveRequestCubit, ReceiveRequestState>(

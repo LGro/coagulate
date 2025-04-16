@@ -27,7 +27,7 @@ import '../providers/distributed_storage/base.dart';
 import '../providers/persistent_storage/base.dart';
 import '../providers/system_contacts/base.dart';
 
-const String defaultEveryoneCircleId = 'coag::everyone';
+const String defaultInitialCircleId = 'coag::initial';
 
 /// Wrapper around geocoding library so that we can stub/mock it during tests
 class PlatformGeocoder {
@@ -202,12 +202,16 @@ Future<TypedKeyPair> generateTypedKeyPairBest() async =>
         .generateKeyPair()
         .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)));
 
+Future<FixedEncodedString43> generateRandomSharedSecretBest() async =>
+    Veilid.instance.bestCryptoSystem().then((cs) => cs.randomSharedSecret());
+
 class ContactsRepository {
   ContactsRepository(this.persistentStorage, this.distributedStorage,
       this.systemContactsStorage, this.initialName,
       {bool initialize = true,
       this.notificationCallback,
       this.generateTypedKeyPair = generateTypedKeyPairBest,
+      this.generateSharedSecret = generateRandomSharedSecretBest,
       this.geocoder = const PlatformGeocoder()}) {
     if (initialize) {
       unawaited(this.initialize());
@@ -269,6 +273,8 @@ class ContactsRepository {
 
   final Future<TypedKeyPair> Function() generateTypedKeyPair;
 
+  final Future<FixedEncodedString43> Function() generateSharedSecret;
+
   final PlatformGeocoder geocoder;
 
   Future<void> initialize({bool scheduleRegularUpdates = true}) async {
@@ -276,28 +282,20 @@ class ContactsRepository {
 
     // Initialize profile info
     if (_profileInfo == null) {
+      // Ensure that the initial circle exists
+      if (!getCircles().containsKey(defaultInitialCircleId)) {
+        // TODO: Localize
+        await addCircle(defaultInitialCircleId, 'Friends');
+      }
+
       final nameId = Uuid().v4();
       await setProfileInfo(ProfileInfo(Uuid().v4(),
           details: ContactDetails(names: {nameId: initialName}),
           sharingSettings: ProfileSharingSettings(names: {
-            nameId: const [defaultEveryoneCircleId]
+            nameId: const [defaultInitialCircleId]
           }),
           mainKeyPair: await generateTypedKeyPair()));
     }
-
-    // Ensure that everyone is part of the default circle
-    if (!getCircles().containsKey(defaultEveryoneCircleId)) {
-      // TODO: Localize
-      await addCircle(defaultEveryoneCircleId, 'Everyone');
-    }
-    // TODO: Do we really want to automatically add everyone?
-    // final circleMemberships = {...getCircleMemberships()};
-    // circleMemberships[defaultEveryoneCircleId] = [...getContacts().keys];
-    // await updateCircleMemberships(circleMemberships);
-
-    // FIXME: System contact sync is disabled
-    //await updateFromSystemContacts();
-    //FlutterContacts.addListener(_systemContactsChangedCallback);
 
     // Update the contacts from DHT and subscribe to future updates
     await updateAndWatchReceivingDHT();
@@ -514,9 +512,7 @@ class ContactsRepository {
         // TODO: Get specific cryptosystem version? also, move veilid specific stuff elsewhere
         final initialSecret = (contactPubKey == null &&
                 contact.dhtSettings.theirPublicKey == null)
-            ? await Veilid.instance
-                .bestCryptoSystem()
-                .then((cs) => cs.randomSharedSecret())
+            ? await generateSharedSecret()
             : null;
 
         // TODO: Is a refresh of the contact before updating necessary?
@@ -746,11 +742,8 @@ class ContactsRepository {
             theyAckHandshakeComplete: pubKey != null));
     await saveContact(contact);
 
-    // Add to default circle and update shared profile
-    await updateCirclesForContact(
-        contact.coagContactId, [defaultEveryoneCircleId],
-        // Trigger dht update with custom arguments below instead
-        triggerDhtUpdate: false);
+    // Even though no details are shared yet, initialize shared profile
+    await updateContactSharedProfile(contact.coagContactId);
 
     // Trigger sharing, incl. DHT record creation
     final dhtSharingAttempt = tryShareWithContactDHT(contact.coagContactId,
@@ -1079,8 +1072,8 @@ class ContactsRepository {
         await saveContact(contact);
         await updateCirclesForContact(
             contact.coagContactId,
-            // Add to default circle and update shared profile
-            [defaultEveryoneCircleId, batch.recordKey.toString()],
+            // Add to the batch circle and update shared profile
+            [batch.recordKey.toString()],
             // Trigger dht update with custom arguments below instead
             triggerDhtUpdate: false);
       }

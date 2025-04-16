@@ -5,7 +5,6 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -18,6 +17,15 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   ContactDetailsCubit(this.contactsRepository, String coagContactId)
       : super(ContactDetailsState(ContactDetailsStatus.success,
             contact: contactsRepository.getContact(coagContactId),
+            knownContacts: Map.fromEntries(contactsRepository
+                .getContacts()
+                .entries
+                .where((c) => (contactsRepository
+                            .getContact(coagContactId)
+                            ?.knownPersonalContactIds ??
+                        [])
+                    .contains(c.key))
+                .map((c) => MapEntry(c.key, c.value.name))),
             circleNames: contactsRepository
                 .getCirclesForContact(coagContactId)
                 .values
@@ -32,9 +40,9 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
       }
     });
     _contactsSubscription =
-        contactsRepository.getContactStream().listen((updtedContactId) {
-      if (updtedContactId == coagContactId && !isClosed) {
-        final updatedContact = contactsRepository.getContact(updtedContactId);
+        contactsRepository.getContactStream().listen((updatedContactId) {
+      if (updatedContactId == coagContactId && !isClosed) {
+        final updatedContact = contactsRepository.getContact(updatedContactId);
         if (updatedContact == null) {
           // TODO: Add contact not found status?
           emit(const ContactDetailsState(ContactDetailsStatus.initial));
@@ -42,6 +50,15 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
           emit(state.copyWith(
               status: ContactDetailsStatus.success,
               contact: updatedContact,
+              knownContacts: Map.fromEntries(contactsRepository
+                  .getContacts()
+                  .entries
+                  .where((c) => (contactsRepository
+                              .getContact(coagContactId)
+                              ?.knownPersonalContactIds ??
+                          [])
+                      .contains(c.key))
+                  .map((c) => MapEntry(c.key, c.value.name))),
               circleNames: contactsRepository
                   .getCirclesForContact(coagContactId)
                   .values

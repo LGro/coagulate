@@ -55,6 +55,7 @@ ContactsRepository _contactsRepositoryFromContacts(
       appUserName,
       initialize: false,
       generateTypedKeyPair: () async => dummyTypedKeyPair(),
+      generateSharedSecret: () async => dummyPsk(42),
       geocoder: DummyGeocoder(),
     );
 
@@ -115,6 +116,27 @@ void main() {
     );
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
+      'emits scan qr code when handling own invite link',
+      build: () => ReceiveRequestCubit(contactsRepository!),
+      act: (c) async {
+        final contact = await contactsRepository!
+            .createContactForInvite('for invite', awaitDhtSharingAttempt: true);
+        await c.qrCodeCaptured(mobile_scanner.BarcodeCapture(barcodes: [
+          mobile_scanner.Barcode(
+              rawValue: directSharingUrl(
+                      'my own',
+                      contact.dhtSettings.recordKeyMeSharing!,
+                      contact.dhtSettings.initialSecret!)
+                  .toString())
+        ]));
+      },
+      expect: () => [
+        const ReceiveRequestState(ReceiveRequestStatus.processing),
+        const ReceiveRequestState(ReceiveRequestStatus.qrcode),
+      ],
+    );
+
+    blocTest<ReceiveRequestCubit, ReceiveRequestState>(
         'successful direct sharing qt scanning, no dht info available yet',
         build: () => ReceiveRequestCubit(contactsRepository!),
         act: (c) async =>
@@ -147,7 +169,7 @@ void main() {
           expect(
               c.contactsRepository
                   .getCirclesForContact(c.state.profile!.coagContactId),
-              contains(defaultEveryoneCircleId));
+              isEmpty);
         });
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(
@@ -184,7 +206,7 @@ void main() {
           expect(
               c.contactsRepository
                   .getCirclesForContact(c.state.profile!.coagContactId),
-              contains(defaultEveryoneCircleId));
+              isEmpty);
           expect(
               c.contactsRepository
                   .getContact(c.state.profile!.coagContactId)
@@ -265,7 +287,7 @@ void main() {
           expect(
               c.contactsRepository
                   .getCirclesForContact(c.state.profile!.coagContactId),
-              contains(defaultEveryoneCircleId));
+              isEmpty);
         });
 
     blocTest<ReceiveRequestCubit, ReceiveRequestState>(

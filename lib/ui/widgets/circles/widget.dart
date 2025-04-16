@@ -8,8 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:formz/formz.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../data/repositories/contacts.dart';
-
 // TODO: Display check in form with location (from gps, from map picker, from address, from coordinates) circles to share with, optional duration, optional move away to check out constraint
 class CirclesForm extends StatefulWidget {
   const CirclesForm(
@@ -169,20 +167,16 @@ class _CirclesFormState extends State<CirclesForm> {
                 .map((i, c) => MapEntry(
                     i,
                     GestureDetector(
-                        onTap: (c.$1 == defaultEveryoneCircleId)
-                            ? null
-                            : () => _updateCircleMembership(i, !c.$3),
+                        onTap: () => _updateCircleMembership(i, !c.$3),
                         behavior: HitTestBehavior.opaque,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Checkbox(
                                 value: c.$3,
-                                onChanged: (c.$1 == defaultEveryoneCircleId)
+                                onChanged: (value) => (value == null)
                                     ? null
-                                    : (value) => (value == null)
-                                        ? null
-                                        : _updateCircleMembership(i, value)),
+                                    : _updateCircleMembership(i, value)),
                             Text('${c.$2} (${c.$4})'),
                             const SizedBox(width: 4),
                           ],
