@@ -52,26 +52,32 @@ class IntroductionsPage extends StatelessWidget {
                               builder: (alertContext) => AlertDialog(
                                 titlePadding: const EdgeInsets.only(
                                     left: 16, right: 16, top: 16),
-                                title: Text(
-                                    'Accept introduction to ${intro.$2.otherName}'),
+                                title: Text('Accept introduction to '
+                                    '${intro.$2.otherName}'),
                                 actions: [
-                                  FilledButton.tonal(
-                                      onPressed: alertContext.pop,
-                                      child: const Text('Cancel')),
-                                  FilledButton(
-                                      onPressed: () async {
-                                        final coagContactId = await context
-                                            .read<IntroductionsCubit>()
-                                            .accept(intro.$1, intro.$2);
-                                        if (context.mounted) {
-                                          context.goNamed('contactDetails',
-                                              pathParameters: {
-                                                'coagContactId': coagContactId
-                                              });
-                                        }
-                                      },
-                                      child: const Text(
-                                          'Accept & configure sharing')),
+                                  const SizedBox(height: 4),
+                                  Center(
+                                      child: FilledButton.tonal(
+                                          onPressed: alertContext.pop,
+                                          child: const Text('Cancel'))),
+                                  const SizedBox(height: 4),
+                                  Center(
+                                      child: FilledButton(
+                                          onPressed: () async {
+                                            final coagContactId = await context
+                                                .read<IntroductionsCubit>()
+                                                .accept(intro.$1, intro.$2);
+                                            if (context.mounted) {
+                                              context.goNamed('contactDetails',
+                                                  pathParameters: {
+                                                    'coagContactId':
+                                                        coagContactId
+                                                  });
+                                              alertContext.pop();
+                                            }
+                                          },
+                                          child: const Text(
+                                              'Accept & configure sharing'))),
                                 ],
                               ),
                             ),

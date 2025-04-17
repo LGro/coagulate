@@ -9,7 +9,7 @@ import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:coagulate/ui/receive_request/cubit.dart';
 import 'package:coagulate/ui/utils.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:geocoding_platform_interface/src/models/location.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
 import 'package:veilid_support/veilid_support.dart';
 

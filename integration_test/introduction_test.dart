@@ -25,20 +25,21 @@ void main() {
     _cRepoIntroducer = ContactsRepository(DummyPersistentStorage({}),
         _distStorage, DummySystemContacts([]), 'Introducer',
         initialize: false);
-    await _cRepoIntroducer.initialize();
+    await _cRepoIntroducer.initialize(listenToVeilidNetworkChanges: false);
 
     _cRepoA = ContactsRepository(DummyPersistentStorage({}), _distStorage,
         DummySystemContacts([]), 'UserA',
         initialize: false);
-    await _cRepoA.initialize();
+    await _cRepoA.initialize(listenToVeilidNetworkChanges: false);
 
     _cRepoB = ContactsRepository(DummyPersistentStorage({}), _distStorage,
         DummySystemContacts([]), 'UserB',
         initialize: false);
-    await _cRepoB.initialize();
+    await _cRepoB.initialize(listenToVeilidNetworkChanges: false);
   });
 
-  test('Alice directly shares with Bob who shares back', () async {
+  test('Introducer connects with Alice and Bob,introduces them, they connect',
+      () async {
     // Connect Introducer and UserA
     final contactA = await _cRepoIntroducer.createContactForInvite('A',
         pubKey: _cRepoA.getProfileInfo()!.mainKeyPair!.key,
@@ -73,22 +74,48 @@ void main() {
         awaitDhtOperations: true);
     expect(introSucceeded, true);
 
-    // Check that Contact A has gotten the invitation to connect with B
+    // Check that Contact A has gotten the invitation to connect with B, accept
     await _cRepoA.updateContactFromDHT(_cRepoA.getContacts().values.first);
     expect(_cRepoA.getContacts().length, 1);
-    expect(
-        _cRepoA.getContacts().values.first.name, 'Introducer sharing with A');
-    expect(
-        _cRepoA.getContacts().values.first.introductionsByThem.first.otherName,
-        'Intro Alias B');
+    final introducerA = _cRepoA.getContacts().values.first;
+    expect(introducerA.name, 'Introducer sharing with A');
+    expect(introducerA.introductionsByThem.first.otherName, 'Intro Alias B');
+    // Accept and share
+    final contactIdB = await _cRepoA.acceptIntroduction(
+        introducerA, introducerA.introductionsByThem.first,
+        awaitUpdateFromDht: true);
+    await _cRepoA.updateCirclesForContact(contactIdB, [defaultInitialCircleId],
+        triggerDhtUpdate: false);
+    final sharingSuccessA = await _cRepoA.tryShareWithContactDHT(contactIdB);
+    expect(sharingSuccessA, true);
 
     // Check that Contact B has gotten the invitation to connect with A
     await _cRepoB.updateContactFromDHT(_cRepoB.getContacts().values.first);
     expect(_cRepoB.getContacts().length, 1);
-    expect(
-        _cRepoB.getContacts().values.first.name, 'Introducer sharing with B');
-    expect(
-        _cRepoB.getContacts().values.first.introductionsByThem.first.otherName,
-        'Intro Alias A');
+    final introducerB = _cRepoB.getContacts().values.first;
+    expect(introducerB.name, 'Introducer sharing with B');
+    expect(introducerB.introductionsByThem.first.otherName, 'Intro Alias A');
+    // Accept and share
+    final contactIdA = await _cRepoB.acceptIntroduction(
+        introducerB, introducerB.introductionsByThem.first,
+        awaitUpdateFromDht: true);
+    await _cRepoB.updateCirclesForContact(contactIdA, [defaultInitialCircleId],
+        triggerDhtUpdate: false);
+    final sharingSuccessB = await _cRepoB.tryShareWithContactDHT(contactIdA);
+    expect(sharingSuccessB, true);
+
+    // Check that sharing succeeded from perspective of A
+    final updateSuccessA =
+        await _cRepoA.updateContactFromDHT(_cRepoA.getContact(contactIdB)!);
+    expect(updateSuccessA, true);
+    expect(_cRepoA.getContact(contactIdB)!.details?.names.values.firstOrNull,
+        'UserB');
+
+    // Check that sharing succeeded from perspective of B
+    final updateSuccessB =
+        await _cRepoB.updateContactFromDHT(_cRepoB.getContact(contactIdA)!);
+    expect(updateSuccessB, true);
+    expect(_cRepoB.getContact(contactIdA)!.details?.names.values.firstOrNull,
+        'UserA');
   });
 }

@@ -30,20 +30,8 @@ class IntroductionsCubit extends Cubit<IntroductionsState> {
   late final StreamSubscription<String> _contactsSubscription;
 
   Future<String> accept(
-      CoagContact introducer, ContactIntroduction introduction) async {
-    final contact = CoagContact(
-        coagContactId: Uuid().v4(),
-        name: introduction.otherName,
-        dhtSettings: DhtSettings(
-            myKeyPair: introducer.dhtSettings.myKeyPair,
-            recordKeyMeSharing: introduction.dhtRecordKeySharing,
-            writerMeSharing: introduction.dhtWriterSharing,
-            theirPublicKey: introduction.otherPublicKey,
-            recordKeyThemSharing: introduction.dhtRecordKeyReceiving));
-    await contactsRepository.saveContact(contact);
-    unawaited(contactsRepository.updateContactFromDHT(contact));
-    return contact.coagContactId;
-  }
+          CoagContact introducer, ContactIntroduction introduction) async =>
+      contactsRepository.acceptIntroduction(introducer, introduction);
 
   @override
   Future<void> close() {

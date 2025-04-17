@@ -44,7 +44,7 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
       if (updatedContactId == coagContactId && !isClosed) {
         final updatedContact = contactsRepository.getContact(updatedContactId);
         if (updatedContact == null) {
-          // TODO: Add contact not found status?
+          // TODO: Add contact not found status to trigger redirect to contacts list
           emit(const ContactDetailsState(ContactDetailsStatus.initial));
         } else {
           emit(state.copyWith(
@@ -57,7 +57,7 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
                               .getContact(coagContactId)
                               ?.knownPersonalContactIds ??
                           [])
-                      .contains(c.key))
+                      .contains(c.value.theirPersonalUniqueId))
                   .map((c) => MapEntry(c.key, c.value.name))),
               circleNames: contactsRepository
                   .getCirclesForContact(coagContactId)
@@ -91,9 +91,9 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
       contactsRepository.unlinkSystemContact(state.contact!.coagContactId);
 
   // TODO: This takes looong, can we speed it up?
-  Future<bool> refresh() async {
+  Future<(bool, bool)> refresh() async {
     if (state.contact == null) {
-      return false;
+      return (false, false);
     }
     final receiveSuccess =
         await contactsRepository.updateContactFromDHT(state.contact!);
@@ -103,9 +103,16 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
     final shareSuccess = await contactsRepository
         .tryShareWithContactDHT(state.contact!.coagContactId);
 
-    // TODO: Report more nuanced?
-    return receiveSuccess && shareSuccess;
+    return (receiveSuccess, shareSuccess);
   }
+
+  bool wasNotIntroduced(CoagContact contact) => contactsRepository
+      .getContacts()
+      .values
+      .where((c) => c.introductionsByThem
+          .map((i) => i.dhtRecordKeyReceiving)
+          .contains(contact.dhtSettings.recordKeyThemSharing))
+      .isEmpty;
 
   @override
   Future<void> close() {

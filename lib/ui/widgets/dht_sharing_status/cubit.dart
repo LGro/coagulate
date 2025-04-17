@@ -59,25 +59,30 @@ class DhtSharingStatusCubit extends Cubit<DhtSharingStatusState>
 
   Future<void> updateStatus() async {
     final numSubkeys = recordKeys.length * 32;
+    try {
+      final offlineSubkeysPerContact = await Future.wait(recordKeys.map(
+          (k) async =>
+              getRecordReport(k).then((r) => r?.offlineSubkeys.length)));
 
-    final offlineSubkeysPerContact = await Future.wait(recordKeys.map(
-        (k) async => getRecordReport(k).then((r) => r?.offlineSubkeys.length)));
+      final numUnknown =
+          offlineSubkeysPerContact.where((n) => n == null).length;
 
-    final numUnknown = offlineSubkeysPerContact.where((n) => n == null).length;
+      final numOfflineSubkeys =
+          offlineSubkeysPerContact.whereType<int>().fold(0, (a, b) => a + b);
 
-    final numOfflineSubkeys =
-        offlineSubkeysPerContact.whereType<int>().fold(0, (a, b) => a + b);
-
-    if (!isClosed) {
-      // TODO: Move rendering to widget
-      // Beware division by zero o.O
-      if (numSubkeys == 0) {
-        return emit(const DhtSharingStatusState(''));
+      if (!isClosed) {
+        // TODO: Move rendering to widget
+        // Beware division by zero o.O
+        if (numSubkeys == 0) {
+          return emit(const DhtSharingStatusState(''));
+        }
+        return emit(DhtSharingStatusState(
+            '${((1 - (numOfflineSubkeys / numSubkeys)) * 100).round()}% synced / '
+            '${((numUnknown / numSubkeys) * 100).round()}% unknown / '
+            '$numSubkeys subkeys total'));
       }
-      return emit(DhtSharingStatusState(
-          '${((1 - (numOfflineSubkeys / numSubkeys)) * 100).round()}% synced / '
-          '${((numUnknown / numSubkeys) * 100).round()}% unknown / '
-          '$numSubkeys subkeys total'));
+    } on VeilidAPIExceptionTryAgain {
+      return;
     }
   }
 

@@ -54,7 +54,7 @@ void main() {
       reason: 'Nobody else shared with the batch yet',
     );
 
-    // Bob accepts profile based offer from Alice
+    // Bob accepts batch based offer from Alice
     final rrCubitB = ReceiveRequestCubit(_cRepoB,
         initialState: ReceiveRequestState(
             ReceiveRequestStatus.handleBatchInvite,
@@ -100,7 +100,7 @@ void main() {
     await _cRepoB.batchInviteUpdate(_cRepoB.getBatchInvites().values.first);
     contactAliceFromBobsRepo = _cRepoB.getContacts().values.first;
     expect(
-      contactAliceFromBobsRepo.details?.names.values.first,
+      contactAliceFromBobsRepo.details?.names.values.firstOrNull,
       'UserA',
       reason: 'Details available',
     );
@@ -110,7 +110,7 @@ void main() {
     contactBobFromAlicesRepo =
         _cRepoA.getContact(contactBobFromAlicesRepo.coagContactId)!;
     expect(
-      contactBobFromAlicesRepo.details?.names.values.first,
+      contactBobFromAlicesRepo.details?.names.values.firstOrNull,
       'UserB',
       reason: 'Details available',
     );

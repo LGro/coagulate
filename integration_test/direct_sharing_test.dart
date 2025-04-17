@@ -31,11 +31,15 @@ void main() {
   });
 
   test('Alice directly shares with Bob who shares back', () async {
-    // Alice prepares invite for Bob
+    // Alice prepares invite for Bob and shares via default circle
     var contactBobInvitedByA = await _cRepoA.createContactForInvite(
         'Bob Invite',
         pubKey: null,
         awaitDhtSharingAttempt: true);
+    await _cRepoA.updateCirclesForContact(
+        contactBobInvitedByA.coagContactId, [defaultInitialCircleId],
+        triggerDhtUpdate: false);
+    await _cRepoA.tryShareWithContactDHT(contactBobInvitedByA.coagContactId);
     expect(
       contactBobInvitedByA.dhtSettings.recordKeyMeSharing,
       isNotNull,
@@ -54,18 +58,23 @@ void main() {
         contactBobInvitedByA.dhtSettings.recordKeyMeSharing!,
         contactBobInvitedByA.dhtSettings.initialSecret!);
 
-    // Bob accepts invite from Alice
+    // Bob accepts invite from Alice and shares via default circle
     await ReceiveRequestCubit(_cRepoB).handleDirectSharing(
         directSharingLinkFromAliceForBob.fragment,
         awaitDhtOperations: true);
     var contactAliceFromBobsRepo = _cRepoB.getContacts().values.first;
+    await _cRepoB.updateCirclesForContact(
+        contactAliceFromBobsRepo.coagContactId, [defaultInitialCircleId],
+        triggerDhtUpdate: false);
+    await _cRepoB
+        .tryShareWithContactDHT(contactAliceFromBobsRepo.coagContactId);
     expect(
       contactAliceFromBobsRepo.name,
       'Alice Sharing',
       reason: 'Name from invite URL',
     );
     expect(
-      contactAliceFromBobsRepo.details?.names.values.first,
+      contactAliceFromBobsRepo.details?.names.values.firstOrNull,
       'UserA',
       reason: 'Name from sharing profile',
     );
@@ -78,7 +87,7 @@ void main() {
     contactBobInvitedByA =
         _cRepoA.getContact(contactBobInvitedByA.coagContactId)!;
     expect(
-      contactBobInvitedByA.details?.names.values.first,
+      contactBobInvitedByA.details?.names.values.firstOrNull,
       'UserB',
       reason: 'Name from sharing profile',
     );

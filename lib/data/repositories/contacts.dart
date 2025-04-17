@@ -173,6 +173,7 @@ Map<String, ContactTemporaryLocation> filterTemporaryLocations(
         (activeCircles == null ||
             l.value.circles.toSet().intersectsWith(activeCircles.toSet()))));
 
+// TODO: Empty all the known contacts and misc stuff when no circles active?
 CoagContactDHTSchema filterAccordingToSharingProfile(
         {required ProfileInfo profile,
         required Map<String, int> activeCirclesWithMemberCount,
@@ -277,7 +278,9 @@ class ContactsRepository {
 
   final PlatformGeocoder geocoder;
 
-  Future<void> initialize({bool scheduleRegularUpdates = true}) async {
+  Future<void> initialize(
+      {bool scheduleRegularUpdates = true,
+      bool listenToVeilidNetworkChanges = true}) async {
     await initializeFromPersistentStorage();
 
     // Initialize profile info
@@ -303,9 +306,11 @@ class ContactsRepository {
     // Update the shared profile with all contacts
     await updateSharingDHT();
 
-    ProcessorRepository.instance
-        .streamProcessorConnectionState()
-        .listen(_veilidConnectionStateChangeCallback);
+    if (listenToVeilidNetworkChanges) {
+      ProcessorRepository.instance
+          .streamProcessorConnectionState()
+          .listen(_veilidConnectionStateChangeCallback);
+    }
 
     if (scheduleRegularUpdates) {
       // updateFromDhtTimer = Timer.periodic(
@@ -1170,12 +1175,11 @@ class ContactsRepository {
       final (recordKeyB, writerB) = await distributedStorage.createRecord();
 
       final introForA = ContactIntroduction(
-        otherName: nameB,
-        otherPublicKey: contactB.dhtSettings.theirPublicKey!,
-        dhtRecordKeyReceiving: recordKeyB,
-        dhtRecordKeySharing: recordKeyA,
-        dhtWriterSharing: writerA,
-      );
+          otherName: nameB,
+          otherPublicKey: contactB.dhtSettings.theirPublicKey!,
+          dhtRecordKeyReceiving: recordKeyB,
+          dhtRecordKeySharing: recordKeyA,
+          dhtWriterSharing: writerA);
       final introForB = ContactIntroduction(
           otherName: nameA,
           otherPublicKey: contactA.dhtSettings.theirPublicKey!,
@@ -1211,5 +1215,28 @@ class ContactsRepository {
     } on Exception {
       return false;
     }
+  }
+
+  Future<String> acceptIntroduction(
+      CoagContact introducer, ContactIntroduction introduction,
+      {bool awaitUpdateFromDht = false}) async {
+    final contact = CoagContact(
+        coagContactId: Uuid().v4(),
+        name: introduction.otherName,
+        dhtSettings: DhtSettings(
+            myKeyPair: introducer.dhtSettings.myKeyPair,
+            recordKeyMeSharing: introduction.dhtRecordKeySharing,
+            writerMeSharing: introduction.dhtWriterSharing,
+            theirPublicKey: introduction.otherPublicKey,
+            recordKeyThemSharing: introduction.dhtRecordKeyReceiving,
+            theyAckHandshakeComplete: true));
+    await saveContact(contact);
+    final dhtUpdate = updateContactFromDHT(contact);
+    if (awaitUpdateFromDht) {
+      await dhtUpdate;
+    } else {
+      unawaited(dhtUpdate);
+    }
+    return contact.coagContactId;
   }
 }

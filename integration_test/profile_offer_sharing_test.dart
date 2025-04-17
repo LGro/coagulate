@@ -31,13 +31,17 @@ void main() {
   });
 
   test("Alice shares from Bob's profile link, who shares back", () async {
-    // Alice prepares invite for Bob using Bob's profile public key
+    // Alice prepares invite for Bob using Bob's profile public key and shares via the default circle
     final rrCubitA = ReceiveRequestCubit(_cRepoA);
     await rrCubitA.handleProfileLink(
         profileUrl('Bob Profile', _cRepoB.getProfileInfo()!.mainKeyPair!.key)
             .fragment,
         awaitDhtOperations: true);
     var contactBobFromProfile = _cRepoA.getContacts().values.first;
+    await _cRepoA.updateCirclesForContact(
+        contactBobFromProfile.coagContactId, [defaultInitialCircleId],
+        triggerDhtUpdate: false);
+    await _cRepoA.tryShareWithContactDHT(contactBobFromProfile.coagContactId);
     expect(
       contactBobFromProfile.dhtSettings.theirPublicKey,
       _cRepoB.getProfileInfo()!.mainKeyPair!.key,
@@ -61,11 +65,16 @@ void main() {
         contactBobFromProfile.dhtSettings.recordKeyMeSharing!,
         contactBobFromProfile.dhtSettings.myKeyPair.key);
 
-    // Bob accepts profile based offer from Alice
+    // Bob accepts profile based offer from Alice and shares via default circle
     await ReceiveRequestCubit(_cRepoB).handleSharingOffer(
         profileBasedOfferLinkFromAliceForBob.fragment,
         awaitDhtOperations: true);
     final contactAliceFromBobsRepo = _cRepoB.getContacts().values.first;
+    await _cRepoB.updateCirclesForContact(
+        contactAliceFromBobsRepo.coagContactId, [defaultInitialCircleId],
+        triggerDhtUpdate: false);
+    await _cRepoB
+        .tryShareWithContactDHT(contactAliceFromBobsRepo.coagContactId);
     expect(
       contactAliceFromBobsRepo.dhtSettings.myKeyPair,
       _cRepoB.getProfileInfo()!.mainKeyPair,
@@ -77,7 +86,7 @@ void main() {
       reason: 'Name from invite URL',
     );
     expect(
-      contactAliceFromBobsRepo.details?.names.values.first,
+      contactAliceFromBobsRepo.details?.names.values.firstOrNull,
       'UserA',
       reason: 'Name from sharing profile',
     );
@@ -97,7 +106,7 @@ void main() {
     contactBobFromProfile =
         _cRepoA.getContact(contactBobFromProfile.coagContactId)!;
     expect(
-      contactBobFromProfile.details?.names.values.first,
+      contactBobFromProfile.details?.names.values.firstOrNull,
       'UserB',
       reason: 'Name from sharing profile',
     );

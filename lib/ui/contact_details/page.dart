@@ -18,6 +18,7 @@ import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
+import '../introductions/page.dart';
 import '../locations/page.dart';
 import '../profile/page.dart';
 import '../utils.dart';
@@ -203,16 +204,18 @@ class _ContactPageState extends State<ContactPage> {
                         .read<ContactDetailsCubit>()
                         .refresh()
                         .then((success) => context.mounted
-                            ? (success
-                                ? ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Successfully refreshed!')))
-                                : ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                    content: Text(
-                                        'Refreshing failed, try again later!'),
-                                  )))
+                            ? ScaffoldMessenger.of(context)
+                                .showSnackBar(SnackBar(
+                                    content: Text([
+                                if (success.$1)
+                                  'Updated contact successfully.'
+                                else
+                                  'Updating contact failed, try again later.',
+                                if (success.$2)
+                                  'Updated shared information successfully.'
+                                else
+                                  'Updating shared information failed, try again later.'
+                              ].join('\n'))))
                             : null),
                     child: _body(context, state.contact!, state.circleNames,
                         state.knownContacts),
@@ -249,6 +252,60 @@ class _ContactPageState extends State<ContactPage> {
             padding: const EdgeInsets.only(left: 4, top: 4, right: 4),
             child: _sharingSettings(context, contact, circleNames)),
 
+        // Introductions
+        if (contact.introductionsByThem.isNotEmpty ||
+            contact.introductionsForThem.isNotEmpty) ...[
+          Padding(
+              padding:
+                  const EdgeInsets.only(left: 12, top: 8, right: 12, bottom: 4),
+              child: Text('Introductions',
+                  textScaler: const TextScaler.linear(1.4),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary))),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 12, right: 12, top: 8, bottom: 8),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (contact.theirPersonalUniqueId != null)
+                        Text(
+                            [
+                              '${contact.name} is connected with at least',
+                              '${contact.knownPersonalContactIds.length} other',
+                              'folks via Coagulate.',
+                              if (knownContacts.isNotEmpty) ...[
+                                'Including the following ones you also know:',
+                                knownContacts.values.asList().join(', '),
+                              ],
+                            ].join(' '),
+                            softWrap: true),
+                      if (contact.introductionsForThem.isNotEmpty)
+                        Text('You have introduced them to: '
+                            '${contact.introductionsForThem.map((i) => i.otherName).join(', ')}'),
+                      if (contact.introductionsByThem.isNotEmpty)
+                        Text('They have introduced you to: '
+                            '${contact.introductionsByThem.map((i) => i.otherName).join(', ')}'),
+                      if (pendingIntroductions([contact]).isNotEmpty)
+                        Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: FilledButton.tonal(
+                                onPressed: () async => Navigator.of(context)
+                                    .push(MaterialPageRoute<IntroductionsPage>(
+                                        builder: (context) =>
+                                            const IntroductionsPage())),
+                                child:
+                                    const Text('View pending introductions'))),
+                    ]),
+              ),
+            ),
+          )
+        ],
+
         // Private note
         Padding(
             padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
@@ -258,25 +315,32 @@ class _ContactPageState extends State<ContactPage> {
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.primary))),
         Padding(
-            padding: const EdgeInsets.only(left: 16, top: 8, right: 16),
-            child: TextFormField(
-              key: const Key('contactDetailsNoteInput'),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Card(
+                child: Padding(
+                    padding: const EdgeInsets.only(
+                        left: 12, right: 12, top: 12, bottom: 8),
+                    child: TextFormField(
+                      key: const Key('contactDetailsNoteInput'),
 
-              onTapOutside: (event) async => context
-                  .read<ContactDetailsCubit>()
-                  .updateComment(_contactCommentController.text),
-              controller: _contactCommentController..text = contact.comment,
-              decoration: const InputDecoration(
-                isDense: true,
-                border: OutlineInputBorder(),
-                helperText:
-                    'This note is just for you and never shared with anyone.',
-              ),
-              textInputAction: TextInputAction.done,
-              // TODO: Does this limit the number of lines or just specify the visible ones?
-              //       We need the latter not the former.
-              maxLines: 4,
-            )),
+                      onTapOutside: (event) async => context
+                          .read<ContactDetailsCubit>()
+                          .updateComment(_contactCommentController.text),
+                      controller: _contactCommentController
+                        ..text = contact.comment,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        border: OutlineInputBorder(),
+                        helperText:
+                            'This note is just for you and never shared with '
+                            'anyone else.',
+                      ),
+                      textInputAction: TextInputAction.done,
+                      // TODO: Does this limit the number of lines or just
+                      // specify the visible ones? We need the latter not the
+                      // former.
+                      maxLines: 4,
+                    )))),
 
         // TODO: Display note about which contact is linked?
         Padding(
@@ -294,32 +358,6 @@ class _ContactPageState extends State<ContactPage> {
                       .unlinkFromSystemContact(),
                   child: const Text('Unlink from address book contact')),
         ),
-
-        if (contact.theirPersonalUniqueId != null &&
-            contact.knownPersonalContactIds.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-                'They are connected with around '
-                '${contact.knownPersonalContactIds.length}'
-                'other folks via Coagulate, including the following ones you '
-                'also know: ${knownContacts.values.asList().join(', ')}',
-                softWrap: true),
-          ),
-
-        if (contact.introductionsByThem.isNotEmpty)
-          Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(contact.introductionsByThem
-                  .map((i) => i.otherName)
-                  .join(', '))),
-
-        if (contact.introductionsForThem.isNotEmpty)
-          Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(contact.introductionsForThem
-                  .map((i) => i.otherName)
-                  .join(', '))),
 
         // Delete contact
         Center(
@@ -486,8 +524,9 @@ Widget _sharingSettings(
     Card(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _circlesCard(context, contact.coagContactId, circleNames),
-      if (contact.dhtSettings.recordKeyMeSharing == null ||
-          contact.details == null) ...[
+      if ((contact.dhtSettings.recordKeyMeSharing == null ||
+              contact.details == null) &&
+          context.read<ContactDetailsCubit>().wasNotIntroduced(contact)) ...[
         _paddedDivider(),
         _connectingCard(context, contact),
       ],
@@ -554,7 +593,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact) => Padding(
           Expanded(
               child: Text(
                   profileBasedOfferUrl(
-                          contact.sharedProfile!.details.names.values
+                          contact.sharedProfile?.details.names.values
                                   .firstOrNull ??
                               '???',
                           contact.dhtSettings.recordKeyMeSharing!,
@@ -565,7 +604,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact) => Padding(
                   overflow: TextOverflow.ellipsis)),
           IconButton(
               onPressed: () async => Share.share(profileBasedOfferUrl(
-                      contact.sharedProfile!.details.names.values.firstOrNull ??
+                      contact.sharedProfile?.details.names.values.firstOrNull ??
                           '???',
                       contact.dhtSettings.recordKeyMeSharing!,
                       contact.dhtSettings.myKeyPair.key)
@@ -579,7 +618,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact) => Padding(
             buttonText: 'Show them this QR code',
             alertTitle: 'Show to ${contact.name}',
             qrCodeData: directSharingUrl(
-                    contact.sharedProfile!.details.names.values.firstOrNull ??
+                    contact.sharedProfile?.details.names.values.firstOrNull ??
                         '???',
                     contact.dhtSettings.recordKeyMeSharing!,
                     contact.dhtSettings.initialSecret!)
@@ -606,7 +645,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact) => Padding(
           // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
           onPressed: () async => Share.share(
               "Hi ${contact.name}, I'd like to share with you: "
-              '${directSharingUrl(contact.sharedProfile!.details.names.values.firstOrNull ?? '???', contact.dhtSettings.recordKeyMeSharing!, contact.dhtSettings.initialSecret!)}\n'
+              '${directSharingUrl(contact.sharedProfile?.details.names.values.firstOrNull ?? '???', contact.dhtSettings.recordKeyMeSharing!, contact.dhtSettings.initialSecret!)}\n'
               "Keep this link a secret, it's just for you."),
         ),
         const SizedBox(height: 4),
