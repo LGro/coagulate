@@ -120,13 +120,6 @@ I'd also like to remain anonymous to the peers I do not share my contact details
 - Privacy & Details
   TODO: Explanation text of how amazingly privacy friendly Coagulate is.
 
-### Actions
-On each trigger (app open, background location change, ...?):
-- fetch information for all contacts subscribed to
-  - find the current value on the DHT given the contact's public key
-- publish any updated information for all contacts shared with
-  - create/update the current value for each contact in a respective DHT entry
-
 ### App links
 
 Scan QR code  
@@ -138,10 +131,5 @@ Click/paste profile link
 Click/paste profile based invite offer  
 -> `/o/#name~typedRecordKey~pubKey`
 
-Click/paste batch invite
+Click/paste batch invite  
 -> `/b/#label~typedRecordKey~psk~subkeyIndex~subkeyWriter`
-
-### Open Questions
-
-- What if only part of information is offered for up to date and others not, how to show if I "know more"?
-- What if I want to override a contact information locally? -> opt out sync per contact info
