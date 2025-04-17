@@ -307,6 +307,20 @@ class _ContactPageState extends State<ContactPage> {
                 softWrap: true),
           ),
 
+        if (contact.introductionsByThem.isNotEmpty)
+          Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(contact.introductionsByThem
+                  .map((i) => i.otherName)
+                  .join(', '))),
+
+        if (contact.introductionsForThem.isNotEmpty)
+          Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(contact.introductionsForThem
+                  .map((i) => i.otherName)
+                  .join(', '))),
+
         // Delete contact
         Center(
             child: TextButton(

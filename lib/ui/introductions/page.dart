@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/repositories/contacts.dart';
+import '../introduce_contacts/page.dart';
 import '../utils.dart';
 import 'cubit.dart';
 
@@ -23,13 +24,20 @@ class IntroductionsPage extends StatelessWidget {
           child: BlocConsumer<IntroductionsCubit, IntroductionsState>(
             listener: (context, state) async {},
             builder: (context, state) => ListView(
-              children: state.contacts.isEmpty
+              children: pendingIntroductions(state.contacts.values).isEmpty
                   ? [
                       Container(
                           padding: const EdgeInsets.all(20),
                           child: const Text(
                               'Nobody has introduced you to any of their contacts yet.',
-                              style: TextStyle(fontSize: 16)))
+                              style: TextStyle(fontSize: 16))),
+                      const SizedBox(height: 16),
+                      FilledButton(
+                          onPressed: () async => Navigator.of(context).push(
+                              MaterialPageRoute<IntroduceContactsPage>(
+                                  builder: (context) =>
+                                      const IntroduceContactsPage())),
+                          child: Text('Make an introduction')),
                     ]
                   : pendingIntroductions(state.contacts.values)
                       .map((intro) => ListTile(

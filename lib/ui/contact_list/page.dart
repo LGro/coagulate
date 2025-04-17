@@ -158,15 +158,20 @@ class _ContactListPageState extends State<ContactListPage> {
           listener: (context, state) async {},
           builder: (context, state) => Scaffold(
             appBar: AppBar(title: const Text('Contacts'), actions: [
-              badges.Badge(
-                showBadge: pendingIntroductions(state.contacts).isNotEmpty,
-                badgeContent: Text(
-                    pendingIntroductions(state.contacts).length.toString()),
-                child: const Icon(Icons.inbox),
-                onTap: () async => Navigator.of(context).push(
-                    MaterialPageRoute<IntroductionsPage>(
-                        builder: (context) => const IntroductionsPage())),
-              ),
+              // badges.Badge(
+              //   showBadge: pendingIntroductions(state.contacts).isNotEmpty,
+              //   badgeContent: Text(
+              //       pendingIntroductions(state.contacts).length.toString()),
+              //   child: const Icon(Icons.inbox),
+              //   onTap: () async => Navigator.of(context).push(
+              //       MaterialPageRoute<IntroductionsPage>(
+              //           builder: (context) => const IntroductionsPage())),
+              // ),
+              IconButton(
+                  onPressed: () async => Navigator.of(context).push(
+                      MaterialPageRoute<IntroductionsPage>(
+                          builder: (context) => const IntroductionsPage())),
+                  icon: const Icon(Icons.inbox)),
               // TODO: Show badge for unread updates
               IconButton(
                   onPressed: () async => Navigator.of(context).push(

@@ -9,6 +9,12 @@ import '../../data/repositories/contacts.dart';
 import '../utils.dart';
 import 'cubit.dart';
 
+bool alreadyKnowEachOther(CoagContact? c1, CoagContact? c2) =>
+    c1 != null &&
+    c2 != null &&
+    (c1.knownPersonalContactIds.contains(c2.theirPersonalUniqueId) ||
+        c2.knownPersonalContactIds.contains(c1.theirPersonalUniqueId));
+
 class IntroduceContactsPage extends StatefulWidget {
   const IntroduceContactsPage({super.key});
 
@@ -89,6 +95,15 @@ class _IntroduceContactsPageState extends State<IntroduceContactsPage> {
                             border: OutlineInputBorder()),
                       )),
                     ]),
+                    // TODO: Move into validator instead
+                    if (_contactA != null &&
+                        _contactA!.dhtSettings.theirPublicKey == null)
+                      const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Text(
+                              'You are not fully connected with that contact '
+                              'yet, which is required for making an '
+                              'introduction. Try again in a while.')),
                     const Padding(
                         padding: EdgeInsets.symmetric(vertical: 16),
                         child: Text('and')),
@@ -133,6 +148,15 @@ class _IntroduceContactsPageState extends State<IntroduceContactsPage> {
                             border: OutlineInputBorder()),
                       )),
                     ]),
+                    // TODO: Move into validator instead
+                    if (_contactB != null &&
+                        _contactB!.dhtSettings.theirPublicKey == null)
+                      const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Text(
+                              'You are not fully connected with that contact '
+                              'yet, which is required for making an '
+                              'introduction. Try again in a while.')),
                     const Padding(
                         padding: EdgeInsets.symmetric(vertical: 16),
                         child: Text('with')),
@@ -146,10 +170,18 @@ class _IntroduceContactsPageState extends State<IntroduceContactsPage> {
                             isDense: true,
                             labelText: 'Message',
                             border: OutlineInputBorder())),
+                    if (alreadyKnowEachOther(_contactA, _contactB))
+                      const Padding(
+                          padding: EdgeInsets.only(top: 16),
+                          child: Text('They already know each other :)')),
                     const SizedBox(height: 16),
                     Center(
                         child: FilledButton(
-                            onPressed: (_contactA == null || _contactB == null)
+                            onPressed: (_contactA?.dhtSettings.theirPublicKey ==
+                                        null ||
+                                    _contactB?.dhtSettings.theirPublicKey ==
+                                        null ||
+                                    alreadyKnowEachOther(_contactA, _contactB))
                                 ? null
                                 : () async => context
                                     .read<IntroduceContactsCubit>()
@@ -159,8 +191,14 @@ class _IntroduceContactsPageState extends State<IntroduceContactsPage> {
                                         contactIdB: _contactB!.coagContactId,
                                         nameB: _asControllerB.text,
                                         message: _message)
-                                    .then((_) => (context.mounted)
-                                        ? Navigator.of(context).pop()
+                                    .then((success) => (context.mounted)
+                                        ? (success
+                                            ? Navigator.of(context).pop()
+                                            : ScaffoldMessenger.of(context)
+                                                .showSnackBar(const SnackBar(
+                                                content: Text(
+                                                    'Creating introduction failed'),
+                                              )))
                                         : null),
                             child: const Text('Introduce them'))),
                   ],
