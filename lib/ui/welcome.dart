@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'utils.dart';
 
@@ -71,6 +70,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             onPressed: _onSubmit,
                             child: Text(context.loc.welcomeCallToActionButton),
                           )),
+                      const SizedBox(height: 16),
                       const Expanded(child: SizedBox()),
                       const Text(
                         'Disclaimer: Coagulate is still beta software, things '

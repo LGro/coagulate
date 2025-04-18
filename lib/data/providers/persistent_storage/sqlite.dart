@@ -76,7 +76,8 @@ class SqliteStorage extends PersistentStorage {
 
   @override
   Future<void> removeContact(String coagContactId) async =>
-      (await SharedPreferences.getInstance()).remove(coagContactId);
+      getDatabase().then((db) =>
+          db.delete('contacts', where: '"id" = ?', whereArgs: [coagContactId]));
 
   @override
   Future<void> addUpdate(ContactUpdate update) async =>
