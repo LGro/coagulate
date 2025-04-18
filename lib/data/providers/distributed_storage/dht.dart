@@ -78,7 +78,7 @@ class VeilidDhtStorage extends DistributedStorage {
   @override
   Future<(String?, Uint8List?)> readRecord(
       {required Typed<FixedEncodedString43> recordKey,
-      required TypedKeyPair keyPair,
+      TypedKeyPair? keyPair,
       FixedEncodedString43? psk,
       PublicKey? publicKey,
       int maxRetries = 3,
@@ -89,7 +89,7 @@ class VeilidDhtStorage extends DistributedStorage {
     }
 
     // Derive DH secret
-    final dhSecret = (publicKey == null)
+    final dhSecret = (publicKey == null || keyPair == null)
         ? null
         : await Veilid.instance.getCryptoSystem(keyPair.kind).then((cs) async =>
             cs.generateSharedSecret(

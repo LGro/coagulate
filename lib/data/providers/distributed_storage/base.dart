@@ -15,7 +15,7 @@ abstract class DistributedStorage {
   /// Read DHT record for given key and secret, return decrypted content
   Future<(String?, Uint8List?)> readRecord(
       {required Typed<FixedEncodedString43> recordKey,
-      required TypedKeyPair keyPair,
+      TypedKeyPair? keyPair,
       FixedEncodedString43? psk,
       PublicKey? publicKey});
 

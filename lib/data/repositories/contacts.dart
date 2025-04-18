@@ -620,6 +620,44 @@ class ContactsRepository {
     }
   }
 
+  /// Restore a previously backed up Coagulate setup
+  Future<bool> restore(
+      Typed<FixedEncodedString43> recordKey, FixedEncodedString43 secret,
+      {bool awaitDhtOperations = false}) async {
+    // TODO: read record
+    final raw =
+        await distributedStorage.readRecord(recordKey: recordKey, psk: secret);
+    if (raw.$1 == null) {
+      return false;
+    }
+    try {
+      final backup =
+          AccountBackup.fromJson(jsonDecode(raw.$1!) as Map<String, dynamic>);
+
+      await setProfileInfo(backup.profileInfo);
+
+      for (final contact in backup.contacts) {
+        await saveContact(contact);
+      }
+
+      for (final circle in backup.circles.entries) {
+        await addCircle(circle.key, circle.value);
+      }
+
+      await updateCircleMemberships(backup.circleMemberships);
+
+      final dhtOperations = getContacts().values.map(updateContactFromDHT);
+      if (awaitDhtOperations) {
+        await Future.wait(dhtOperations);
+      }
+
+      return true;
+    } on Exception {
+      // TODO: Log
+      return false;
+    }
+  }
+
   //////////////////
   // SYSTEM CONTACTS
 
