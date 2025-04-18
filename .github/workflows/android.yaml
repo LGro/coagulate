@@ -69,23 +69,23 @@ jobs:
           flutter pub get
           flutter test
 
-      - name: Build APK
-        if: github.ref == 'refs/heads/main'
-        shell: bash
-        env:
-          LC_ALL: en_US.UTF-8
-          LANG: en_US.UTF-8
-        run: |
-          source "$HOME/.cargo/env"
-          flutter clean
-          flutter pub get
-          flutter build apk --release
+      # - name: Build APK
+      #   if: github.ref == 'refs/heads/main'
+      #   shell: bash
+      #   env:
+      #     LC_ALL: en_US.UTF-8
+      #     LANG: en_US.UTF-8
+      #   run: |
+      #     source "$HOME/.cargo/env"
+      #     flutter clean
+      #     flutter pub get
+      #     flutter build apk --release
 
-      - uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/main'
-        with:
-          name: android
-          path: build/app/outputs/flutter-apk/app-release.apk
+      # - uses: actions/upload-artifact@v4
+      #   if: github.ref == 'refs/heads/main'
+      #   with:
+      #     name: android
+      #     path: build/app/outputs/flutter-apk/app-release.apk
 
   # upload-apk:
   #   needs: [android]
