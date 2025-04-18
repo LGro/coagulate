@@ -45,7 +45,14 @@ const navBarItems = [
   ),
   (
     '/contacts',
-    ['contacts', 'receiveRequest', 'contactDetails'],
+    [
+      'contacts',
+      'handleDirectSharing',
+      'handleProfileLink',
+      'handleSharingOffer',
+      'handleBatchInvite',
+      'contactDetails'
+    ],
     BottomNavigationBarItem(icon: Icon(Icons.contacts), label: 'Contacts')
   ),
   (
@@ -75,8 +82,12 @@ class AppRouter {
                   // Use index of the first level path member (also for nested paths)
                   currentIndex: (state.topRoute?.name == null)
                       ? 0
-                      : navBarItems.indexWhere(
-                          (i) => i.$2.contains(state.topRoute?.name)),
+                      : (navBarItems.indexWhere(
+                                  (i) => i.$2.contains(state.topRoute?.name)) ==
+                              -1)
+                          ? 0
+                          : navBarItems.indexWhere(
+                              (i) => i.$2.contains(state.topRoute?.name)),
                   showUnselectedLabels: true,
                   onTap: (i) => context.go(navBarItems[i].$1),
                 ),
