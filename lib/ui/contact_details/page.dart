@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as flutter_contacts;
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -19,7 +20,6 @@ import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../../ui/profile/cubit.dart';
 import '../introductions/page.dart';
-import '../locations/page.dart';
 import '../profile/page.dart';
 import '../utils.dart';
 import '../widgets/circles/cubit.dart';
@@ -57,6 +57,41 @@ Widget _qrCodeButton(BuildContext context,
                             data: qrCodeData,
                             backgroundColor: Colors.white,
                             size: 200))))));
+
+// TODO: Replace with localized date format
+DateFormat dateFormat = DateFormat.yMd().add_Hm();
+
+int numberContactsShared(Iterable<Iterable<String>> circleMembersips,
+        Iterable<String> circles) =>
+    circleMembersips
+        .where((c) => c.asSet().intersectsWith(circles.asSet()))
+        .length;
+
+Widget locationTile(ContactTemporaryLocation location,
+        {Map<String, List<String>>? circleMembersips,
+        Future<void> Function()? onTap}) =>
+    ListTile(
+        title: Text(location.name),
+        contentPadding: EdgeInsets.zero,
+        onTap: onTap,
+        subtitle:
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('From: ${dateFormat.format(location.start)}'),
+          if (location.end != location.start)
+            Text('Till: ${dateFormat.format(location.end)}'),
+          // Text('Lon: ${location.longitude.toStringAsFixed(4)}, '
+          //     'Lat: ${location.latitude.toStringAsFixed(4)}'),
+          if (circleMembersips != null)
+            Text(
+                'Shared with ${numberContactsShared(circleMembersips.values, location.circles)} '
+                'contact${(numberContactsShared(circleMembersips.values, location.circles) == 1) ? '' : 's'}'),
+          if (location.details.isNotEmpty) Text(location.details),
+        ]),
+        trailing:
+            // TODO: Better icon to indicate checked in
+            (location.checkedIn && DateTime.now().isBefore(location.end))
+                ? const Icon(Icons.pin_drop_outlined)
+                : null);
 
 class ContactPage extends StatefulWidget {
   const ContactPage({required this.coagContactId, super.key});
@@ -761,35 +796,44 @@ Widget _circlesCard(
                           textScaler: const TextScaler.linear(1.2))),
             ),
             IconButton(
-                key: const Key('editCircleMembership'),
-                icon: const Icon(Icons.edit),
-                onPressed: () async => showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (modalContext) => Padding(
-                        padding: EdgeInsets.only(
-                            left: 16,
-                            top: 16,
-                            right: 16,
-                            bottom:
-                                MediaQuery.of(modalContext).viewInsets.bottom),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            BlocProvider(
-                                create: (context) => CirclesCubit(
-                                    context.read<ContactsRepository>(),
-                                    coagContactId),
-                                child: BlocConsumer<CirclesCubit, CirclesState>(
-                                    listener: (context, state) async {},
-                                    builder: (context, state) => CirclesForm(
-                                        circles: state.circles,
-                                        callback: context
-                                            .read<CirclesCubit>()
-                                            .update)))
-                          ],
-                        )))),
+              key: const Key('editCircleMembership'),
+              icon: const Icon(Icons.edit),
+              onPressed: () async => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                builder: (modalContext) => DraggableScrollableSheet(
+                  expand: false,
+                  maxChildSize: 0.90,
+                  builder: (_, scrollController) => SingleChildScrollView(
+                    controller: scrollController,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                          left: 16,
+                          top: 16,
+                          right: 16,
+                          bottom:
+                              MediaQuery.of(modalContext).viewInsets.bottom),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          BlocProvider(
+                              create: (context) => CirclesCubit(
+                                  context.read<ContactsRepository>(),
+                                  coagContactId),
+                              child: BlocConsumer<CirclesCubit, CirclesState>(
+                                  listener: (context, state) async {},
+                                  builder: (context, state) => CirclesForm(
+                                      circles: state.circles,
+                                      callback:
+                                          context.read<CirclesCubit>().update)))
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ]),
           const Text(
               'The selected circles determine which of your contact details '

@@ -78,37 +78,44 @@ Future<void> showModalAddressLocationDetails(
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (modalContext) => Padding(
-        padding: EdgeInsets.only(
-            left: 16,
-            top: 16,
-            right: 16,
-            bottom: 12 + MediaQuery.of(modalContext).viewInsets.bottom),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          // TODO: Add information about who this is shared with
-          Row(children: [
-            Expanded(
-                child: Text(
-                    [
-                      contactName,
-                      'Label: ${location.name}',
-                      if (location.address != null)
-                        'Address: ${location.address}'
-                    ].join('\n\n'),
-                    softWrap: true))
-          ]),
-          const SizedBox(height: 16),
-          // TODO: only display if not already scheduled this (or conflicting)
-          if (location.coagContactId != null) ...[
-            FilledButton.tonal(
-                child: const Text('Contact details'),
-                onPressed: () async => Navigator.push(
-                    context,
-                    MaterialPageRoute<ContactPage>(
-                        builder: (_) => ContactPage(
-                            coagContactId: location.coagContactId!)))),
-          ],
-        ]),
+      builder: (modalContext) => DraggableScrollableSheet(
+        expand: false,
+        maxChildSize: 0.90,
+        builder: (_, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          child: Padding(
+            padding: EdgeInsets.only(
+                left: 16,
+                top: 16,
+                right: 16,
+                bottom: 12 + MediaQuery.of(modalContext).viewInsets.bottom),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              // TODO: Add information about who this is shared with
+              Row(children: [
+                Expanded(
+                    child: Text(
+                        [
+                          contactName,
+                          'Label: ${location.name}',
+                          if (location.address != null)
+                            'Address: ${location.address}'
+                        ].join('\n\n'),
+                        softWrap: true))
+              ]),
+              const SizedBox(height: 16),
+              // TODO: only display if not already scheduled this (or conflicting)
+              if (location.coagContactId != null) ...[
+                FilledButton.tonal(
+                    child: const Text('Contact details'),
+                    onPressed: () async => Navigator.push(
+                        context,
+                        MaterialPageRoute<ContactPage>(
+                            builder: (_) => ContactPage(
+                                coagContactId: location.coagContactId!)))),
+              ],
+            ]),
+          ),
+        ),
       ),
     );
 
@@ -122,9 +129,14 @@ Future<void> showModalTemporaryLocationDetails(
   Map<String, List<String>> circleMemberships = const {},
 }) async =>
     showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        builder: (modalContext) => Padding(
+      context: context,
+      isScrollControlled: true,
+      builder: (modalContext) => DraggableScrollableSheet(
+        expand: false,
+        maxChildSize: 0.90,
+        builder: (_, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          child: Padding(
             padding: EdgeInsets.only(
                 left: 16,
                 top: 16,
@@ -223,7 +235,11 @@ Future<void> showModalTemporaryLocationDetails(
                         child: const Text('Edit'),
                       ),
                     ]),
-            ])));
+            ]),
+          ),
+        ),
+      ),
+    );
 
 Widget checkInAndScheduleButtons() => BlocProvider(
     create: (context) => LocationsCubit(context.read<ContactsRepository>()),
@@ -239,24 +255,32 @@ Widget checkInAndScheduleButtons() => BlocProvider(
                       onPressed: () async => showModalBottomSheet<void>(
                           context: context,
                           isScrollControlled: true,
-                          builder: (modalContext) => Padding(
-                              padding: EdgeInsets.only(
-                                  left: 16,
-                                  top: 16,
-                                  right: 16,
-                                  bottom: MediaQuery.of(modalContext)
-                                      .viewInsets
-                                      .bottom),
-                              child: const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [CheckInWidget()]))),
+                          builder: (modalContext) => DraggableScrollableSheet(
+                              expand: false,
+                              maxChildSize: 0.90,
+                              builder: (_, scrollController) =>
+                                  SingleChildScrollView(
+                                      controller: scrollController,
+                                      child: Padding(
+                                          padding: EdgeInsets.only(
+                                              left: 16,
+                                              top: 16,
+                                              right: 16,
+                                              bottom:
+                                                  MediaQuery.of(modalContext)
+                                                      .viewInsets
+                                                      .bottom),
+                                          child: const Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [CheckInWidget()]))))),
                       child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.pin_drop),
                             SizedBox(width: 8),
-                            Text('Check-in')
+                            Text('Check-in'),
                           ])),
                   const Expanded(child: SizedBox()),
                   FilledButton(
