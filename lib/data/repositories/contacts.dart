@@ -17,6 +17,7 @@ import 'package:veilid_support/veilid_support.dart';
 
 import '../../ui/utils.dart';
 import '../../veilid_processor/veilid_processor.dart';
+import '../models/backup.dart';
 import '../models/batch_invites.dart';
 import '../models/coag_contact.dart';
 import '../models/contact_introduction.dart';
@@ -578,6 +579,45 @@ class ContactsRepository {
     ]);
 
     return true;
+  }
+
+  /// Backup everything that is needed to restore Coagulate
+  Future<(Typed<FixedEncodedString43>, FixedEncodedString43)?> backup() async {
+    final profile = getProfileInfo();
+    if (profile == null) {
+      return null;
+    }
+    final accountBackup = AccountBackup(
+      // Drop pictures from profile
+      ProfileInfo(
+        profile.id,
+        details: profile.details.copyWith(),
+        addressLocations: {...profile.addressLocations},
+        temporaryLocations: {...profile.temporaryLocations},
+        sharingSettings: profile.sharingSettings.copyWith(),
+        mainKeyPair: profile.mainKeyPair,
+      ),
+      // Reduce contacts to absolute minimum that is required to recreate them
+      getContacts()
+          .values
+          .toList()
+          .map((c) => CoagContact(
+              coagContactId: c.coagContactId,
+              name: c.name,
+              dhtSettings: c.dhtSettings))
+          .toList(),
+      getCircles(),
+      getCircleMemberships(),
+    );
+    final backupSecretKey = await generateSharedSecret();
+    final (backupDhtKey, dhtWriter) = await distributedStorage.createRecord();
+    try {
+      await distributedStorage.updateBackupRecord(
+          accountBackup, backupDhtKey, dhtWriter, backupSecretKey);
+      return (backupDhtKey, backupSecretKey);
+    } on VeilidAPIException {
+      return null;
+    }
   }
 
   //////////////////

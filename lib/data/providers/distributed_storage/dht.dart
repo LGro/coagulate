@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:veilid_support/veilid_support.dart';
 
+import '../../models/backup.dart';
 import '../../models/coag_contact.dart';
 import 'base.dart';
 
@@ -285,5 +286,21 @@ class VeilidDhtStorage extends DistributedStorage {
                     ? null
                     : FixedEncodedString43.fromString(
                         dhtContact.shareBackPubKey!)));
+  }
+
+  @override
+  Future<void> updateBackupRecord(
+      AccountBackup backup,
+      Typed<FixedEncodedString43> recordKey,
+      KeyPair writer,
+      FixedEncodedString43 secret) async {
+    final crypto =
+        await VeilidCryptoPrivate.fromSharedSecret(recordKey.kind, secret);
+    final record = await DHTRecordPool.instance.openRecordWrite(
+        recordKey, writer,
+        crypto: crypto, debugName: 'coag::backup');
+    // TODO: Spread across subkeys if too large
+    await record.tryWriteBytes(
+        crypto: crypto, utf8.encode(jsonEncode(backup.toJson())), subkey: 0);
   }
 }
