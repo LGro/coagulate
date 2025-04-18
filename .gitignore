@@ -68,3 +68,7 @@ android/key.properties
 
 # FVM Version Cache
 .fvm/
+
+# Android build artifacts
+*.apk
+*.apk.idsig

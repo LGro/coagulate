@@ -79,29 +79,29 @@ jobs:
           source "$HOME/.cargo/env"
           flutter clean
           flutter pub get
-          flutter build apk --profile
+          flutter build apk --release
 
       - uses: actions/upload-artifact@v4
         if: github.ref == 'refs/heads/main'
         with:
           name: android
-          path: build/app/outputs/flutter-apk/app-profile.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
 
-  upload-apk:
-    needs: [android]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    container: ubuntu:24.04
-    steps:
-      - name: System dependencies with apt
-        run: apt -qq update && apt -q install curl -y
+  # upload-apk:
+  #   needs: [android]
+  #   if: github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   container: ubuntu:24.04
+  #   steps:
+  #     - name: System dependencies with apt
+  #       run: apt -qq update && apt -q install curl -y
 
-      - name: Download APK Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: android
-          path: android
+  #     - name: Download APK Artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: android
+  #         path: android
 
-      - name: Upload APK
-        if: github.ref == 'refs/heads/main'
-        run: curl -T ./android/app-profile.apk --ssl-reqd ftp://${{secrets.FTP_SERVER}}/public_html/releases/ -u ${{secrets.FTP_USER}}:${{secrets.FTP_PASSWORD}}
+  #     - name: Upload APK
+  #       if: github.ref == 'refs/heads/main'
+  #       run: curl -T ./android/app-release.apk --ssl-reqd ftp://${{secrets.FTP_SERVER}}/public_html/releases/ -u ${{secrets.FTP_USER}}:${{secrets.FTP_PASSWORD}}
