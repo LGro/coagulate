@@ -582,7 +582,8 @@ class ContactsRepository {
   }
 
   /// Backup everything that is needed to restore Coagulate
-  Future<(Typed<FixedEncodedString43>, FixedEncodedString43)?> backup() async {
+  Future<(Typed<FixedEncodedString43>, FixedEncodedString43)?> backup(
+      {bool waitForRecordSync = false}) async {
     final profile = getProfileInfo();
     if (profile == null) {
       return null;
@@ -612,8 +613,37 @@ class ContactsRepository {
     final backupSecretKey = await generateSharedSecret();
     final (backupDhtKey, dhtWriter) = await distributedStorage.createRecord();
     try {
+      // await distributedStorage.updateRecord(
+      //     CoagContactDHTSchema(
+      //         details: const ContactDetails(),
+      //         shareBackDHTKey: null,
+      //         shareBackPubKey: null),
+      //     DhtSettings(
+      //         myKeyPair: await generateTypedKeyPair(),
+      //         recordKeyMeSharing: backupDhtKey,
+      //         writerMeSharing:dhtWriter ,
+      //         initialSecret: backupSecretKey));
       await distributedStorage.updateBackupRecord(
           accountBackup, backupDhtKey, dhtWriter, backupSecretKey);
+
+      // While subkeys marked offline, wait
+      while (waitForRecordSync) {
+        final report = await DHTRecordPool.instance
+            .openRecordRead(backupDhtKey,
+                debugName: 'coag::backup::read::stats')
+            .then((record) async {
+          final report =
+              await record.routingContext.inspectDHTRecord(backupDhtKey);
+          await record.close();
+          return report;
+        });
+
+        if (report.offlineSubkeys.isEmpty) {
+          break;
+        }
+        await Future.delayed(const Duration(seconds: 1));
+      }
+
       return (backupDhtKey, backupSecretKey);
     } on VeilidAPIException {
       return null;
@@ -625,14 +655,14 @@ class ContactsRepository {
       Typed<FixedEncodedString43> recordKey, FixedEncodedString43 secret,
       {bool awaitDhtOperations = false}) async {
     // TODO: read record
-    final raw =
-        await distributedStorage.readRecord(recordKey: recordKey, psk: secret);
-    if (raw.$1 == null) {
-      return false;
-    }
     try {
-      final backup =
-          AccountBackup.fromJson(jsonDecode(raw.$1!) as Map<String, dynamic>);
+      final jsonString =
+          await distributedStorage.readBackupRecord(recordKey, secret);
+      if (jsonString == null) {
+        return false;
+      }
+      final backup = AccountBackup.fromJson(
+          jsonDecode(jsonString) as Map<String, dynamic>);
 
       await setProfileInfo(backup.profileInfo);
 
@@ -652,7 +682,10 @@ class ContactsRepository {
       }
 
       return true;
-    } on Exception {
+    } on VeilidAPIException catch (e) {
+      // TODO: Log
+      return false;
+    } on Exception catch (e) {
       // TODO: Log
       return false;
     }
@@ -925,7 +958,8 @@ class ContactsRepository {
 
   ProfileInfo? getProfileInfo() => _profileInfo?.copyWith();
 
-  Future<void> setProfileInfo(ProfileInfo profileInfo) async {
+  Future<void> setProfileInfo(ProfileInfo profileInfo,
+      {bool triggerDhtUpdate = true}) async {
     // Automatically resolve addresses to coordinates where missing
     // TODO: Only do this when enabled in the settings
     final addressLocations = (!await geocoder.isPresent())
@@ -983,7 +1017,9 @@ class ContactsRepository {
     ]);
 
     // Trigger sending out shared info via DHT
-    unawaited(updateSharingDHT());
+    if (triggerDhtUpdate) {
+      unawaited(updateSharingDHT());
+    }
   }
 
   //////////

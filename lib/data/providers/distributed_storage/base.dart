@@ -33,4 +33,7 @@ abstract class DistributedStorage {
       Typed<FixedEncodedString43> recordKey,
       KeyPair writer,
       FixedEncodedString43 secret);
+
+  Future<String?> readBackupRecord(
+      Typed<FixedEncodedString43> recordKey, FixedEncodedString43 secret);
 }

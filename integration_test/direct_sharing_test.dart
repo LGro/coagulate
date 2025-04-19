@@ -23,11 +23,11 @@ void main() {
     _cRepoA = ContactsRepository(DummyPersistentStorage({}), _distStorage,
         DummySystemContacts([]), 'UserA',
         initialize: false);
-    await _cRepoA.initialize();
+    await _cRepoA.initialize(listenToVeilidNetworkChanges: false);
     _cRepoB = ContactsRepository(DummyPersistentStorage({}), _distStorage,
         DummySystemContacts([]), 'UserB',
         initialize: false);
-    await _cRepoB.initialize();
+    await _cRepoB.initialize(listenToVeilidNetworkChanges: false);
   });
 
   test('Alice directly shares with Bob who shares back', () async {
