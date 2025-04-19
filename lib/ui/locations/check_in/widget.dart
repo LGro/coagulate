@@ -100,8 +100,12 @@ class _MyFormState extends State<MyForm> {
           details: _state.details,
           circles: _state.circles.where((c) => c.$3).map((c) => c.$1).toList(),
           end: DateTime.now().add(Duration(
-              hours: int.parse(_hoursController.text),
-              minutes: int.parse(_minutesController.text))));
+              hours: _hoursController.text.isEmpty
+                  ? 0
+                  : int.parse(_hoursController.text),
+              minutes: _minutesController.text.isEmpty
+                  ? 0
+                  : int.parse(_minutesController.text))));
       _state = _state.copyWith(status: FormzSubmissionStatus.success);
       // Navigator.pop(context);
     } catch (e) {

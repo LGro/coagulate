@@ -81,8 +81,9 @@ class CheckInCubit extends Cubit<CheckInState> {
       return;
     }
     try {
-      final location =
-          await Geolocator.getCurrentPosition(timeLimit: Duration(seconds: 30));
+      final location = await Geolocator.getCurrentPosition(
+          locationSettings:
+              const LocationSettings(timeLimit: Duration(seconds: 30)));
 
       await contactsRepository.setProfileInfo(profileInfo.copyWith(
           temporaryLocations: Map.fromEntries([
