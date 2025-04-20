@@ -476,7 +476,18 @@ List<Widget> _contactDetailsAndLocations(
         Padding(
             padding: const EdgeInsets.only(left: 16, right: 16),
             child: Text('Once you are connected, the information '
-                '${contact.name} shares with you shows up here.')),
+                '${contact.name} shares with you shows up here.'))
+      else if (contact.details!.names.isEmpty &&
+          contact.details!.phones.isEmpty &&
+          contact.details!.emails.isEmpty &&
+          contact.details!.addresses.isEmpty &&
+          contact.details!.socialMedias.isEmpty &&
+          contact.details!.websites.isEmpty)
+        Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16),
+            child:
+                Text('It looks like ${contact.name} has not shared any contact '
+                    'details with you yet.')),
 
       // Contact details
       if (contact.details?.names.isNotEmpty ?? false)
