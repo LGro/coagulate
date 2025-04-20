@@ -410,44 +410,44 @@ class _ContactPageState extends State<ContactPage> {
                 ))),
 
         // Debug output about update timestamps and receive / share DHT records
-        if (!kReleaseMode)
-          Column(children: [
-            const SizedBox(height: 16),
-            const Text('Developer debug information',
-                textScaler: TextScaler.linear(1.2)),
-            const SizedBox(height: 8),
-            const VeilidStatusWidget(statusWidgets: {}),
-            const SizedBox(height: 8),
-            if (contact.dhtSettings.recordKeyMeSharing != null)
-              DhtStatusWidget(
-                recordKey: contact.dhtSettings.recordKeyMeSharing!,
-                statusWidgets: const {},
-              ),
-            if (contact.dhtSettings.recordKeyThemSharing != null)
-              DhtStatusWidget(
-                recordKey: contact.dhtSettings.recordKeyThemSharing!,
-                statusWidgets: const {},
-              ),
-            const SizedBox(height: 8),
-            Text('Updated: ${contact.mostRecentUpdate}'),
-            Text('Changed: ${contact.mostRecentChange}'),
-            _paddedDivider(),
+        // if (!kReleaseMode)
+        Column(children: [
+          const SizedBox(height: 16),
+          const Text('Developer debug information',
+              textScaler: TextScaler.linear(1.2)),
+          const SizedBox(height: 8),
+          const VeilidStatusWidget(statusWidgets: {}),
+          const SizedBox(height: 8),
+          if (contact.dhtSettings.recordKeyMeSharing != null)
+            DhtStatusWidget(
+              recordKey: contact.dhtSettings.recordKeyMeSharing!,
+              statusWidgets: const {},
+            ),
+          if (contact.dhtSettings.recordKeyThemSharing != null)
+            DhtStatusWidget(
+              recordKey: contact.dhtSettings.recordKeyThemSharing!,
+              statusWidgets: const {},
+            ),
+          const SizedBox(height: 8),
+          Text('Updated: ${contact.mostRecentUpdate}'),
+          Text('Changed: ${contact.mostRecentChange}'),
+          _paddedDivider(),
+          Text(
+              'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair.key.toString())}...'),
+          if (contact.dhtSettings.recordKeyMeSharing != null)
             Text(
-                'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair.key.toString())}...'),
-            if (contact.dhtSettings.recordKeyMeSharing != null)
-              Text(
-                  'MeDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
-            if (contact.dhtSettings.theirPublicKey != null)
-              Text(
-                  'ThemPubKey: ${_shorten(contact.dhtSettings.theirPublicKey.toString())}...'),
-            if (contact.dhtSettings.recordKeyThemSharing != null)
-              Text(
-                  'ThemDhtKey: ${_shorten(contact.dhtSettings.recordKeyThemSharing.toString())}...'),
-            if (contact.dhtSettings.initialSecret != null)
-              Text(
-                  'InitSec: ${_shorten(contact.dhtSettings.initialSecret.toString())}...'),
-            const SizedBox(height: 16),
-          ]),
+                'MeDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
+          if (contact.dhtSettings.theirPublicKey != null)
+            Text(
+                'ThemPubKey: ${_shorten(contact.dhtSettings.theirPublicKey.toString())}...'),
+          if (contact.dhtSettings.recordKeyThemSharing != null)
+            Text(
+                'ThemDhtKey: ${_shorten(contact.dhtSettings.recordKeyThemSharing.toString())}...'),
+          if (contact.dhtSettings.initialSecret != null)
+            Text(
+                'InitSec: ${_shorten(contact.dhtSettings.initialSecret.toString())}...'),
+          const SizedBox(height: 16),
+        ]),
       ]));
 }
 
