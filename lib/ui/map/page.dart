@@ -19,21 +19,21 @@ import '../contact_details/page.dart';
 import '../locations/check_in/widget.dart';
 import '../locations/cubit.dart';
 import '../locations/schedule/widget.dart';
+import '../widgets/location_search/widget.dart';
 import 'cubit.dart';
 
 // TODO: check out 'package:flutter_map_example/pages/bundled_offline_map.dart'
 
-String mapUrl(
-        {required bool isDarkMode,
-        required bool isHiDpi,
-        required String apiToken}) =>
-    [
+String mapUrl(BuildContext context) => [
       'https://api.maptiler.com/maps/dataviz-',
-      if (isDarkMode) 'dark' else 'light',
+      if (MediaQuery.of(context).platformBrightness == Brightness.dark)
+        'dark'
+      else
+        'light',
       '/{z}/{x}/{y}',
-      if (isHiDpi) '@2x' else '',
+      if (View.of(context).devicePixelRatio >= 1) '@2x' else '',
       '.png?key=',
-      apiToken,
+      maptilerToken(),
     ].join();
 
 class SliderExample extends StatefulWidget {
@@ -428,11 +428,7 @@ class MapPage extends StatelessWidget {
         children: <Widget>[
           TileLayer(
             userAgentPackageName: 'social.coagulate.app',
-            urlTemplate: mapUrl(
-                isDarkMode: MediaQuery.of(context).platformBrightness ==
-                    Brightness.dark,
-                isHiDpi: View.of(context).devicePixelRatio >= 1,
-                apiToken: maptilerToken()),
+            urlTemplate: mapUrl(context),
             tileProvider: NetworkTileProvider(
                 headers: {'User-Agent': maptilerUserAgent()}),
           ),

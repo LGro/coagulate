@@ -3,10 +3,13 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../data/providers/geocoding/photon.dart';
+import '../../../data/providers/geocoding/maptiler.dart';
+import '../../map/page.dart';
 
 class LocationSearchWidget extends StatefulWidget {
-  const LocationSearchWidget({super.key});
+  const LocationSearchWidget({this.onSelected, this.initialValue, super.key});
+  final void Function(SearchResult)? onSelected;
+  final String? initialValue;
 
   @override
   State<LocationSearchWidget> createState() => _LocationSearchWidgetState();
@@ -23,7 +26,10 @@ class _LocationSearchWidgetState extends State<LocationSearchWidget> {
   Widget build(BuildContext context) => Autocomplete<SearchResult>(
         optionsBuilder: (textEditingValue) async {
           _searchingWithQuery = textEditingValue.text;
-          final options = await searchLocation(_searchingWithQuery!);
+          final options = await searchLocation(
+              query: _searchingWithQuery!,
+              apiKey: maptilerToken(),
+              userAgentHeader: maptilerUserAgent());
 
           // If another search happened after this one, throw away these options.
           // Use the previous options instead and wait for the newer request to
@@ -35,14 +41,19 @@ class _LocationSearchWidgetState extends State<LocationSearchWidget> {
           _lastOptions = options;
           return options;
         },
-        onSelected: (selection) {
-          debugPrint('You just selected $selection');
-        },
-        displayStringForOption: (option) => <String>[
-          option.street,
-          option.houseNumber,
-          option.city,
-          option.country
-        ].where((v) => v.isNotEmpty).join(', '),
+        onSelected: widget.onSelected,
+        displayStringForOption: (option) => option.placeName,
+        fieldViewBuilder:
+            (context, textEditingController, focusNode, onFieldSubmitted) =>
+                TextFormField(
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      filled: true,
+                      border: OutlineInputBorder(),
+                    ),
+                    controller: textEditingController
+                      ..text = widget.initialValue ?? '',
+                    focusNode: focusNode,
+                    onFieldSubmitted: (_) => onFieldSubmitted),
       );
 }

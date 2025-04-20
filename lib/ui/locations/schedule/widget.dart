@@ -4,13 +4,110 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:formz/formz.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:location_picker_flutter_map/location_picker_flutter_map.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../data/providers/geocoding/maptiler.dart';
 import '../../../data/repositories/contacts.dart';
+import '../../map/page.dart';
+import '../../widgets/location_search/widget.dart';
 import 'cubit.dart';
+
+class MapWidget extends StatefulWidget {
+  const MapWidget({super.key, this.initialLocation, this.onSelected});
+
+  @override
+  State<StatefulWidget> createState() => MapWidgetState();
+
+  final SearchResult? initialLocation;
+  final void Function(SearchResult)? onSelected;
+}
+
+class MapWidgetState extends State<MapWidget> {
+  final _mapController = MapController();
+  SearchResult? _selectedLocation;
+
+  @override
+  void initState() {
+    _selectedLocation = widget.initialLocation;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) => FlutterMap(
+        mapController: _mapController,
+        options: MapOptions(
+          // TODO: Pick reasonable center without requiring all markers first;
+          // e.g. based on profile contact locations or current GPS
+          initialCenter: (_selectedLocation == null)
+              ? const LatLng(48.8575, 2.3514)
+              : LatLng(
+                  _selectedLocation!.latitude, _selectedLocation!.longitude),
+          initialZoom: 3,
+          maxZoom: 15,
+          minZoom: 1,
+          interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.pinchZoom |
+                  InteractiveFlag.drag |
+                  InteractiveFlag.doubleTapZoom |
+                  InteractiveFlag.doubleTapDragZoom |
+                  InteractiveFlag.pinchMove),
+          // onPositionChanged: (camera, hasGesture) => camera.center,
+        ),
+        children: <Widget>[
+          // Map tiles
+          TileLayer(
+            userAgentPackageName: 'social.coagulate.app',
+            urlTemplate: mapUrl(context),
+            tileProvider: NetworkTileProvider(
+                headers: {'User-Agent': maptilerUserAgent()}),
+          ),
+          // Copyright notice
+          RichAttributionWidget(
+              showFlutterMapAttribution: false,
+              attributions: [
+                TextSourceAttribution(
+                  'MapTiler',
+                  onTap: () async =>
+                      launchUrl(Uri.parse('https://maptiler.com/')),
+                ),
+                TextSourceAttribution(
+                  'OpenStreetMap contributors',
+                  onTap: () async =>
+                      launchUrl(Uri.parse('https://openstreetmap.org/')),
+                )
+              ]),
+          // Selected location
+          MarkerLayer(markers: [
+            if (_selectedLocation != null)
+              Marker(
+                  point: LatLng(_selectedLocation!.latitude,
+                      _selectedLocation!.longitude),
+                  child: const Icon(Icons.location_on))
+          ]),
+          // Search bar
+          Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                  padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                  child: LocationSearchWidget(
+                      initialValue: _selectedLocation?.placeName,
+                      onSelected: (l) {
+                        setState(() {
+                          _selectedLocation = l;
+                        });
+                        _mapController.move(
+                            LatLng(l.latitude, l.longitude), 13);
+                        if (widget.onSelected != null) {
+                          widget.onSelected!(l);
+                        }
+                      }))),
+        ],
+      );
+}
 
 class MyForm extends StatefulWidget {
   const MyForm(
@@ -107,7 +204,7 @@ class _ScheduleFormState extends State<MyForm> {
     });
   }
 
-  void _onLocationChanged(PickedData value) {
+  void _onLocationChanged(SearchResult value) {
     if (!mounted) {
       return;
     }
@@ -163,11 +260,12 @@ class _ScheduleFormState extends State<MyForm> {
       await widget.callback(
           name: _state.title,
           details: _state.details,
-          address: _state.location!.address,
+          address: _state.location!.placeName,
           circles: _state.circles.where((c) => c.$3).map((c) => c.$1).toList(),
           start: _state.start!,
           end: _state.end!,
-          coordinates: _state.location!.latLong.toLatLng());
+          coordinates:
+              LatLng(_state.location!.latitude, _state.location!.longitude));
       _state = _state.copyWith(status: FormzSubmissionStatus.success);
       Navigator.pop(context);
     } catch (e) {
@@ -320,29 +418,9 @@ class _ScheduleFormState extends State<MyForm> {
             const SizedBox(height: 16),
             SizedBox(
                 height: 380,
-                child: FlutterLocationPicker(
-                  initZoom: 6,
-                  minZoomLevel: 5,
-                  maxZoomLevel: 16,
-                  initPosition: _state.location?.latLong ??
-                      const LatLong(48.8575, 2.3514),
-                  searchBarHintText: 'Search location',
-                  searchBarBackgroundColor: Theme.of(context).canvasColor,
-                  // searchBarTextColor: Theme.of(context).focusColor,
-                  mapLanguage: 'en',
-                  onError: (e) => print(e),
-                  selectLocationButtonLeadingIcon: const Icon(Icons.check),
-                  onPicked: _onLocationChanged,
-                  onChanged: _onLocationChanged,
-                  selectLocationButtonText: 'Pick Location',
-                  showLocationController: false,
-                  showCurrentLocationPointer: false,
-                  trackMyPosition: false,
-                  selectLocationButtonHeight: 0,
-                  selectLocationButtonWidth: 0,
-                  showContributorBadgeForOSM: true,
-                  // markerIcon: Icon(Icons.location_on,
-                  //     color: Theme.of(context).primaryColorDark, size: 42),
+                child: MapWidget(
+                  initialLocation: _state.location,
+                  onSelected: _onLocationChanged,
                 )),
             const SizedBox(height: 16),
             if (_state.status.isInProgress)
@@ -379,13 +457,13 @@ class ScheduleFormState with FormzMixin {
   final String details;
   final DateTime? start;
   final DateTime? end;
-  final PickedData? location;
+  final SearchResult? location;
   final List<(String, String, bool, int)> circles;
 
   ScheduleFormState copyWith({
     DateTime? start,
     DateTime? end,
-    PickedData? location,
+    SearchResult? location,
     String? title,
     String? details,
     List<(String, String, bool, int)>? circles,
@@ -425,11 +503,11 @@ class ScheduleWidget extends StatelessWidget {
                 : ScheduleFormState(
                     title: location.name,
                     details: location.details,
-                    location: PickedData(
-                        LatLong(location.latitude, location.longitude),
-                        location.address ?? '',
-                        {},
-                        ''),
+                    location: SearchResult(
+                        longitude: location.longitude,
+                        latitude: location.latitude,
+                        placeName: location.address ?? '',
+                        id: ''),
                     start: location.start,
                     end: location.end,
                     circles: state.circles.entries
