@@ -592,7 +592,7 @@ Widget _sharingSettings(
         Padding(
             padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
             child: Text('These current and future locations are available to '
-                '${contact.name}  based on the circles you shared the '
+                '${contact.name} based on the circles you shared the '
                 'locations with.')),
       ],
     ]));

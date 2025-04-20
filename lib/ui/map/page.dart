@@ -23,6 +23,19 @@ import 'cubit.dart';
 
 // TODO: check out 'package:flutter_map_example/pages/bundled_offline_map.dart'
 
+String mapUrl(
+        {required bool isDarkMode,
+        required bool isHiDpi,
+        required String apiToken}) =>
+    [
+      'https://api.maptiler.com/maps/dataviz-',
+      if (isDarkMode) 'dark' else 'light',
+      '/{z}/{x}/{y}',
+      if (isHiDpi) '@2x' else '',
+      '.png?key=',
+      apiToken,
+    ].join();
+
 class SliderExample extends StatefulWidget {
   const SliderExample({super.key});
 
@@ -62,8 +75,11 @@ class _SliderExampleState extends State<SliderExample> {
       );
 }
 
-String mapboxToken() =>
-    const String.fromEnvironment('COAGULATE_MAPBOX_PUBLIC_TOKEN');
+String maptilerToken() =>
+    const String.fromEnvironment('COAGULATE_MAPTILER_TOKEN');
+
+String maptilerUserAgent() =>
+    const String.fromEnvironment('COAGULATE_MAPTILER_USER_AGENT');
 
 String dateFormat(DateTime d, String languageCode) => [
       DateFormat.yMMMd(languageCode).format(d),
@@ -412,13 +428,13 @@ class MapPage extends StatelessWidget {
         children: <Widget>[
           TileLayer(
             userAgentPackageName: 'social.coagulate.app',
-            urlTemplate: (mapboxToken().isEmpty)
-                ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-                // TODO: Add {r} along with retinaMode.isHighDensity and TileLayer.retinaMode #7
-                : 'https://api.mapbox.com/styles/v1/mapbox/'
-                    // For more styles, see https://docs.mapbox.com/api/maps/styles/
-                    '${(MediaQuery.of(context).platformBrightness == Brightness.dark) ? 'dark-v11' : 'light-v11'}'
-                    '/tiles/256/{z}/{x}/{y}?access_token=${mapboxToken()}',
+            urlTemplate: mapUrl(
+                isDarkMode: MediaQuery.of(context).platformBrightness ==
+                    Brightness.dark,
+                isHiDpi: View.of(context).devicePixelRatio >= 1,
+                apiToken: maptilerToken()),
+            tileProvider: NetworkTileProvider(
+                headers: {'User-Agent': maptilerUserAgent()}),
           ),
           BlocProvider(
               create: (context) => MapCubit(context.read<ContactsRepository>()),
@@ -540,18 +556,16 @@ class MapPage extends StatelessWidget {
           RichAttributionWidget(
               showFlutterMapAttribution: false,
               attributions: [
-                if (mapboxToken().isEmpty)
-                  TextSourceAttribution(
-                    'OpenStreetMap',
-                    onTap: () async => launchUrl(
-                        Uri.parse('https://www.openstreetmap.org/copyright')),
-                  )
-                else
-                  TextSourceAttribution(
-                    'Mapbox',
-                    onTap: () async => launchUrl(
-                        Uri.parse('https://www.mapbox.com/about/maps/')),
-                  )
+                TextSourceAttribution(
+                  'MapTiler',
+                  onTap: () async =>
+                      launchUrl(Uri.parse('https://maptiler.com/')),
+                ),
+                TextSourceAttribution(
+                  'OpenStreetMap contributors',
+                  onTap: () async =>
+                      launchUrl(Uri.parse('https://openstreetmap.org/')),
+                )
               ]),
           // Check-in and schedule buttons
           checkInAndScheduleButtons(),
