@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:convert';
@@ -10,43 +10,10 @@ import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
 import 'base.dart';
 
-part 'hive.g.dart';
-
-const int mostRecentSchemaVersion = 1;
-
-@HiveType(typeId: 1)
-class ContactRecord {
-  ContactRecord({required this.schemaVersion, required this.coagContactJson});
-
-  @HiveField(0)
-  final int schemaVersion;
-
-  @HiveField(1)
-  final String coagContactJson;
-
-  @override
-  String toString() => '$schemaVersion|$coagContactJson';
-}
-
 Future<void> initializePersistentStorage() async {
   final appStorage = await getApplicationDocumentsDirectory();
-  Hive
-    ..init(appStorage.path)
-    ..registerAdapter(ContactRecordAdapter());
-}
-
-ContactRecord _recordFromContact(CoagContact contact) => ContactRecord(
-    schemaVersion: mostRecentSchemaVersion,
-    coagContactJson: json.encode(contact.toJson()));
-
-CoagContact _deserializeAndMigrateIfNecessary(ContactRecord contactRecord) {
-  String contactJson = contactRecord.coagContactJson;
-  if (contactRecord.schemaVersion != mostRecentSchemaVersion) {
-    // TODO: Upgrade contactJson
-    throw Exception("Upgrading persistent storage is not implemented.");
-  }
-  // TODO: Nicer error handling?
-  return CoagContact.fromJson(json.decode(contactJson) as Map<String, dynamic>);
+  // TODO: Does this interfere with map caching location?
+  Hive.init(appStorage.path);
 }
 
 /// Simple persistent storage based on [Hive], storing contacts as JSON strings
@@ -54,28 +21,21 @@ class HiveStorage extends PersistentStorage {
   // TODO: Add required global initialization here?!
   HiveStorage();
 
-  Future<Box<ContactRecord>> _lazyGetContactsBox() async =>
+  Future<Box<String>> _lazyGetContactsBox() async =>
       Hive.openBox('hive_coag_contacts_box');
 
   @override
   Future<Map<String, CoagContact>> getAllContacts() async =>
-      (await _lazyGetContactsBox()).toMap().map((key, value) =>
-          MapEntry(key.toString(), _deserializeAndMigrateIfNecessary(value)));
-
-  @override
-  Future<CoagContact> getContact(String coagContactId) async {
-    final contactJson = (await _lazyGetContactsBox()).get(coagContactId);
-    if (contactJson == null) {
-      // TODO: handle error case more specifically
-      throw Exception('Contact ID $coagContactId could not be found');
-    }
-    return _deserializeAndMigrateIfNecessary(contactJson);
-  }
+      Map.fromEntries((await _lazyGetContactsBox()).values.map((json) {
+        final contact =
+            CoagContact.fromJson(jsonDecode(json) as Map<String, dynamic>);
+        return MapEntry(contact.coagContactId, contact);
+      }));
 
   @override
   Future<void> updateContact(CoagContact contact) async =>
       (await _lazyGetContactsBox())
-          .put(contact.coagContactId, _recordFromContact(contact));
+          .put(contact.coagContactId, jsonEncode(contact.toJson()));
 
   Future<Box<String>> _lazyGetSettingsBox() async =>
       Hive.openBox('hive_coag_settings_box');

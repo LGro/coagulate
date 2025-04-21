@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:path/path.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../models/batch_invites.dart';
@@ -31,7 +30,6 @@ Future<Database> getDatabase() async => openDatabase(
     );
 
 class SqliteStorage extends PersistentStorage {
-  @override
   Future<CoagContact> getContact(String coagContactId) async {
     final db = await getDatabase();
     final result = await db.query('contacts',

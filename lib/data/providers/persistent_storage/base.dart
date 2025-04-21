@@ -6,7 +6,6 @@ import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
 
 abstract class PersistentStorage {
-  Future<CoagContact> getContact(String coagContactId);
   Future<Map<String, CoagContact>> getAllContacts();
   Future<void> updateContact(CoagContact contact);
   Future<void> removeContact(String coagContactId);
