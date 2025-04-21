@@ -6,7 +6,6 @@ import 'dart:typed_data';
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_location.dart';
 import 'package:coagulate/ui/utils.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:veilid/veilid.dart';
 import 'package:veilid_support/veilid_support.dart';
@@ -23,14 +22,14 @@ void main() {
             coagContactId: '',
             name: 'name',
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
-            details: ContactDetails(
-                names: const {'0': 'a'}, emails: [Email('e@1.de')])),
+            details: const ContactDetails(
+                names: {'0': 'a'}, emails: {'private': 'e@1.de'})),
         CoagContact(
             coagContactId: '',
             name: 'name',
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
-            details: ContactDetails(
-                names: const {'0': 'a'}, emails: [Email('e@1.de')])));
+            details: const ContactDetails(
+                names: {'0': 'a'}, emails: {'private': 'e@1.de'})));
     expect(result, '');
   });
 
@@ -40,14 +39,14 @@ void main() {
             coagContactId: '',
             name: 'name',
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
-            details: ContactDetails(
-                names: const {'0': 'a'}, emails: [Email('e@1.de')])),
+            details: const ContactDetails(
+                names: {'0': 'a'}, emails: {'private': 'e@1.de'})),
         CoagContact(
             coagContactId: '',
             name: 'name',
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
-            details: ContactDetails(
-                names: const {'0': 'a'}, emails: [Email('e@2.de')])));
+            details: const ContactDetails(
+                names: {'0': 'a'}, emails: {'private': 'e@2.de'})));
     expect(result, 'emails');
   });
 
@@ -72,24 +71,18 @@ void main() {
             coagContactId: '',
             name: 'name',
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
-            details: ContactDetails(names: const {
-              '0': 'a'
-            }, phones: [
-              Phone('0123', label: PhoneLabel.custom, customLabel: 'label1')
-            ])),
+            details: const ContactDetails(
+                names: {'0': 'a'}, phones: {'label1': '0123'})),
         CoagContact(
             coagContactId: '',
             name: 'name',
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
-            details: ContactDetails(names: const {
-              '0': 'b'
-            }, phones: [
-              Phone('4321', label: PhoneLabel.custom, customLabel: 'label2')
-            ])));
+            details: const ContactDetails(
+                names: {'0': 'b'}, phones: {'label2': '4321'})));
     expect(result, 'names, phones');
   });
 
-  test('compare contact  same locations', () {
+  test('compare contact same locations', () {
     final result = contactUpdateSummary(
         CoagContact(
           coagContactId: '',

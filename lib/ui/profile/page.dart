@@ -4,11 +4,10 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:equatable/equatable.dart';
+import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
@@ -22,15 +21,6 @@ import '../../data/repositories/contacts.dart';
 import '../locations/schedule/widget.dart';
 import '../utils.dart';
 import 'cubit.dart';
-
-class Name extends Equatable {
-  const Name({required this.name, required this.label});
-
-  final String name;
-  final String label;
-  @override
-  List<Object?> get props => [name, label];
-}
 
 Future<void> pickCirclePicture(BuildContext context,
     Future<void> Function(Uint8List picture) handlePicture) async {
@@ -603,28 +593,23 @@ List<Widget> _card({Text? title, List<Widget> children = const []}) => [
               ))),
     ];
 
-List<Widget> detailsList<T>(
+List<Widget> detailsList(
   BuildContext context,
-  List<T> details, {
-  required String Function(T detail) getValue,
-  required String Function(T detail) getLabel,
+  Map<String, String> details, {
   Text? title,
   Map<String, String>? circles,
   Map<String, List<String>>? circleMemberships,
   List<String>? Function(String label)? getDetailSharingSettings,
-  void Function(int i)? editCallback,
+  void Function(String label)? editCallback,
   VoidCallback? addCallback,
-  void Function(int i)? deleteCallback,
+  void Function(String label)? deleteCallback,
   bool hideLabel = false,
   bool hideEditButton = false,
 }) =>
     _card(
         title: title,
         children: details
-                .asMap()
-                .map((i, e) {
-                  final label = getLabel(e);
-
+                .map((label, value) {
                   final circleNames =
                       (circles == null || getDetailSharingSettings == null)
                           ? null
@@ -648,15 +633,15 @@ List<Widget> detailsList<T>(
                                       {}))
                           .length;
 
-                  return MapEntry<int, Widget>(
-                    i,
+                  return MapEntry<String, Widget>(
+                    label,
                     Dismissible(
-                      key: Key('$title|${getValue(e)}|$i'),
+                      key: Key('$title|$label'),
                       direction: (deleteCallback != null)
                           ? DismissDirection.endToStart
                           : DismissDirection.none,
                       onDismissed: (deleteCallback != null)
-                          ? (_) => deleteCallback(i)
+                          ? (_) => deleteCallback(label)
                           : null,
                       background: Container(
                         color: Colors.red,
@@ -668,7 +653,7 @@ List<Widget> detailsList<T>(
                         behavior: HitTestBehavior.opaque,
                         onTap: (editCallback == null)
                             ? null
-                            : () => editCallback(i),
+                            : () => editCallback(label),
                         child: Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Row(
@@ -679,22 +664,23 @@ List<Widget> detailsList<T>(
                                           CrossAxisAlignment.start,
                                       children: [
                                     if (!hideLabel)
-                                      Text(getLabel(e),
+                                      Text(label,
                                           textScaler:
                                               const TextScaler.linear(1.1),
                                           style: Theme.of(context)
                                               .textTheme
                                               .labelLarge),
-                                    Text(getValue(e),
+                                    Text(value,
                                         textScaler:
                                             const TextScaler.linear(1.1),
                                         overflow: TextOverflow.ellipsis,
-                                        maxLines: (T == Address) ? null : 1,
+                                        maxLines:
+                                            value.contains('\n') ? null : 1,
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyLarge
                                             ?.copyWith(
-                                                height: (T == Address)
+                                                height: value.contains('\n')
                                                     ? 1.2
                                                     : null)),
                                     if (circleNames != null &&
@@ -726,7 +712,7 @@ List<Widget> detailsList<T>(
                                   ])),
                               if (editCallback != null && !hideEditButton)
                                 IconButton.filledTonal(
-                                    onPressed: () => editCallback(i),
+                                    onPressed: () => editCallback(label),
                                     icon: const Icon(Icons.edit),
                                     iconSize: 20),
                             ],
@@ -748,9 +734,6 @@ List<Widget> detailsList<T>(
                         onPressed: addCallback, icon: const Icon(Icons.add))),
               ]
             ]);
-
-String _commaToNewline(String s) =>
-    s.split(',').map((p) => p.trim()).join('\n');
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -884,45 +867,34 @@ class ProfileViewState extends State<ProfileView> {
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const SizedBox(height: 8),
         // NAMES
-        ...detailsList<Name>(
-            context,
-            contact.names.entries
-                .map((e) => Name(name: e.value, label: e.key))
-                .toList(),
+        ...detailsList(context, contact.names,
             title: Text(context.loc.names.capitalize(),
                 textScaler: const TextScaler.linear(1.4),
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.primary)),
-            getValue: (v) => v.name,
-            getLabel: (v) => v.label,
             hideLabel: true,
             getDetailSharingSettings: (l) => profileSharingSettings.names[l],
             circles: circles,
             circleMemberships: circleMemberships,
-            deleteCallback: (i) async => context
+            deleteCallback: (label) async => context
                 .read<ProfileCubit>()
-                .updateDetails(contact.copyWith(
-                  names:
-                      Map.fromEntries([...contact.names.entries]..removeAt(i)),
-                )),
-            editCallback: (i) async => onEditDetail(
+                .updateDetails(
+                    contact.copyWith(names: {...contact.names}..remove(label))),
+            editCallback: (label) async => onEditDetail(
                   context: context,
                   headlineSuffix: context.loc.name,
                   hideLabel: true,
-                  label: contact.names.entries.elementAt(i).key,
-                  value: contact.names.entries.elementAt(i).value,
+                  label: label,
+                  value: contact.names[label] ?? '',
                   circles: circles,
                   circleMemberships: circleMemberships,
                   detailSharingSettings: profileSharingSettings.names,
-                  onSave: (id, name, circlesWithSelection) async => context
-                      .read<ProfileCubit>()
-                      .updateName(name, circlesWithSelection, id: id),
+                  onSave: context.read<ProfileCubit>().updateName,
                   onDelete: () async => context
                       .read<ProfileCubit>()
                       .updateDetails(contact.copyWith(
-                        names: Map.fromEntries(
-                            [...contact.names.entries]..removeAt(i)),
+                        names: {...contact.names}..remove(label),
                       )),
                 ),
             // TODO: Can this also be unified, using the same as other details?
@@ -952,15 +924,16 @@ class ProfileViewState extends State<ProfileView> {
                                       )))
                                   .values
                                   .toList(),
-                              onAddOrSave: (_, name, circles) async => context
-                                  .read<ProfileCubit>()
-                                  .updateName(name, circles)
-                                  .then((_) => (buildContext.mounted)
-                                      ? Navigator.of(buildContext).pop()
-                                      : null))),
+                              onAddOrSave: (label, name, circles) async =>
+                                  context
+                                      .read<ProfileCubit>()
+                                      .updateName(label, name, circles)
+                                      .then((_) => (buildContext.mounted)
+                                          ? Navigator.of(buildContext).pop()
+                                          : null))),
                     ))),
         // PHONES
-        ...detailsList<Phone>(
+        ...detailsList(
           context,
           contact.phones,
           title: Text(context.loc.phones.capitalize(),
@@ -968,40 +941,27 @@ class ProfileViewState extends State<ProfileView> {
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary)),
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.number,
           getDetailSharingSettings: (l) => profileSharingSettings.phones[l],
           circles: circles,
           circleMemberships: circleMemberships,
-          deleteCallback: (i) async =>
+          deleteCallback: (label) async =>
               context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                    phones: [...contact.phones]..removeAt(i),
+                    phones: {...contact.phones}..remove(label),
                   )),
-          editCallback: (i) async => onEditDetail(
+          editCallback: (label) async => onEditDetail(
             context: context,
             headlineSuffix: context.loc.phoneNumber,
             labelHelperText: 'e.g. home, mobile or work',
-            label: (contact.phones[i].label.name != 'custom')
-                ? contact.phones[i].label.name
-                : contact.phones[i].customLabel,
-            value: contact.phones[i].number,
-            existingLabels: contact.phones
-                .map((v) =>
-                    (v.label.name != 'custom') ? v.label.name : v.customLabel)
-                .toList(),
+            label: label,
+            value: contact.phones[label] ?? '',
+            existingLabels: contact.phones.keys.toList(),
             circles: circles,
             circleMemberships: circleMemberships,
             detailSharingSettings: profileSharingSettings.phones,
-            onSave: (label, value, circlesWithSelection) async => context
-                .read<ProfileCubit>()
-                .updatePhone(
-                    Phone(value, label: PhoneLabel.custom, customLabel: label),
-                    circlesWithSelection,
-                    i: i),
+            onSave: context.read<ProfileCubit>().updatePhone,
             onDelete: () async =>
                 context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                      phones: [...contact.phones]..removeAt(i),
+                      phones: {...contact.phones}..remove(label),
                     )),
           ),
           addCallback: () async => onAddDetail(
@@ -1009,21 +969,13 @@ class ProfileViewState extends State<ProfileView> {
               headlineSuffix: context.loc.phoneNumber,
               labelHelperText: 'e.g. home, mobile or work',
               defaultLabel: (contact.phones.isEmpty) ? 'mobile' : null,
-              existingLabels: contact.phones
-                  .map((v) =>
-                      (v.label.name != 'custom') ? v.label.name : v.customLabel)
-                  .toList(),
+              existingLabels: contact.phones.keys.toList(),
               circles: circles,
               circleMemberships: circleMemberships,
-              onAdd: (label, value, circles) async => context
-                  .read<ProfileCubit>()
-                  .updatePhone(
-                      Phone(value,
-                          label: PhoneLabel.custom, customLabel: label),
-                      circles)),
+              onAdd: context.read<ProfileCubit>().updatePhone),
         ),
         // E-MAILS
-        ...detailsList<Email>(
+        ...detailsList(
           context,
           contact.emails,
           title: Text(context.loc.emails.capitalize(),
@@ -1031,40 +983,27 @@ class ProfileViewState extends State<ProfileView> {
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary)),
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.address,
           getDetailSharingSettings: (l) => profileSharingSettings.emails[l],
           circles: circles,
           circleMemberships: circleMemberships,
-          deleteCallback: (i) async =>
+          deleteCallback: (label) async =>
               context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                    emails: [...contact.emails]..removeAt(i),
+                    emails: {...contact.emails}..remove(label),
                   )),
-          editCallback: (i) async => onEditDetail(
+          editCallback: (label) async => onEditDetail(
             context: context,
             headlineSuffix: context.loc.emailAddress,
             labelHelperText: 'e.g. private or work',
-            label: (contact.emails[i].label.name != 'custom')
-                ? contact.emails[i].label.name
-                : contact.emails[i].customLabel,
-            existingLabels: contact.emails
-                .map((v) =>
-                    (v.label.name != 'custom') ? v.label.name : v.customLabel)
-                .toList(),
-            value: contact.emails[i].address,
+            label: label,
+            existingLabels: contact.emails.keys.toList(),
+            value: contact.emails[label] ?? '',
             circles: circles,
             circleMemberships: circleMemberships,
             detailSharingSettings: profileSharingSettings.emails,
-            onSave: (label, value, circlesWithSelection) async => context
-                .read<ProfileCubit>()
-                .updateEmail(
-                    Email(value, label: EmailLabel.custom, customLabel: label),
-                    circlesWithSelection,
-                    i: i),
+            onSave: context.read<ProfileCubit>().updateEmail,
             onDelete: () async =>
                 context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                      emails: [...contact.emails]..removeAt(i),
+                      emails: {...contact.emails}..remove(label),
                     )),
           ),
           addCallback: () async => onAddDetail(
@@ -1072,104 +1011,90 @@ class ProfileViewState extends State<ProfileView> {
               headlineSuffix: context.loc.emailAddress,
               labelHelperText: 'e.g. private or work',
               defaultLabel: (contact.emails.isEmpty) ? 'private' : null,
-              existingLabels: contact.emails
-                  .map((v) =>
-                      (v.label.name != 'custom') ? v.label.name : v.customLabel)
-                  .toList(),
+              existingLabels: contact.emails.keys.toList(),
               circles: circles,
               circleMemberships: circleMemberships,
-              onAdd: (label, value, circles) async => context
-                  .read<ProfileCubit>()
-                  .updateEmail(
-                      Email(value,
-                          label: EmailLabel.custom, customLabel: label),
-                      circles)),
+              onAdd: context.read<ProfileCubit>().updateEmail),
         ),
         // ADDRESSES
         //addressLocations
-        ...detailsList<Address>(context, contact.addresses,
+        ...detailsList(
+            context,
+            Map.fromEntries(addressLocations.map(
+                (a) => MapEntry(a.name, commasToNewlines(a.address ?? '')))),
             title: Text(context.loc.addresses.capitalize(),
                 textScaler: const TextScaler.linear(1.4),
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.primary)),
-            getLabel: (v) =>
-                (v.label.name != 'custom') ? v.label.name : v.customLabel,
-            getValue: (v) => _commaToNewline(v.address),
             getDetailSharingSettings: (l) =>
                 profileSharingSettings.addresses[l],
             circles: circles,
             circleMemberships: circleMemberships,
-            deleteCallback: (i) async =>
-                context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                      addresses: [...contact.addresses]..removeAt(i),
-                    )),
-            editCallback: (i) async => showModalBottomSheet<void>(
+            deleteCallback: (label) async =>
+                context.read<ProfileCubit>().updateAddressLocations(
+                      addressLocations
+                          .where((a) => a.name != label)
+                          .toList()
+                          .asMap(),
+                    ),
+            editCallback: (label) async => showModalBottomSheet<void>(
                 context: context,
                 isScrollControlled: true,
                 builder: (buildContext) => DraggableScrollableSheet(
                     expand: false,
                     maxChildSize: 0.9,
                     initialChildSize: 0.9,
-                    builder: (_, scrollController) {
-                      final label =
-                          (contact.addresses[i].label.name != 'custom')
-                              ? contact.addresses[i].label.name
-                              : contact.addresses[i].customLabel;
-                      return SingleChildScrollView(
-                          controller: scrollController,
-                          child: EditOrAddAddressWidget(
-                              isEditing: true,
-                              circles: circles
-                                  .map((cId, cLabel) => MapEntry(cId, (
-                                        cId,
-                                        cLabel,
-                                        profileSharingSettings.addresses[label]
-                                                ?.contains(cId) ??
-                                            false,
-                                        circleMemberships.values
-                                            .where((circles) =>
-                                                circles.contains(cId))
-                                            .length
-                                      )))
-                                  .values
-                                  .toList(),
-                              headlineSuffix: context.loc.address,
-                              labelHelperText: 'e.g. home or cabin',
-                              existingLabels: contact.addresses
-                                  .map((v) => (v.label.name != 'custom')
-                                      ? v.label.name
-                                      : v.customLabel)
-                                  .toList()
-                                ..remove((contact.addresses[i].label.name !=
-                                        'custom')
-                                    ? contact.addresses[i].label.name
-                                    : contact.addresses[i].customLabel),
-                              label: label,
-                              value: addressLocations[i],
-                              onDelete: () async {
-                                await context
-                                    .read<ProfileCubit>()
-                                    .updateDetails(contact.copyWith(
-                                        addresses: [...contact.addresses]
-                                          ..removeAt(i)));
-
-                                if (buildContext.mounted) {
-                                  Navigator.of(buildContext).pop();
-                                }
-                                ;
-                              },
-                              onAddOrSave:
-                                  (label, value, circlesWithSelection) async {
-                                await context
-                                    .read<ProfileCubit>()
-                                    .updateAddress(value, circlesWithSelection,
-                                        i: i);
-                                if (buildContext.mounted) {
-                                  Navigator.of(buildContext).pop();
-                                }
-                              }));
-                    })),
+                    builder: (_, scrollController) => SingleChildScrollView(
+                        controller: scrollController,
+                        child: EditOrAddAddressWidget(
+                            isEditing: true,
+                            circles: circles
+                                .map((cId, cLabel) => MapEntry(cId, (
+                                      cId,
+                                      cLabel,
+                                      profileSharingSettings.addresses[label]
+                                              ?.contains(cId) ??
+                                          false,
+                                      circleMemberships.values
+                                          .where((circles) =>
+                                              circles.contains(cId))
+                                          .length
+                                    )))
+                                .values
+                                .toList(),
+                            headlineSuffix: context.loc.address,
+                            labelHelperText: 'e.g. home or cabin',
+                            existingLabels:
+                                addressLocations.map((a) => a.name).toList()
+                                  ..remove(label),
+                            label: label,
+                            value: addressLocations
+                                .firstWhereOrNull((a) => a.name == label),
+                            onDelete: () async {
+                              await context
+                                  .read<ProfileCubit>()
+                                  .updateAddressLocations(addressLocations
+                                      .where((a) => a.name != label)
+                                      .toList()
+                                      .asMap());
+                              if (buildContext.mounted) {
+                                Navigator.of(buildContext).pop();
+                              }
+                            },
+                            onAddOrSave:
+                                (label, value, circlesWithSelection) async {
+                              await context
+                                  .read<ProfileCubit>()
+                                  .updateAddressLocation(
+                                      addressLocations
+                                          .indexWhere((a) => a.name == label),
+                                      value,
+                                      circlesWithSelection);
+                              if (buildContext.mounted) {
+                                Navigator.of(buildContext).pop();
+                              }
+                            })))),
             addCallback: () async => showModalBottomSheet<void>(
                 context: context,
                 isDismissible: true,
@@ -1197,24 +1122,25 @@ class ProfileViewState extends State<ProfileView> {
                           headlineSuffix: context.loc.address,
                           valueHintText: 'Street, City, Country',
                           labelHelperText: 'e.g. home or cabin',
-                          label: (contact.addresses.isEmpty) ? 'home' : null,
-                          existingLabels: contact.addresses
-                              .map((v) => (v.label.name != 'custom')
-                                  ? v.label.name
-                                  : v.customLabel)
-                              .toList(),
+                          label: (addressLocations.isEmpty) ? 'home' : null,
+                          existingLabels:
+                              addressLocations.map((a) => a.name).toList(),
                           onAddOrSave:
                               (label, value, circlesWithSelection) async {
                             await context
                                 .read<ProfileCubit>()
-                                .updateAddress(value, circlesWithSelection);
+                                .updateAddressLocation(
+                                    addressLocations
+                                        .indexWhere((a) => a.name == label),
+                                    value,
+                                    circlesWithSelection);
                             if (buildContext.mounted) {
                               Navigator.of(buildContext).pop();
                             }
                           },
                         ))))),
         // SOCIAL MEDIAS
-        ...detailsList<SocialMedia>(
+        ...detailsList(
           context,
           contact.socialMedias,
           title: Text('Socials',
@@ -1222,42 +1148,28 @@ class ProfileViewState extends State<ProfileView> {
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary)),
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.userName,
           getDetailSharingSettings: (l) =>
               profileSharingSettings.socialMedias[l],
           circles: circles,
           circleMemberships: circleMemberships,
-          deleteCallback: (i) async =>
+          deleteCallback: (label) async =>
               context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                    socialMedias: [...contact.socialMedias]..removeAt(i),
+                    socialMedias: {...contact.socialMedias}..remove(label),
                   )),
-          editCallback: (i) async => onEditDetail(
+          editCallback: (label) async => onEditDetail(
             context: context,
             headlineSuffix: 'social media profile',
             labelHelperText: 'e.g. Signal or Instagram',
-            label: (contact.socialMedias[i].label.name != 'custom')
-                ? contact.socialMedias[i].label.name
-                : contact.socialMedias[i].customLabel,
-            existingLabels: contact.socialMedias
-                .map((v) =>
-                    (v.label.name != 'custom') ? v.label.name : v.customLabel)
-                .toList(),
-            value: contact.socialMedias[i].userName,
+            existingLabels: contact.socialMedias.keys.toList(),
+            label: label,
+            value: contact.socialMedias[label] ?? '',
             circles: circles,
             circleMemberships: circleMemberships,
             detailSharingSettings: profileSharingSettings.socialMedias,
-            onSave: (label, value, circlesWithSelection) async => context
-                .read<ProfileCubit>()
-                .updateSocialMedia(
-                    SocialMedia(value,
-                        label: SocialMediaLabel.custom, customLabel: label),
-                    circlesWithSelection,
-                    i: i),
+            onSave: context.read<ProfileCubit>().updateSocialMedia,
             onDelete: () async =>
                 context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                      socialMedias: [...contact.socialMedias]..removeAt(i),
+                      socialMedias: {...contact.socialMedias}..remove(label),
                     )),
           ),
           addCallback: () async => onAddDetail(
@@ -1265,21 +1177,13 @@ class ProfileViewState extends State<ProfileView> {
               headlineSuffix: 'social media profile',
               valueHintText: '@profileName',
               labelHelperText: 'e.g. Signal or Instagram',
-              existingLabels: contact.socialMedias
-                  .map((v) =>
-                      (v.label.name != 'custom') ? v.label.name : v.customLabel)
-                  .toList(),
+              existingLabels: contact.socialMedias.keys.toList(),
               circles: circles,
               circleMemberships: circleMemberships,
-              onAdd: (label, value, circles) async => context
-                  .read<ProfileCubit>()
-                  .updateSocialMedia(
-                      SocialMedia(value,
-                          label: SocialMediaLabel.custom, customLabel: label),
-                      circles)),
+              onAdd: context.read<ProfileCubit>().updateSocialMedia),
         ),
         // WEBSITES
-        ...detailsList<Website>(
+        ...detailsList(
           context,
           contact.websites,
           title: Text(context.loc.websites.capitalize(),
@@ -1287,41 +1191,27 @@ class ProfileViewState extends State<ProfileView> {
               style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary)),
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.url,
           getDetailSharingSettings: (l) => profileSharingSettings.websites[l],
           circles: circles,
           circleMemberships: circleMemberships,
-          deleteCallback: (i) async =>
+          deleteCallback: (label) async =>
               context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                    websites: [...contact.websites]..removeAt(i),
+                    websites: {...contact.websites}..remove(label),
                   )),
-          editCallback: (i) async => onEditDetail(
+          editCallback: (label) async => onEditDetail(
             context: context,
             headlineSuffix: context.loc.website,
             labelHelperText: 'e.g. blog or portfolio',
-            label: (contact.websites[i].label.name != 'custom')
-                ? contact.websites[i].label.name
-                : contact.websites[i].customLabel,
-            existingLabels: contact.websites
-                .map((v) =>
-                    (v.label.name != 'custom') ? v.label.name : v.customLabel)
-                .toList(),
-            value: contact.websites[i].url,
+            label: label,
+            existingLabels: contact.websites.keys.toList(),
+            value: contact.websites[label] ?? '',
             circles: circles,
             circleMemberships: circleMemberships,
             detailSharingSettings: profileSharingSettings.websites,
-            onSave: (label, value, circlesWithSelection) async => context
-                .read<ProfileCubit>()
-                .updateWebsite(
-                    Website(value,
-                        label: WebsiteLabel.custom, customLabel: label),
-                    circlesWithSelection,
-                    i: i),
+            onSave: context.read<ProfileCubit>().updateWebsite,
             onDelete: () async =>
                 context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                      websites: [...contact.websites]..removeAt(i),
+                      websites: {...contact.websites}..remove(label),
                     )),
           ),
           addCallback: () async => onAddDetail(
@@ -1330,18 +1220,10 @@ class ProfileViewState extends State<ProfileView> {
               defaultLabel: (contact.websites.isEmpty) ? 'website' : null,
               // labelHelperText: 'e.g. blog or portfolio',
               valueHintText: 'my-awesome-site.com',
-              existingLabels: contact.websites
-                  .map((v) =>
-                      (v.label.name != 'custom') ? v.label.name : v.customLabel)
-                  .toList(),
+              existingLabels: contact.websites.keys.toList(),
               circles: circles,
               circleMemberships: circleMemberships,
-              onAdd: (label, value, circles) async => context
-                  .read<ProfileCubit>()
-                  .updateWebsite(
-                      Website(value,
-                          label: WebsiteLabel.custom, customLabel: label),
-                      circles)),
+              onAdd: context.read<ProfileCubit>().updateWebsite),
         ),
         // PICTURES / AVATARS
         CirclesWithAvatarWidget(

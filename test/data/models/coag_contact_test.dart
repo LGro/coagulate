@@ -16,9 +16,9 @@ final dummyKeyPair = TypedKeyPair(
 
 void main() {
   test('details equatable', () {
-    final details = ContactDetails(emails: [Email('1@com')]);
-    final sameDetails = ContactDetails(emails: [Email('1@com')]);
-    final otherDetails = ContactDetails(emails: [Email('2@com')]);
+    const details = ContactDetails(emails: {'e1': '1@com'});
+    const sameDetails = ContactDetails(emails: {'e1': '1@com'});
+    const otherDetails = ContactDetails(emails: {'e1': '2@com'});
     expect(details == sameDetails, true);
     expect(details == otherDetails, false);
   });

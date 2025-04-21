@@ -29,27 +29,27 @@ void main() {
   // });
 
   test('filter details list, no active circles', () {
-    final filtered = filterContactDetailsList<Phone>([Phone('123')], {}, []);
+    final filtered = filterContactDetailsList({'mobile': '123'}, {}, []);
     expect(filtered, isEmpty);
   });
 
   test('filter details list, no allowed  circles', () {
     final filtered =
-        filterContactDetailsList<Phone>([Phone('123')], {}, ['C1', 'C2']);
+        filterContactDetailsList({'mobile': '123'}, {}, ['C1', 'C2']);
     expect(filtered, isEmpty);
   });
 
   test('filter details list, one allowed circles', () {
-    final filtered = filterContactDetailsList<Phone>([
-      Phone('123', label: PhoneLabel.home),
-      Phone('321', label: PhoneLabel.work)
-    ], {
+    final filtered = filterContactDetailsList({
+      'home': '123',
+      'work': '321'
+    }, {
       'work': ['C2']
     }, [
       'C1',
       'C2'
     ]);
-    expect(filtered, [Phone('321', label: PhoneLabel.work)]);
+    expect(filtered, {'work': '321'});
   });
 
   test('filter details without active circles', () {
@@ -60,21 +60,17 @@ void main() {
         pictures,
         ContactDetails(
           names: const {'0': 'Main Name'},
-          phones: [Phone('1234')],
-          emails: [Email('hi@mail.com')],
-          addresses: [Address('Home 123')],
-          organizations: [Organization(company: 'Corp', title: 'CEO')],
-          socialMedias: [SocialMedia('@beste')],
-          websites: [Website('awesome.org')],
-          events: [Event(month: 1, day: 30)],
+          phones: const {'p': '1234'},
+          emails: const {'e1': 'hi@mail.com'},
+          socialMedias: const {'s': '@beste'},
+          websites: const {'w': 'awesome.org'},
+          events: {'e': DateTime.now()},
         ),
         const ProfileSharingSettings(),
         {});
     expect(filteredDetails.names, isEmpty);
     expect(filteredDetails.emails, isEmpty);
     expect(filteredDetails.phones, isEmpty);
-    expect(filteredDetails.addresses, isEmpty);
-    expect(filteredDetails.organizations, isEmpty);
     expect(filteredDetails.socialMedias, isEmpty);
     expect(filteredDetails.websites, isEmpty);
     expect(filteredDetails.events, isEmpty);

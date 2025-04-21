@@ -9,7 +9,6 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:uuid/uuid.dart';
@@ -30,51 +29,6 @@ import '../providers/system_contacts/base.dart';
 
 const String defaultInitialCircleId = 'coag::initial';
 
-String contactDetailKey<T>(T detail) {
-  if (detail is Organization) {
-    return detail.company;
-  }
-
-  if (detail is Phone) {
-    final label = (detail.label.name == 'custom')
-        ? detail.customLabel
-        : detail.label.name;
-    return label;
-  }
-  if (detail is Email) {
-    final label = (detail.label.name == 'custom')
-        ? detail.customLabel
-        : detail.label.name;
-    return label;
-  }
-  if (detail is Address) {
-    final label = (detail.label.name == 'custom')
-        ? detail.customLabel
-        : detail.label.name;
-    return label;
-  }
-  if (detail is Website) {
-    final label = (detail.label.name == 'custom')
-        ? detail.customLabel
-        : detail.label.name;
-    return label;
-  }
-  if (detail is SocialMedia) {
-    final label = (detail.label.name == 'custom')
-        ? detail.customLabel
-        : detail.label.name;
-    return label;
-  }
-  if (detail is Event) {
-    final label = (detail.label.name == 'custom')
-        ? detail.customLabel
-        : detail.label.name;
-    return label;
-  }
-
-  throw Exception('Unsupported detail type $detail');
-}
-
 Map<String, String> filterNames(
   Map<String, String> names,
   Map<String, List<String>> settings,
@@ -88,20 +42,17 @@ Map<String, String> filterNames(
   return updatedValues;
 }
 
-List<T> filterContactDetailsList<T>(
-  List<T> values,
+Map<String, T> filterContactDetailsList<T>(
+  Map<String, T> values,
   Map<String, List<String>> settings,
   Iterable<String> activeCircles,
 ) {
   if (activeCircles.isEmpty) {
-    return [];
+    return {};
   }
-  final updatedValues = {...values.asMap()}..removeWhere((i, e) =>
-      !(settings[contactDetailKey(e)]
-              ?.asSet()
-              .intersectsWith(activeCircles.asSet()) ??
+  return {...values}..removeWhere((label, value) =>
+      !(settings[label]?.asSet().intersectsWith(activeCircles.asSet()) ??
           false));
-  return updatedValues.values.asList();
 }
 
 List<int>? selectPicture(Map<String, List<int>> avatars,
@@ -128,10 +79,6 @@ ContactDetails filterDetails(
           details.phones, settings.phones, activeCirclesWithMemberCount.keys),
       emails: filterContactDetailsList(
           details.emails, settings.emails, activeCirclesWithMemberCount.keys),
-      addresses: filterContactDetailsList(details.addresses, settings.addresses,
-          activeCirclesWithMemberCount.keys),
-      organizations: filterContactDetailsList(details.organizations,
-          settings.organizations, activeCirclesWithMemberCount.keys),
       websites: filterContactDetailsList(details.websites, settings.websites,
           activeCirclesWithMemberCount.keys),
       socialMedias: filterContactDetailsList(details.socialMedias,
@@ -721,8 +668,9 @@ class ContactsRepository {
     // TODO: Claim existing values
     final updatedSystemContact = mergeSystemContacts(
         systemContact,
-        contact.details!
-            .toSystemContact(contact.details!.names.values.join(' | ')));
+        contact.details!.toSystemContact(
+            contact.details!.names.values.join(' | '),
+            contact.addressLocations));
     await FlutterContacts.updateContact(updatedSystemContact);
   }
 
@@ -951,11 +899,13 @@ class ContactsRepository {
 
   Future<void> setProfileInfo(ProfileInfo profileInfo,
       {bool triggerDhtUpdate = true}) async {
+    _profileInfo = profileInfo;
+
     // Persist
-    await persistentStorage.updateProfileInfo(profileInfo);
+    await persistentStorage.updateProfileInfo(_profileInfo!);
 
     // Notify
-    _profileInfoStreamController.add(profileInfo.copyWith());
+    _profileInfoStreamController.add(_profileInfo!.copyWith());
 
     // Update shared profile data for all contacts individually
     // NOTE: Having this before and not as part of updateSharingDHT can cause
@@ -1024,18 +974,23 @@ class ContactsRepository {
     final batchInfo = BatchInviteInfoSchema.fromJson(
         jsonDecode(utf8.decode(batchInfoRaw)) as Map<String, dynamic>);
 
-    // create circle from label with id from record key
+    // create circle with name from label and id from record key and share name
     await addCircle(recordKey.toString(), batchInfo.label);
-
     final profileInfo = getProfileInfo();
-
-    if (profileInfo == null) {
-      return;
+    if (profileInfo != null) {
+      final updatedNameSharingSettings = {...profileInfo.sharingSettings.names};
+      updatedNameSharingSettings[myNameId] = [
+        recordKey.toString(),
+        ...updatedNameSharingSettings[myNameId] ?? []
+      ];
+      await setProfileInfo(
+          profileInfo.copyWith(
+              sharingSettings: profileInfo.sharingSettings
+                  .copyWith(names: updatedNameSharingSettings)),
+          triggerDhtUpdate: false);
     }
-
-    // TODO: Update sharing profile for circle to include name
     final myName =
-        profileInfo.details.names[myNameId] ?? '${batchInfo.label} $mySubkey';
+        profileInfo?.details.names[myNameId] ?? '${batchInfo.label} $mySubkey';
 
     // generate one keypair to use for all contacts in that batch
     final batchKeyPair = await DHTRecordPool.instance.veilid

@@ -124,41 +124,51 @@ class ContactDetails extends Equatable {
     this.picture,
     this.publicKey,
     this.names = const {},
-    this.phones = const [],
-    this.emails = const [],
-    this.addresses = const [],
-    this.organizations = const [],
-    this.websites = const [],
-    this.socialMedias = const [],
-    this.events = const [],
+    this.phones = const {},
+    this.emails = const {},
+    this.websites = const {},
+    this.socialMedias = const {},
+    this.events = const {},
   });
 
-  // TODO: Can it backfire if we drop all names but the display name?
-  ContactDetails.fromSystemContact(Contact c)
-      : picture = c.photo?.toList(),
-        names = {'0': c.displayName},
-        publicKey = null,
-        phones = c.phones,
-        emails = c.emails,
-        addresses = c.addresses,
-        organizations = c.organizations,
-        websites = c.websites,
-        socialMedias = c.socialMedias,
-        events = c.events;
-
-  Contact toSystemContact(String displayName) => Contact(
-      displayName: displayName,
-      photo: (picture == null) ? null : Uint8List.fromList(picture!),
-      phones: phones,
-      emails: emails,
-      addresses: addresses,
-      organizations: organizations,
-      websites: websites,
-      socialMedias: socialMedias,
-      events: events);
-
   factory ContactDetails.fromJson(Map<String, dynamic> json) =>
-      _$ContactDetailsFromJson(json);
+      _$ContactDetailsFromJson(
+          migrateContactDetailsJsonFromFlutterContactsTypeToSimpleMaps(json));
+
+  Contact toSystemContact(
+          String displayName, Map<int, ContactAddressLocation> addresses) =>
+      Contact(
+        displayName: displayName,
+        photo: (picture == null) ? null : Uint8List.fromList(picture!),
+        phones: phones.entries
+            .map((e) =>
+                Phone(e.value, label: PhoneLabel.custom, customLabel: e.key))
+            .toList(),
+        emails: emails.entries
+            .map((e) =>
+                Email(e.value, label: EmailLabel.custom, customLabel: e.key))
+            .toList(),
+        addresses: addresses.entries
+            .map((e) => Address(e.value.address ?? '',
+                label: AddressLabel.custom, customLabel: e.value.name))
+            .toList(),
+        websites: websites.entries
+            .map((e) => Website(e.value,
+                label: WebsiteLabel.custom, customLabel: e.key))
+            .toList(),
+        socialMedias: socialMedias.entries
+            .map((e) => SocialMedia(e.value,
+                label: SocialMediaLabel.custom, customLabel: e.key))
+            .toList(),
+        events: events.entries
+            .map((e) => Event(
+                day: e.value.day,
+                month: e.value.month,
+                year: e.value.year,
+                label: EventLabel.custom,
+                customLabel: e.key))
+            .toList(),
+      );
 
   /// Binary integer representation of an image
   final List<int>? picture;
@@ -170,25 +180,19 @@ class ContactDetails extends Equatable {
   final Map<String, String> names;
 
   /// Phone numbers.
-  final List<Phone> phones;
+  final Map<String, String> phones;
 
   /// Email addresses.
-  final List<Email> emails;
-
-  /// Postal addresses.
-  final List<Address> addresses;
-
-  /// Organizations / jobs.
-  final List<Organization> organizations;
+  final Map<String, String> emails;
 
   /// Websites.
-  final List<Website> websites;
+  final Map<String, String> websites;
 
   /// Social media / instant messaging profiles.
-  final List<SocialMedia> socialMedias;
+  final Map<String, String> socialMedias;
 
   /// Events / birthdays.
-  final List<Event> events;
+  final Map<String, DateTime> events;
 
   Map<String, dynamic> toJson() => _$ContactDetailsToJson(this);
 
@@ -196,25 +200,21 @@ class ContactDetails extends Equatable {
           {List<int>? picture,
           String? publicKey,
           Map<String, String>? names,
-          List<Phone>? phones,
-          List<Email>? emails,
-          List<Address>? addresses,
-          List<Organization>? organizations,
-          List<Website>? websites,
-          List<SocialMedia>? socialMedias,
-          List<Event>? events}) =>
+          Map<String, String>? phones,
+          Map<String, String>? emails,
+          Map<String, String>? websites,
+          Map<String, String>? socialMedias,
+          Map<String, DateTime>? events}) =>
       ContactDetails(
         picture:
             picture ?? ((this.picture == null) ? null : [...this.picture!]),
         publicKey: publicKey ?? this.publicKey,
-        names: names ?? {...this.names},
-        phones: phones ?? [...this.phones],
-        emails: emails ?? [...this.emails],
-        addresses: addresses ?? [...this.addresses],
-        organizations: organizations ?? [...this.organizations],
-        websites: websites ?? [...this.websites],
-        socialMedias: socialMedias ?? [...this.socialMedias],
-        events: events ?? [...this.events],
+        names: {...names ?? this.names},
+        phones: {...phones ?? this.phones},
+        emails: {...emails ?? this.emails},
+        websites: {...websites ?? this.websites},
+        socialMedias: {...socialMedias ?? this.socialMedias},
+        events: {...events ?? this.events},
       );
 
   @override
@@ -224,8 +224,6 @@ class ContactDetails extends Equatable {
         names,
         phones,
         emails,
-        addresses,
-        organizations,
         websites,
         socialMedias,
         events,
@@ -817,3 +815,84 @@ Contact removeCoagManagedSuffixes(Contact contact) => contact
   ..notes = [
     ...contact.notes.map((v) => updateContactDetailLabel(v, removeCoagSuffix))
   ];
+
+(String, String) simplifyFlutterContactsDetailType<T>(T detail) {
+  if (T == Phone) {
+    final d = detail as Phone;
+    return (
+      (d.label == PhoneLabel.custom) ? d.customLabel : d.label.name,
+      d.number,
+    );
+  }
+  if (T == Email) {
+    final d = detail as Email;
+    return (
+      (d.label == EmailLabel.custom) ? d.customLabel : d.label.name,
+      d.address,
+    );
+  }
+  if (T == Address) {
+    final d = detail as Address;
+    return (
+      (d.label == AddressLabel.custom) ? d.customLabel : d.label.name,
+      d.address,
+    );
+  }
+  if (T == Website) {
+    final d = detail as Website;
+    return (
+      (d.label == WebsiteLabel.custom) ? d.customLabel : d.label.name,
+      d.url,
+    );
+  }
+  if (T == SocialMedia) {
+    final d = detail as SocialMedia;
+    return (
+      (d.label == SocialMediaLabel.custom) ? d.customLabel : d.label.name,
+      d.userName,
+    );
+  }
+  throw Exception(
+      'Unexpected type $T for flutter contacts detail simplification');
+}
+
+Map<String, dynamic>
+    migrateContactDetailsJsonFromFlutterContactsTypeToSimpleMaps(
+        Map<String, dynamic> json) {
+  final migrated = <String, dynamic>{};
+  for (final key in json.keys) {
+    if (json[key] is List<dynamic>) {
+      if (key == 'phones') {
+        migrated[key] = Map.fromEntries((json[key] as List<dynamic>)
+            .map((e) => Phone.fromJson(e as Map<String, dynamic>))
+            .map(simplifyFlutterContactsDetailType)
+            .map((v) => MapEntry(v.$1, v.$2)));
+      } else if (key == 'emails') {
+        migrated[key] = Map.fromEntries((json[key] as List<dynamic>)
+            .map((e) => Email.fromJson(e as Map<String, dynamic>))
+            .map(simplifyFlutterContactsDetailType)
+            .map((v) => MapEntry(v.$1, v.$2)));
+      } else if (key == 'addresses') {
+        migrated[key] = Map.fromEntries((json[key] as List<dynamic>)
+            .map((e) => Address.fromJson(e as Map<String, dynamic>))
+            .map(simplifyFlutterContactsDetailType)
+            .map((v) => MapEntry(v.$1, v.$2)));
+      } else if (key == 'websites') {
+        migrated[key] = Map.fromEntries((json[key] as List<dynamic>)
+            .map((e) => Website.fromJson(e as Map<String, dynamic>))
+            .map(simplifyFlutterContactsDetailType)
+            .map((v) => MapEntry(v.$1, v.$2)));
+      } else if (key == 'social_medias') {
+        migrated[key] = Map.fromEntries((json[key] as List<dynamic>)
+            .map((e) => SocialMedia.fromJson(e as Map<String, dynamic>))
+            .map(simplifyFlutterContactsDetailType)
+            .map((v) => MapEntry(v.$1, v.$2)));
+      } else {
+        migrated[key] = json[key];
+      }
+    } else {
+      migrated[key] = json[key];
+    }
+  }
+  return migrated;
+}

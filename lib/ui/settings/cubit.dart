@@ -7,11 +7,9 @@ import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:faker/faker.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:image/image.dart' as img;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
-import 'package:veilid/veilid.dart';
 import 'package:veilid_support/veilid_support.dart';
 
 import '../../data/models/coag_contact.dart';
@@ -65,10 +63,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         details: ContactDetails(
             // TODO: do too large noisy images break things?
             picture: generateRandomImage(20, 20),
-            phones: [
-              Phone(faker.phoneNumber.de(),
-                  label: PhoneLabel.custom, customLabel: 'mobile')
-            ]),
+            phones: {'mobile': faker.phoneNumber.de()}),
         addressLocations: Map.fromEntries([1, 2, 3].map((index) => MapEntry(
             index,
             ContactAddressLocation(

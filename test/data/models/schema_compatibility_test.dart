@@ -3,13 +3,13 @@
 
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_location.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../mocked_providers.dart';
 
 void main() {
   test('load schema v2 from json', () {
-    const details = ContactDetails();
     const addressLocation =
         ContactAddressLocation(longitude: 0, latitude: 0, name: 'address-loc');
     final temporaryLocation = ContactTemporaryLocation(
@@ -20,7 +20,30 @@ void main() {
         end: DateTime(1910),
         details: '');
     final schemaJsonV2 = {
-      'details': details.toJson(),
+      'details': {
+        'phones': [
+          Phone('123', label: PhoneLabel.custom, customLabel: 'bananaphone')
+              .toJson()
+        ],
+        'emails': [
+          Email('hi@test.local',
+                  label: EmailLabel.custom, customLabel: 'custom-email')
+              .toJson()
+        ],
+        'addresses': [
+          Address('Home Sweet Home',
+                  label: AddressLabel.custom, customLabel: 'custom-address')
+              .toJson()
+        ],
+        'websites': [
+          Website('awesomesite',
+                  label: WebsiteLabel.custom, customLabel: 'custom-website')
+              .toJson()
+        ],
+        'social_medias': [
+          SocialMedia('@coag', label: SocialMediaLabel.discord).toJson()
+        ],
+      },
       'share_back_d_h_t_key': dummyDhtRecordKey().toString(),
       'share_back_pub_key': dummyTypedKeyPair().key.toString(),
       'share_back_d_h_t_writer': dummyTypedKeyPair().toKeyPair().toString(),
@@ -31,7 +54,10 @@ void main() {
       'known_personal_contact_ids': ['homie1', 'homie2'],
     };
     final schema = CoagContactDHTSchemaV2.fromJson(schemaJsonV2);
-    expect(schema.details, details);
+    expect(schema.details.phones, {'bananaphone': '123'});
+    expect(schema.details.emails, {'custom-email': 'hi@test.local'});
+    expect(schema.details.websites, {'custom-website': 'awesomesite'});
+    expect(schema.details.socialMedias, {'discord': '@coag'});
     expect(schema.shareBackDHTKey, schemaJsonV2['share_back_d_h_t_key']);
     expect(schema.shareBackPubKey, schemaJsonV2['share_back_pub_key']);
     expect(schema.shareBackDHTWriter, schemaJsonV2['share_back_d_h_t_writer']);

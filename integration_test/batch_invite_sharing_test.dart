@@ -24,11 +24,11 @@ void main() {
     _cRepoA = ContactsRepository(DummyPersistentStorage({}), _distStorage,
         DummySystemContacts([]), 'UserA',
         initialize: false);
-    await _cRepoA.initialize();
+    await _cRepoA.initialize(listenToVeilidNetworkChanges: false);
     _cRepoB = ContactsRepository(DummyPersistentStorage({}), _distStorage,
         DummySystemContacts([]), 'UserB',
         initialize: false);
-    await _cRepoB.initialize();
+    await _cRepoB.initialize(listenToVeilidNetworkChanges: false);
   });
 
   test('Peter creates a batch, Alice and Bob join to share', () async {
@@ -46,8 +46,8 @@ void main() {
         initialState: ReceiveRequestState(
             ReceiveRequestStatus.handleBatchInvite,
             fragment: batchInviteUrlAlice.fragment));
-    await rrCubitA.handleBatchInvite(
-        myNameId: _cRepoA.getProfileInfo()!.details.names.keys.first);
+    final batchNameIdA = _cRepoA.getProfileInfo()!.details.names.keys.first;
+    await rrCubitA.handleBatchInvite(myNameId: batchNameIdA);
     expect(
       _cRepoA.getContacts().values,
       isEmpty,
@@ -59,8 +59,8 @@ void main() {
         initialState: ReceiveRequestState(
             ReceiveRequestStatus.handleBatchInvite,
             fragment: batchInviteUrlBob.fragment));
-    await rrCubitB.handleBatchInvite(
-        myNameId: _cRepoB.getProfileInfo()!.details.names.keys.first);
+    final batchNameIdB = _cRepoB.getProfileInfo()!.details.names.keys.first;
+    await rrCubitB.handleBatchInvite(myNameId: batchNameIdB);
     var contactAliceFromBobsRepo = _cRepoB.getContacts().values.first;
     expect(
       contactAliceFromBobsRepo.name,
@@ -72,6 +72,9 @@ void main() {
       isNull,
       reason: 'No details available yet, since Alice has not seen Bob yet',
     );
+    expect(
+        contactAliceFromBobsRepo.sharedProfile?.details.names.keys.firstOrNull,
+        batchNameIdB);
 
     // Alice finds bob in the batch and starts sharing
     expect(_cRepoA.getBatchInvites().length, 1,
@@ -93,6 +96,9 @@ void main() {
       isNotNull,
       reason: 'Alice knows public key of Bob',
     );
+    expect(
+        contactBobFromAlicesRepo.sharedProfile?.details.names.keys.firstOrNull,
+        batchNameIdA);
 
     // Bob learns about Alice and starts sharing back
     expect(_cRepoB.getBatchInvites().length, 1,

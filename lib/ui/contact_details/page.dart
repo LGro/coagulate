@@ -4,11 +4,9 @@
 import 'dart:math';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart' as flutter_contacts;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -480,8 +478,9 @@ List<Widget> _contactDetailsAndLocations(
       else if (contact.details!.names.isEmpty &&
           contact.details!.phones.isEmpty &&
           contact.details!.emails.isEmpty &&
-          contact.details!.addresses.isEmpty &&
+          contact.addressLocations.isEmpty &&
           contact.details!.socialMedias.isEmpty &&
+          contact.details!.events.isEmpty &&
           contact.details!.websites.isEmpty)
         Padding(
             padding: const EdgeInsets.only(left: 16, right: 16),
@@ -491,64 +490,54 @@ List<Widget> _contactDetailsAndLocations(
 
       // Contact details
       if (contact.details?.names.isNotEmpty ?? false)
-        ...detailsList<String>(
+        ...detailsList(
           context,
-          contact.details!.names.values.toList(),
-          getValue: (v) => v,
-          // This doesn't do anything when hideLabel, maybe it can be optional
-          getLabel: (v) => v,
+          contact.details!.names,
           hideLabel: true,
         ),
       if (contact.details?.phones.isNotEmpty ?? false)
-        ...detailsList<flutter_contacts.Phone>(
+        ...detailsList(
           context,
           contact.details!.phones,
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.number,
           hideEditButton: true,
-          editCallback: (i) async =>
-              _launchUrl('tel:${contact.details!.phones[i].number}'),
+          editCallback: (label) async =>
+              _launchUrl('tel:${contact.details!.phones[label]}'),
         ),
       if (contact.details?.emails.isNotEmpty ?? false)
-        ...detailsList<flutter_contacts.Email>(
+        ...detailsList(
           context,
           contact.details!.emails,
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.address,
           hideEditButton: true,
-          editCallback: (i) async =>
-              _launchUrl('mailto:${contact.details!.emails[i].address}'),
+          editCallback: (label) async =>
+              _launchUrl('mailto:${contact.details!.emails[label]}'),
         ),
-      if (contact.details?.addresses.isNotEmpty ?? false)
-        ...detailsList<flutter_contacts.Address>(
+      if (contact.addressLocations.isNotEmpty)
+        ...detailsList(
           context,
-          contact.details!.addresses,
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.address,
+          Map.fromEntries(contact.addressLocations.values
+              .map((a) => MapEntry(a.name, commasToNewlines(a.address ?? '')))),
         ),
       if (contact.details?.socialMedias.isNotEmpty ?? false)
-        ...detailsList<flutter_contacts.SocialMedia>(
+        ...detailsList(
           context,
           contact.details!.socialMedias,
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.userName,
         ),
       if (contact.details?.websites.isNotEmpty ?? false)
-        ...detailsList<flutter_contacts.Website>(
+        ...detailsList(
           context,
           contact.details!.websites,
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.url,
           hideEditButton: true,
-          editCallback: (i) async => _launchUrl(
-              contact.details!.websites[i].url.startsWith('http')
-                  ? contact.details!.websites[i].url
-                  : 'https://${contact.details!.websites[i].url}'),
+          editCallback: (label) async => _launchUrl(
+              (contact.details!.websites[label] ?? '').startsWith('http')
+                  ? contact.details!.websites[label] ?? ''
+                  : 'https://${contact.details!.websites[label]}'),
+        ),
+      if (contact.details?.events.isNotEmpty ?? false)
+        ...detailsList(
+          context,
+          contact.details!.events
+              .map((label, date) => MapEntry(label, DateFormat().format(date))),
+          hideEditButton: true,
         ),
 
       // Locations
@@ -578,7 +567,8 @@ Widget _sharingSettings(
       ],
       if (circleNames.isNotEmpty && contact.sharedProfile != null) ...[
         _paddedDivider(),
-        ..._displaySharedProfile(context, contact.sharedProfile!.details),
+        ..._displaySharedProfile(context, contact.sharedProfile!.details,
+            contact.sharedProfile!.addressLocations),
       ],
       if (contact.sharedProfile?.temporaryLocations.isNotEmpty ?? false) ...[
         _paddedDivider(),
@@ -707,7 +697,9 @@ Widget _connectingCard(BuildContext context, CoagContact contact) => Padding(
     ]));
 
 Iterable<Widget> _displaySharedProfile(
-        BuildContext context, ContactDetails details) =>
+        BuildContext context,
+        ContactDetails details,
+        Map<int, ContactAddressLocation> addressLocations) =>
     [
       const Padding(
           padding: EdgeInsets.only(top: 8, left: 12, right: 12, bottom: 8),
@@ -722,53 +714,25 @@ Iterable<Widget> _displaySharedProfile(
                 padding: const EdgeInsets.only(left: 12, top: 4, right: 12),
                 child: roundPictureOrPlaceholder(details.picture, radius: 48))),
       if (details.names.isNotEmpty)
-        ...detailsList<String>(
+        ...detailsList(context, details.names, hideLabel: true),
+      if (details.phones.isNotEmpty) ...detailsList(context, details.phones),
+      if (details.emails.isNotEmpty) ...detailsList(context, details.emails),
+      if (addressLocations.isNotEmpty)
+        ...detailsList(
           context,
-          details.names.values.toList(),
-          getValue: (v) => v,
-          // This doesn't do anything when hideLabel, maybe it can be optional
-          getLabel: (v) => v,
-          hideLabel: true,
-        ),
-      if (details.phones.isNotEmpty)
-        ...detailsList<flutter_contacts.Phone>(
-          context,
-          details.phones,
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.number,
-        ),
-      if (details.emails.isNotEmpty)
-        ...detailsList<flutter_contacts.Email>(
-          context,
-          details.emails,
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.address,
-        ),
-      if (details.addresses.isNotEmpty)
-        ...detailsList<flutter_contacts.Address>(
-          context,
-          details.addresses,
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.address,
+          Map.fromEntries(addressLocations.values
+              .map((a) => MapEntry(a.name, commasToNewlines(a.address ?? '')))),
         ),
       if (details.socialMedias.isNotEmpty)
-        ...detailsList<flutter_contacts.SocialMedia>(
-          context,
-          details.socialMedias,
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.userName,
-        ),
+        ...detailsList(context, details.socialMedias),
       if (details.websites.isNotEmpty)
-        ...detailsList<flutter_contacts.Website>(
+        ...detailsList(context, details.websites),
+      if (details.events.isNotEmpty)
+        ...detailsList(
           context,
-          details.websites,
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => v.url,
+          details.events
+              .map((label, date) => MapEntry(label, DateFormat().format(date))),
+          hideLabel: true,
         ),
       // TODO: Check if opted out
       const Padding(

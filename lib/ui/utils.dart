@@ -1,3 +1,6 @@
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
+// SPDX-License-Identifier: MPL-2.0
+
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
@@ -7,6 +10,7 @@ import 'package:veilid/veilid.dart';
 
 import '../data/models/coag_contact.dart';
 import '../data/models/contact_introduction.dart';
+import '../data/models/contact_location.dart';
 import 'batch_invite_management/cubit.dart';
 
 extension LocalizationExt on BuildContext {
@@ -52,52 +56,49 @@ Widget roundPictureOrPlaceholder(List<int>? picture,
   return image;
 }
 
+String commasToNewlines(String s) =>
+    s.split(',').map((p) => p.trim()).join('\n');
+
+// TODO: Only detect added things, not removed things
 String contactUpdateSummary(CoagContact oldContact, CoagContact newContact) {
   final results = <String>[];
 
   final oldDetails = oldContact.details ?? const ContactDetails();
   final newDetails = newContact.details ?? const ContactDetails();
 
+  const equality = MapEquality<String, String>();
+
   if (!(oldDetails.picture ?? []).equals(newDetails.picture ?? [])) {
     results.add('picture');
   }
 
-  if (oldDetails.names.values
-          .toSet()
-          .difference(newDetails.names.values.toSet())
-          .isNotEmpty ||
-      newDetails.names.values
-          .toSet()
-          .difference(oldDetails.names.values.toSet())
-          .isNotEmpty) {
+  if (!equality.equals(oldDetails.names, newDetails.names)) {
     results.add('names');
   }
 
-  if (!oldDetails.emails.equals(newDetails.emails)) {
+  if (!equality.equals(oldDetails.emails, newDetails.emails)) {
     results.add('emails');
   }
 
-  if (!oldDetails.addresses.equals(newDetails.addresses)) {
-    results.add('addresses');
-  }
-
-  if (!oldDetails.phones.equals(newDetails.phones)) {
+  if (!equality.equals(oldDetails.phones, newDetails.phones)) {
     results.add('phones');
   }
 
-  if (!oldDetails.websites.equals(newDetails.websites)) {
+  if (!equality.equals(oldDetails.websites, newDetails.websites)) {
     results.add('websites');
   }
 
-  if (!oldDetails.socialMedias.equals(newDetails.socialMedias)) {
+  if (!equality.equals(oldDetails.socialMedias, newDetails.socialMedias)) {
     results.add('socials');
   }
 
-  if (!oldDetails.organizations.equals(newDetails.organizations)) {
-    results.add('organizations');
+  if (!const MapEquality<int, ContactAddressLocation>()
+      .equals(oldContact.addressLocations, newContact.addressLocations)) {
+    results.add('addresses');
   }
 
-  if (!oldDetails.events.equals(newDetails.events)) {
+  if (!const MapEquality<String, DateTime>()
+      .equals(oldDetails.events, newDetails.events)) {
     results.add('events');
   }
 

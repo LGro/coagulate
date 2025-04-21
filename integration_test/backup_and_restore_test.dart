@@ -70,11 +70,9 @@ void main() {
         triggerDhtUpdate: false);
     await _cRepoB.setProfileInfo(
         _cRepoB.getProfileInfo()!.copyWith(
-                details: (_cRepoB.getProfileInfo()?.details ??
-                        const ContactDetails())
-                    .copyWith(phones: [
-              Phone('123', label: PhoneLabel.custom, customLabel: 'bananaphone')
-            ])),
+            details:
+                (_cRepoB.getProfileInfo()?.details ?? const ContactDetails())
+                    .copyWith(phones: {'bananaphone': '123'})),
         triggerDhtUpdate: false);
     await _cRepoB.setProfileInfo(_cRepoB.getProfileInfo()!.copyWith(
             sharingSettings:
@@ -96,7 +94,7 @@ void main() {
       reason: 'Name from sharing profile',
     );
     expect(
-      contactBobFromProfile.details?.phones.firstOrNull?.number,
+      contactBobFromProfile.details?.phones.values.firstOrNull,
       '123',
       reason: 'Phone number from shared details',
     );
@@ -118,7 +116,7 @@ void main() {
     final restoredContactB =
         restoredRepo.getContact(_cRepoA.getContacts().keys.first);
     expect(restoredContactB?.name, 'Bob Profile');
-    expect(restoredContactB?.details?.phones.first.number, '123');
+    expect(restoredContactB?.details?.phones.values.first, '123');
     expect(restoredContactB?.details?.names.values.first, 'UserB');
     expect(
         restoredContactB?.sharedProfile?.details.names.values.first, 'UserA');

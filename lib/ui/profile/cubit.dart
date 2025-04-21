@@ -6,9 +6,7 @@ import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
@@ -70,6 +68,13 @@ class ProfileCubit extends Cubit<ProfileState> {
           : contactsRepository
               .setProfileInfo(state.profileInfo!.copyWith(details: details));
 
+  Future<void> updateAddressLocations(
+          Map<int, ContactAddressLocation> addressLocations) async =>
+      (state.profileInfo == null)
+          ? null
+          : contactsRepository.setProfileInfo(
+              state.profileInfo!.copyWith(addressLocations: addressLocations));
+
   Future<void> updateAvatar(String circleId, Uint8List picture) async {
     if (state.profileInfo == null) {
       return;
@@ -92,15 +97,13 @@ class ProfileCubit extends Cubit<ProfileState> {
         .setProfileInfo(state.profileInfo!.copyWith(pictures: pictures));
   }
 
-  Future<void> updateName(
-      String name, List<(String, String, bool)> circlesWithSelection,
-      {String? id}) async {
+  Future<void> updateName(String id, String name,
+      List<(String, String, bool)> circlesWithSelection) async {
     if (state.profileInfo == null) {
       return;
     }
 
     final names = {...state.profileInfo!.details.names};
-    id ??= Uuid().v4();
     names[id] = name;
 
     await createCirclesIfNotExist(
@@ -124,27 +127,21 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updatePhone(
-      Phone detail, List<(String, String, bool)> circlesWithSelection,
+  Future<void> updatePhone(String label, String value,
+      List<(String, String, bool)> circlesWithSelection,
       {int? i}) async {
     if (state.profileInfo == null) {
       return;
     }
-    final details = [...state.profileInfo!.details.phones];
-    if (i == null) {
-      i = details.length;
-      details.add(detail);
-    } else {
-      details[i] = detail;
-    }
+
+    final details = {...state.profileInfo!.details.phones};
+    details[label] = value;
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
     final _sharingSettings = {...state.profileInfo!.sharingSettings.phones};
-    _sharingSettings[(detail.label.name != 'custom')
-            ? detail.label.name
-            : detail.customLabel] =
+    _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
     final updatedProfile = state.profileInfo!.copyWith(
@@ -161,28 +158,21 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updateEmail(
-      Email detail, List<(String, String, bool)> circlesWithSelection,
+  Future<void> updateEmail(String label, String value,
+      List<(String, String, bool)> circlesWithSelection,
       {int? i}) async {
     if (state.profileInfo == null) {
       return;
     }
 
-    final details = [...state.profileInfo!.details.emails];
-    if (i == null) {
-      i = details.length;
-      details.add(detail);
-    } else {
-      details[i] = detail;
-    }
+    final details = {...state.profileInfo!.details.emails};
+    details[label] = value;
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
     final _sharingSettings = {...state.profileInfo!.sharingSettings.emails};
-    _sharingSettings[(detail.label.name != 'custom')
-            ? detail.label.name
-            : detail.customLabel] =
+    _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
     final updatedProfile = state.profileInfo!.copyWith(
@@ -199,20 +189,15 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updateSocialMedia(
-      SocialMedia detail, List<(String, String, bool)> circlesWithSelection,
+  Future<void> updateSocialMedia(String label, String value,
+      List<(String, String, bool)> circlesWithSelection,
       {int? i}) async {
     if (state.profileInfo == null) {
       return;
     }
 
-    final details = [...state.profileInfo!.details.socialMedias];
-    if (i == null) {
-      i = details.length;
-      details.add(detail);
-    } else {
-      details[i] = detail;
-    }
+    final details = {...state.profileInfo!.details.socialMedias};
+    details[label] = value;
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
@@ -220,9 +205,7 @@ class ProfileCubit extends Cubit<ProfileState> {
     final _sharingSettings = {
       ...state.profileInfo!.sharingSettings.socialMedias
     };
-    _sharingSettings[(detail.label.name != 'custom')
-            ? detail.label.name
-            : detail.customLabel] =
+    _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
     final updatedProfile = state.profileInfo!.copyWith(
@@ -239,28 +222,20 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updateWebsite(
-      Website detail, List<(String, String, bool)> circlesWithSelection,
-      {int? i}) async {
+  Future<void> updateWebsite(String label, String value,
+      List<(String, String, bool)> circlesWithSelection) async {
     if (state.profileInfo == null) {
       return;
     }
 
-    final details = [...state.profileInfo!.details.websites];
-    if (i == null) {
-      i = details.length;
-      details.add(detail);
-    } else {
-      details[i] = detail;
-    }
+    final details = {...state.profileInfo!.details.websites};
+    details[label] = value;
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
     final _sharingSettings = {...state.profileInfo!.sharingSettings.websites};
-    _sharingSettings[(detail.label.name != 'custom')
-            ? detail.label.name
-            : detail.customLabel] =
+    _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
     final updatedProfile = state.profileInfo!.copyWith(
@@ -277,40 +252,25 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updateAddress(ContactAddressLocation contactAddress,
-      List<(String, String, bool)> circlesWithSelection,
-      {int? i}) async {
+  Future<void> updateAddressLocation(
+      int index,
+      ContactAddressLocation contactAddress,
+      List<(String, String, bool)> circlesWithSelection) async {
     if (state.profileInfo == null) {
       return;
-    }
-
-    final detail = Address(contactAddress.address ?? '',
-        label: AddressLabel.custom, customLabel: contactAddress.name);
-
-    final details = [...state.profileInfo!.details.addresses];
-    if (i == null) {
-      i = details.length;
-      details.add(detail);
-    } else {
-      details[i] = detail;
     }
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
     final _sharingSettings = {...state.profileInfo!.sharingSettings.addresses};
-    _sharingSettings[(detail.label.name != 'custom')
-            ? detail.label.name
-            : detail.customLabel] =
+    _sharingSettings[contactAddress.name] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
     final _updatedAddressLocations = {...state.profileInfo!.addressLocations};
-    _updatedAddressLocations[i] = contactAddress;
+    _updatedAddressLocations[index] = contactAddress;
 
     final updatedProfile = state.profileInfo!.copyWith(
-      details: state.profileInfo!.details.copyWith(
-        addresses: details,
-      ),
       sharingSettings: state.profileInfo!.sharingSettings.copyWith(
         addresses: _sharingSettings,
       ),

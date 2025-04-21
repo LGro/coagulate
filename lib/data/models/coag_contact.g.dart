@@ -73,34 +73,26 @@ ContactDetails _$ContactDetailsFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, e as String),
           ) ??
           const {},
-      phones: (json['phones'] as List<dynamic>?)
-              ?.map((e) => Phone.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      emails: (json['emails'] as List<dynamic>?)
-              ?.map((e) => Email.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      addresses: (json['addresses'] as List<dynamic>?)
-              ?.map((e) => Address.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      organizations: (json['organizations'] as List<dynamic>?)
-              ?.map((e) => Organization.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      websites: (json['websites'] as List<dynamic>?)
-              ?.map((e) => Website.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      socialMedias: (json['social_medias'] as List<dynamic>?)
-              ?.map((e) => SocialMedia.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      events: (json['events'] as List<dynamic>?)
-              ?.map((e) => Event.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
+      phones: (json['phones'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
+      emails: (json['emails'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
+      websites: (json['websites'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
+      socialMedias: (json['social_medias'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          const {},
+      events: (json['events'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, DateTime.parse(e as String)),
+          ) ??
+          const {},
     );
 
 Map<String, dynamic> _$ContactDetailsToJson(ContactDetails instance) =>
@@ -108,13 +100,11 @@ Map<String, dynamic> _$ContactDetailsToJson(ContactDetails instance) =>
       'picture': instance.picture,
       'public_key': instance.publicKey,
       'names': instance.names,
-      'phones': instance.phones.map((e) => e.toJson()).toList(),
-      'emails': instance.emails.map((e) => e.toJson()).toList(),
-      'addresses': instance.addresses.map((e) => e.toJson()).toList(),
-      'organizations': instance.organizations.map((e) => e.toJson()).toList(),
-      'websites': instance.websites.map((e) => e.toJson()).toList(),
-      'social_medias': instance.socialMedias.map((e) => e.toJson()).toList(),
-      'events': instance.events.map((e) => e.toJson()).toList(),
+      'phones': instance.phones,
+      'emails': instance.emails,
+      'websites': instance.websites,
+      'social_medias': instance.socialMedias,
+      'events': instance.events.map((k, e) => MapEntry(k, e.toIso8601String())),
     };
 
 ProfileInfo _$ProfileInfoFromJson(Map<String, dynamic> json) => ProfileInfo(
