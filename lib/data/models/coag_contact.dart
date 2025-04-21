@@ -892,6 +892,8 @@ Map<String, dynamic>
             .map((e) => SocialMedia.fromJson(e as Map<String, dynamic>))
             .map(simplifyFlutterContactsDetailType)
             .map((v) => MapEntry(v.$1, v.$2)));
+      } else if (key == 'events') {
+        migrated[key] = <String, dynamic>{};
       } else {
         migrated[key] = json[key];
       }

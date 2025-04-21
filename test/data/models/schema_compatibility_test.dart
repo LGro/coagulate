@@ -53,7 +53,7 @@ void main() {
     expect(migrated['address_locations'].keys, contains('address-loc'));
   });
 
-  test('load schema v2 from json', () {
+  test('load schema v2 from legacy json', () {
     const addressLocationJson = {
       'longitude': 1.0,
       'latitude': 0.0,
@@ -90,6 +90,7 @@ void main() {
         'social_medias': [
           SocialMedia('@coag', label: SocialMediaLabel.discord).toJson()
         ],
+        'events': [],
       },
       'share_back_d_h_t_key': dummyDhtRecordKey().toString(),
       'share_back_pub_key': dummyTypedKeyPair().key.toString(),
