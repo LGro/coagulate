@@ -92,7 +92,7 @@ String contactUpdateSummary(CoagContact oldContact, CoagContact newContact) {
     results.add('socials');
   }
 
-  if (!const MapEquality<int, ContactAddressLocation>()
+  if (!const MapEquality<String, ContactAddressLocation>()
       .equals(oldContact.addressLocations, newContact.addressLocations)) {
     results.add('addresses');
   }

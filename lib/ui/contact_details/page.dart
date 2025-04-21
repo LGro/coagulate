@@ -518,8 +518,8 @@ List<Widget> _contactDetailsAndLocations(
       if (contact.addressLocations.isNotEmpty)
         ...detailsList(
           context,
-          Map.fromEntries(contact.addressLocations.values
-              .map((a) => MapEntry(a.name, commasToNewlines(a.address ?? '')))),
+          contact.addressLocations.map(
+              (label, a) => MapEntry(label, commasToNewlines(a.address ?? ''))),
         ),
       if (contact.details?.socialMedias.isNotEmpty ?? false)
         ...detailsList(
@@ -707,7 +707,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact) => Padding(
 Iterable<Widget> _displaySharedProfile(
         BuildContext context,
         ContactDetails details,
-        Map<int, ContactAddressLocation> addressLocations) =>
+        Map<String, ContactAddressLocation> addressLocations) =>
     [
       const Padding(
           padding: EdgeInsets.only(top: 8, left: 12, right: 12, bottom: 8),
@@ -727,10 +727,9 @@ Iterable<Widget> _displaySharedProfile(
       if (details.emails.isNotEmpty) ...detailsList(context, details.emails),
       if (addressLocations.isNotEmpty)
         ...detailsList(
-          context,
-          Map.fromEntries(addressLocations.values
-              .map((a) => MapEntry(a.name, commasToNewlines(a.address ?? '')))),
-        ),
+            context,
+            addressLocations.map((label, address) =>
+                MapEntry(label, commasToNewlines(address.address ?? '')))),
       if (details.socialMedias.isNotEmpty)
         ...detailsList(context, details.socialMedias),
       if (details.websites.isNotEmpty)

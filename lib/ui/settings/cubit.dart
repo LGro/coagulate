@@ -65,11 +65,10 @@ class SettingsCubit extends Cubit<SettingsState> {
             picture: generateRandomImage(20, 20),
             phones: {'mobile': faker.phoneNumber.de()}),
         addressLocations: Map.fromEntries([1, 2, 3].map((index) => MapEntry(
-            index,
+            'address $index',
             ContactAddressLocation(
                 longitude: faker.geo.longitude(),
                 latitude: faker.geo.latitude(),
-                name: 'address $index',
                 address: faker.address.streetAddress(),
                 coagContactId: coagContactId)))),
         temporaryLocations:

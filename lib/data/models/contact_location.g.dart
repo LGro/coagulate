@@ -11,7 +11,6 @@ ContactAddressLocation _$ContactAddressLocationFromJson(
     ContactAddressLocation(
       longitude: (json['longitude'] as num).toDouble(),
       latitude: (json['latitude'] as num).toDouble(),
-      name: json['name'] as String,
       address: json['address'] as String?,
       coagContactId: json['coag_contact_id'] as String?,
     );
@@ -22,7 +21,6 @@ Map<String, dynamic> _$ContactAddressLocationToJson(
       'coag_contact_id': instance.coagContactId,
       'longitude': instance.longitude,
       'latitude': instance.latitude,
-      'name': instance.name,
       'address': instance.address,
     };
 

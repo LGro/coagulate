@@ -170,274 +170,270 @@ Widget _pictureSelection(BuildContext context, CircleDetailsState state) =>
           child: Text(context.loc.profilePictureExplainer, softWrap: true)),
     ]);
 
-Widget
-    _sharedInformationList(BuildContext context, CircleDetailsState state) =>
-        Column(children: [
-          if (state.profileInfo!.details.names.isNotEmpty)
-            ...detailsList(
-              context,
-              state.profileInfo!.details.names,
-              circleId: state.circleId!,
-              title: Text(context.loc.names.capitalize(),
-                  textScaler: const TextScaler.linear(1.4),
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary)),
-              hideLabel: true,
-              getDetailSharingSettings: (l) =>
-                  state.profileInfo!.sharingSettings.names[l],
-              circles: state.circles,
-              circleMemberships: state.circleMemberships,
-              editCallback: (label, doShare) async =>
-                  updateSharedInformationWithCircle(
-                      state: state,
-                      detailSharingSettings: {
-                        ...state.profileInfo!.sharingSettings.names
-                      },
-                      label: label,
-                      doShare: doShare,
-                      updateDetailSharingSettings: (sharingSettings) async =>
-                          context
-                              .read<CircleDetailsCubit>()
-                              .contactsRepository
-                              .setProfileInfo(state.profileInfo!.copyWith(
-                                  sharingSettings: state
-                                      .profileInfo!.sharingSettings
-                                      .copyWith(names: sharingSettings)))),
-            ),
-          if (state.profileInfo!.details.phones.isNotEmpty)
-            ...detailsList(
-              context,
-              state.profileInfo!.details.phones,
-              circleId: state.circleId!,
-              title: Text(context.loc.phones.capitalize(),
-                  textScaler: const TextScaler.linear(1.4),
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary)),
-              getDetailSharingSettings: (l) =>
-                  state.profileInfo!.sharingSettings.phones[l],
-              circles: state.circles,
-              circleMemberships: state.circleMemberships,
-              editCallback: (label, doShare) async =>
-                  updateSharedInformationWithCircle(
-                      state: state,
-                      detailSharingSettings: {
-                        ...state.profileInfo!.sharingSettings.phones
-                      },
-                      label: label,
-                      doShare: doShare,
-                      updateDetailSharingSettings: (sharingSettings) async =>
-                          context
-                              .read<CircleDetailsCubit>()
-                              .contactsRepository
-                              .setProfileInfo(state.profileInfo!.copyWith(
-                                  sharingSettings: state
-                                      .profileInfo!.sharingSettings
-                                      .copyWith(phones: sharingSettings)))),
-            ),
-          if (state.profileInfo!.details.emails.isNotEmpty)
-            ...detailsList(
-              context,
-              state.profileInfo!.details.emails,
-              circleId: state.circleId!,
-              title: Text(context.loc.emails.capitalize(),
-                  textScaler: const TextScaler.linear(1.4),
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary)),
-              getDetailSharingSettings: (l) =>
-                  state.profileInfo!.sharingSettings.emails[l],
-              circles: state.circles,
-              circleMemberships: state.circleMemberships,
-              editCallback: (label, doShare) async =>
-                  updateSharedInformationWithCircle(
-                      state: state,
-                      detailSharingSettings: {
-                        ...state.profileInfo!.sharingSettings.emails
-                      },
-                      label: label,
-                      doShare: doShare,
-                      updateDetailSharingSettings: (sharingSettings) async =>
-                          context
-                              .read<CircleDetailsCubit>()
-                              .contactsRepository
-                              .setProfileInfo(state.profileInfo!.copyWith(
-                                  sharingSettings: state
-                                      .profileInfo!.sharingSettings
-                                      .copyWith(emails: sharingSettings)))),
-            ),
-          if (state.profileInfo!.addressLocations.isNotEmpty)
-            ...detailsList(
-              context,
-              state.profileInfo!.addressLocations
-                  .map((_, a) => MapEntry(a.name, a.address ?? '')),
-              circleId: state.circleId!,
-              title: Text(context.loc.addresses.capitalize(),
-                  textScaler: const TextScaler.linear(1.4),
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary)),
-              getDetailSharingSettings: (l) =>
-                  state.profileInfo!.sharingSettings.addresses[l],
-              circles: state.circles,
-              circleMemberships: state.circleMemberships,
-              editCallback: (label, doShare) async =>
-                  updateSharedInformationWithCircle(
-                      state: state,
-                      detailSharingSettings: {
-                        ...state.profileInfo!.sharingSettings.addresses
-                      },
-                      label: label,
-                      doShare: doShare,
-                      updateDetailSharingSettings: (sharingSettings) async =>
-                          context
-                              .read<CircleDetailsCubit>()
-                              .contactsRepository
-                              .setProfileInfo(state.profileInfo!.copyWith(
-                                  sharingSettings: state
-                                      .profileInfo!.sharingSettings
-                                      .copyWith(addresses: sharingSettings)))),
-            ),
-          if (state.profileInfo!.details.socialMedias.isNotEmpty)
-            ...detailsList(
-              context,
-              state.profileInfo!.details.socialMedias,
-              circleId: state.circleId!,
-              title: Text('Socials',
-                  textScaler: const TextScaler.linear(1.4),
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary)),
-              getDetailSharingSettings: (l) =>
-                  state.profileInfo!.sharingSettings.socialMedias[l],
-              circles: state.circles,
-              circleMemberships: state.circleMemberships,
-              editCallback: (label, doShare) async =>
-                  updateSharedInformationWithCircle(
-                      state: state,
-                      detailSharingSettings: {
-                        ...state.profileInfo!.sharingSettings.socialMedias
-                      },
-                      label: label,
-                      doShare: doShare,
-                      updateDetailSharingSettings: (sharingSettings) async =>
-                          context
-                              .read<CircleDetailsCubit>()
-                              .contactsRepository
-                              .setProfileInfo(state.profileInfo!.copyWith(
-                                  sharingSettings: state
-                                      .profileInfo!.sharingSettings
-                                      .copyWith(
-                                          socialMedias: sharingSettings)))),
-            ),
-          if (state.profileInfo!.details.websites.isNotEmpty)
-            ...detailsList(
-              context,
-              state.profileInfo!.details.websites,
-              circleId: state.circleId!,
-              title: Text(context.loc.websites.capitalize(),
-                  textScaler: const TextScaler.linear(1.4),
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary)),
-              getDetailSharingSettings: (l) =>
-                  state.profileInfo!.sharingSettings.websites[l],
-              circles: state.circles,
-              circleMemberships: state.circleMemberships,
-              editCallback: (label, doShare) async =>
-                  updateSharedInformationWithCircle(
-                      state: state,
-                      detailSharingSettings: {
-                        ...state.profileInfo!.sharingSettings.websites
-                      },
-                      label: label,
-                      doShare: doShare,
-                      updateDetailSharingSettings: (sharingSettings) async =>
-                          context
-                              .read<CircleDetailsCubit>()
-                              .contactsRepository
-                              .setProfileInfo(state.profileInfo!.copyWith(
-                                  sharingSettings: state
-                                      .profileInfo!.sharingSettings
-                                      .copyWith(websites: sharingSettings)))),
-            ),
-          if (state.profileInfo!.details.events.isNotEmpty)
-            ...detailsList(
-              context,
-              state.profileInfo!.details.events.map((label, date) => MapEntry(
-                  label,
-                  DateFormat.yMd(Localizations.localeOf(context).languageCode)
-                      .format(date))),
-              circleId: state.circleId!,
-              title: Text('Dates',
-                  textScaler: const TextScaler.linear(1.4),
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary)),
-              getDetailSharingSettings: (l) =>
-                  state.profileInfo!.sharingSettings.events[l],
-              circles: state.circles,
-              circleMemberships: state.circleMemberships,
-              editCallback: (label, doShare) async =>
-                  updateSharedInformationWithCircle(
-                      state: state,
-                      detailSharingSettings: {
-                        ...state.profileInfo!.sharingSettings.events
-                      },
-                      label: label,
-                      doShare: doShare,
-                      updateDetailSharingSettings: (sharingSettings) async =>
-                          context
-                              .read<CircleDetailsCubit>()
-                              .contactsRepository
-                              .setProfileInfo(state.profileInfo!.copyWith(
-                                  sharingSettings: state
-                                      .profileInfo!.sharingSettings
-                                      .copyWith(events: sharingSettings)))),
-            ),
-          if (state.profileInfo?.pictures != null)
-            ..._card(
-                Text('Picture',
-                    textScaler: const TextScaler.linear(1.4),
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary)),
-                [
-                  Padding(
-                      padding: const EdgeInsets.only(
-                          top: 8, left: 8, right: 8, bottom: 4),
-                      child: _pictureSelection(context, state))
-                ]),
-          if (state.profileInfo?.temporaryLocations.isNotEmpty ?? false)
-            ..._card(
-                Text('Locations',
-                    textScaler: const TextScaler.linear(1.4),
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary)),
-                // TODO: Is this the right kind of filtering?
-                filterTemporaryLocations(state.profileInfo!.temporaryLocations)
-                    .entries
-                    .map((l) => CheckboxListTile(
-                        value: l.value.circles.contains(state.circleId),
-                        title: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          // TODO: Jump to map centered on location or on edit view?
-                          // onTap: () async => Navigator.of(context).push(),
-                          child: Row(children: [
-                            Expanded(
-                                child: Text(
-                                    '${l.value.name}\n${l.value.details}',
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 2))
-                          ]),
-                        ),
-                        onChanged: (checked) async => context
-                            .read<CircleDetailsCubit>()
-                            .updateLocationSharing(l.key, checked ?? false)))
-                    .toList()),
-        ]);
+Widget _sharedInformationList(BuildContext context, CircleDetailsState state) =>
+    Column(children: [
+      if (state.profileInfo!.details.names.isNotEmpty)
+        ...detailsList(
+          context,
+          state.profileInfo!.details.names,
+          circleId: state.circleId!,
+          title: Text(context.loc.names.capitalize(),
+              textScaler: const TextScaler.linear(1.4),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary)),
+          hideLabel: true,
+          getDetailSharingSettings: (l) =>
+              state.profileInfo!.sharingSettings.names[l],
+          circles: state.circles,
+          circleMemberships: state.circleMemberships,
+          editCallback: (label, doShare) async =>
+              updateSharedInformationWithCircle(
+                  state: state,
+                  detailSharingSettings: {
+                    ...state.profileInfo!.sharingSettings.names
+                  },
+                  label: label,
+                  doShare: doShare,
+                  updateDetailSharingSettings: (sharingSettings) async =>
+                      context
+                          .read<CircleDetailsCubit>()
+                          .contactsRepository
+                          .setProfileInfo(state.profileInfo!.copyWith(
+                              sharingSettings: state
+                                  .profileInfo!.sharingSettings
+                                  .copyWith(names: sharingSettings)))),
+        ),
+      if (state.profileInfo!.details.phones.isNotEmpty)
+        ...detailsList(
+          context,
+          state.profileInfo!.details.phones,
+          circleId: state.circleId!,
+          title: Text(context.loc.phones.capitalize(),
+              textScaler: const TextScaler.linear(1.4),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary)),
+          getDetailSharingSettings: (l) =>
+              state.profileInfo!.sharingSettings.phones[l],
+          circles: state.circles,
+          circleMemberships: state.circleMemberships,
+          editCallback: (label, doShare) async =>
+              updateSharedInformationWithCircle(
+                  state: state,
+                  detailSharingSettings: {
+                    ...state.profileInfo!.sharingSettings.phones
+                  },
+                  label: label,
+                  doShare: doShare,
+                  updateDetailSharingSettings: (sharingSettings) async =>
+                      context
+                          .read<CircleDetailsCubit>()
+                          .contactsRepository
+                          .setProfileInfo(state.profileInfo!.copyWith(
+                              sharingSettings: state
+                                  .profileInfo!.sharingSettings
+                                  .copyWith(phones: sharingSettings)))),
+        ),
+      if (state.profileInfo!.details.emails.isNotEmpty)
+        ...detailsList(
+          context,
+          state.profileInfo!.details.emails,
+          circleId: state.circleId!,
+          title: Text(context.loc.emails.capitalize(),
+              textScaler: const TextScaler.linear(1.4),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary)),
+          getDetailSharingSettings: (l) =>
+              state.profileInfo!.sharingSettings.emails[l],
+          circles: state.circles,
+          circleMemberships: state.circleMemberships,
+          editCallback: (label, doShare) async =>
+              updateSharedInformationWithCircle(
+                  state: state,
+                  detailSharingSettings: {
+                    ...state.profileInfo!.sharingSettings.emails
+                  },
+                  label: label,
+                  doShare: doShare,
+                  updateDetailSharingSettings: (sharingSettings) async =>
+                      context
+                          .read<CircleDetailsCubit>()
+                          .contactsRepository
+                          .setProfileInfo(state.profileInfo!.copyWith(
+                              sharingSettings: state
+                                  .profileInfo!.sharingSettings
+                                  .copyWith(emails: sharingSettings)))),
+        ),
+      if (state.profileInfo!.addressLocations.isNotEmpty)
+        ...detailsList(
+          context,
+          state.profileInfo!.addressLocations.map(
+              (label, a) => MapEntry(label, commasToNewlines(a.address ?? ''))),
+          circleId: state.circleId!,
+          title: Text(context.loc.addresses.capitalize(),
+              textScaler: const TextScaler.linear(1.4),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary)),
+          getDetailSharingSettings: (l) =>
+              state.profileInfo!.sharingSettings.addresses[l],
+          circles: state.circles,
+          circleMemberships: state.circleMemberships,
+          editCallback: (label, doShare) async =>
+              updateSharedInformationWithCircle(
+                  state: state,
+                  detailSharingSettings: {
+                    ...state.profileInfo!.sharingSettings.addresses
+                  },
+                  label: label,
+                  doShare: doShare,
+                  updateDetailSharingSettings: (sharingSettings) async =>
+                      context
+                          .read<CircleDetailsCubit>()
+                          .contactsRepository
+                          .setProfileInfo(state.profileInfo!.copyWith(
+                              sharingSettings: state
+                                  .profileInfo!.sharingSettings
+                                  .copyWith(addresses: sharingSettings)))),
+        ),
+      if (state.profileInfo!.details.socialMedias.isNotEmpty)
+        ...detailsList(
+          context,
+          state.profileInfo!.details.socialMedias,
+          circleId: state.circleId!,
+          title: Text('Socials',
+              textScaler: const TextScaler.linear(1.4),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary)),
+          getDetailSharingSettings: (l) =>
+              state.profileInfo!.sharingSettings.socialMedias[l],
+          circles: state.circles,
+          circleMemberships: state.circleMemberships,
+          editCallback: (label, doShare) async =>
+              updateSharedInformationWithCircle(
+                  state: state,
+                  detailSharingSettings: {
+                    ...state.profileInfo!.sharingSettings.socialMedias
+                  },
+                  label: label,
+                  doShare: doShare,
+                  updateDetailSharingSettings: (sharingSettings) async =>
+                      context
+                          .read<CircleDetailsCubit>()
+                          .contactsRepository
+                          .setProfileInfo(state.profileInfo!.copyWith(
+                              sharingSettings: state
+                                  .profileInfo!.sharingSettings
+                                  .copyWith(socialMedias: sharingSettings)))),
+        ),
+      if (state.profileInfo!.details.websites.isNotEmpty)
+        ...detailsList(
+          context,
+          state.profileInfo!.details.websites,
+          circleId: state.circleId!,
+          title: Text(context.loc.websites.capitalize(),
+              textScaler: const TextScaler.linear(1.4),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary)),
+          getDetailSharingSettings: (l) =>
+              state.profileInfo!.sharingSettings.websites[l],
+          circles: state.circles,
+          circleMemberships: state.circleMemberships,
+          editCallback: (label, doShare) async =>
+              updateSharedInformationWithCircle(
+                  state: state,
+                  detailSharingSettings: {
+                    ...state.profileInfo!.sharingSettings.websites
+                  },
+                  label: label,
+                  doShare: doShare,
+                  updateDetailSharingSettings: (sharingSettings) async =>
+                      context
+                          .read<CircleDetailsCubit>()
+                          .contactsRepository
+                          .setProfileInfo(state.profileInfo!.copyWith(
+                              sharingSettings: state
+                                  .profileInfo!.sharingSettings
+                                  .copyWith(websites: sharingSettings)))),
+        ),
+      if (state.profileInfo!.details.events.isNotEmpty)
+        ...detailsList(
+          context,
+          state.profileInfo!.details.events.map((label, date) => MapEntry(
+              label,
+              DateFormat.yMd(Localizations.localeOf(context).languageCode)
+                  .format(date))),
+          circleId: state.circleId!,
+          title: Text('Dates',
+              textScaler: const TextScaler.linear(1.4),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary)),
+          getDetailSharingSettings: (l) =>
+              state.profileInfo!.sharingSettings.events[l],
+          circles: state.circles,
+          circleMemberships: state.circleMemberships,
+          editCallback: (label, doShare) async =>
+              updateSharedInformationWithCircle(
+                  state: state,
+                  detailSharingSettings: {
+                    ...state.profileInfo!.sharingSettings.events
+                  },
+                  label: label,
+                  doShare: doShare,
+                  updateDetailSharingSettings: (sharingSettings) async =>
+                      context
+                          .read<CircleDetailsCubit>()
+                          .contactsRepository
+                          .setProfileInfo(state.profileInfo!.copyWith(
+                              sharingSettings: state
+                                  .profileInfo!.sharingSettings
+                                  .copyWith(events: sharingSettings)))),
+        ),
+      if (state.profileInfo?.pictures != null)
+        ..._card(
+            Text('Picture',
+                textScaler: const TextScaler.linear(1.4),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary)),
+            [
+              Padding(
+                  padding: const EdgeInsets.only(
+                      top: 8, left: 8, right: 8, bottom: 4),
+                  child: _pictureSelection(context, state))
+            ]),
+      if (state.profileInfo?.temporaryLocations.isNotEmpty ?? false)
+        ..._card(
+            Text('Locations',
+                textScaler: const TextScaler.linear(1.4),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary)),
+            // TODO: Is this the right kind of filtering?
+            filterTemporaryLocations(state.profileInfo!.temporaryLocations)
+                .entries
+                .map((l) => CheckboxListTile(
+                    value: l.value.circles.contains(state.circleId),
+                    title: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      // TODO: Jump to map centered on location or on edit view?
+                      // onTap: () async => Navigator.of(context).push(),
+                      child: Row(children: [
+                        Expanded(
+                            child: Text('${l.value.name}\n${l.value.details}',
+                                overflow: TextOverflow.ellipsis, maxLines: 2))
+                      ]),
+                    ),
+                    onChanged: (checked) async => context
+                        .read<CircleDetailsCubit>()
+                        .updateLocationSharing(l.key, checked ?? false)))
+                .toList()),
+    ]);
 
 class CircleDetailsPage extends StatefulWidget {
   const CircleDetailsPage({required this.circleId, super.key});

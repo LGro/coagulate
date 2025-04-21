@@ -135,12 +135,12 @@ void main() {
 
   test('filter addresses', () {
     const locations = {
-      0: ContactAddressLocation(
-          coagContactId: '1', longitude: 10, latitude: 12, name: 'loc0'),
-      2: ContactAddressLocation(
-          coagContactId: '1', longitude: 10, latitude: 12, name: 'loc2'),
-      3: ContactAddressLocation(
-          coagContactId: '1', longitude: 10, latitude: 12, name: 'loc3'),
+      'loc0': ContactAddressLocation(
+          coagContactId: '1', longitude: 10, latitude: 12),
+      'loc2': ContactAddressLocation(
+          coagContactId: '1', longitude: 10, latitude: 12),
+      'loc3': ContactAddressLocation(
+          coagContactId: '1', longitude: 10, latitude: 12),
     };
     const settings = ProfileSharingSettings(addresses: {
       'loc0': ['circle1'],
@@ -150,8 +150,8 @@ void main() {
     final filteredLocations =
         filterAddressLocations(locations, settings, activeCircles);
     expect(filteredLocations.length, 1);
-    expect(filteredLocations.keys.first, 0);
-    expect(filteredLocations.values.first.name, 'loc0');
+    expect(filteredLocations.keys.first, 'loc0');
+    expect(filteredLocations.values.first.longitude, 10);
   });
 
   test('filter names', () {

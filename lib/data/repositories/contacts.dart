@@ -89,12 +89,12 @@ ContactDetails filterDetails(
 
 /// Remove address locations that are not shared with the circles specified for
 /// the corresponding address label
-Map<int, ContactAddressLocation> filterAddressLocations(
-        Map<int, ContactAddressLocation> locations,
+Map<String, ContactAddressLocation> filterAddressLocations(
+        Map<String, ContactAddressLocation> locations,
         ProfileSharingSettings settings,
         Iterable<String> activeCircles) =>
     Map.fromEntries(locations.entries.where((l) =>
-        settings.addresses[l.value.name]
+        settings.addresses[l.key]
             ?.toSet()
             .intersectsWith(activeCircles.toSet()) ??
         false));

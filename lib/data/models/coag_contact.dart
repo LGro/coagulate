@@ -136,7 +136,7 @@ class ContactDetails extends Equatable {
           migrateContactDetailsJsonFromFlutterContactsTypeToSimpleMaps(json));
 
   Contact toSystemContact(
-          String displayName, Map<int, ContactAddressLocation> addresses) =>
+          String displayName, Map<String, ContactAddressLocation> addresses) =>
       Contact(
         displayName: displayName,
         photo: (picture == null) ? null : Uint8List.fromList(picture!),
@@ -150,7 +150,7 @@ class ContactDetails extends Equatable {
             .toList(),
         addresses: addresses.entries
             .map((e) => Address(e.value.address ?? '',
-                label: AddressLabel.custom, customLabel: e.value.name))
+                label: AddressLabel.custom, customLabel: e.key))
             .toList(),
         websites: websites.entries
             .map((e) => Website(e.value,
@@ -243,15 +243,17 @@ class ProfileInfo extends Equatable {
   });
 
   factory ProfileInfo.fromJson(Map<String, dynamic> json) =>
-      _$ProfileInfoFromJson(json);
+      _$ProfileInfoFromJson(
+          migrateContactAddressLocationFromIntToLabelIndexing(json));
 
   final String id;
   final ContactDetails details;
   final Map<String, List<int>> pictures;
-  // This is a map from index to value instead of a list because only the ith
-  // address could have a location
-  // TODO: Switch this to label as index with backwards compatible migration
-  final Map<int, ContactAddressLocation> addressLocations;
+
+  /// Map from label to address location
+  final Map<String, ContactAddressLocation> addressLocations;
+
+  /// Map from label to temporary location
   final Map<String, ContactTemporaryLocation> temporaryLocations;
   final ProfileSharingSettings sharingSettings;
 
@@ -262,7 +264,7 @@ class ProfileInfo extends Equatable {
   ProfileInfo copyWith({
     ContactDetails? details,
     Map<String, List<int>>? pictures,
-    Map<int, ContactAddressLocation>? addressLocations,
+    Map<String, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
     ProfileSharingSettings? sharingSettings,
     TypedKeyPair? mainKeyPair,
@@ -332,7 +334,7 @@ class CoagContact extends Equatable {
 
   // This is a map from index to value instead of a list because only the ith
   // address could have a location
-  final Map<int, ContactAddressLocation> addressLocations;
+  final Map<String, ContactAddressLocation> addressLocations;
   final Map<String, ContactTemporaryLocation> temporaryLocations;
 
   /// Cryptographic keys and DHT record info for sharing with this contact
@@ -362,7 +364,8 @@ class CoagContact extends Equatable {
         json['system_contact']['photo'] != null) {
       json['system_contact']['photo'] = null;
     }
-    return _$CoagContactFromJson(json);
+    return _$CoagContactFromJson(
+        migrateContactAddressLocationFromIntToLabelIndexing(json));
   }
 
   Map<String, dynamic> toJson() {
@@ -388,7 +391,7 @@ class CoagContact extends Equatable {
     ContactDetails? details,
     String? theirPersonalUniqueId,
     List<String>? knownPersonalContactIds,
-    Map<int, ContactAddressLocation>? addressLocations,
+    Map<String, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
     DhtSettings? dhtSettings,
     CoagContactDHTSchema? sharedProfile,
@@ -518,7 +521,8 @@ class CoagContactDHTSchemaV2 extends Equatable {
   }
   factory CoagContactDHTSchemaV2.fromJson(Map<String, dynamic> json) {
     try {
-      return _$CoagContactDHTSchemaV2FromJson(json);
+      return _$CoagContactDHTSchemaV2FromJson(
+          migrateContactAddressLocationFromIntToLabelIndexing(json));
     } on FormatException {
       return schemaV1toV2(_$CoagContactDHTSchemaV1FromJson(json));
     }
@@ -526,7 +530,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
 
   final int schemaVersion = 2;
   final ContactDetails details;
-  final Map<int, ContactAddressLocation> addressLocations;
+  final Map<String, ContactAddressLocation> addressLocations;
   final Map<String, ContactTemporaryLocation> temporaryLocations;
   final String? personalUniqueId;
   final String? shareBackDHTKey;
@@ -548,7 +552,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
     String? shareBackDHTWriter,
     String? shareBackPubKey,
     String? personalUniqueId,
-    Map<int, ContactAddressLocation>? addressLocations,
+    Map<String, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
     List<String>? knownPersonalContactIds,
     List<ContactIntroduction>? introductions,
@@ -594,7 +598,8 @@ CoagContactDHTSchemaV2 schemaV1toV2(CoagContactDHTSchemaV1 old) =>
         shareBackDHTWriter: old.shareBackDHTWriter,
         // NOTE: This will cause downstream errors when trying to decrypt
         shareBackPubKey: old.shareBackPsk,
-        addressLocations: old.addressLocations,
+        addressLocations: old.addressLocations
+            .map((label, address) => MapEntry(label.toString(), address)),
         temporaryLocations: old.temporaryLocations);
 
 typedef CoagContactDHTSchema = CoagContactDHTSchemaV2;
@@ -895,4 +900,17 @@ Map<String, dynamic>
     }
   }
   return migrated;
+}
+
+/// Help with the switch from Map<int, ContactAddressLocation> to
+/// Map<String, ContactAddressLocation>
+Map<String, dynamic> migrateContactAddressLocationFromIntToLabelIndexing(
+    Map<String, dynamic> json) {
+  final _json = {...json};
+  if (_json.containsKey('address_locations')) {
+    final addressLocations = _json['address_locations'] as Map<String, dynamic>;
+    _json['address_locations'] = Map<String, dynamic>.from(addressLocations
+        .map((key, address) => MapEntry(address['name'] ?? key, address)));
+  }
+  return _json;
 }

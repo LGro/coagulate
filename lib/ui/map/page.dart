@@ -19,7 +19,6 @@ import '../contact_details/page.dart';
 import '../locations/check_in/widget.dart';
 import '../locations/cubit.dart';
 import '../locations/schedule/widget.dart';
-import '../widgets/location_search/widget.dart';
 import 'cubit.dart';
 
 // TODO: check out 'package:flutter_map_example/pages/bundled_offline_map.dart'
@@ -89,6 +88,7 @@ String dateFormat(DateTime d, String languageCode) => [
 Future<void> showModalAddressLocationDetails(
   BuildContext context, {
   required String contactName,
+  required String label,
   required ContactAddressLocation location,
 }) async =>
     showModalBottomSheet<void>(
@@ -112,7 +112,7 @@ Future<void> showModalAddressLocationDetails(
                     child: Text(
                         [
                           contactName,
-                          'Label: ${location.name}',
+                          'Label: $label',
                           if (location.address != null)
                             'Address: ${location.address}'
                         ].join('\n\n'),
@@ -488,40 +488,49 @@ class MapPage extends StatelessWidget {
                           )
                           .expand((l) => l),
                       // Profile address locations
-                      ...(state.profileInfo?.addressLocations.values ?? []).map(
-                        (l) => _buildMarker(
-                          context,
-                          longitude: l.longitude,
-                          latitude: l.latitude,
-                          label: 'Me',
-                          subLabel: l.name,
-                          type: MarkerType.address,
-                          picture:
-                              state.profileInfo?.pictures.values.firstOrNull,
-                          onTap: () async => showModalAddressLocationDetails(
-                              context,
-                              contactName: 'Me',
-                              location: l),
-                        ),
-                      ),
+                      ...(state.profileInfo?.addressLocations ?? {})
+                          .map(
+                            (label, location) => MapEntry(
+                                label,
+                                _buildMarker(
+                                  context,
+                                  longitude: location.longitude,
+                                  latitude: location.latitude,
+                                  label: 'Me',
+                                  subLabel: label,
+                                  type: MarkerType.address,
+                                  picture: state
+                                      .profileInfo?.pictures.values.firstOrNull,
+                                  onTap: () async =>
+                                      showModalAddressLocationDetails(context,
+                                          contactName: 'Me',
+                                          label: label,
+                                          location: location),
+                                )),
+                          )
+                          .values,
                       // Contacts address locations
                       ...state.contacts
-                          .map(
-                            (c) => c.addressLocations.values.map(
-                              (l) => _buildMarker(
-                                context,
-                                longitude: l.longitude,
-                                latitude: l.latitude,
-                                label: c.name,
-                                subLabel: l.name,
-                                type: MarkerType.address,
-                                picture: c.details?.picture,
-                                onTap: () async =>
-                                    showModalAddressLocationDetails(context,
-                                        contactName: c.name, location: l),
-                              ),
-                            ),
-                          )
+                          .map((c) => c.addressLocations
+                              .map((label, location) => MapEntry(
+                                    label,
+                                    _buildMarker(
+                                      context,
+                                      longitude: location.longitude,
+                                      latitude: location.latitude,
+                                      label: c.name,
+                                      subLabel: label,
+                                      type: MarkerType.address,
+                                      picture: c.details?.picture,
+                                      onTap: () async =>
+                                          showModalAddressLocationDetails(
+                                              context,
+                                              label: label,
+                                              contactName: c.name,
+                                              location: location),
+                                    ),
+                                  ))
+                              .values)
                           .expand((l) => l),
                     ];
 

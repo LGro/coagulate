@@ -519,7 +519,6 @@ class _EditOrAddAddressWidgetState extends State<EditOrAddAddressWidget> {
                         _value = ContactAddressLocation(
                             longitude: l.longitude,
                             latitude: l.latitude,
-                            name: _label ?? '',
                             address: l.placeName);
                       });
                     })),
@@ -1062,7 +1061,7 @@ Future<void> onEditDetail({
 class ProfileViewState extends State<ProfileView> {
   Widget buildProfileScrollView(
           {required ContactDetails contact,
-          required List<ContactAddressLocation> addressLocations,
+          required Map<String, ContactAddressLocation> addressLocations,
           required Map<String, Uint8List> pictures,
           required Map<String, String> circles,
           required Map<String, List<String>> circleMemberships,
@@ -1223,8 +1222,8 @@ class ProfileViewState extends State<ProfileView> {
         // ADDRESSES
         ...detailsList(
             context,
-            Map.fromEntries(addressLocations.map(
-                (a) => MapEntry(a.name, commasToNewlines(a.address ?? '')))),
+            addressLocations.map((label, address) =>
+                MapEntry(label, commasToNewlines(address.address ?? ''))),
             title: Text(context.loc.addresses.capitalize(),
                 textScaler: const TextScaler.linear(1.4),
                 style: TextStyle(
@@ -1234,13 +1233,9 @@ class ProfileViewState extends State<ProfileView> {
                 profileSharingSettings.addresses[l],
             circles: circles,
             circleMemberships: circleMemberships,
-            deleteCallback: (label) async =>
-                context.read<ProfileCubit>().updateAddressLocations(
-                      addressLocations
-                          .where((a) => a.name != label)
-                          .toList()
-                          .asMap(),
-                    ),
+            deleteCallback: (label) async => context
+                .read<ProfileCubit>()
+                .updateAddressLocations({...addressLocations}..remove(label)),
             editCallback: (label) async => showModalBottomSheet<void>(
                 context: context,
                 isScrollControlled: true,
@@ -1268,19 +1263,15 @@ class ProfileViewState extends State<ProfileView> {
                                 .toList(),
                             headlineSuffix: context.loc.address,
                             labelHelperText: 'e.g. home or cabin',
-                            existingLabels:
-                                addressLocations.map((a) => a.name).toList()
-                                  ..remove(label),
+                            existingLabels: addressLocations.keys.toList()
+                              ..remove(label),
                             label: label,
-                            value: addressLocations
-                                .firstWhereOrNull((a) => a.name == label),
+                            value: addressLocations[label],
                             onDelete: () async {
                               await context
                                   .read<ProfileCubit>()
-                                  .updateAddressLocations(addressLocations
-                                      .where((a) => a.name != label)
-                                      .toList()
-                                      .asMap());
+                                  .updateAddressLocations(
+                                      {...addressLocations}..remove(label));
                               if (buildContext.mounted) {
                                 Navigator.of(buildContext).pop();
                               }
@@ -1290,10 +1281,7 @@ class ProfileViewState extends State<ProfileView> {
                               await context
                                   .read<ProfileCubit>()
                                   .updateAddressLocation(
-                                      addressLocations
-                                          .indexWhere((a) => a.name == label),
-                                      value,
-                                      circlesWithSelection);
+                                      label, value, circlesWithSelection);
                               if (buildContext.mounted) {
                                 Navigator.of(buildContext).pop();
                               }
@@ -1326,17 +1314,13 @@ class ProfileViewState extends State<ProfileView> {
                           valueHintText: 'Street, City, Country',
                           labelHelperText: 'e.g. home or cabin',
                           label: (addressLocations.isEmpty) ? 'home' : null,
-                          existingLabels:
-                              addressLocations.map((a) => a.name).toList(),
+                          existingLabels: addressLocations.keys.toList(),
                           onAddOrSave:
                               (label, value, circlesWithSelection) async {
                             await context
                                 .read<ProfileCubit>()
                                 .updateAddressLocation(
-                                    addressLocations
-                                        .indexWhere((a) => a.name == label),
-                                    value,
-                                    circlesWithSelection);
+                                    label, value, circlesWithSelection);
                             if (buildContext.mounted) {
                               Navigator.of(buildContext).pop();
                             }
@@ -1604,8 +1588,7 @@ class ProfileViewState extends State<ProfileView> {
               contact: state.profileInfo!.details,
               pictures: state.profileInfo!.pictures
                   .map((k, v) => MapEntry(k, Uint8List.fromList(v))),
-              addressLocations:
-                  state.profileInfo!.addressLocations.values.asList(),
+              addressLocations: state.profileInfo!.addressLocations,
               circles: state.circles,
               circleMemberships: state.circleMemberships,
               profileSharingSettings: state.profileInfo!.sharingSettings,

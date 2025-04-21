@@ -69,7 +69,7 @@ class ProfileCubit extends Cubit<ProfileState> {
               .setProfileInfo(state.profileInfo!.copyWith(details: details));
 
   Future<void> updateAddressLocations(
-          Map<int, ContactAddressLocation> addressLocations) async =>
+          Map<String, ContactAddressLocation> addressLocations) async =>
       (state.profileInfo == null)
           ? null
           : contactsRepository.setProfileInfo(
@@ -283,7 +283,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> updateAddressLocation(
-      int index,
+      String label,
       ContactAddressLocation contactAddress,
       List<(String, String, bool)> circlesWithSelection) async {
     if (state.profileInfo == null) {
@@ -294,11 +294,11 @@ class ProfileCubit extends Cubit<ProfileState> {
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
     final _sharingSettings = {...state.profileInfo!.sharingSettings.addresses};
-    _sharingSettings[contactAddress.name] =
+    _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
     final _updatedAddressLocations = {...state.profileInfo!.addressLocations};
-    _updatedAddressLocations[index] = contactAddress;
+    _updatedAddressLocations[label] = contactAddress;
 
     final updatedProfile = state.profileInfo!.copyWith(
       sharingSettings: state.profileInfo!.sharingSettings.copyWith(
