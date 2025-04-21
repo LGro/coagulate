@@ -9,7 +9,6 @@ import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:coagulate/ui/receive_request/cubit.dart';
 import 'package:coagulate/ui/utils.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
 import 'package:veilid_support/veilid_support.dart';
 
@@ -19,15 +18,6 @@ const appUserName = 'App User Name';
 
 FixedEncodedString43 _dummyPsk(int i) =>
     FixedEncodedString43.fromBytes(Uint8List.fromList(List.filled(32, i)));
-
-class DummyGeocoder extends PlatformGeocoder {
-  @override
-  Future<bool> isPresent() async => true;
-
-  @override
-  Future<List<Location>> locationFromAddress(String address) async =>
-      [Location(longitude: 0, latitude: 0, timestamp: DateTime(1900))];
-}
 
 ContactsRepository _contactsRepositoryFromContacts(
         List<CoagContact> contacts) =>
@@ -56,7 +46,6 @@ ContactsRepository _contactsRepositoryFromContacts(
       initialize: false,
       generateTypedKeyPair: () async => dummyTypedKeyPair(),
       generateSharedSecret: () async => dummyPsk(42),
-      geocoder: DummyGeocoder(),
     );
 
 void main() {

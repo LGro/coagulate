@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
@@ -18,9 +17,10 @@ import 'package:veilid/veilid.dart';
 import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/models/profile_sharing_settings.dart';
+import '../../data/providers/geocoding/maptiler.dart';
 import '../../data/repositories/contacts.dart';
+import '../locations/schedule/widget.dart';
 import '../utils.dart';
-import '../widgets/address_coordinates_form.dart';
 import 'cubit.dart';
 
 class Name extends Equatable {
@@ -392,6 +392,200 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
       ));
 }
 
+// TODO: Tackle redundancies with other details add or edit widget
+class EditOrAddAddressWidget extends StatefulWidget {
+  const EditOrAddAddressWidget({
+    super.key,
+    required this.isEditing,
+    required this.headlineSuffix,
+    required this.onAddOrSave,
+    required this.circles,
+    this.value,
+    this.label,
+    this.onDelete,
+    this.valueHintText,
+    this.labelHelperText,
+    this.existingLabels = const [],
+  });
+
+  final bool isEditing;
+  final String headlineSuffix;
+  final String? labelHelperText;
+  final String? valueHintText;
+  final String? label;
+  final ContactAddressLocation? value;
+  final VoidCallback? onDelete;
+  final void Function(String label, ContactAddressLocation value,
+      List<(String, String, bool)> selectedCircles) onAddOrSave;
+  final List<(String, String, bool, int)> circles;
+  final List<String> existingLabels;
+  @override
+  State<EditOrAddAddressWidget> createState() => _EditOrAddAddressWidgetState();
+}
+
+class _EditOrAddAddressWidgetState extends State<EditOrAddAddressWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _labelFieldKey = GlobalKey<FormFieldState>();
+  late List<(String, String, bool, int)> _circles;
+  late final TextEditingController _newCircleNameController;
+
+  ContactAddressLocation? _value;
+  String? _label;
+
+  @override
+  void initState() {
+    super.initState();
+    _circles = [...widget.circles];
+    _newCircleNameController = TextEditingController();
+    _value = widget.value;
+    _label = widget.label;
+  }
+
+  @override
+  void dispose() {
+    _newCircleNameController.dispose();
+    super.dispose();
+  }
+
+  void _updateCircleMembership(int index, bool isSelected) {
+    setState(() {
+      _circles[index] = (
+        _circles[index].$1,
+        _circles[index].$2,
+        isSelected,
+        _circles[index].$4
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(
+                (widget.isEditing)
+                    ? context.loc.profileEditHeadline(widget.headlineSuffix)
+                    : context.loc.profileAddHeadline(widget.headlineSuffix),
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              if (widget.onDelete != null)
+                IconButton(
+                    onPressed: widget.onDelete,
+                    icon: const Icon(Icons.delete_forever, color: Colors.red)),
+            ]),
+            const SizedBox(height: 8),
+            const SizedBox(height: 8),
+            FractionallySizedBox(
+                widthFactor: 0.5,
+                child: TextFormField(
+                  key: _labelFieldKey,
+                  initialValue: _label,
+                  decoration: InputDecoration(
+                    labelText: 'label',
+                    isDense: true,
+                    helperText: widget.labelHelperText,
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'Please specify a label.';
+                    }
+                    if (widget.existingLabels
+                        .map((l) => l.toLowerCase())
+                        .contains(value?.toLowerCase())) {
+                      return 'This label already exists.';
+                    }
+                    return null;
+                  },
+                  onChanged: (label) {
+                    if (_labelFieldKey.currentState?.validate() ?? false) {
+                      setState(() {
+                        _label = label;
+                      });
+                    }
+                  },
+                )),
+            const SizedBox(height: 8),
+            // TODO: Validate empty field with hint?
+            SizedBox(
+                height: 350,
+                child: MapWidget(
+                    initialLocation: (_value == null)
+                        ? null
+                        : SearchResult(
+                            longitude: _value!.longitude,
+                            latitude: _value!.latitude,
+                            placeName: _value!.address ?? '',
+                            id: ''),
+                    onSelected: (l) {
+                      setState(() {
+                        _value = ContactAddressLocation(
+                            longitude: l.longitude,
+                            latitude: l.latitude,
+                            name: _label ?? '',
+                            address: l.placeName);
+                      });
+                    })),
+            const SizedBox(height: 16),
+            Text(
+              context.loc.profileAndShareWithHeadline,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            // If we don't need wrapping but go for a list, use CheckboxListTile
+            Wrap(
+              spacing: 8,
+              runSpacing: -4,
+              children: List.generate(
+                  _circles.length,
+                  (index) => GestureDetector(
+                      onTap: () =>
+                          _updateCircleMembership(index, !_circles[index].$3),
+                      behavior: HitTestBehavior.opaque,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Checkbox(
+                              value: _circles[index].$3,
+                              onChanged: (value) => (value == null)
+                                  ? null
+                                  : _updateCircleMembership(index, value)),
+                          Text('${_circles[index].$2} (${_circles[index].$4})'),
+                          const SizedBox(width: 4),
+                        ],
+                      ))),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                FilledButton(
+                  onPressed: Navigator.of(context).pop,
+                  child: Text(context.loc.cancel.capitalize()),
+                ),
+                FilledButton(
+                  onPressed: () =>
+                      (_formKey.currentState!.validate() && _value != null)
+                          ? widget.onAddOrSave((_label ?? '').trim(), _value!,
+                              _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
+                          : null,
+                  child: Text((widget.isEditing)
+                      ? context.loc.save.capitalize()
+                      : context.loc.add.capitalize()),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ));
+}
+
 List<Widget> _card({Text? title, List<Widget> children = const []}) => [
       if (title != null)
         Row(children: <Widget>[
@@ -556,119 +750,7 @@ List<Widget> detailsList<T>(
             ]);
 
 String _commaToNewline(String s) =>
-    s.replaceAll(', ', ',').replaceAll(',', '\n');
-
-/// Potentially custom label for fields like email, phone, website
-Text _label(String name, String customLabel) =>
-    Text((name != 'custom') ? name : customLabel,
-        style: const TextStyle(fontSize: 16));
-
-bool labelDoesMatch(String name, Address address) {
-  if (address.label == AddressLabel.custom) {
-    return name == address.customLabel;
-  }
-  return name == address.label.name;
-}
-
-List<Widget> addressesWithForms(BuildContext context, List<Address> addresses,
-        List<ContactAddressLocation> locations,
-        {void Function(int index, String label)? editCirclesCallback,
-        void Function(String value)? editCallback,
-        VoidCallback? addCallback}) =>
-    _card(
-        title: Text(context.loc.addresses.capitalize(),
-            textScaler: const TextScaler.linear(1.4),
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary)),
-        children: addresses
-            .asMap()
-            .map((i, e) => MapEntry(
-                i,
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const SizedBox(height: 8),
-                  Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Expanded(
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                          _label(e.label.name, e.customLabel),
-                          Text(_commaToNewline(e.address),
-                              style: const TextStyle(fontSize: 19)),
-                        ])),
-                    if (editCirclesCallback != null)
-                      IconButton(
-                          key: Key('addressesCirclesMgmt${i}'),
-                          onPressed: () => editCirclesCallback(
-                              i, _label(e.label.name, e.customLabel).data!),
-                          icon: const Icon(Icons.edit)),
-                  ]),
-                  if (locations
-                      .where((l) => labelDoesMatch(l.name, e))
-                      .isEmpty) ...[
-                    const SizedBox(height: 8),
-                    AddressCoordinatesForm(
-                        i: i,
-                        longitude: locations
-                            .where((l) => labelDoesMatch(l.name, e))
-                            .firstOrNull
-                            ?.longitude,
-                        latitude: locations
-                            .where((l) => labelDoesMatch(l.name, e))
-                            .firstOrNull
-                            ?.latitude,
-                        callback: (lng, lat) => context
-                            .read<ProfileCubit>()
-                            .updateCoordinates(i, lng, lat)),
-                    // TODO: Add small map previewing the location when coordinates are available
-                    TextButton(
-                        child: const Text('Auto Fetch Coordinates'),
-                        // TODO: Switch to address index instead of label? Can there be duplicates?
-                        onPressed: () async => showDialog<void>(
-                            context: context,
-                            // barrierDismissible: false,
-                            builder: (dialogContext) =>
-                                _confirmPrivacyLeakDialog(
-                                    dialogContext,
-                                    e.address,
-                                    () => unawaited(context
-                                        .read<ProfileCubit>()
-                                        .fetchCoordinates(i))))),
-                  ]
-                ])))
-            .values
-            .asList());
-
-AlertDialog _confirmPrivacyLeakDialog(
-        BuildContext context, String address, void Function() addressLookup) =>
-    AlertDialog(
-        title: const Text('Potential Privacy Leak'),
-        content: SingleChildScrollView(
-            child: ListBody(children: <Widget>[
-          Text('Looking up the coordinates of "$address" automatically '
-              'only works by sending that address to '
-              '${(Platform.isIOS) ? 'Apple' : 'Google'}. '
-              'Are you ok with leaking to them that you relate to this '
-              'address somehow?'),
-        ])),
-        actions: <Widget>[
-          // TODO: Store choice and don't ask again
-          // Row(mainAxisSize: MainAxisSize.min, children: [
-          //   Checkbox(value: false, onChanged: (v) => {}),
-          //   const Text('remember')
-          // ]),
-          TextButton(
-              child: const Text('Approve'),
-              onPressed: () async {
-                addressLookup();
-                Navigator.of(context).pop();
-              }),
-          TextButton(
-              child: const Text('Cancel'),
-              onPressed: () async {
-                Navigator.of(context).pop();
-              })
-        ]);
+    s.split(',').map((p) => p.trim()).join('\n');
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -1005,70 +1087,132 @@ class ProfileViewState extends State<ProfileView> {
         ),
         // ADDRESSES
         //addressLocations
-        ...detailsList<Address>(
-          context,
-          contact.addresses,
-          title: Text(context.loc.addresses.capitalize(),
-              textScaler: const TextScaler.linear(1.4),
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary)),
-          getLabel: (v) =>
-              (v.label.name != 'custom') ? v.label.name : v.customLabel,
-          getValue: (v) => _commaToNewline(v.address),
-          getDetailSharingSettings: (l) => profileSharingSettings.addresses[l],
-          circles: circles,
-          circleMemberships: circleMemberships,
-          deleteCallback: (i) async =>
-              context.read<ProfileCubit>().updateDetails(contact.copyWith(
-                    addresses: [...contact.addresses]..removeAt(i),
-                  )),
-          editCallback: (i) async => onEditDetail(
-            context: context,
-            headlineSuffix: context.loc.address,
-            labelHelperText: 'e.g. home or cabin',
-            label: (contact.addresses[i].label.name != 'custom')
-                ? contact.addresses[i].label.name
-                : contact.addresses[i].customLabel,
-            existingLabels: contact.addresses
-                .map((v) =>
-                    (v.label.name != 'custom') ? v.label.name : v.customLabel)
-                .toList(),
-            value: contact.addresses[i].address,
+        ...detailsList<Address>(context, contact.addresses,
+            title: Text(context.loc.addresses.capitalize(),
+                textScaler: const TextScaler.linear(1.4),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary)),
+            getLabel: (v) =>
+                (v.label.name != 'custom') ? v.label.name : v.customLabel,
+            getValue: (v) => _commaToNewline(v.address),
+            getDetailSharingSettings: (l) =>
+                profileSharingSettings.addresses[l],
             circles: circles,
             circleMemberships: circleMemberships,
-            detailSharingSettings: profileSharingSettings.addresses,
-            onSave: (label, value, circlesWithSelection) async => context
-                .read<ProfileCubit>()
-                .updateAddress(
-                    Address(value,
-                        label: AddressLabel.custom, customLabel: label),
-                    circlesWithSelection,
-                    i: i),
-            onDelete: () async =>
+            deleteCallback: (i) async =>
                 context.read<ProfileCubit>().updateDetails(contact.copyWith(
                       addresses: [...contact.addresses]..removeAt(i),
                     )),
-          ),
-          addCallback: () async => onAddDetail(
-              context: context,
-              headlineSuffix: context.loc.address,
-              defaultLabel: (contact.addresses.isEmpty) ? 'home' : null,
-              valueHintText: 'Street, City, Country',
-              labelHelperText: 'e.g. home or cabin',
-              existingLabels: contact.addresses
-                  .map((v) =>
-                      (v.label.name != 'custom') ? v.label.name : v.customLabel)
-                  .toList(),
-              circles: circles,
-              circleMemberships: circleMemberships,
-              onAdd: (label, value, circles) async => context
-                  .read<ProfileCubit>()
-                  .updateAddress(
-                      Address(value,
-                          label: AddressLabel.custom, customLabel: label),
-                      circles)),
-        ),
+            editCallback: (i) async => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                builder: (buildContext) => DraggableScrollableSheet(
+                    expand: false,
+                    maxChildSize: 0.9,
+                    initialChildSize: 0.9,
+                    builder: (_, scrollController) {
+                      final label =
+                          (contact.addresses[i].label.name != 'custom')
+                              ? contact.addresses[i].label.name
+                              : contact.addresses[i].customLabel;
+                      return SingleChildScrollView(
+                          controller: scrollController,
+                          child: EditOrAddAddressWidget(
+                              isEditing: true,
+                              circles: circles
+                                  .map((cId, cLabel) => MapEntry(cId, (
+                                        cId,
+                                        cLabel,
+                                        profileSharingSettings.addresses[label]
+                                                ?.contains(cId) ??
+                                            false,
+                                        circleMemberships.values
+                                            .where((circles) =>
+                                                circles.contains(cId))
+                                            .length
+                                      )))
+                                  .values
+                                  .toList(),
+                              headlineSuffix: context.loc.address,
+                              labelHelperText: 'e.g. home or cabin',
+                              existingLabels: contact.addresses
+                                  .map((v) => (v.label.name != 'custom')
+                                      ? v.label.name
+                                      : v.customLabel)
+                                  .toList()
+                                ..remove((contact.addresses[i].label.name !=
+                                        'custom')
+                                    ? contact.addresses[i].label.name
+                                    : contact.addresses[i].customLabel),
+                              label: label,
+                              value: addressLocations[i],
+                              onDelete: () async {
+                                await context
+                                    .read<ProfileCubit>()
+                                    .updateDetails(contact.copyWith(
+                                        addresses: [...contact.addresses]
+                                          ..removeAt(i)));
+
+                                if (buildContext.mounted) {
+                                  Navigator.of(buildContext).pop();
+                                }
+                                ;
+                              },
+                              onAddOrSave:
+                                  (label, value, circlesWithSelection) async {
+                                await context
+                                    .read<ProfileCubit>()
+                                    .updateAddress(value, circlesWithSelection,
+                                        i: i);
+                                if (buildContext.mounted) {
+                                  Navigator.of(buildContext).pop();
+                                }
+                              }));
+                    })),
+            addCallback: () async => showModalBottomSheet<void>(
+                context: context,
+                isDismissible: true,
+                isScrollControlled: true,
+                builder: (buildContext) => DraggableScrollableSheet(
+                    expand: false,
+                    maxChildSize: 0.9,
+                    initialChildSize: 0.9,
+                    builder: (_, scrollController) => SingleChildScrollView(
+                        controller: scrollController,
+                        child: EditOrAddAddressWidget(
+                          isEditing: false,
+                          circles: circles
+                              .map((cId, cLabel) => MapEntry(cId, (
+                                    cId,
+                                    cLabel,
+                                    false,
+                                    circleMemberships.values
+                                        .where(
+                                            (circles) => circles.contains(cId))
+                                        .length
+                                  )))
+                              .values
+                              .toList(),
+                          headlineSuffix: context.loc.address,
+                          valueHintText: 'Street, City, Country',
+                          labelHelperText: 'e.g. home or cabin',
+                          label: (contact.addresses.isEmpty) ? 'home' : null,
+                          existingLabels: contact.addresses
+                              .map((v) => (v.label.name != 'custom')
+                                  ? v.label.name
+                                  : v.customLabel)
+                              .toList(),
+                          onAddOrSave:
+                              (label, value, circlesWithSelection) async {
+                            await context
+                                .read<ProfileCubit>()
+                                .updateAddress(value, circlesWithSelection);
+                            if (buildContext.mounted) {
+                              Navigator.of(buildContext).pop();
+                            }
+                          },
+                        ))))),
         // SOCIAL MEDIAS
         ...detailsList<SocialMedia>(
           context,

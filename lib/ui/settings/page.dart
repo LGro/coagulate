@@ -32,21 +32,6 @@ class SettingsPage extends StatelessWidget {
                         trailing: Padding(
                             padding: EdgeInsets.only(right: 4),
                             child: VeilidStatusWidget(statusWidgets: {}))),
-                    ListTile(
-                      // TODO: Allow to switch between platform, nominatim, custom geocoding api
-                      title: const Text('Automatic address resolution'),
-                      subtitle: const Text(
-                          'Coagulate needs to figure out longitude and '
-                          'latitude coordinates for the addresses you share to '
-                          'display them on a map. For this geocoding process '
-                          'Android and iOS builtin features can be used, but '
-                          'that means that Google or Apple will get to see the '
-                          'addresses you entered in your profile info.'),
-                      trailing: Switch(
-                          value: state.autoAddressResolution,
-                          // TODO: Abstract this away via the ContactsRepository
-                          onChanged: null),
-                    ),
                     // ListTile(
                     //     title: const Text('Dark mode'),
                     //     trailing: Switch(

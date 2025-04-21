@@ -7,7 +7,6 @@ import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -53,65 +52,6 @@ class ProfileCubit extends Cubit<ProfileState> {
   late final StreamSubscription<ProfileInfo> _profileInfoSubscription;
   late final StreamSubscription<bool> _permissionsSubscription;
   late final StreamSubscription<void> _circlesSubscription;
-
-  Future<void> fetchCoordinates(int iAddress) async {
-    if (state.profileInfo == null) {
-      return;
-    }
-    final address =
-        state.profileInfo!.details.addresses.elementAtOrNull(iAddress)?.address;
-
-    if (address == null) {
-      return;
-    }
-
-    // TODO: Also add some status indicator per address to show when unfetched, fetching, failed, fetched
-    try {
-      List<Location> locations = await locationFromAddress(address);
-      if (locations.isEmpty) {
-        return;
-      }
-      // TODO: Expose options to pick from, instead of just using the first.
-      final chosenLocation = locations[0];
-      updateCoordinates(
-          iAddress, chosenLocation.longitude, chosenLocation.latitude);
-    } on NoResultFoundException catch (e) {
-      // TODO: Proper error handling with corresponding error state
-      print('${e} ${address}');
-    }
-  }
-
-  void updateCoordinates(int iAddress, num lng, num lat) {
-    if (state.profileInfo == null) {
-      return;
-    }
-
-    final address =
-        state.profileInfo!.details.addresses.elementAtOrNull(iAddress);
-
-    if (address == null) {
-      return;
-    }
-
-    final updatedLocations = Map<int, ContactAddressLocation>.from(
-        state.profileInfo!.addressLocations);
-    updatedLocations[iAddress] = ContactAddressLocation(
-        longitude: lng.toDouble(),
-        latitude: lat.toDouble(),
-        name: (address.label == AddressLabel.custom)
-            ? address.customLabel
-            : address.label.name);
-
-    final updatedInfo =
-        state.profileInfo!.copyWith(addressLocations: updatedLocations);
-
-    unawaited(contactsRepository.setProfileInfo(updatedInfo));
-
-    // Already emit what should also come in a bit later via the updated contacts repo
-    if (!isClosed) {
-      emit(state.copyWith(profileInfo: updatedInfo));
-    }
-  }
 
   /// For circle ID and label pairs, add the new ones to the contacts repository
   Future<void> createCirclesIfNotExist(List<(String, String)> circles) async {
@@ -337,12 +277,15 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updateAddress(
-      Address detail, List<(String, String, bool)> circlesWithSelection,
+  Future<void> updateAddress(ContactAddressLocation contactAddress,
+      List<(String, String, bool)> circlesWithSelection,
       {int? i}) async {
     if (state.profileInfo == null) {
       return;
     }
+
+    final detail = Address(contactAddress.address ?? '',
+        label: AddressLabel.custom, customLabel: contactAddress.name);
 
     final details = [...state.profileInfo!.details.addresses];
     if (i == null) {
@@ -361,6 +304,9 @@ class ProfileCubit extends Cubit<ProfileState> {
             : detail.customLabel] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
+    final _updatedAddressLocations = {...state.profileInfo!.addressLocations};
+    _updatedAddressLocations[i] = contactAddress;
+
     final updatedProfile = state.profileInfo!.copyWith(
       details: state.profileInfo!.details.copyWith(
         addresses: details,
@@ -368,6 +314,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       sharingSettings: state.profileInfo!.sharingSettings.copyWith(
         addresses: _sharingSettings,
       ),
+      addressLocations: _updatedAddressLocations,
     );
     if (!isClosed) {
       emit(state.copyWith(profileInfo: updatedProfile));

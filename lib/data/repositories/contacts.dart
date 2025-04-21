@@ -30,16 +30,6 @@ import '../providers/system_contacts/base.dart';
 
 const String defaultInitialCircleId = 'coag::initial';
 
-/// Wrapper around geocoding library so that we can stub/mock it during tests
-class PlatformGeocoder {
-  const PlatformGeocoder();
-
-  Future<List<geocoding.Location>> locationFromAddress(String address) =>
-      geocoding.locationFromAddress(address);
-
-  Future<bool> isPresent() => geocoding.isPresent();
-}
-
 String contactDetailKey<T>(T detail) {
   if (detail is Organization) {
     return detail.company;
@@ -208,13 +198,16 @@ Future<FixedEncodedString43> generateRandomSharedSecretBest() async =>
     Veilid.instance.bestCryptoSystem().then((cs) => cs.randomSharedSecret());
 
 class ContactsRepository {
-  ContactsRepository(this.persistentStorage, this.distributedStorage,
-      this.systemContactsStorage, this.initialName,
-      {bool initialize = true,
-      this.notificationCallback,
-      this.generateTypedKeyPair = generateTypedKeyPairBest,
-      this.generateSharedSecret = generateRandomSharedSecretBest,
-      this.geocoder = const PlatformGeocoder()}) {
+  ContactsRepository(
+    this.persistentStorage,
+    this.distributedStorage,
+    this.systemContactsStorage,
+    this.initialName, {
+    bool initialize = true,
+    this.notificationCallback,
+    this.generateTypedKeyPair = generateTypedKeyPairBest,
+    this.generateSharedSecret = generateRandomSharedSecretBest,
+  }) {
     if (initialize) {
       unawaited(this.initialize());
     }
@@ -276,8 +269,6 @@ class ContactsRepository {
   final Future<TypedKeyPair> Function() generateTypedKeyPair;
 
   final Future<FixedEncodedString43> Function() generateSharedSecret;
-
-  final PlatformGeocoder geocoder;
 
   Future<void> initialize(
       {bool scheduleRegularUpdates = true,
@@ -960,53 +951,11 @@ class ContactsRepository {
 
   Future<void> setProfileInfo(ProfileInfo profileInfo,
       {bool triggerDhtUpdate = true}) async {
-    // Automatically resolve addresses to coordinates where missing
-    // TODO: Only do this when enabled in the settings
-    final addressLocations = (!await geocoder.isPresent())
-        ? null
-        : Map.fromEntries(await Future.wait(
-                profileInfo.details.addresses.asMap().entries.map((a) async {
-            final existingAddressLocation = profileInfo.addressLocations[a.key];
-
-            if (a.value.address == existingAddressLocation?.address &&
-                existingAddressLocation?.longitude != null &&
-                existingAddressLocation?.latitude != null) {
-              return MapEntry(a.key, existingAddressLocation!);
-            }
-
-            try {
-              final locations =
-                  await geocoder.locationFromAddress(a.value.address);
-              if (locations.isEmpty) {
-                return null;
-              }
-              return MapEntry(
-                  a.key,
-                  ContactAddressLocation(
-                      address: a.value.address,
-                      longitude: locations.first.longitude,
-                      latitude: locations.first.latitude,
-                      name: (a.value.label == AddressLabel.custom)
-                          ? a.value.customLabel
-                          : a.value.label.name));
-            } on geocoding.NoResultFoundException catch (e) {
-              // TODO: Store flag somewhere that enables manual location picking?
-              debugPrintStack();
-            } on PlatformException catch (e) {
-              // Likely a rate limit for geocoding reached
-              debugPrintStack();
-            }
-          }))
-            .then((a) => a.whereType<MapEntry<int, ContactAddressLocation>>()));
-
-    // Update
-    _profileInfo = profileInfo.copyWith(addressLocations: addressLocations);
-
     // Persist
-    await persistentStorage.updateProfileInfo(_profileInfo!);
+    await persistentStorage.updateProfileInfo(profileInfo);
 
     // Notify
-    _profileInfoStreamController.add(_profileInfo!.copyWith());
+    _profileInfoStreamController.add(profileInfo.copyWith());
 
     // Update shared profile data for all contacts individually
     // NOTE: Having this before and not as part of updateSharingDHT can cause
