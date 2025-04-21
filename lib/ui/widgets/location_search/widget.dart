@@ -29,7 +29,7 @@ class _LocationSearchWidgetState extends State<LocationSearchWidget> {
           final options = await searchLocation(
               query: _searchingWithQuery!,
               apiKey: maptilerToken(),
-              userAgentHeader: maptilerUserAgent());
+              userAgentHeader: 'social.coagulate.app');
 
           // If another search happened after this one, throw away these options.
           // Use the previous options instead and wait for the newer request to

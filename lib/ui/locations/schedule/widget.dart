@@ -1,13 +1,18 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_cache/flutter_map_cache.dart';
 import 'package:formz/formz.dart';
+import 'package:http_cache_hive_store/http_cache_hive_store.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/providers/geocoding/maptiler.dart';
@@ -29,11 +34,20 @@ class MapWidget extends StatefulWidget {
 class MapWidgetState extends State<MapWidget> {
   final _mapController = MapController();
   SearchResult? _selectedLocation;
+  String? _cachePath;
 
   @override
   void initState() {
     _selectedLocation = widget.initialLocation;
     super.initState();
+    unawaited(_initializeCachePath());
+  }
+
+  Future<void> _initializeCachePath() async {
+    final cachePath = await getTemporaryDirectory().then((td) => td.path);
+    setState(() {
+      _cachePath = cachePath;
+    });
   }
 
   @override
@@ -59,12 +73,16 @@ class MapWidgetState extends State<MapWidget> {
         ),
         children: <Widget>[
           // Map tiles
-          TileLayer(
-            userAgentPackageName: 'social.coagulate.app',
-            urlTemplate: mapUrl(context),
-            tileProvider: NetworkTileProvider(
-                headers: {'User-Agent': maptilerUserAgent()}),
-          ),
+          if (_cachePath != null)
+            TileLayer(
+              userAgentPackageName: 'social.coagulate.app',
+              urlTemplate: mapUrl(context),
+              tileProvider: CachedTileProvider(
+                maxStale: const Duration(days: 30),
+                store:
+                    HiveCacheStore(_cachePath, hiveBoxName: 'HiveCacheStore'),
+              ),
+            ),
           // Copyright notice
           RichAttributionWidget(
               showFlutterMapAttribution: false,

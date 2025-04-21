@@ -15,13 +15,14 @@ enum MarkerType { address, temporary, checkedIn }
 
 @JsonSerializable()
 final class MapState extends Equatable {
-  const MapState(
-      {required this.status,
-      this.contacts = const [],
-      this.circleMemberships = const {},
-      this.circles = const {},
-      this.profileInfo,
-      this.mapboxApiToken = ''});
+  const MapState({
+    required this.status,
+    this.contacts = const [],
+    this.circleMemberships = const {},
+    this.circles = const {},
+    this.profileInfo,
+    this.cachePath,
+  });
 
   factory MapState.fromJson(Map<String, dynamic> json) =>
       _$MapStateFromJson(json);
@@ -31,8 +32,7 @@ final class MapState extends Equatable {
   final Map<String, String> circles;
   final ProfileInfo? profileInfo;
   final MapStatus status;
-  // TODO: Use this or remove it again.
-  final String mapboxApiToken;
+  final String? cachePath;
 
   Map<String, dynamic> toJson() => _$MapStateToJson(this);
 
@@ -44,6 +44,6 @@ final class MapState extends Equatable {
         profileInfo,
         contacts,
         status,
-        mapboxApiToken,
+        cachePath,
       ];
 }

@@ -1,7 +1,7 @@
 name: coagulate
 description: Staying in contact, with privacy friendly contact synchronization and location sharing powered by Veilid.
 publish_to: 'none'
-version: "0.1.6+1"
+version: "0.1.6+2"
 
 environment:
   sdk: '>=3.0.5 <4.0.0'
@@ -62,6 +62,8 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   phone_numbers_parser: ^9.0.3
   badges: ^3.1.2
+  flutter_map_cache: ^2.0.0+1
+  http_cache_hive_store: ^5.0.1
 
 dev_dependencies:
   bloc_test: ^9.1.7

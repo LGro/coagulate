@@ -8,9 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_cache/flutter_map_cache.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
+import 'package:http_cache_hive_store/http_cache_hive_store.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/models/contact_location.dart';
@@ -76,9 +79,6 @@ class _SliderExampleState extends State<SliderExample> {
 
 String maptilerToken() =>
     const String.fromEnvironment('COAGULATE_MAPTILER_TOKEN');
-
-String maptilerUserAgent() =>
-    const String.fromEnvironment('COAGULATE_MAPTILER_USER_AGENT');
 
 String dateFormat(DateTime d, String languageCode) => [
       DateFormat.yMMMd(languageCode).format(d),
@@ -411,33 +411,45 @@ class MapPage extends StatelessWidget {
               ])));
 
   @override
-  Widget build(BuildContext context) => FlutterMap(
-        options: const MapOptions(
-            // TODO: Pick reasonable center without requiring all markers first;
-            // e.g. based on profile contact locations or current GPS
-            initialCenter: LatLng(50.5, 30.51),
-            initialZoom: 3,
-            maxZoom: 15,
-            minZoom: 1,
-            interactionOptions: InteractionOptions(
-                flags: InteractiveFlag.pinchZoom |
-                    InteractiveFlag.drag |
-                    InteractiveFlag.doubleTapZoom |
-                    InteractiveFlag.doubleTapDragZoom |
-                    InteractiveFlag.pinchMove)),
-        children: <Widget>[
-          TileLayer(
-            userAgentPackageName: 'social.coagulate.app',
-            urlTemplate: mapUrl(context),
-            tileProvider: NetworkTileProvider(
-                headers: {'User-Agent': maptilerUserAgent()}),
-          ),
-          BlocProvider(
-              create: (context) => MapCubit(context.read<ContactsRepository>()),
-              child: BlocConsumer<MapCubit, MapState>(
-                  listener: (context, state) async {},
-                  builder: (context, state) {
-                    final markers = <Marker>[
+  Widget build(BuildContext context) => BlocProvider(
+      create: (context) => MapCubit(context.read<ContactsRepository>()),
+      child: BlocConsumer<MapCubit, MapState>(
+          listener: (context, state) async {},
+          builder: (context, state) => FlutterMap(
+                options: const MapOptions(
+                    // TODO: Pick reasonable center without requiring all markers first;
+                    // e.g. based on profile contact locations or current GPS
+                    initialCenter: LatLng(50.5, 30.51),
+                    initialZoom: 3,
+                    maxZoom: 15,
+                    minZoom: 1,
+                    interactionOptions: InteractionOptions(
+                        flags: InteractiveFlag.pinchZoom |
+                            InteractiveFlag.drag |
+                            InteractiveFlag.doubleTapZoom |
+                            InteractiveFlag.doubleTapDragZoom |
+                            InteractiveFlag.pinchMove)),
+                children: <Widget>[
+                  if (state.cachePath != null)
+                    TileLayer(
+                      userAgentPackageName: 'social.coagulate.app',
+                      urlTemplate: mapUrl(context),
+                      tileProvider: CachedTileProvider(
+                        maxStale: const Duration(days: 30),
+                        store: HiveCacheStore(
+                          state.cachePath,
+                          hiveBoxName: 'HiveCacheStore',
+                        ),
+                      ),
+                    ),
+                  MarkerClusterLayerWidget(
+                      options: MarkerClusterLayerOptions(
+                    maxClusterRadius: 110,
+                    size: const Size(40, 40),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(50),
+                    maxZoom: 15,
+                    markers: <Marker>[
                       // Profile temporary locations
                       ...(state.profileInfo?.temporaryLocations.entries ?? [])
                           .map(
@@ -532,48 +544,38 @@ class MapPage extends StatelessWidget {
                                   ))
                               .values)
                           .expand((l) => l),
-                    ];
-
-                    return MarkerClusterLayerWidget(
-                        options: MarkerClusterLayerOptions(
-                      maxClusterRadius: 110,
-                      size: const Size(40, 40),
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.all(50),
-                      maxZoom: 15,
-                      markers: markers,
-                      builder: (context, markers) => DecoratedBox(
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Theme.of(context).colorScheme.primary),
-                          child: Center(
-                              child: Text(markers.length.toString(),
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimary)))),
-                    ));
-                  })),
-          // TODO: Consider replacing it with a start and end date selection
-          // const Align(
-          //     alignment: Alignment.bottomLeft,
-          //     child: FittedBox(child: SliderExample())),
-          RichAttributionWidget(
-              showFlutterMapAttribution: false,
-              attributions: [
-                TextSourceAttribution(
-                  'MapTiler',
-                  onTap: () async =>
-                      launchUrl(Uri.parse('https://maptiler.com/')),
-                ),
-                TextSourceAttribution(
-                  'OpenStreetMap contributors',
-                  onTap: () async =>
-                      launchUrl(Uri.parse('https://openstreetmap.org/')),
-                )
-              ]),
-          // Check-in and schedule buttons
-          checkInAndScheduleButtons(),
-        ],
-      );
+                    ],
+                    builder: (context, markers) => DecoratedBox(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Theme.of(context).colorScheme.primary),
+                        child: Center(
+                            child: Text(markers.length.toString(),
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimary)))),
+                  )),
+                  // TODO: Consider replacing it with a start and end date selection
+                  // const Align(
+                  //     alignment: Alignment.bottomLeft,
+                  //     child: FittedBox(child: SliderExample())),
+                  RichAttributionWidget(
+                      showFlutterMapAttribution: false,
+                      attributions: [
+                        TextSourceAttribution(
+                          'MapTiler',
+                          onTap: () async =>
+                              launchUrl(Uri.parse('https://maptiler.com/')),
+                        ),
+                        TextSourceAttribution(
+                          'OpenStreetMap contributors',
+                          onTap: () async => launchUrl(
+                              Uri.parse('https://openstreetmap.org/')),
+                        )
+                      ]),
+                  // Check-in and schedule buttons
+                  checkInAndScheduleButtons(),
+                ],
+              )));
 }

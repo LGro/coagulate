@@ -25,7 +25,7 @@ MapState _$MapStateFromJson(Map<String, dynamic> json) => MapState(
       profileInfo: json['profile_info'] == null
           ? null
           : ProfileInfo.fromJson(json['profile_info'] as Map<String, dynamic>),
-      mapboxApiToken: json['mapbox_api_token'] as String? ?? '',
+      cachePath: json['cache_path'] as String?,
     );
 
 Map<String, dynamic> _$MapStateToJson(MapState instance) => <String, dynamic>{
@@ -34,7 +34,7 @@ Map<String, dynamic> _$MapStateToJson(MapState instance) => <String, dynamic>{
       'circles': instance.circles,
       'profile_info': instance.profileInfo?.toJson(),
       'status': _$MapStatusEnumMap[instance.status]!,
-      'mapbox_api_token': instance.mapboxApiToken,
+      'cache_path': instance.cachePath,
     };
 
 const _$MapStatusEnumMap = {
