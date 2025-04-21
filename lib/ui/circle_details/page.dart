@@ -4,6 +4,7 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
@@ -360,6 +361,40 @@ Widget
                                   sharingSettings: state
                                       .profileInfo!.sharingSettings
                                       .copyWith(websites: sharingSettings)))),
+            ),
+          if (state.profileInfo!.details.events.isNotEmpty)
+            ...detailsList(
+              context,
+              state.profileInfo!.details.events.map((label, date) => MapEntry(
+                  label,
+                  DateFormat.yMd(Localizations.localeOf(context).languageCode)
+                      .format(date))),
+              circleId: state.circleId!,
+              title: Text('Dates',
+                  textScaler: const TextScaler.linear(1.4),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary)),
+              getDetailSharingSettings: (l) =>
+                  state.profileInfo!.sharingSettings.events[l],
+              circles: state.circles,
+              circleMemberships: state.circleMemberships,
+              editCallback: (label, doShare) async =>
+                  updateSharedInformationWithCircle(
+                      state: state,
+                      detailSharingSettings: {
+                        ...state.profileInfo!.sharingSettings.events
+                      },
+                      label: label,
+                      doShare: doShare,
+                      updateDetailSharingSettings: (sharingSettings) async =>
+                          context
+                              .read<CircleDetailsCubit>()
+                              .contactsRepository
+                              .setProfileInfo(state.profileInfo!.copyWith(
+                                  sharingSettings: state
+                                      .profileInfo!.sharingSettings
+                                      .copyWith(events: sharingSettings)))),
             ),
           if (state.profileInfo?.pictures != null)
             ..._card(

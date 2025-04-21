@@ -9,6 +9,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'package:veilid/veilid.dart';
@@ -576,6 +577,209 @@ class _EditOrAddAddressWidgetState extends State<EditOrAddAddressWidget> {
       ));
 }
 
+// TODO: Tackle redundancies with other details add or edit widget
+class EditOrAddEventWidget extends StatefulWidget {
+  const EditOrAddEventWidget({
+    super.key,
+    required this.isEditing,
+    required this.headlineSuffix,
+    required this.onAddOrSave,
+    required this.circles,
+    this.value,
+    this.label,
+    this.onDelete,
+    this.valueHintText,
+    this.labelHelperText,
+    this.existingLabels = const [],
+  });
+
+  final bool isEditing;
+  final String headlineSuffix;
+  final String? labelHelperText;
+  final String? valueHintText;
+  final String? label;
+  final String? value;
+  final VoidCallback? onDelete;
+  final void Function(String label, DateTime value,
+      List<(String, String, bool)> selectedCircles) onAddOrSave;
+  final List<(String, String, bool, int)> circles;
+  final List<String> existingLabels;
+  @override
+  State<EditOrAddEventWidget> createState() => _EditOrAddEventWidgetState();
+}
+
+class _EditOrAddEventWidgetState extends State<EditOrAddEventWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _labelFieldKey = GlobalKey<FormFieldState>();
+  final _valueFieldKey = GlobalKey<FormFieldState>();
+  late List<(String, String, bool, int)> _circles;
+  late final TextEditingController _newCircleNameController;
+
+  String? _value;
+  String? _label;
+
+  @override
+  void initState() {
+    super.initState();
+    _circles = [...widget.circles];
+    _newCircleNameController = TextEditingController();
+    _value = widget.value;
+    _label = widget.label;
+  }
+
+  @override
+  void dispose() {
+    _newCircleNameController.dispose();
+    super.dispose();
+  }
+
+  void _updateCircleMembership(int index, bool isSelected) {
+    setState(() {
+      _circles[index] = (
+        _circles[index].$1,
+        _circles[index].$2,
+        isSelected,
+        _circles[index].$4
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(
+                (widget.isEditing)
+                    ? context.loc.profileEditHeadline(widget.headlineSuffix)
+                    : context.loc.profileAddHeadline(widget.headlineSuffix),
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              if (widget.onDelete != null)
+                IconButton(
+                    onPressed: widget.onDelete,
+                    icon: const Icon(Icons.delete_forever, color: Colors.red)),
+            ]),
+            const SizedBox(height: 8),
+            const SizedBox(height: 8),
+            FractionallySizedBox(
+                widthFactor: 0.5,
+                child: TextFormField(
+                  key: _labelFieldKey,
+                  initialValue: _label,
+                  decoration: InputDecoration(
+                    labelText: 'label',
+                    isDense: true,
+                    helperText: widget.labelHelperText,
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'Please specify a label.';
+                    }
+                    if (widget.existingLabels
+                        .map((l) => l.toLowerCase())
+                        .contains(value?.toLowerCase())) {
+                      return 'This label already exists.';
+                    }
+                    return null;
+                  },
+                  onChanged: (label) {
+                    if (_labelFieldKey.currentState?.validate() ?? false) {
+                      setState(() {
+                        _label = label;
+                      });
+                    }
+                  },
+                )),
+            const SizedBox(height: 8),
+
+            TextFormField(
+              key: _valueFieldKey,
+              initialValue: _value,
+              autocorrect: false,
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: widget.valueHintText ?? widget.headlineSuffix,
+                border: const OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if ((_label?.isNotEmpty ?? false) && (value?.isEmpty ?? true)) {
+                  return 'Please enter a value.';
+                } else if (DateTime.tryParse(value!) == null) {
+                  return 'Please enter a date in the format YYYY-MM-DD';
+                }
+                return null;
+              },
+              onChanged: (value) {
+                if (_valueFieldKey.currentState?.validate() ?? false) {
+                  setState(() {
+                    _value = value;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            Text(
+              context.loc.profileAndShareWithHeadline,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            // If we don't need wrapping but go for a list, use CheckboxListTile
+            Wrap(
+              spacing: 8,
+              runSpacing: -4,
+              children: List.generate(
+                  _circles.length,
+                  (index) => GestureDetector(
+                      onTap: () =>
+                          _updateCircleMembership(index, !_circles[index].$3),
+                      behavior: HitTestBehavior.opaque,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Checkbox(
+                              value: _circles[index].$3,
+                              onChanged: (value) => (value == null)
+                                  ? null
+                                  : _updateCircleMembership(index, value)),
+                          Text('${_circles[index].$2} (${_circles[index].$4})'),
+                          const SizedBox(width: 4),
+                        ],
+                      ))),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                FilledButton(
+                  onPressed: Navigator.of(context).pop,
+                  child: Text(context.loc.cancel.capitalize()),
+                ),
+                FilledButton(
+                  onPressed: () =>
+                      (_formKey.currentState!.validate() && _value != null)
+                          ? widget.onAddOrSave(
+                              (_label ?? '').trim(),
+                              DateTime.parse(_value!),
+                              _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
+                          : null,
+                  child: Text((widget.isEditing)
+                      ? context.loc.save.capitalize()
+                      : context.loc.add.capitalize()),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ));
+}
+
 List<Widget> _card({Text? title, List<Widget> children = const []}) => [
       if (title != null)
         Row(children: <Widget>[
@@ -1017,7 +1221,6 @@ class ProfileViewState extends State<ProfileView> {
               onAdd: context.read<ProfileCubit>().updateEmail),
         ),
         // ADDRESSES
-        //addressLocations
         ...detailsList(
             context,
             Map.fromEntries(addressLocations.map(
@@ -1225,6 +1428,113 @@ class ProfileViewState extends State<ProfileView> {
               circleMemberships: circleMemberships,
               onAdd: context.read<ProfileCubit>().updateWebsite),
         ),
+        // EVENTS
+        ...detailsList(
+            context,
+            contact.events.map((label, date) => MapEntry(
+                label,
+                DateFormat.yMd(Localizations.localeOf(context).languageCode)
+                    .format(date))),
+            title: Text('Dates',
+                textScaler: const TextScaler.linear(1.4),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary)),
+            getDetailSharingSettings: (l) => profileSharingSettings.events[l],
+            circles: circles,
+            circleMemberships: circleMemberships,
+            deleteCallback: (label) async =>
+                context.read<ProfileCubit>().updateDetails(contact.copyWith(
+                      events: {...contact.events}..remove(label),
+                    )),
+            editCallback: (label) async => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                builder: (buildContext) => DraggableScrollableSheet(
+                    expand: false,
+                    maxChildSize: 0.9,
+                    initialChildSize: 0.9,
+                    builder: (_, scrollController) => SingleChildScrollView(
+                        controller: scrollController,
+                        child: EditOrAddEventWidget(
+                            isEditing: true,
+                            circles: circles
+                                .map((cId, cLabel) => MapEntry(cId, (
+                                      cId,
+                                      cLabel,
+                                      profileSharingSettings.events[label]
+                                              ?.contains(cId) ??
+                                          false,
+                                      circleMemberships.values
+                                          .where((circles) =>
+                                              circles.contains(cId))
+                                          .length
+                                    )))
+                                .values
+                                .toList(),
+                            headlineSuffix: 'date',
+                            existingLabels: [...contact.events.keys]
+                              ..remove(label),
+                            label: label,
+                            value: (contact.events.containsKey(label))
+                                ? DateFormat('yyyy-MM-dd')
+                                    .format(contact.events[label]!)
+                                : null,
+                            onDelete: () async {
+                              await context
+                                  .read<ProfileCubit>()
+                                  .updateDetails(contact.copyWith(
+                                    events: {...contact.events}..remove(label),
+                                  ));
+                              if (buildContext.mounted) {
+                                Navigator.of(buildContext).pop();
+                              }
+                            },
+                            onAddOrSave:
+                                (label, value, circlesWithSelection) async {
+                              await context.read<ProfileCubit>().updateEvent(
+                                  label, value, circlesWithSelection);
+                              if (buildContext.mounted) {
+                                Navigator.of(buildContext).pop();
+                              }
+                            })))),
+            addCallback: () async => showModalBottomSheet<void>(
+                context: context,
+                isDismissible: true,
+                isScrollControlled: true,
+                builder: (buildContext) => DraggableScrollableSheet(
+                    expand: false,
+                    maxChildSize: 0.9,
+                    initialChildSize: 0.9,
+                    builder: (_, scrollController) => SingleChildScrollView(
+                        controller: scrollController,
+                        child: EditOrAddEventWidget(
+                          isEditing: false,
+                          circles: circles
+                              .map((cId, cLabel) => MapEntry(cId, (
+                                    cId,
+                                    cLabel,
+                                    false,
+                                    circleMemberships.values
+                                        .where(
+                                            (circles) => circles.contains(cId))
+                                        .length
+                                  )))
+                              .values
+                              .toList(),
+                          headlineSuffix: 'date',
+                          valueHintText: 'YYYY-MM-DD',
+                          label: (contact.events.isEmpty) ? 'birthday' : null,
+                          existingLabels: contact.events.keys.toList(),
+                          onAddOrSave:
+                              (label, value, circlesWithSelection) async {
+                            await context.read<ProfileCubit>().updateEvent(
+                                label, value, circlesWithSelection);
+                            if (buildContext.mounted) {
+                              Navigator.of(buildContext).pop();
+                            }
+                          },
+                        ))))),
         // PICTURES / AVATARS
         CirclesWithAvatarWidget(
           pictures: pictures,

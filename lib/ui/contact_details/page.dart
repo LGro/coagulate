@@ -56,16 +56,13 @@ Widget _qrCodeButton(BuildContext context,
                             backgroundColor: Colors.white,
                             size: 200))))));
 
-// TODO: Replace with localized date format
-DateFormat dateFormat = DateFormat.yMd().add_Hm();
-
 int numberContactsShared(Iterable<Iterable<String>> circleMembersips,
         Iterable<String> circles) =>
     circleMembersips
         .where((c) => c.asSet().intersectsWith(circles.asSet()))
         .length;
 
-Widget locationTile(ContactTemporaryLocation location,
+Widget locationTile(BuildContext context, ContactTemporaryLocation location,
         {Map<String, List<String>>? circleMembersips,
         Future<void> Function()? onTap}) =>
     ListTile(
@@ -74,9 +71,11 @@ Widget locationTile(ContactTemporaryLocation location,
         onTap: onTap,
         subtitle:
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('From: ${dateFormat.format(location.start)}'),
+          Text(
+              'From: ${DateFormat.yMd(Localizations.localeOf(context).languageCode).format(location.start)}'),
           if (location.end != location.start)
-            Text('Till: ${dateFormat.format(location.end)}'),
+            Text(
+                'Till: ${DateFormat.yMd(Localizations.localeOf(context).languageCode).format(location.end)}'),
           // Text('Lon: ${location.longitude.toStringAsFixed(4)}, '
           //     'Lat: ${location.latitude.toStringAsFixed(4)}'),
           if (circleMembersips != null)
@@ -416,19 +415,24 @@ class _ContactPageState extends State<ContactPage> {
           const SizedBox(height: 8),
           const VeilidStatusWidget(statusWidgets: {}),
           const SizedBox(height: 8),
-          if (contact.dhtSettings.recordKeyMeSharing != null)
-            DhtStatusWidget(
-              recordKey: contact.dhtSettings.recordKeyMeSharing!,
-              statusWidgets: const {},
-            ),
-          if (contact.dhtSettings.recordKeyThemSharing != null)
-            DhtStatusWidget(
-              recordKey: contact.dhtSettings.recordKeyThemSharing!,
-              statusWidgets: const {},
-            ),
-          const SizedBox(height: 8),
-          Text('Updated: ${contact.mostRecentUpdate}'),
-          Text('Changed: ${contact.mostRecentChange}'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              if (contact.dhtSettings.recordKeyMeSharing != null)
+                DhtStatusWidget(
+                  recordKey: contact.dhtSettings.recordKeyMeSharing!,
+                  statusWidgets: const {},
+                ),
+              if (contact.dhtSettings.recordKeyThemSharing != null)
+                DhtStatusWidget(
+                  recordKey: contact.dhtSettings.recordKeyThemSharing!,
+                  statusWidgets: const {},
+                ),
+            ],
+          ),
+          // const SizedBox(height: 8),
+          // Text('Updated: ${contact.mostRecentUpdate}'),
+          // Text('Changed: ${contact.mostRecentChange}'),
           _paddedDivider(),
           Text(
               'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair.key.toString())}...'),
@@ -535,14 +539,17 @@ List<Widget> _contactDetailsAndLocations(
       if (contact.details?.events.isNotEmpty ?? false)
         ...detailsList(
           context,
-          contact.details!.events
-              .map((label, date) => MapEntry(label, DateFormat().format(date))),
+          contact.details!.events.map((label, date) => MapEntry(
+              label,
+              DateFormat.yMd(Localizations.localeOf(context).languageCode)
+                  .format(date))),
           hideEditButton: true,
         ),
 
       // Locations
       if (contact.temporaryLocations.isNotEmpty)
         _temporaryLocationsCard(
+            context,
             Text('Locations',
                 textScaler: const TextScaler.linear(1.4),
                 style: TextStyle(
@@ -573,6 +580,7 @@ Widget _sharingSettings(
       if (contact.sharedProfile?.temporaryLocations.isNotEmpty ?? false) ...[
         _paddedDivider(),
         _temporaryLocationsCard(
+            context,
             const Row(children: [
               Icon(Icons.share_location),
               SizedBox(width: 8),
@@ -587,8 +595,8 @@ Widget _sharingSettings(
       ],
     ]));
 
-Widget _temporaryLocationsCard(
-        Widget title, Map<String, ContactTemporaryLocation> locations) =>
+Widget _temporaryLocationsCard(BuildContext context, Widget title,
+        Map<String, ContactTemporaryLocation> locations) =>
     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(
           padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
@@ -602,7 +610,7 @@ Widget _temporaryLocationsCard(
                       .map((l) => Padding(
                           padding: const EdgeInsets.only(
                               left: 16, right: 16, bottom: 4),
-                          child: locationTile(l)))
+                          child: locationTile(context, l)))
                       .asList())))
     ]);
 
@@ -730,9 +738,10 @@ Iterable<Widget> _displaySharedProfile(
       if (details.events.isNotEmpty)
         ...detailsList(
           context,
-          details.events
-              .map((label, date) => MapEntry(label, DateFormat().format(date))),
-          hideLabel: true,
+          details.events.map((label, date) => MapEntry(
+              label,
+              DateFormat.yMd(Localizations.localeOf(context).languageCode)
+                  .format(date))),
         ),
       // TODO: Check if opted out
       const Padding(

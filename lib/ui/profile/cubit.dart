@@ -252,6 +252,36 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
+  Future<void> updateEvent(String label, DateTime value,
+      List<(String, String, bool)> circlesWithSelection) async {
+    if (state.profileInfo == null) {
+      return;
+    }
+
+    final details = {...state.profileInfo!.details.events};
+    details[label] = value;
+
+    await createCirclesIfNotExist(
+        circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
+
+    final _sharingSettings = {...state.profileInfo!.sharingSettings.events};
+    _sharingSettings[label] =
+        circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
+
+    final updatedProfile = state.profileInfo!.copyWith(
+      details: state.profileInfo!.details.copyWith(
+        events: details,
+      ),
+      sharingSettings: state.profileInfo!.sharingSettings.copyWith(
+        events: _sharingSettings,
+      ),
+    );
+    if (!isClosed) {
+      emit(state.copyWith(profileInfo: updatedProfile));
+    }
+    await contactsRepository.setProfileInfo(updatedProfile);
+  }
+
   Future<void> updateAddressLocation(
       int index,
       ContactAddressLocation contactAddress,
