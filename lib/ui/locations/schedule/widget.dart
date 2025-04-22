@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cache/flutter_map_cache.dart';
 import 'package:formz/formz.dart';
-import 'package:http_cache_hive_store/http_cache_hive_store.dart';
+import 'package:http_cache_file_store/http_cache_file_store.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
@@ -51,80 +51,80 @@ class MapWidgetState extends State<MapWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => FlutterMap(
-        mapController: _mapController,
-        options: MapOptions(
-          // TODO: Pick reasonable center without requiring all markers first;
-          // e.g. based on profile contact locations or current GPS
-          initialCenter: (_selectedLocation == null)
-              ? const LatLng(48.8575, 2.3514)
-              : LatLng(
-                  _selectedLocation!.latitude, _selectedLocation!.longitude),
-          initialZoom: 3,
-          maxZoom: 15,
-          minZoom: 1,
-          interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.pinchZoom |
-                  InteractiveFlag.drag |
-                  InteractiveFlag.doubleTapZoom |
-                  InteractiveFlag.doubleTapDragZoom |
-                  InteractiveFlag.pinchMove),
-          // onPositionChanged: (camera, hasGesture) => camera.center,
-        ),
-        children: <Widget>[
-          // Map tiles
-          if (_cachePath != null)
+  Widget build(BuildContext context) => (_cachePath == null)
+      ? const Center(child: CircularProgressIndicator())
+      : FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            // TODO: Pick reasonable center without requiring all markers first;
+            // e.g. based on profile contact locations or current GPS
+            initialCenter: (_selectedLocation == null)
+                ? const LatLng(48.8575, 2.3514)
+                : LatLng(
+                    _selectedLocation!.latitude, _selectedLocation!.longitude),
+            initialZoom: 3,
+            maxZoom: 15,
+            minZoom: 1,
+            interactionOptions: const InteractionOptions(
+                flags: InteractiveFlag.pinchZoom |
+                    InteractiveFlag.drag |
+                    InteractiveFlag.doubleTapZoom |
+                    InteractiveFlag.doubleTapDragZoom |
+                    InteractiveFlag.pinchMove),
+            // onPositionChanged: (camera, hasGesture) => camera.center,
+          ),
+          children: <Widget>[
             TileLayer(
               userAgentPackageName: 'social.coagulate.app',
               urlTemplate: mapUrl(context),
               tileProvider: CachedTileProvider(
                 maxStale: const Duration(days: 30),
-                store:
-                    HiveCacheStore(_cachePath, hiveBoxName: 'HiveCacheStore'),
+                store: FileCacheStore(_cachePath!),
               ),
             ),
-          // Copyright notice
-          RichAttributionWidget(
-              showFlutterMapAttribution: false,
-              attributions: [
-                TextSourceAttribution(
-                  'MapTiler',
-                  onTap: () async =>
-                      launchUrl(Uri.parse('https://maptiler.com/')),
-                ),
-                TextSourceAttribution(
-                  'OpenStreetMap contributors',
-                  onTap: () async =>
-                      launchUrl(Uri.parse('https://openstreetmap.org/')),
-                )
-              ]),
-          // Selected location
-          MarkerLayer(markers: [
-            if (_selectedLocation != null)
-              Marker(
-                  point: LatLng(_selectedLocation!.latitude,
-                      _selectedLocation!.longitude),
-                  child: const Icon(Icons.location_on))
-          ]),
-          // Search bar
-          Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                  padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-                  child: LocationSearchWidget(
-                      initialValue: _selectedLocation?.placeName,
-                      onSelected: (l) {
-                        setState(() {
-                          _selectedLocation = l;
-                        });
-                        _mapController.move(
-                            LatLng(l.latitude, l.longitude), 13);
-                        if (widget.onSelected != null) {
-                          widget.onSelected!(l);
-                        }
-                      }))),
-        ],
-      );
+            // Copyright notice
+            RichAttributionWidget(
+                showFlutterMapAttribution: false,
+                attributions: [
+                  TextSourceAttribution(
+                    'MapTiler',
+                    onTap: () async =>
+                        launchUrl(Uri.parse('https://maptiler.com/')),
+                  ),
+                  TextSourceAttribution(
+                    'OpenStreetMap contributors',
+                    onTap: () async =>
+                        launchUrl(Uri.parse('https://openstreetmap.org/')),
+                  )
+                ]),
+            // Selected location
+            MarkerLayer(markers: [
+              if (_selectedLocation != null)
+                Marker(
+                    point: LatLng(_selectedLocation!.latitude,
+                        _selectedLocation!.longitude),
+                    child: const Icon(Icons.location_on))
+            ]),
+            // Search bar
+            Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                    padding:
+                        const EdgeInsets.only(top: 16, left: 16, right: 16),
+                    child: LocationSearchWidget(
+                        initialValue: _selectedLocation?.placeName,
+                        onSelected: (l) {
+                          setState(() {
+                            _selectedLocation = l;
+                          });
+                          _mapController.move(
+                              LatLng(l.latitude, l.longitude), 13);
+                          if (widget.onSelected != null) {
+                            widget.onSelected!(l);
+                          }
+                        }))),
+          ],
+        );
 }
 
 class MyForm extends StatefulWidget {
