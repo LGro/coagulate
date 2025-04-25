@@ -447,53 +447,58 @@ class MapPage extends StatelessWidget {
                       maxZoom: 15,
                       markers: <Marker>[
                         // Profile temporary locations
-                        ...(state.profileInfo?.temporaryLocations.entries ?? [])
+                        ...filterTemporaryLocations(
+                                state.profileInfo?.temporaryLocations ?? {})
+                            .entries
                             .map(
-                          (l) => _buildMarker(
-                            context,
-                            longitude: l.value.longitude,
-                            latitude: l.value.latitude,
-                            label: 'Me',
-                            subLabel: l.value.name,
-                            type: (l.value.checkedIn)
-                                ? MarkerType.checkedIn
-                                : MarkerType.temporary,
-                            picture:
-                                state.profileInfo?.pictures.values.firstOrNull,
-                            onTap: () async =>
-                                showModalTemporaryLocationDetails(
-                              context,
-                              contactName: 'Me',
-                              location: l.value,
-                              locationId: l.key,
-                              showEditAndDelete: true,
-                              circles: state.circles,
-                              circleMemberships: state.circleMemberships,
+                              (l) => _buildMarker(
+                                context,
+                                longitude: l.value.longitude,
+                                latitude: l.value.latitude,
+                                label: 'Me',
+                                subLabel: l.value.name,
+                                type: (l.value.checkedIn)
+                                    ? MarkerType.checkedIn
+                                    : MarkerType.temporary,
+                                picture: state
+                                    .profileInfo?.pictures.values.firstOrNull,
+                                onTap: () async =>
+                                    showModalTemporaryLocationDetails(
+                                  context,
+                                  contactName: 'Me',
+                                  location: l.value,
+                                  locationId: l.key,
+                                  showEditAndDelete: true,
+                                  circles: state.circles,
+                                  circleMemberships: state.circleMemberships,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
                         // Contacts temporary locations
                         ...state.contacts
                             .map(
-                              (c) => c.temporaryLocations.entries.map(
-                                (l) => _buildMarker(
-                                  context,
-                                  longitude: l.value.longitude,
-                                  latitude: l.value.latitude,
-                                  label: c.name,
-                                  subLabel: l.value.name,
-                                  type: MarkerType.temporary,
-                                  picture: c.details?.picture,
-                                  onTap: () async =>
-                                      showModalTemporaryLocationDetails(
-                                    context,
-                                    contactName: c.name,
-                                    location: l.value.copyWith(
-                                        coagContactId: c.coagContactId),
-                                    locationId: l.key,
-                                  ),
-                                ),
-                              ),
+                              (c) =>
+                                  filterTemporaryLocations(c.temporaryLocations)
+                                      .entries
+                                      .map(
+                                        (l) => _buildMarker(
+                                          context,
+                                          longitude: l.value.longitude,
+                                          latitude: l.value.latitude,
+                                          label: c.name,
+                                          subLabel: l.value.name,
+                                          type: MarkerType.temporary,
+                                          picture: c.details?.picture,
+                                          onTap: () async =>
+                                              showModalTemporaryLocationDetails(
+                                            context,
+                                            contactName: c.name,
+                                            location: l.value.copyWith(
+                                                coagContactId: c.coagContactId),
+                                            locationId: l.key,
+                                          ),
+                                        ),
+                                      ),
                             )
                             .expand((l) => l),
                         // Profile address locations
