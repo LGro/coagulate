@@ -591,14 +591,25 @@ class _ExpandableScrollViewsState extends State<ExpandableScrollViews>
                   alignment: Alignment.topCenter,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 10),
-                    child: contactsListView(
-                        context,
-                        widget.state.circleId ?? '',
-                        widget.state.contacts.toList(),
-                        widget.state.circleMemberships,
-                        context
-                            .read<CircleDetailsCubit>()
-                            .updateCircleMembership),
+                    child: (widget.state.circleMemberships.isEmpty &&
+                            (widget.state.circleId?.startsWith('VLD') ?? false))
+                        ? Container(
+                            alignment: Alignment.topCenter,
+                            padding: const EdgeInsets.only(
+                                top: 6, left: 16, right: 16, bottom: 16),
+                            child: const Text(
+                                'This circle is linked to an invitation batch. '
+                                'When other folks use their invites, they will '
+                                'appear here as new contacts and see your '
+                                'shared information.'))
+                        : contactsListView(
+                            context,
+                            widget.state.circleId ?? '',
+                            widget.state.contacts.toList(),
+                            widget.state.circleMemberships,
+                            context
+                                .read<CircleDetailsCubit>()
+                                .updateCircleMembership),
                   )),
             ],
           )));
