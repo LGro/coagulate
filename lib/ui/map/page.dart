@@ -3,6 +3,7 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -73,6 +74,37 @@ class _SliderExampleState extends State<SliderExample> {
           });
         },
       );
+}
+
+LatLng? initialLocation(
+  Iterable<ContactAddressLocation> profileAddressLocations,
+  Iterable<ContactTemporaryLocation> profileTemporaryLocations,
+  Iterable<ContactAddressLocation> contactAddressLocations,
+  Iterable<ContactTemporaryLocation> contactTemporaryLocations,
+) {
+  if (profileAddressLocations.isNotEmpty) {
+    return LatLng(profileAddressLocations.map((l) => l.latitude).average,
+        profileAddressLocations.map((l) => l.longitude).average);
+  }
+
+  if (profileTemporaryLocations.isNotEmpty) {
+    return LatLng(profileTemporaryLocations.map((l) => l.latitude).average,
+        profileTemporaryLocations.map((l) => l.longitude).average);
+  }
+
+  if (contactAddressLocations.isNotEmpty ||
+      contactTemporaryLocations.isNotEmpty) {
+    return LatLng(
+      (contactAddressLocations.map((l) => l.latitude).toList()
+            ..addAll(contactTemporaryLocations.map((l) => l.latitude)))
+          .average,
+      (contactAddressLocations.map((l) => l.longitude).toList()
+            ..addAll(contactTemporaryLocations.map((l) => l.longitude)))
+          .average,
+    );
+  }
+
+  return null;
 }
 
 String maptilerToken() =>
@@ -413,17 +445,28 @@ class MapPage extends StatelessWidget {
       create: (context) => MapCubit(context.read<ContactsRepository>()),
       child: BlocConsumer<MapCubit, MapState>(
           listener: (context, state) async {},
-          builder: (context, state) => (state.cachePath == null)
+          builder: (context, state) => (state.cachePath == null ||
+                  state.profileInfo == null)
               ? const Center(child: CircularProgressIndicator())
               : FlutterMap(
-                  options: const MapOptions(
+                  options: MapOptions(
                       // TODO: Pick reasonable center without requiring all markers first;
                       // e.g. based on profile contact locations or current GPS
-                      initialCenter: LatLng(50.5, 30.51),
-                      initialZoom: 3,
+                      initialCenter: initialLocation(
+                              state.profileInfo?.addressLocations.values ?? [],
+                              state.profileInfo?.temporaryLocations.values ??
+                                  [],
+                              state.contacts
+                                  .map((c) => c.addressLocations.values)
+                                  .expand((l) => l),
+                              state.contacts
+                                  .map((c) => c.temporaryLocations.values)
+                                  .expand((l) => l)) ??
+                          const LatLng(50.5, 30.51),
+                      initialZoom: 4,
                       maxZoom: 15,
                       minZoom: 1,
-                      interactionOptions: InteractionOptions(
+                      interactionOptions: const InteractionOptions(
                           flags: InteractiveFlag.pinchZoom |
                               InteractiveFlag.drag |
                               InteractiveFlag.doubleTapZoom |
