@@ -18,7 +18,7 @@ While this is still in development, you must have a clone of the [Veilid](https:
 
 Check the CI/CD workflows in `.github/` for a compatible development setup.
 
-In case you prefer MapBox over OpenStreetMap as a map provider, specify an API token via the environment variable `COAGULATE_MAPBOX_PUBLIC_TOKEN`.
+For maps and geocoding to work, you need to provide the environment variable `COAGULATE_MAPTILER_TOKEN` with an API token that can be obtained for free from maptiler.com
 
 ### Building
 
