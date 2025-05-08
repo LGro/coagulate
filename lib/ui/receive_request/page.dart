@@ -56,36 +56,38 @@ class _ReceivedBatchInviteWidgetState extends State<ReceivedBatchInviteWidget> {
                       const Text('Pick the name you want to share with others. '
                           'You can select more information to share later.'),
                       const SizedBox(height: 16),
-                      Row(children: [
-                        DropdownMenu<String>(
-                          initialSelection: _selectedNameId,
-                          // requestFocusOnTap is enabled/disabled by platforms when it is null.
-                          // On mobile platforms, this is false by default. Setting this to true will
-                          // trigger focus request on the text field and virtual keyboard will appear
-                          // afterward. On desktop platforms however, this defaults to true.
-                          requestFocusOnTap: false,
-                          label: const Text('Name'),
-                          onSelected: (nameId) {
-                            setState(() {
-                              _selectedNameId = nameId;
-                            });
-                          },
-                          dropdownMenuEntries: widget.names.entries
-                              .map((e) => DropdownMenuEntry(
-                                  label: e.value, value: e.key))
-                              .toList(),
+                      DropdownMenu<String>(
+                        initialSelection: _selectedNameId,
+                        // requestFocusOnTap is enabled/disabled by platforms when it is null.
+                        // On mobile platforms, this is false by default. Setting this to true will
+                        // trigger focus request on the text field and virtual keyboard will appear
+                        // afterward. On desktop platforms however, this defaults to true.
+                        requestFocusOnTap: false,
+                        label: const Text('Name'),
+                        onSelected: (nameId) {
+                          setState(() {
+                            _selectedNameId = nameId;
+                          });
+                        },
+                        dropdownMenuEntries: widget.names.entries
+                            .map((e) =>
+                                DropdownMenuEntry(label: e.value, value: e.key))
+                            .toList(),
+                      ),
+                      const SizedBox(height: 16),
+                      // TODO: This also needs state to react to changes in selection;
+                      // maybe not because it goes to processing state globally quite fast
+                      Center(
+                        child: FilledButton(
+                          onPressed: (_selectedNameId == null)
+                              ? null
+                              : () async => context
+                                  .read<ReceiveRequestCubit>()
+                                  .handleBatchInvite(
+                                      myNameId: _selectedNameId!),
+                          child: const Text('Accept'),
                         ),
-                        const SizedBox(width: 16),
-                        // TODO: This also needs state to react to changes in selection
-                        FilledButton(
-                            onPressed: (_selectedNameId == null)
-                                ? null
-                                : () async => context
-                                    .read<ReceiveRequestCubit>()
-                                    .handleBatchInvite(
-                                        myNameId: _selectedNameId!),
-                            child: const Text('Accept')),
-                      ])
+                      ),
                     ]))),
       );
 }
