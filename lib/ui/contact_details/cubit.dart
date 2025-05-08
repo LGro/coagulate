@@ -86,15 +86,17 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
     if (state.contact == null) {
       return (false, false);
     }
-    final receiveSuccess =
-        await contactsRepository.updateContactFromDHT(state.contact!);
-    await contactsRepository
-        .updateContactSharedProfile(state.contact!.coagContactId);
-
-    final shareSuccess = await contactsRepository
-        .tryShareWithContactDHT(state.contact!.coagContactId);
-
-    return (receiveSuccess, shareSuccess);
+    final results = await Future.wait([
+      contactsRepository.updateContactFromDHT(state.contact!),
+      contactsRepository
+          .updateContactSharedProfile(state.contact!.coagContactId)
+          .then((_) => contactsRepository
+              .tryShareWithContactDHT(state.contact!.coagContactId)),
+      contactsRepository
+          .updateBatchInviteForContact(state.contact!.coagContactId)
+          .then((_) => true)
+    ]);
+    return (results[0], results[1]);
   }
 
   bool wasNotIntroduced(CoagContact contact) => contactsRepository

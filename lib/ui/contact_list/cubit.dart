@@ -39,13 +39,13 @@ class ContactListCubit extends Cubit<ContactListState> {
   final ContactsRepository contactsRepository;
   late final StreamSubscription<String> _contactsSubscription;
 
-  // TODO: This takes looong, can we speed it up?
   Future<bool> refresh() async {
-    // TODO: Parallelize these two?
-    final receiveSuccess =
-        await contactsRepository.updateAndWatchReceivingDHT();
-    final sharingSuccess = await contactsRepository.updateSharingDHT();
-    return receiveSuccess && sharingSuccess;
+    final results = await Future.wait([
+      contactsRepository.updateAndWatchReceivingDHT(),
+      contactsRepository.updateSharingDHT(),
+      contactsRepository.updateAllBatchInvites().then((_) => true)
+    ]);
+    return results.every((r) => r);
   }
 
   @override

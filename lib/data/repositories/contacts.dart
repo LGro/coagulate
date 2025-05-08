@@ -292,7 +292,7 @@ class ContactsRepository {
     final batches = await persistentStorage.getBatches();
     _batchInvites
         .addAll(Map.fromEntries(batches.map((b) => MapEntry(b.recordKey, b))));
-    await Future.wait(_batchInvites.values.map(batchInviteUpdate));
+    await updateAllBatchInvites();
   }
 
   Future<void> saveContact(CoagContact coagContact) async {
@@ -396,6 +396,7 @@ class ContactsRepository {
       // This prioritizes receiving before sharing; does this help when running
       // in a background fetch task to at least get notifications about others?
       unawaited(updateAndWatchReceivingDHT().then((_) => updateSharingDHT()));
+      unawaited(updateAllBatchInvites());
     }
     // TODO: Also handle network unavailable changes?
   }
@@ -1158,6 +1159,24 @@ class ContactsRepository {
         .tryWriteBytes(utf8.encode(jsonEncode(mySubkeyContent.toJson())));
     await mySubkeyRecord.close();
     // TODO: Also update the name in case someone changed the name available to the circle?
+  }
+
+  Future<void> updateAllBatchInvites() =>
+      Future.wait(_batchInvites.values.map(batchInviteUpdate));
+
+  Future<void> updateBatchInviteForContact(String coagContactId) async {
+    final contact = getContact(coagContactId);
+    if (contact?.dhtSettings.theirPublicKey == null ||
+        contact?.dhtSettings.recordKeyThemSharing != null) {
+      return;
+    }
+    for (final batchInvite in _batchInvites.values) {
+      if (batchInvite.myConnectionRecords
+          .containsKey(contact!.dhtSettings.theirPublicKey.toString())) {
+        // TODO: Speed this up by not refreshing all batch members but only the subkey relevant for this contact
+        await batchInviteUpdate(batchInvite);
+      }
+    }
   }
 
   ////////////////
