@@ -1032,6 +1032,105 @@ class ContactsRepository {
     await batchInviteUpdate(batch);
   }
 
+  Future<MapEntry<String, Typed<FixedEncodedString43>>?>
+      updateFromBatchInviteSubkey(
+          BatchInvite batch, VeilidCrypto crypto, int subkey) async {
+    final record = await DHTRecordPool.instance.openRecordRead(batch.recordKey,
+        debugName: 'coag::read', crypto: crypto);
+    Uint8List? contactSubkeyContentRaw;
+    try {
+      contactSubkeyContentRaw = await record.get(
+          crypto: crypto,
+          refreshMode: DHTRecordRefreshMode.network,
+          subkey: subkey);
+    } on FormatException catch (e) {
+      debugPrint('Batch update format error for subkey $subkey: $e');
+    } on VeilidAPIException catch (e) {
+      debugPrint('Batch update veilid error for subkey $subkey: $e');
+    } finally {
+      await record.close();
+    }
+    if (contactSubkeyContentRaw == null) {
+      return null;
+    }
+    final contactSubkeyContent = BatchSubkeySchema.fromJson(
+        jsonDecode(utf8.decode(contactSubkeyContentRaw))
+            as Map<String, dynamic>);
+
+    // Get existing contact if available
+    var contact = getContacts()
+        .values
+        .where((c) =>
+            c.dhtSettings.theirPublicKey == contactSubkeyContent.publicKey)
+        .firstOrNull;
+
+    debugPrint(
+        'Batch update for contact ${contact?.name ?? 'new'} at subkey $subkey');
+
+    // or create new contact if not yet exists
+    if (contact == null) {
+      contact = CoagContact(
+        coagContactId: Uuid().v4(),
+        name: contactSubkeyContent.name,
+        dhtSettings: DhtSettings(
+            theyAckHandshakeComplete: true,
+            theirPublicKey: contactSubkeyContent.publicKey,
+            myKeyPair: batch.myKeyPair),
+      );
+      await saveContact(contact);
+      await updateCirclesForContact(
+          contact.coagContactId,
+          // Add to the batch circle and update shared profile
+          [batch.recordKey.toString()],
+          // Trigger dht update with custom arguments below instead
+          triggerDhtUpdate: false);
+    }
+
+    // If contact subkey contains pubkey I haven't successfully created a
+    // DHT sharing record for before, create DHT record and write with pubkey
+    // to my subkey
+    // NOTE: This is separate from the contact creation above because while we
+    // usually succeed creating a new contact, initializing the sharing might
+    // fail, so we need to be able to retry here.
+    MapEntry<String, Typed<FixedEncodedString43>>? updatedConnectionRecord;
+    if (!batch.myConnectionRecords
+        .containsKey(contactSubkeyContent.publicKey.toString())) {
+      // Trigger sharing, incl. DHT record creation and update contact
+      await tryShareWithContactDHT(contact.coagContactId,
+          contactPubKey: contact.dhtSettings.theirPublicKey);
+      contact = getContact(contact.coagContactId);
+
+      if (contact?.dhtSettings.recordKeyMeSharing != null) {
+        updatedConnectionRecord = MapEntry(
+            contactSubkeyContent.publicKey.toString(),
+            contact!.dhtSettings.recordKeyMeSharing!);
+      } else {
+        // this should happen only when record creation fails in
+        // trysharewithcontactdht?
+        debugPrint('missing share key for batch offer');
+      }
+    }
+
+    // If contact subkey contains my pubkey with a dht record key,
+    // create contact, add to batch circle and fetch from said record
+    if (contact?.dhtSettings.recordKeyThemSharing == null &&
+        contactSubkeyContent.records
+            .containsKey(batch.myKeyPair.key.toString())) {
+      contact = contact?.copyWith(
+          dhtSettings: contact.dhtSettings.copyWith(
+              recordKeyThemSharing: contactSubkeyContent
+                  .records[batch.myKeyPair.key.toString()]));
+      if (contact != null) {
+        // Save even if update from DHT fails
+        await saveContact(contact);
+        // Try updating from DHT
+        await updateContactFromDHT(contact);
+      }
+    }
+
+    return updatedConnectionRecord;
+  }
+
   // TODO: regularly run for all batches
   // TODO: how to deal with race condition of two folks setting things up in parallel, who wins? make it unidirectional, no share back settings or override share back settings? is this really an issue?
   Future<void> batchInviteUpdate(BatchInvite batch) async {
@@ -1044,108 +1143,24 @@ class ContactsRepository {
     final crypto = await VeilidCryptoPrivate.fromSharedSecret(
         batch.recordKey.kind, batch.psk);
 
-    // get current record matches
-    final myConnectionRecords = {...batch.myConnectionRecords};
-
-    // iterate over other subkeys, to
+    // iterate over other subkeys
+    final subkeyFutures =
+        <Future<MapEntry<String, Typed<FixedEncodedString43>>?>>[];
     for (var subkey = 1; subkey < batch.subkeyCount; subkey++) {
       if (subkey == batch.mySubkey) {
         continue;
       }
-
-      final record = await DHTRecordPool.instance.openRecordRead(
-          batch.recordKey,
-          debugName: 'coag::read',
-          crypto: crypto);
-      Uint8List? contactSubkeyContentRaw;
-      try {
-        contactSubkeyContentRaw = await record.get(
-            crypto: crypto,
-            refreshMode: DHTRecordRefreshMode.network,
-            subkey: subkey);
-      } on FormatException catch (e) {
-      } on VeilidAPIException {
-        continue;
-      } finally {
-        await record.close();
-      }
-      if (contactSubkeyContentRaw == null) {
-        continue;
-      }
-      final contactSubkeyContent = BatchSubkeySchema.fromJson(
-          jsonDecode(utf8.decode(contactSubkeyContentRaw))
-              as Map<String, dynamic>);
-
-      // Get existing contact if available
-      var contact = getContacts()
-          .values
-          .where((c) =>
-              c.dhtSettings.theirPublicKey == contactSubkeyContent.publicKey)
-          .firstOrNull;
-
-      // or create new contact if not yet exists
-      if (contact == null) {
-        contact = CoagContact(
-          coagContactId: Uuid().v4(),
-          name: contactSubkeyContent.name,
-          dhtSettings: DhtSettings(
-              theyAckHandshakeComplete: true,
-              theirPublicKey: contactSubkeyContent.publicKey,
-              myKeyPair: batch.myKeyPair),
-        );
-        await saveContact(contact);
-        await updateCirclesForContact(
-            contact.coagContactId,
-            // Add to the batch circle and update shared profile
-            [batch.recordKey.toString()],
-            // Trigger dht update with custom arguments below instead
-            triggerDhtUpdate: false);
-      }
-
-      // If contact subkey contains pubkey I haven't successfully created a
-      // DHT sharing record for before, create DHT record and write with pubkey
-      // to my subkey
-      // NOTE: This is separate from the contact creation above because while we
-      // usually succeed creating a new contact, initializing the sharing might
-      // fail, so we need to be able to retry here.
-      if (!myConnectionRecords
-          .containsKey(contactSubkeyContent.publicKey.toString())) {
-        // Trigger sharing, incl. DHT record creation and update contact
-        await tryShareWithContactDHT(contact.coagContactId,
-            contactPubKey: contact.dhtSettings.theirPublicKey);
-        contact = getContact(contact.coagContactId);
-
-        if (contact?.dhtSettings.recordKeyMeSharing != null) {
-          myConnectionRecords[contactSubkeyContent.publicKey.toString()] =
-              contact!.dhtSettings.recordKeyMeSharing!;
-        } else {
-          // this should happen only when record creation fails in
-          // trysharewithcontactdht?
-          debugPrint('missing share key for batch offer');
-        }
-      }
-
-      // If contact subkey contains my pubkey with a dht record key,
-      // create contact, add to batch circle and fetch from said record
-      if (contact?.dhtSettings.recordKeyThemSharing == null &&
-          contactSubkeyContent.records
-              .containsKey(batch.myKeyPair.key.toString())) {
-        contact = contact?.copyWith(
-            dhtSettings: contact.dhtSettings.copyWith(
-                recordKeyThemSharing: contactSubkeyContent
-                    .records[batch.myKeyPair.key.toString()]));
-        if (contact != null) {
-          // Save even if update from DHT fails
-          await saveContact(contact);
-          // Try updating from DHT
-          await updateContactFromDHT(contact);
-        }
-      }
+      subkeyFutures.add(updateFromBatchInviteSubkey(batch, crypto, subkey));
     }
+    final connectionRecordUpdates = await Future.wait(subkeyFutures);
 
     // Update record matches in batch
-    _batchInvites[batch.recordKey] =
-        batch.copyWith(myConnectionRecords: myConnectionRecords);
+    batch = batch.copyWith(myConnectionRecords: {
+      ...batch.myConnectionRecords,
+      ...Map.fromEntries(connectionRecordUpdates
+          .whereType<MapEntry<String, Typed<FixedEncodedString43>>>())
+    });
+    _batchInvites[batch.recordKey] = batch;
     await persistentStorage.addBatch(batch);
     // and write to my subkey
     final mySubkeyRecord = await DHTRecordPool.instance.openRecordWrite(
@@ -1154,7 +1169,7 @@ class ContactsRepository {
         crypto: crypto,
         defaultSubkey: batch.mySubkey);
     final mySubkeyContent = BatchSubkeySchema(
-        batch.myName, batch.myKeyPair.key, myConnectionRecords);
+        batch.myName, batch.myKeyPair.key, batch.myConnectionRecords);
     await mySubkeyRecord
         .tryWriteBytes(utf8.encode(jsonEncode(mySubkeyContent.toJson())));
     await mySubkeyRecord.close();
