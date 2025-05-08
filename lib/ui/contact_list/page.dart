@@ -211,11 +211,9 @@ Widget? contactSharingReceivingStatus(
     CoagContact contact, bool isMemberAnyCircle) {
   // Initial creation of DHT records
   if (showSharingInitializing(contact)) {
-    // TODO: Make sure this is not happening that often, because the animation might be super distracting
-    return const SizedBox(
-        width: 16,
-        height: 16,
-        child: CircularProgressIndicator(strokeWidth: 2));
+    // This also happens for a potentially longer time when fetching contacts
+    // from an invite batch
+    return const Icon(Icons.hourglass_empty);
   }
   // They're sharing but I'm not sharing back
   // (with the default everyone circle, this likely doesn't happen)

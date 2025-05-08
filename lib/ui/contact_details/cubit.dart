@@ -26,17 +26,11 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
                         [])
                     .contains(c.key))
                 .map((c) => MapEntry(c.key, c.value.name))),
-            circleNames: contactsRepository
-                .getCirclesForContact(coagContactId)
-                .values
-                .toList())) {
+            circles: contactsRepository.getCirclesForContact(coagContactId))) {
     _circlesSubscription = contactsRepository.getCirclesStream().listen((c) {
       if (!isClosed) {
         emit(state.copyWith(
-            circleNames: contactsRepository
-                .getCirclesForContact(coagContactId)
-                .values
-                .toList()));
+            circles: contactsRepository.getCirclesForContact(coagContactId)));
       }
     });
     _contactsSubscription =
@@ -59,10 +53,7 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
                           [])
                       .contains(c.value.theirPersonalUniqueId))
                   .map((c) => MapEntry(c.key, c.value.name))),
-              circleNames: contactsRepository
-                  .getCirclesForContact(coagContactId)
-                  .values
-                  .toList()));
+              circles: contactsRepository.getCirclesForContact(coagContactId)));
         }
       }
     });
