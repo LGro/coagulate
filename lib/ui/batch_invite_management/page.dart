@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../utils.dart';
+import '../widgets/dht_status/widget.dart';
 import 'cubit.dart';
 
 class BatchInvitesPage extends StatefulWidget {
@@ -203,9 +205,12 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
                       color: Theme.of(context).colorScheme.primary)),
               const Text(
                   'WARNING: When you leave this view, you will no longer have '
-                  'access to the batch you created. Make sure to copy / export '
-                  'the generated invitation batches links directly.'),
-              ...state.batches.values.map(existingBatchWidget),
+                  'access to the batch you created. Make sure to wait until '
+                  'the status changed from pending to synced and then copy / '
+                  'save the generated invitation batch links directly.'),
+              const SizedBox(height: 8),
+              ...state.batches.values
+                  .map((b) => existingBatchWidget(context, b)),
             ],
           ),
         ),
@@ -220,14 +225,43 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
               builder: _body)));
 }
 
-Widget existingBatchWidget(Batch batch) => Row(children: [
-      Text(batch.label),
-      const SizedBox(width: 4),
-      Text('(${DateFormat('yyyy-MM-dd').format(batch.expiration)})'),
-      const SizedBox(width: 4),
-      IconButton.filledTonal(
-          // Share.shareXFiles([XFile.fromData(utf8.encode(text), mimeType: 'text/plain')], fileNameOverrides: ['myfile.txt']),
-          onPressed: () async =>
-              Share.share(generateBatchInviteLinks(batch).join(', ')),
-          icon: const Icon(Icons.share)),
+Widget existingBatchWidget(BuildContext context, Batch batch) =>
+    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Batch "${batch.label}"',
+          style: const TextStyle(fontWeight: FontWeight.bold)),
+      Row(children: [
+        Text('Due date ${DateFormat('yyyy-MM-dd').format(batch.expiration)}, '),
+        DhtStatusWidget(recordKey: batch.dhtRecordKey, statusWidgets: const {}),
+      ]),
+      Row(children: [
+        FilledButton.tonal(
+            onPressed: () async {
+              final links = generateBatchInviteLinks(batch).join(', ');
+              await Clipboard.setData(ClipboardData(text: links));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Links copied to clipboard')),
+              );
+            },
+            child: const Row(children: [
+              Icon(Icons.copy),
+              SizedBox(width: 8),
+              Text('Copy links'),
+              SizedBox(width: 2),
+            ])),
+        const SizedBox(width: 4),
+        FilledButton.tonal(
+            onPressed: () async => Share.shareXFiles([
+                  XFile.fromData(
+                      utf8.encode(generateBatchInviteLinks(batch).join(', ')),
+                      mimeType: 'text/plain')
+                ], fileNameOverrides: [
+                  'coagulate_batch_${batch.label}.txt'
+                ]),
+            child: const Row(children: [
+              Icon(Icons.save),
+              SizedBox(width: 8),
+              Text('Save links'),
+              SizedBox(width: 2),
+            ])),
+      ]),
     ]);
