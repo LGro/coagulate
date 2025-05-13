@@ -1245,13 +1245,15 @@ class ContactsRepository {
           otherPublicKey: contactB.dhtSettings.theirPublicKey!,
           dhtRecordKeyReceiving: recordKeyB,
           dhtRecordKeySharing: recordKeyA,
-          dhtWriterSharing: writerA);
+          dhtWriterSharing: writerA,
+          message: message);
       final introForB = ContactIntroduction(
           otherName: nameA,
           otherPublicKey: contactA.dhtSettings.theirPublicKey!,
           dhtRecordKeyReceiving: recordKeyA,
           dhtRecordKeySharing: recordKeyB,
-          dhtWriterSharing: writerB);
+          dhtWriterSharing: writerB,
+          message: message);
 
       // Get most up to date contacts since dht record creation might have taken
       // a moment
