@@ -102,6 +102,26 @@ class CircleDetailsCubit extends Cubit<CircleDetailsState> {
         state.profileInfo!.copyWith(temporaryLocations: temporaryLocations));
   }
 
+  Future<void> removeCircle({bool awaitDhtUpdates = false}) async {
+    if (state.circleId == null) {
+      return;
+    }
+
+    final affectedContactIds = ({...state.circleMemberships}
+          ..removeWhere((k, v) => !v.contains(state.circleId)))
+        .keys;
+
+    await contactsRepository.removeCircle(state.circleId!);
+
+    final dhtUpdates = Future.wait(affectedContactIds.map((id) =>
+        contactsRepository
+            .updateContactSharedProfile(id)
+            .then((_) => contactsRepository.tryShareWithContactDHT(id))));
+    if (awaitDhtUpdates) {
+      await dhtUpdates;
+    }
+  }
+
   @override
   Future<void> close() {
     _circlesSubscription.cancel();

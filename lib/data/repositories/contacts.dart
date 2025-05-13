@@ -893,6 +893,15 @@ class ContactsRepository {
           .values
           .toList();
 
+  Future<void> removeCircle(String circleId) async {
+    _circles.remove(circleId);
+    _circleMemberships
+        .removeWhere((_, circleIds) => circleIds.contains(circleId));
+    _circlesStreamController.add(null);
+    await persistentStorage.updateCircles(_circles);
+    await persistentStorage.updateCircleMemberships(_circleMemberships);
+  }
+
   //////////////////
   // PROFILE INFO
 
@@ -1137,6 +1146,11 @@ class ContactsRepository {
     // Do not check expired invite batches
     if (DateTime.now().isAfter(batch.expiration)) {
       // TODO: Do we clean up / mark contacts that didn't successfully connect?
+      return;
+    }
+
+    // If the corresponding circle is (no longer) available, skip the update
+    if (!_circles.containsKey(batch.recordKey.toString())) {
       return;
     }
 

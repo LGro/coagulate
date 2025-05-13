@@ -459,6 +459,41 @@ class _CircleDetailsPageState extends State<CircleDetailsPage> {
             listener: (context, state) async {},
             builder: (context, state) => Scaffold(
                 appBar: AppBar(
+                    actions: [
+                      IconButton(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Confirm Delete'),
+                                // TODO: Check if batch circle and hasn't expired yet, if so warn about the effects
+                                content: const Text(
+                                    'Are you sure you want to delete this circle?'),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text('Cancel')),
+                                  TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: const Text('Delete')),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true) {
+                              await context
+                                  .read<CircleDetailsCubit>()
+                                  .removeCircle();
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.delete_forever,
+                              color: Colors.red)),
+                    ],
                     // Avoid app bar background color changing when parts of
                     // the page scroll up
                     notificationPredicate: (notification) => false,
@@ -509,8 +544,7 @@ class _ExpandableScrollViewsState extends State<ExpandableScrollViews>
               GestureDetector(
                 onTap: () => toggleView(_topHeight == 0, constraints.maxHeight),
                 child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.only(left: 16, top: 4, bottom: 4),
                     color: Theme.of(context).colorScheme.secondaryContainer,
                     child: Row(children: [
                       Expanded(
@@ -551,8 +585,8 @@ class _ExpandableScrollViewsState extends State<ExpandableScrollViews>
                   onTap: () =>
                       toggleView(_topHeight == 0, constraints.maxHeight),
                   child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 4),
+                      padding:
+                          const EdgeInsets.only(left: 16, top: 4, bottom: 4),
                       color: Theme.of(context).colorScheme.secondaryContainer,
                       child: Row(children: [
                         Expanded(
