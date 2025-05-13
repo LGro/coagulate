@@ -31,49 +31,46 @@ class IntroductionsPage extends StatelessWidget {
 
   List<Widget> _introductionsBody(BuildContext context,
           Iterable<(CoagContact, ContactIntroduction)> introductions) =>
-      introductions
-          .map(
-            (intro) => ListTile(
-              title: Text('${intro.$2.otherName} via ${intro.$1.name}',
-                  softWrap: true),
-              subtitle: (intro.$2.message == null)
-                  ? null
-                  : Text(intro.$2.message!, softWrap: true),
-              onTap: () async => showDialog<void>(
-                context: context,
-                builder: (alertContext) => AlertDialog(
-                  titlePadding:
-                      const EdgeInsets.only(left: 16, right: 16, top: 16),
-                  title: Text('Accept introduction to '
-                      '${intro.$2.otherName}'),
-                  actions: [
-                    const SizedBox(height: 4),
-                    Center(
-                        child: FilledButton.tonal(
-                            onPressed: alertContext.pop,
-                            child: const Text('Cancel'))),
-                    const SizedBox(height: 4),
-                    Center(
-                        child: FilledButton(
-                            onPressed: () async {
-                              final coagContactId = await context
-                                  .read<IntroductionsCubit>()
-                                  .accept(intro.$1, intro.$2);
-                              if (context.mounted) {
-                                context.goNamed('contactDetails',
-                                    pathParameters: {
-                                      'coagContactId': coagContactId
-                                    });
-                                alertContext.pop();
-                              }
-                            },
-                            child: const Text('Accept & configure sharing'))),
-                  ],
-                ),
-              ),
+      introductions.map((entry) {
+        final (introducer, introduction) = entry;
+        return ListTile(
+          title: Text('${introduction.otherName} via ${introducer.name}',
+              softWrap: true),
+          subtitle: (introduction.message == null)
+              ? null
+              : Text(introduction.message!, softWrap: true),
+          onTap: () async => showDialog<void>(
+            context: context,
+            builder: (alertContext) => AlertDialog(
+              titlePadding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+              title: Text('Accept introduction to '
+                  '${introduction.otherName}'),
+              actions: [
+                const SizedBox(height: 4),
+                Center(
+                    child: FilledButton.tonal(
+                        onPressed: alertContext.pop,
+                        child: const Text('Cancel'))),
+                const SizedBox(height: 4),
+                Center(
+                    child: FilledButton(
+                        onPressed: () async {
+                          final coagContactId = await context
+                              .read<IntroductionsCubit>()
+                              .accept(introducer, introduction);
+                          if (context.mounted) {
+                            context.goNamed('contactDetails', pathParameters: {
+                              'coagContactId': coagContactId
+                            });
+                            alertContext.pop();
+                          }
+                        },
+                        child: const Text('Accept & configure sharing'))),
+              ],
             ),
-          )
-          .toList();
+          ),
+        );
+      }).toList();
 
   @override
   Widget build(BuildContext context) => Scaffold(
