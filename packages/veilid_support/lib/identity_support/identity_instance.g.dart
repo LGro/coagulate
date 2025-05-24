@@ -6,9 +6,8 @@ part of 'identity_instance.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$IdentityInstanceImpl _$$IdentityInstanceImplFromJson(
-        Map<String, dynamic> json) =>
-    _$IdentityInstanceImpl(
+_IdentityInstance _$IdentityInstanceFromJson(Map<String, dynamic> json) =>
+    _IdentityInstance(
       recordKey: Typed<FixedEncodedString43>.fromJson(json['record_key']),
       publicKey: FixedEncodedString43.fromJson(json['public_key']),
       encryptedSecretKey:
@@ -17,8 +16,7 @@ _$IdentityInstanceImpl _$$IdentityInstanceImplFromJson(
       signature: FixedEncodedString86.fromJson(json['signature']),
     );
 
-Map<String, dynamic> _$$IdentityInstanceImplToJson(
-        _$IdentityInstanceImpl instance) =>
+Map<String, dynamic> _$IdentityInstanceToJson(_IdentityInstance instance) =>
     <String, dynamic>{
       'record_key': instance.recordKey.toJson(),
       'public_key': instance.publicKey.toJson(),

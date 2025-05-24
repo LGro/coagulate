@@ -24,13 +24,11 @@ class _DHTLogPosition extends DHTCloseable<DHTShortArray> {
 
   /// Add a reference to this log
   @override
-  Future<void> ref() async {
-    await shortArray.ref();
-  }
+  void ref() => shortArray.ref();
 
   /// Free all resources for the DHTLogPosition
   @override
-  Future<bool> close() async => _dhtLogSpine._segmentClosed(_segmentNumber);
+  Future<bool> close() => _dhtLogSpine._segmentClosed(_segmentNumber);
 }
 
 class _DHTLogSegmentLookup extends Equatable {
@@ -124,18 +122,11 @@ class _DHTLogSpine {
     });
   }
 
-  Future<void> delete() async {
-    await _spineMutex.protect(() async {
-      // Will deep delete all segment records as they are children
-      await _spineRecord.delete();
-    });
-  }
+  // Will deep delete all segment records as they are children
+  Future<bool> delete() async => _spineMutex.protect(_spineRecord.delete);
 
   Future<T> operate<T>(Future<T> Function(_DHTLogSpine) closure) async =>
-      // ignore: prefer_expression_function_bodies
-      _spineMutex.protect(() async {
-        return closure(this);
-      });
+      _spineMutex.protect(() async => closure(this));
 
   Future<T> operateAppend<T>(Future<T> Function(_DHTLogSpine) closure) async =>
       _spineMutex.protect(() async {
@@ -147,7 +138,7 @@ class _DHTLogSpine {
           if (!await writeSpineHead(old: (oldHead, oldTail))) {
             // Failed to write head means head got overwritten so write should
             // be considered failed
-            throw DHTExceptionOutdated();
+            throw const DHTExceptionOutdated();
           }
           return out;
         } on Exception {
@@ -257,7 +248,12 @@ class _DHTLogSpine {
       final headDelta = _ringDistance(newHead, oldHead);
       final tailDelta = _ringDistance(newTail, oldTail);
       if (headDelta > _positionLimit ~/ 2 || tailDelta > _positionLimit ~/ 2) {
-        throw DHTExceptionInvalidData();
+        throw DHTExceptionInvalidData('_DHTLogSpine::_updateHead '
+            '_head=$_head _tail=$_tail '
+            'oldHead=$oldHead oldTail=$oldTail '
+            'newHead=$newHead newTail=$newTail '
+            'headDelta=$headDelta tailDelta=$tailDelta '
+            '_positionLimit=$_positionLimit');
       }
     }
 
@@ -296,7 +292,7 @@ class _DHTLogSpine {
         segmentKeyBytes);
   }
 
-  Future<DHTShortArray> _openOrCreateSegment(int segmentNumber) async {
+  Future<DHTShortArray?> _openOrCreateSegment(int segmentNumber) async {
     assert(_spineMutex.isLocked, 'should be in mutex here');
     assert(_spineRecord.writer != null, 'should be writable');
 
@@ -306,51 +302,56 @@ class _DHTLogSpine {
     final subkey = l.subkey;
     final segment = l.segment;
 
-    var subkeyData = await _spineRecord.get(subkey: subkey);
-    subkeyData ??= _makeEmptySubkey();
-    while (true) {
-      final segmentKey = _getSegmentKey(subkeyData!, segment);
-      if (segmentKey == null) {
-        // Create a shortarray segment
-        final segmentRec = await DHTShortArray.create(
-          debugName: '${_spineRecord.debugName}_spine_${subkey}_$segment',
-          stride: _segmentStride,
-          crypto: _spineRecord.crypto,
-          parent: _spineRecord.key,
-          routingContext: _spineRecord.routingContext,
-          writer: _spineRecord.writer,
-        );
-        var success = false;
-        try {
-          // Write it back to the spine record
-          _setSegmentKey(subkeyData, segment, segmentRec.recordKey);
-          subkeyData =
-              await _spineRecord.tryWriteBytes(subkeyData, subkey: subkey);
-          // If the write was successful then we're done
-          if (subkeyData == null) {
-            // Return it
-            success = true;
-            return segmentRec;
+    try {
+      var subkeyData = await _spineRecord.get(subkey: subkey);
+      subkeyData ??= _makeEmptySubkey();
+
+      while (true) {
+        final segmentKey = _getSegmentKey(subkeyData!, segment);
+        if (segmentKey == null) {
+          // Create a shortarray segment
+          final segmentRec = await DHTShortArray.create(
+            debugName: '${_spineRecord.debugName}_spine_${subkey}_$segment',
+            stride: _segmentStride,
+            crypto: _spineRecord.crypto,
+            parent: _spineRecord.key,
+            routingContext: _spineRecord.routingContext,
+            writer: _spineRecord.writer,
+          );
+          var success = false;
+          try {
+            // Write it back to the spine record
+            _setSegmentKey(subkeyData, segment, segmentRec.recordKey);
+            subkeyData =
+                await _spineRecord.tryWriteBytes(subkeyData, subkey: subkey);
+            // If the write was successful then we're done
+            if (subkeyData == null) {
+              // Return it
+              success = true;
+              return segmentRec;
+            }
+          } finally {
+            if (!success) {
+              await segmentRec.close();
+              await segmentRec.delete();
+            }
           }
-        } finally {
-          if (!success) {
-            await segmentRec.close();
-            await segmentRec.delete();
-          }
+        } else {
+          // Open a shortarray segment
+          final segmentRec = await DHTShortArray.openWrite(
+            segmentKey,
+            _spineRecord.writer!,
+            debugName: '${_spineRecord.debugName}_spine_${subkey}_$segment',
+            crypto: _spineRecord.crypto,
+            parent: _spineRecord.key,
+            routingContext: _spineRecord.routingContext,
+          );
+          return segmentRec;
         }
-      } else {
-        // Open a shortarray segment
-        final segmentRec = await DHTShortArray.openWrite(
-          segmentKey,
-          _spineRecord.writer!,
-          debugName: '${_spineRecord.debugName}_spine_${subkey}_$segment',
-          crypto: _spineRecord.crypto,
-          parent: _spineRecord.key,
-          routingContext: _spineRecord.routingContext,
-        );
-        return segmentRec;
+        // Loop if we need to try again with the new data from the network
       }
-      // Loop if we need to try again with the new data from the network
+    } on DHTExceptionNotAvailable {
+      return null;
     }
   }
 
@@ -364,34 +365,38 @@ class _DHTLogSpine {
     final segment = l.segment;
 
     // See if we have the segment key locally
-    TypedKey? segmentKey;
-    var subkeyData = await _spineRecord.get(
-        subkey: subkey, refreshMode: DHTRecordRefreshMode.local);
-    if (subkeyData != null) {
-      segmentKey = _getSegmentKey(subkeyData, segment);
-    }
-    if (segmentKey == null) {
-      // If not, try from the network
-      subkeyData = await _spineRecord.get(
-          subkey: subkey, refreshMode: DHTRecordRefreshMode.network);
-      if (subkeyData == null) {
-        return null;
+    try {
+      TypedKey? segmentKey;
+      var subkeyData = await _spineRecord.get(
+          subkey: subkey, refreshMode: DHTRecordRefreshMode.local);
+      if (subkeyData != null) {
+        segmentKey = _getSegmentKey(subkeyData, segment);
       }
-      segmentKey = _getSegmentKey(subkeyData, segment);
       if (segmentKey == null) {
-        return null;
+        // If not, try from the network
+        subkeyData = await _spineRecord.get(
+            subkey: subkey, refreshMode: DHTRecordRefreshMode.network);
+        if (subkeyData == null) {
+          return null;
+        }
+        segmentKey = _getSegmentKey(subkeyData, segment);
+        if (segmentKey == null) {
+          return null;
+        }
       }
-    }
 
-    // Open a shortarray segment
-    final segmentRec = await DHTShortArray.openRead(
-      segmentKey,
-      debugName: '${_spineRecord.debugName}_spine_${subkey}_$segment',
-      crypto: _spineRecord.crypto,
-      parent: _spineRecord.key,
-      routingContext: _spineRecord.routingContext,
-    );
-    return segmentRec;
+      // Open a shortarray segment
+      final segmentRec = await DHTShortArray.openRead(
+        segmentKey,
+        debugName: '${_spineRecord.debugName}_spine_${subkey}_$segment',
+        crypto: _spineRecord.crypto,
+        parent: _spineRecord.key,
+        routingContext: _spineRecord.routingContext,
+      );
+      return segmentRec;
+    } on DHTExceptionNotAvailable {
+      return null;
+    }
   }
 
   _DHTLogSegmentLookup _lookupSegment(int segmentNumber) {
@@ -422,7 +427,7 @@ class _DHTLogSpine {
         late DHTShortArray shortArray;
         if (openedSegment != null) {
           // If so, return a ref
-          await openedSegment.ref();
+          openedSegment.ref();
           shortArray = openedSegment;
         } else {
           // Otherwise open a segment
@@ -444,7 +449,7 @@ class _DHTLogSpine {
         // LRU cache the segment number
         if (!_openCache.remove(segmentNumber)) {
           // If this is new to the cache ref it when it goes in
-          await shortArray.ref();
+          shortArray.ref();
         }
         _openCache.add(segmentNumber);
         if (_openCache.length > _openCacheSize) {
@@ -606,8 +611,9 @@ class _DHTLogSpine {
       await _spineRecord.watch(subkeys: [ValueSubkeyRange.single(0)]);
 
       // Update changes to the head record
-      // Don't watch for local changes because this class already handles
-      // notifying listeners and knows when it makes local changes
+      // xxx: check if this localChanges can be false...
+      // xxx: Don't watch for local changes because this class already handles
+      // xxx: notifying listeners and knows when it makes local changes
       _subscription ??=
           await _spineRecord.listen(localChanges: true, _onSpineChanged);
     } on Exception {
@@ -704,7 +710,7 @@ class _DHTLogSpine {
       DHTShortArray.maxElements;
 
   // Spine head mutex to ensure we keep the representation valid
-  final Mutex _spineMutex = Mutex();
+  final Mutex _spineMutex = Mutex(debugLockTimeout: kIsDebugMode ? 60 : null);
   // Subscription to head record internal changes
   StreamSubscription<DHTRecordWatchChange>? _subscription;
   // Notify closure for external spine head changes
@@ -724,7 +730,8 @@ class _DHTLogSpine {
 
   // LRU cache of DHT spine elements accessed recently
   // Pair of position and associated shortarray segment
-  final Mutex _spineCacheMutex = Mutex();
+  final Mutex _spineCacheMutex =
+      Mutex(debugLockTimeout: kIsDebugMode ? 60 : null);
   final List<int> _openCache;
   final Map<int, DHTShortArray> _openedSegments;
   static const int _openCacheSize = 3;

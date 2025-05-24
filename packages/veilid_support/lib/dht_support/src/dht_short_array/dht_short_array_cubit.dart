@@ -3,28 +3,15 @@ import 'dart:async';
 import 'package:async_tools/async_tools.dart';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_advanced_tools/bloc_advanced_tools.dart';
-import 'package:equatable/equatable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:meta/meta.dart';
 
 import '../../../veilid_support.dart';
 
-@immutable
-class DHTShortArrayElementState<T> extends Equatable {
-  const DHTShortArrayElementState(
-      {required this.value, required this.isOffline});
-  final T value;
-  final bool isOffline;
+typedef DHTShortArrayState<T> = AsyncValue<IList<OnlineElementState<T>>>;
+typedef DHTShortArrayCubitState<T> = BlocBusyState<DHTShortArrayState<T>>;
 
-  @override
-  List<Object?> get props => [value, isOffline];
-}
-
-typedef DHTShortArrayState<T> = AsyncValue<IList<DHTShortArrayElementState<T>>>;
-typedef DHTShortArrayBusyState<T> = BlocBusyState<DHTShortArrayState<T>>;
-
-class DHTShortArrayCubit<T> extends Cubit<DHTShortArrayBusyState<T>>
-    with BlocBusyWrapper<DHTShortArrayState<T>> {
+class DHTShortArrayCubit<T> extends Cubit<DHTShortArrayCubitState<T>>
+    with BlocBusyWrapper<DHTShortArrayState<T>>, RefreshableCubit {
   DHTShortArrayCubit({
     required Future<DHTShortArray> Function() open,
     required T Function(List<int> data) decodeElement,
@@ -39,13 +26,14 @@ class DHTShortArrayCubit<T> extends Cubit<DHTShortArrayBusyState<T>>
             _shortArray = await open();
             _wantsCloseRecord = true;
             break;
-          } on VeilidAPIExceptionTryAgain {
+          } on DHTExceptionNotAvailable {
             // Wait for a bit
             await asyncSleep();
           }
         }
       } on Exception catch (e, st) {
-        emit(DHTShortArrayBusyState<T>(AsyncValue.error(e, st)));
+        addError(e, st);
+        emit(DHTShortArrayCubitState<T>(AsyncValue.error(e, st)));
         return;
       }
 
@@ -57,6 +45,7 @@ class DHTShortArrayCubit<T> extends Cubit<DHTShortArrayBusyState<T>>
     });
   }
 
+  @override
   Future<void> refresh({bool forceRefresh = false}) async {
     await _initWait();
     await _refreshNoWait(forceRefresh: forceRefresh);
@@ -73,25 +62,27 @@ class DHTShortArrayCubit<T> extends Cubit<DHTShortArrayBusyState<T>>
         Set<int>? offlinePositions;
         if (_shortArray.writer != null) {
           offlinePositions = await reader.getOfflinePositions();
-          if (offlinePositions == null) {
-            return null;
-          }
         }
 
         // Get the items
         final allItems = (await reader.getRange(0, forceRefresh: forceRefresh))
             ?.indexed
-            .map((x) => DHTShortArrayElementState(
+            .map((x) => OnlineElementState(
                 value: _decodeElement(x.$2),
                 isOffline: offlinePositions?.contains(x.$1) ?? false))
             .toIList();
         return allItems;
       });
-      if (newState != null) {
-        emit(AsyncValue.data(newState));
+      if (newState == null) {
+        // Mark us as needing refresh
+        setWantsRefresh();
+        return;
       }
-    } on Exception catch (e) {
-      emit(AsyncValue.error(e));
+      emit(AsyncValue.data(newState));
+      setRefreshed();
+    } on Exception catch (e, st) {
+      addError(e, st);
+      emit(AsyncValue.error(e, st));
     }
   }
 

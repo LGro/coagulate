@@ -14,19 +14,22 @@ abstract class DHTRandomRead {
   /// is specified, the network will always be checked for newer values
   /// rather than returning the existing locally stored copy of the elements.
   /// Throws an IndexError if the 'pos' is not within the length
-  /// of the container.
+  /// of the container. May return null if the item is not available at this
+  /// time.
   Future<Uint8List?> get(int pos, {bool forceRefresh = false});
 
   /// Return a list of a range of items in the DHTArray. If 'forceRefresh'
   /// is specified, the network will always be checked for newer values
   /// rather than returning the existing locally stored copy of the elements.
   /// Throws an IndexError if either 'start' or '(start+length)' is not within
-  /// the length of the container.
+  /// the length of the container. May return fewer items than the length
+  /// expected if the requested items are not available, but will always
+  /// return a contiguous range starting at 'start'.
   Future<List<Uint8List>?> getRange(int start,
       {int? length, bool forceRefresh = false});
 
   /// Get a list of the positions that were written offline and not flushed yet
-  Future<Set<int>?> getOfflinePositions();
+  Future<Set<int>> getOfflinePositions();
 }
 
 extension DHTRandomReadExt on DHTRandomRead {

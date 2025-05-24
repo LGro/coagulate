@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -13,8 +13,45 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+/// 32-byte value in bigendian format
 class CryptoKey extends $pb.GeneratedMessage {
-  factory CryptoKey() => create();
+  factory CryptoKey({
+    $core.int? u0,
+    $core.int? u1,
+    $core.int? u2,
+    $core.int? u3,
+    $core.int? u4,
+    $core.int? u5,
+    $core.int? u6,
+    $core.int? u7,
+  }) {
+    final $result = create();
+    if (u0 != null) {
+      $result.u0 = u0;
+    }
+    if (u1 != null) {
+      $result.u1 = u1;
+    }
+    if (u2 != null) {
+      $result.u2 = u2;
+    }
+    if (u3 != null) {
+      $result.u3 = u3;
+    }
+    if (u4 != null) {
+      $result.u4 = u4;
+    }
+    if (u5 != null) {
+      $result.u5 = u5;
+    }
+    if (u6 != null) {
+      $result.u6 = u6;
+    }
+    if (u7 != null) {
+      $result.u7 = u7;
+    }
+    return $result;
+  }
   CryptoKey._() : super();
   factory CryptoKey.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory CryptoKey.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
@@ -125,8 +162,77 @@ class CryptoKey extends $pb.GeneratedMessage {
   void clearU7() => clearField(8);
 }
 
+/// 64-byte value in bigendian format
 class Signature extends $pb.GeneratedMessage {
-  factory Signature() => create();
+  factory Signature({
+    $core.int? u0,
+    $core.int? u1,
+    $core.int? u2,
+    $core.int? u3,
+    $core.int? u4,
+    $core.int? u5,
+    $core.int? u6,
+    $core.int? u7,
+    $core.int? u8,
+    $core.int? u9,
+    $core.int? u10,
+    $core.int? u11,
+    $core.int? u12,
+    $core.int? u13,
+    $core.int? u14,
+    $core.int? u15,
+  }) {
+    final $result = create();
+    if (u0 != null) {
+      $result.u0 = u0;
+    }
+    if (u1 != null) {
+      $result.u1 = u1;
+    }
+    if (u2 != null) {
+      $result.u2 = u2;
+    }
+    if (u3 != null) {
+      $result.u3 = u3;
+    }
+    if (u4 != null) {
+      $result.u4 = u4;
+    }
+    if (u5 != null) {
+      $result.u5 = u5;
+    }
+    if (u6 != null) {
+      $result.u6 = u6;
+    }
+    if (u7 != null) {
+      $result.u7 = u7;
+    }
+    if (u8 != null) {
+      $result.u8 = u8;
+    }
+    if (u9 != null) {
+      $result.u9 = u9;
+    }
+    if (u10 != null) {
+      $result.u10 = u10;
+    }
+    if (u11 != null) {
+      $result.u11 = u11;
+    }
+    if (u12 != null) {
+      $result.u12 = u12;
+    }
+    if (u13 != null) {
+      $result.u13 = u13;
+    }
+    if (u14 != null) {
+      $result.u14 = u14;
+    }
+    if (u15 != null) {
+      $result.u15 = u15;
+    }
+    return $result;
+  }
   Signature._() : super();
   factory Signature.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Signature.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
@@ -317,8 +423,37 @@ class Signature extends $pb.GeneratedMessage {
   void clearU15() => clearField(16);
 }
 
+/// 24-byte value in bigendian format
 class Nonce extends $pb.GeneratedMessage {
-  factory Nonce() => create();
+  factory Nonce({
+    $core.int? u0,
+    $core.int? u1,
+    $core.int? u2,
+    $core.int? u3,
+    $core.int? u4,
+    $core.int? u5,
+  }) {
+    final $result = create();
+    if (u0 != null) {
+      $result.u0 = u0;
+    }
+    if (u1 != null) {
+      $result.u1 = u1;
+    }
+    if (u2 != null) {
+      $result.u2 = u2;
+    }
+    if (u3 != null) {
+      $result.u3 = u3;
+    }
+    if (u4 != null) {
+      $result.u4 = u4;
+    }
+    if (u5 != null) {
+      $result.u5 = u5;
+    }
+    return $result;
+  }
   Nonce._() : super();
   factory Nonce.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory Nonce.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
@@ -409,8 +544,21 @@ class Nonce extends $pb.GeneratedMessage {
   void clearU5() => clearField(6);
 }
 
+/// 36-byte typed crypto key
 class TypedKey extends $pb.GeneratedMessage {
-  factory TypedKey() => create();
+  factory TypedKey({
+    $core.int? kind,
+    CryptoKey? value,
+  }) {
+    final $result = create();
+    if (kind != null) {
+      $result.kind = kind;
+    }
+    if (value != null) {
+      $result.value = value;
+    }
+    return $result;
+  }
   TypedKey._() : super();
   factory TypedKey.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory TypedKey.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
@@ -442,6 +590,7 @@ class TypedKey extends $pb.GeneratedMessage {
   static TypedKey getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TypedKey>(create);
   static TypedKey? _defaultInstance;
 
+  /// CryptoKind FourCC in bigendian format
   @$pb.TagNumber(1)
   $core.int get kind => $_getIZ(0);
   @$pb.TagNumber(1)
@@ -451,6 +600,7 @@ class TypedKey extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearKind() => clearField(1);
 
+  /// Key value
   @$pb.TagNumber(2)
   CryptoKey get value => $_getN(1);
   @$pb.TagNumber(2)
@@ -463,8 +613,21 @@ class TypedKey extends $pb.GeneratedMessage {
   CryptoKey ensureValue() => $_ensure(1);
 }
 
+/// Key pair
 class KeyPair extends $pb.GeneratedMessage {
-  factory KeyPair() => create();
+  factory KeyPair({
+    CryptoKey? key,
+    CryptoKey? secret,
+  }) {
+    final $result = create();
+    if (key != null) {
+      $result.key = key;
+    }
+    if (secret != null) {
+      $result.secret = secret;
+    }
+    return $result;
+  }
   KeyPair._() : super();
   factory KeyPair.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory KeyPair.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
@@ -496,6 +659,7 @@ class KeyPair extends $pb.GeneratedMessage {
   static KeyPair getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<KeyPair>(create);
   static KeyPair? _defaultInstance;
 
+  /// Public key
   @$pb.TagNumber(1)
   CryptoKey get key => $_getN(0);
   @$pb.TagNumber(1)
@@ -507,6 +671,7 @@ class KeyPair extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   CryptoKey ensureKey() => $_ensure(0);
 
+  /// Private key
   @$pb.TagNumber(2)
   CryptoKey get secret => $_getN(1);
   @$pb.TagNumber(2)

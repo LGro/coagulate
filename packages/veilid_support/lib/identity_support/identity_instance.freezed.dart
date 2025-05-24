@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,104 +10,76 @@ part of 'identity_instance.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-IdentityInstance _$IdentityInstanceFromJson(Map<String, dynamic> json) {
-  return _IdentityInstance.fromJson(json);
-}
 
 /// @nodoc
 mixin _$IdentityInstance {
 // Private DHT record storing identity account mapping
-  Typed<FixedEncodedString43> get recordKey =>
-      throw _privateConstructorUsedError; // Public key of identity instance
-  FixedEncodedString43 get publicKey =>
-      throw _privateConstructorUsedError; // Secret key of identity instance
-// Encrypted with DH(publicKey, SuperIdentity.secret) with appended salt
+  TypedKey get recordKey; // Public key of identity instance
+  PublicKey get publicKey; // Secret key of identity instance
+// Encrypted with appended salt, key is DeriveSharedSecret(
+//    password = SuperIdentity.secret,
+//    salt = publicKey)
 // Used to recover accounts without generating a new instance
   @Uint8ListJsonConverter()
-  Uint8List get encryptedSecretKey =>
-      throw _privateConstructorUsedError; // Signature of SuperInstance recordKey and SuperInstance publicKey
+  Uint8List
+      get encryptedSecretKey; // Signature of SuperInstance recordKey and SuperInstance publicKey
 // by publicKey
-  FixedEncodedString86 get superSignature =>
-      throw _privateConstructorUsedError; // Signature of recordKey, publicKey, encryptedSecretKey, and superSignature
+  Signature
+      get superSignature; // Signature of recordKey, publicKey, encryptedSecretKey, and superSignature
 // by SuperIdentity publicKey
-  FixedEncodedString86 get signature => throw _privateConstructorUsedError;
+  Signature get signature;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $IdentityInstanceCopyWith<IdentityInstance> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $IdentityInstanceCopyWith<$Res> {
-  factory $IdentityInstanceCopyWith(
-          IdentityInstance value, $Res Function(IdentityInstance) then) =
-      _$IdentityInstanceCopyWithImpl<$Res, IdentityInstance>;
-  @useResult
-  $Res call(
-      {Typed<FixedEncodedString43> recordKey,
-      FixedEncodedString43 publicKey,
-      @Uint8ListJsonConverter() Uint8List encryptedSecretKey,
-      FixedEncodedString86 superSignature,
-      FixedEncodedString86 signature});
-}
-
-/// @nodoc
-class _$IdentityInstanceCopyWithImpl<$Res, $Val extends IdentityInstance>
-    implements $IdentityInstanceCopyWith<$Res> {
-  _$IdentityInstanceCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of IdentityInstance
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $IdentityInstanceCopyWith<IdentityInstance> get copyWith =>
+      _$IdentityInstanceCopyWithImpl<IdentityInstance>(
+          this as IdentityInstance, _$identity);
+
+  /// Serializes this IdentityInstance to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? recordKey = null,
-    Object? publicKey = null,
-    Object? encryptedSecretKey = null,
-    Object? superSignature = null,
-    Object? signature = null,
-  }) {
-    return _then(_value.copyWith(
-      recordKey: null == recordKey
-          ? _value.recordKey
-          : recordKey // ignore: cast_nullable_to_non_nullable
-              as Typed<FixedEncodedString43>,
-      publicKey: null == publicKey
-          ? _value.publicKey
-          : publicKey // ignore: cast_nullable_to_non_nullable
-              as FixedEncodedString43,
-      encryptedSecretKey: null == encryptedSecretKey
-          ? _value.encryptedSecretKey
-          : encryptedSecretKey // ignore: cast_nullable_to_non_nullable
-              as Uint8List,
-      superSignature: null == superSignature
-          ? _value.superSignature
-          : superSignature // ignore: cast_nullable_to_non_nullable
-              as FixedEncodedString86,
-      signature: null == signature
-          ? _value.signature
-          : signature // ignore: cast_nullable_to_non_nullable
-              as FixedEncodedString86,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is IdentityInstance &&
+            (identical(other.recordKey, recordKey) ||
+                other.recordKey == recordKey) &&
+            (identical(other.publicKey, publicKey) ||
+                other.publicKey == publicKey) &&
+            const DeepCollectionEquality()
+                .equals(other.encryptedSecretKey, encryptedSecretKey) &&
+            (identical(other.superSignature, superSignature) ||
+                other.superSignature == superSignature) &&
+            (identical(other.signature, signature) ||
+                other.signature == signature));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      recordKey,
+      publicKey,
+      const DeepCollectionEquality().hash(encryptedSecretKey),
+      superSignature,
+      signature);
+
+  @override
+  String toString() {
+    return 'IdentityInstance(recordKey: $recordKey, publicKey: $publicKey, encryptedSecretKey: $encryptedSecretKey, superSignature: $superSignature, signature: $signature)';
   }
 }
 
 /// @nodoc
-abstract class _$$IdentityInstanceImplCopyWith<$Res>
-    implements $IdentityInstanceCopyWith<$Res> {
-  factory _$$IdentityInstanceImplCopyWith(_$IdentityInstanceImpl value,
-          $Res Function(_$IdentityInstanceImpl) then) =
-      __$$IdentityInstanceImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $IdentityInstanceCopyWith<$Res> {
+  factory $IdentityInstanceCopyWith(
+          IdentityInstance value, $Res Function(IdentityInstance) _then) =
+      _$IdentityInstanceCopyWithImpl;
   @useResult
   $Res call(
       {Typed<FixedEncodedString43> recordKey,
@@ -117,13 +90,15 @@ abstract class _$$IdentityInstanceImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$IdentityInstanceImplCopyWithImpl<$Res>
-    extends _$IdentityInstanceCopyWithImpl<$Res, _$IdentityInstanceImpl>
-    implements _$$IdentityInstanceImplCopyWith<$Res> {
-  __$$IdentityInstanceImplCopyWithImpl(_$IdentityInstanceImpl _value,
-      $Res Function(_$IdentityInstanceImpl) _then)
-      : super(_value, _then);
+class _$IdentityInstanceCopyWithImpl<$Res>
+    implements $IdentityInstanceCopyWith<$Res> {
+  _$IdentityInstanceCopyWithImpl(this._self, this._then);
 
+  final IdentityInstance _self;
+  final $Res Function(IdentityInstance) _then;
+
+  /// Create a copy of IdentityInstance
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -133,25 +108,25 @@ class __$$IdentityInstanceImplCopyWithImpl<$Res>
     Object? superSignature = null,
     Object? signature = null,
   }) {
-    return _then(_$IdentityInstanceImpl(
+    return _then(_self.copyWith(
       recordKey: null == recordKey
-          ? _value.recordKey
+          ? _self.recordKey!
           : recordKey // ignore: cast_nullable_to_non_nullable
               as Typed<FixedEncodedString43>,
       publicKey: null == publicKey
-          ? _value.publicKey
+          ? _self.publicKey!
           : publicKey // ignore: cast_nullable_to_non_nullable
               as FixedEncodedString43,
       encryptedSecretKey: null == encryptedSecretKey
-          ? _value.encryptedSecretKey
+          ? _self.encryptedSecretKey
           : encryptedSecretKey // ignore: cast_nullable_to_non_nullable
               as Uint8List,
       superSignature: null == superSignature
-          ? _value.superSignature
+          ? _self.superSignature!
           : superSignature // ignore: cast_nullable_to_non_nullable
               as FixedEncodedString86,
       signature: null == signature
-          ? _value.signature
+          ? _self.signature!
           : signature // ignore: cast_nullable_to_non_nullable
               as FixedEncodedString86,
     ));
@@ -160,17 +135,16 @@ class __$$IdentityInstanceImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$IdentityInstanceImpl extends _IdentityInstance {
-  const _$IdentityInstanceImpl(
+class _IdentityInstance extends IdentityInstance {
+  const _IdentityInstance(
       {required this.recordKey,
       required this.publicKey,
       @Uint8ListJsonConverter() required this.encryptedSecretKey,
       required this.superSignature,
       required this.signature})
       : super._();
-
-  factory _$IdentityInstanceImpl.fromJson(Map<String, dynamic> json) =>
-      _$$IdentityInstanceImplFromJson(json);
+  factory _IdentityInstance.fromJson(Map<String, dynamic> json) =>
+      _$IdentityInstanceFromJson(json);
 
 // Private DHT record storing identity account mapping
   @override
@@ -179,7 +153,9 @@ class _$IdentityInstanceImpl extends _IdentityInstance {
   @override
   final FixedEncodedString43 publicKey;
 // Secret key of identity instance
-// Encrypted with DH(publicKey, SuperIdentity.secret) with appended salt
+// Encrypted with appended salt, key is DeriveSharedSecret(
+//    password = SuperIdentity.secret,
+//    salt = publicKey)
 // Used to recover accounts without generating a new instance
   @override
   @Uint8ListJsonConverter()
@@ -193,16 +169,26 @@ class _$IdentityInstanceImpl extends _IdentityInstance {
   @override
   final FixedEncodedString86 signature;
 
+  /// Create a copy of IdentityInstance
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'IdentityInstance(recordKey: $recordKey, publicKey: $publicKey, encryptedSecretKey: $encryptedSecretKey, superSignature: $superSignature, signature: $signature)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$IdentityInstanceCopyWith<_IdentityInstance> get copyWith =>
+      __$IdentityInstanceCopyWithImpl<_IdentityInstance>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$IdentityInstanceToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$IdentityInstanceImpl &&
+            other is _IdentityInstance &&
             (identical(other.recordKey, recordKey) ||
                 other.recordKey == recordKey) &&
             (identical(other.publicKey, publicKey) ||
@@ -215,7 +201,7 @@ class _$IdentityInstanceImpl extends _IdentityInstance {
                 other.signature == signature));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -225,50 +211,70 @@ class _$IdentityInstanceImpl extends _IdentityInstance {
       superSignature,
       signature);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$IdentityInstanceImplCopyWith<_$IdentityInstanceImpl> get copyWith =>
-      __$$IdentityInstanceImplCopyWithImpl<_$IdentityInstanceImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$IdentityInstanceImplToJson(
-      this,
-    );
+  String toString() {
+    return 'IdentityInstance(recordKey: $recordKey, publicKey: $publicKey, encryptedSecretKey: $encryptedSecretKey, superSignature: $superSignature, signature: $signature)';
   }
 }
 
-abstract class _IdentityInstance extends IdentityInstance {
-  const factory _IdentityInstance(
-      {required final Typed<FixedEncodedString43> recordKey,
-      required final FixedEncodedString43 publicKey,
-      @Uint8ListJsonConverter() required final Uint8List encryptedSecretKey,
-      required final FixedEncodedString86 superSignature,
-      required final FixedEncodedString86 signature}) = _$IdentityInstanceImpl;
-  const _IdentityInstance._() : super._();
-
-  factory _IdentityInstance.fromJson(Map<String, dynamic> json) =
-      _$IdentityInstanceImpl.fromJson;
-
-  @override // Private DHT record storing identity account mapping
-  Typed<FixedEncodedString43> get recordKey;
-  @override // Public key of identity instance
-  FixedEncodedString43 get publicKey;
-  @override // Secret key of identity instance
-// Encrypted with DH(publicKey, SuperIdentity.secret) with appended salt
-// Used to recover accounts without generating a new instance
-  @Uint8ListJsonConverter()
-  Uint8List get encryptedSecretKey;
-  @override // Signature of SuperInstance recordKey and SuperInstance publicKey
-// by publicKey
-  FixedEncodedString86 get superSignature;
-  @override // Signature of recordKey, publicKey, encryptedSecretKey, and superSignature
-// by SuperIdentity publicKey
-  FixedEncodedString86 get signature;
+/// @nodoc
+abstract mixin class _$IdentityInstanceCopyWith<$Res>
+    implements $IdentityInstanceCopyWith<$Res> {
+  factory _$IdentityInstanceCopyWith(
+          _IdentityInstance value, $Res Function(_IdentityInstance) _then) =
+      __$IdentityInstanceCopyWithImpl;
   @override
-  @JsonKey(ignore: true)
-  _$$IdentityInstanceImplCopyWith<_$IdentityInstanceImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @useResult
+  $Res call(
+      {Typed<FixedEncodedString43> recordKey,
+      FixedEncodedString43 publicKey,
+      @Uint8ListJsonConverter() Uint8List encryptedSecretKey,
+      FixedEncodedString86 superSignature,
+      FixedEncodedString86 signature});
 }
+
+/// @nodoc
+class __$IdentityInstanceCopyWithImpl<$Res>
+    implements _$IdentityInstanceCopyWith<$Res> {
+  __$IdentityInstanceCopyWithImpl(this._self, this._then);
+
+  final _IdentityInstance _self;
+  final $Res Function(_IdentityInstance) _then;
+
+  /// Create a copy of IdentityInstance
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? recordKey = null,
+    Object? publicKey = null,
+    Object? encryptedSecretKey = null,
+    Object? superSignature = null,
+    Object? signature = null,
+  }) {
+    return _then(_IdentityInstance(
+      recordKey: null == recordKey
+          ? _self.recordKey
+          : recordKey // ignore: cast_nullable_to_non_nullable
+              as Typed<FixedEncodedString43>,
+      publicKey: null == publicKey
+          ? _self.publicKey
+          : publicKey // ignore: cast_nullable_to_non_nullable
+              as FixedEncodedString43,
+      encryptedSecretKey: null == encryptedSecretKey
+          ? _self.encryptedSecretKey
+          : encryptedSecretKey // ignore: cast_nullable_to_non_nullable
+              as Uint8List,
+      superSignature: null == superSignature
+          ? _self.superSignature
+          : superSignature // ignore: cast_nullable_to_non_nullable
+              as FixedEncodedString86,
+      signature: null == signature
+          ? _self.signature
+          : signature // ignore: cast_nullable_to_non_nullable
+              as FixedEncodedString86,
+    ));
+  }
+}
+
+// dart format on

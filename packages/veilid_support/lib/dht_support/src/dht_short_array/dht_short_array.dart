@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:async_tools/async_tools.dart';
 import 'package:collection/collection.dart';
 
+import '../../../src/veilid_log.dart';
 import '../../../veilid_support.dart';
 import '../../proto/proto.dart' as proto;
 
@@ -68,7 +69,7 @@ class DHTShortArray implements DHTDeleteable<DHTShortArray> {
         }
       });
       return dhtShortArray;
-    } on Exception catch (_) {
+    } on Exception {
       await dhtRecord.close();
       await pool.deleteRecord(dhtRecord.key);
       rethrow;
@@ -89,7 +90,7 @@ class DHTShortArray implements DHTDeleteable<DHTShortArray> {
       final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
       await dhtShortArray._head.operate((head) => head._loadHead());
       return dhtShortArray;
-    } on Exception catch (_) {
+    } on Exception {
       await dhtRecord.close();
       rethrow;
     }
@@ -113,7 +114,7 @@ class DHTShortArray implements DHTDeleteable<DHTShortArray> {
       final dhtShortArray = DHTShortArray._(headRecord: dhtRecord);
       await dhtShortArray._head.operate((head) => head._loadHead());
       return dhtShortArray;
-    } on Exception catch (_) {
+    } on Exception {
       await dhtRecord.close();
       rethrow;
     }
@@ -148,33 +149,32 @@ class DHTShortArray implements DHTDeleteable<DHTShortArray> {
 
   /// Add a reference to this shortarray
   @override
-  Future<void> ref() async => _mutex.protect(() async {
-        _openCount++;
-      });
+  void ref() {
+    _openCount++;
+  }
 
   /// Free all resources for the DHTShortArray
   @override
-  Future<bool> close() async => _mutex.protect(() async {
-        if (_openCount == 0) {
-          throw StateError('already closed');
-        }
-        _openCount--;
-        if (_openCount != 0) {
-          return false;
-        }
+  Future<bool> close() async {
+    if (_openCount == 0) {
+      throw StateError('already closed');
+    }
+    _openCount--;
+    if (_openCount != 0) {
+      return false;
+    }
 
-        await _watchController?.close();
-        _watchController = null;
-        await _head.close();
-        return true;
-      });
+    await _watchController?.close();
+    _watchController = null;
+    await _head.close();
+    return true;
+  }
 
   /// Free all resources for the DHTShortArray and delete it from the DHT
-  /// Will wait until the short array is closed to delete it
+  /// Returns true if the deletion was processed immediately
+  /// Returns false if the deletion was marked for later
   @override
-  Future<void> delete() async {
-    await _head.delete();
-  }
+  Future<bool> delete() async => _head.delete();
 
   ////////////////////////////////////////////////////////////////////////////
   // Public API
@@ -289,10 +289,9 @@ class DHTShortArray implements DHTDeleteable<DHTShortArray> {
 
   // Openable
   int _openCount;
-  final _mutex = Mutex();
 
   // Watch mutex to ensure we keep the representation valid
-  final Mutex _listenMutex = Mutex();
+  final Mutex _listenMutex = Mutex(debugLockTimeout: kIsDebugMode ? 60 : null);
   // Stream of external changes
   StreamController<void>? _watchController;
 }

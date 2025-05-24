@@ -9,6 +9,7 @@ abstract class DHTShortArrayWriteOperations
         DHTRandomWrite,
         DHTInsertRemove,
         DHTAdd,
+        DHTTruncate,
         DHTClear {}
 
 class _DHTShortArrayWrite extends _DHTShortArrayRead
@@ -40,7 +41,7 @@ class _DHTShortArrayWrite extends _DHTShortArrayRead
       }
     }
     if (!success) {
-      throw DHTExceptionOutdated();
+      throw const DHTExceptionOutdated();
     }
   }
 
@@ -72,10 +73,16 @@ class _DHTShortArrayWrite extends _DHTShortArrayRead
         final value = values[i];
         final outSeqNum = outSeqNums[i];
         dws.add((_) async {
-          final outValue = await lookup.record.tryWriteBytes(value,
-              subkey: lookup.recordSubkey, outSeqNum: outSeqNum);
-          if (outValue != null) {
-            success = false;
+          try {
+            final outValue = await lookup.record.tryWriteBytes(value,
+                subkey: lookup.recordSubkey, outSeqNum: outSeqNum);
+            if (outValue != null) {
+              success = false;
+            }
+            // Need some way to debug ParallelWaitError
+            // ignore: avoid_catches_without_on_clauses
+          } catch (e, st) {
+            veilidLoggy.error('$e\n$st\n');
           }
         });
       }
@@ -97,7 +104,7 @@ class _DHTShortArrayWrite extends _DHTShortArrayRead
       }
     }
     if (!success) {
-      throw DHTExceptionOutdated();
+      throw const DHTExceptionOutdated();
     }
   }
 
@@ -122,7 +129,7 @@ class _DHTShortArrayWrite extends _DHTShortArrayRead
 
     final outSeqNum = Output<int>();
 
-    final result = lookup.seq == 0xFFFFFFFF
+    final result = lookup.seq == null
         ? null
         : await lookup.record.get(subkey: lookup.recordSubkey);
 
@@ -143,6 +150,11 @@ class _DHTShortArrayWrite extends _DHTShortArrayRead
   }
 
   @override
+  Future<void> truncate(int newLength) async {
+    _head.truncate(newLength);
+  }
+
+  @override
   Future<bool> tryWriteItem(int pos, Uint8List newValue,
       {Output<Uint8List>? output}) async {
     if (pos < 0 || pos >= _head.length) {
@@ -151,7 +163,7 @@ class _DHTShortArrayWrite extends _DHTShortArrayRead
     final lookup = await _head.lookupPosition(pos, true);
 
     final outSeqNumRead = Output<int>();
-    final oldValue = lookup.seq == 0xFFFFFFFF
+    final oldValue = lookup.seq == null
         ? null
         : await lookup.record
             .get(subkey: lookup.recordSubkey, outSeqNum: outSeqNumRead);

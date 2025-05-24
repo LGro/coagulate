@@ -52,8 +52,11 @@ class DefaultDHTRecordCubit<T> extends DHTRecordCubit<T> {
 
   Future<void> refreshDefault() async {
     await initWait();
-
-    final defaultSubkey = record.subkeyOrDefault(-1);
-    await refresh([ValueSubkeyRange(low: defaultSubkey, high: defaultSubkey)]);
+    final rec = record;
+    if (rec != null) {
+      final defaultSubkey = rec.subkeyOrDefault(-1);
+      await refresh(
+          [ValueSubkeyRange(low: defaultSubkey, high: defaultSubkey)]);
+    }
   }
 }

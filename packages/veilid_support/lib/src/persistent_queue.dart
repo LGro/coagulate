@@ -5,7 +5,9 @@ import 'package:async_tools/async_tools.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:protobuf/protobuf.dart';
 
+import 'config.dart';
 import 'table_db.dart';
+import 'veilid_log.dart';
 
 class PersistentQueue<T extends GeneratedMessage>
     with TableDBBackedFromBuffer<IList<T>> {
@@ -45,7 +47,7 @@ class PersistentQueue<T extends GeneratedMessage>
     }
   }
 
-  Future<void> _init(_) async {
+  Future<void> _init(Completer<void> _) async {
     // Start the processor
     unawaited(Future.delayed(Duration.zero, () async {
       await _initWait();
@@ -181,10 +183,28 @@ class PersistentQueue<T extends GeneratedMessage>
 
   @override
   IList<T> valueFromBuffer(Uint8List bytes) {
-    final reader = CodedBufferReader(bytes);
     var out = IList<T>();
-    while (!reader.isAtEnd()) {
-      out = out.add(_fromBuffer(reader.readBytesAsView()));
+    try {
+      final reader = CodedBufferReader(bytes);
+      while (!reader.isAtEnd()) {
+        final bytes = reader.readBytesAsView();
+        try {
+          final item = _fromBuffer(bytes);
+          out = out.add(item);
+        } on Exception catch (e, st) {
+          veilidLoggy.debug(
+              'Dropping invalid item from persistent queue: $bytes\n'
+              'tableName=${tableName()}:tableKeyName=${tableKeyName()}\n',
+              e,
+              st);
+        }
+      }
+    } on Exception catch (e, st) {
+      veilidLoggy.debug(
+          'Dropping remainder of invalid persistent queue\n'
+          'tableName=${tableName()}:tableKeyName=${tableKeyName()}\n',
+          e,
+          st);
     }
     return out;
   }
@@ -203,7 +223,7 @@ class PersistentQueue<T extends GeneratedMessage>
   final T Function(Uint8List) _fromBuffer;
   final bool _deleteOnClose;
   final WaitSet<void, void> _initWait = WaitSet();
-  final Mutex _queueMutex = Mutex();
+  final Mutex _queueMutex = Mutex(debugLockTimeout: kIsDebugMode ? 60 : null);
   IList<T> _queue = IList<T>.empty();
   final StreamController<Iterable<T>> _syncAddController = StreamController();
   final StreamController<void> _queueReady = StreamController();

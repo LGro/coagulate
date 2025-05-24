@@ -1,15 +1,11 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
-import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:coagulate/ui/contact_details/page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import '../mocked_providers.dart';
 
 Future<Widget> createContactPage(
         ContactsRepository contactsRepository, String coagContactId) async =>

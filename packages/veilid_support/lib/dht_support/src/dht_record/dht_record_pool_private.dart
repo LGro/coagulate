@@ -1,12 +1,5 @@
 part of 'dht_record_pool.dart';
 
-const int _watchBackoffMultiplier = 2;
-const int _watchBackoffMax = 30;
-
-const int? _defaultWatchDurationSecs = null; // 600
-const int _watchRenewalNumerator = 4;
-const int _watchRenewalDenominator = 5;
-
 // DHT crypto domain
 const String _cryptoDomainDHT = 'dht';
 
@@ -17,21 +10,17 @@ const _sfListen = 'listen';
 /// Watch state
 @immutable
 class _WatchState extends Equatable {
-  const _WatchState(
-      {required this.subkeys,
-      required this.expiration,
-      required this.count,
-      this.realExpiration,
-      this.renewalTime});
+  const _WatchState({
+    required this.subkeys,
+    required this.expiration,
+    required this.count,
+  });
   final List<ValueSubkeyRange>? subkeys;
   final Timestamp? expiration;
   final int? count;
-  final Timestamp? realExpiration;
-  final Timestamp? renewalTime;
 
   @override
-  List<Object?> get props =>
-      [subkeys, expiration, count, realExpiration, renewalTime];
+  List<Object?> get props => [subkeys, expiration, count];
 }
 
 /// Data shared amongst all DHTRecord instances

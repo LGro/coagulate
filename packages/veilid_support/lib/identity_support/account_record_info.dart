@@ -8,7 +8,7 @@ part 'account_record_info.g.dart';
 /// AccountRecordInfo is the key and owner info for the account dht record that
 /// is stored in the identity instance record
 @freezed
-class AccountRecordInfo with _$AccountRecordInfo {
+sealed class AccountRecordInfo with _$AccountRecordInfo {
   const factory AccountRecordInfo({
     // Top level account keys and secrets
     required OwnedDHTRecordPointer accountRecord,

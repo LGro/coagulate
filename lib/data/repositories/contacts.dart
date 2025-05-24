@@ -379,6 +379,11 @@ class ContactsRepository {
       }
 
       return success;
+    } on DHTExceptionNotAvailable catch (e) {
+      // TODO: Report / log them somewhere accessible for debugging?
+      // TODO: Handle if connected but record unavailable -> suggest reconnect
+      debugPrint('Veilid API ERROR: $e');
+      return false;
     } on VeilidAPIException catch (e) {
       // TODO: Report / log them somewhere accessible for debugging?
       // TODO: Handle if connected but record unavailable -> suggest reconnect
@@ -1054,6 +1059,9 @@ class ContactsRepository {
           subkey: subkey);
     } on FormatException catch (e) {
       debugPrint('Batch update format error for subkey $subkey: $e');
+    } on DHTExceptionNotAvailable catch (e) {
+      debugPrint(
+          'Batch update DHTExceptionNotAvailable for subkey $subkey: $e');
     } on VeilidAPIException catch (e) {
       debugPrint('Batch update veilid error for subkey $subkey: $e');
     } finally {

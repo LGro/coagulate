@@ -1,4 +1,4 @@
-package social.coagulate.coagulate
+package social.coagulate.app
 
 import io.flutter.embedding.android.FlutterActivity
 

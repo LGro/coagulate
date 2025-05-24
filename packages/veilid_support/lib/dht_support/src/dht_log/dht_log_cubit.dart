@@ -31,13 +31,21 @@ class DHTLogStateData<T> extends Equatable {
 
   @override
   List<Object?> get props => [length, window, windowTail, windowSize, follow];
+
+  @override
+  String toString() => 'DHTLogStateData('
+      'length: $length, '
+      'windowTail: $windowTail, '
+      'windowSize: $windowSize, '
+      'follow: $follow, '
+      'window: ${DynamicDebug.toDebug(window)})';
 }
 
 typedef DHTLogState<T> = AsyncValue<DHTLogStateData<T>>;
 typedef DHTLogBusyState<T> = BlocBusyState<DHTLogState<T>>;
 
 class DHTLogCubit<T> extends Cubit<DHTLogBusyState<T>>
-    with BlocBusyWrapper<DHTLogState<T>> {
+    with BlocBusyWrapper<DHTLogState<T>>, RefreshableCubit {
   DHTLogCubit({
     required Future<DHTLog> Function() open,
     required T Function(List<int> data) decodeElement,
@@ -52,12 +60,13 @@ class DHTLogCubit<T> extends Cubit<DHTLogBusyState<T>>
             _log = await open();
             _wantsCloseRecord = true;
             break;
-          } on VeilidAPIExceptionTryAgain {
+          } on DHTExceptionNotAvailable {
             // Wait for a bit
             await asyncSleep();
           }
         }
       } on Exception catch (e, st) {
+        addError(e, st);
         emit(DHTLogBusyState(AsyncValue.error(e, st)));
         return;
       }
@@ -91,6 +100,7 @@ class DHTLogCubit<T> extends Cubit<DHTLogBusyState<T>>
     await _refreshNoWait(forceRefresh: forceRefresh);
   }
 
+  @override
   Future<void> refresh({bool forceRefresh = false}) async {
     await _initWait();
     await _refreshNoWait(forceRefresh: forceRefresh);
@@ -101,68 +111,55 @@ class DHTLogCubit<T> extends Cubit<DHTLogBusyState<T>>
 
   Future<void> _refreshInner(void Function(AsyncValue<DHTLogStateData<T>>) emit,
       {bool forceRefresh = false}) async {
-    late final AsyncValue<IList<OnlineElementState<T>>> avElements;
     late final int length;
-    await _log.operate((reader) async {
+    final windowElements = await _log.operate((reader) async {
       length = reader.length;
-      avElements =
-          await loadElementsFromReader(reader, _windowTail, _windowSize);
+      return _loadElementsFromReader(reader, _windowTail, _windowSize);
     });
-    final err = avElements.asError;
-    if (err != null) {
-      emit(AsyncValue.error(err.error, err.stackTrace));
+    if (windowElements == null) {
+      setWantsRefresh();
       return;
     }
-    final loading = avElements.asLoading;
-    if (loading != null) {
-      emit(const AsyncValue.loading());
-      return;
-    }
-    final window = avElements.asData!.value;
+
     emit(AsyncValue.data(DHTLogStateData(
         length: length,
-        window: window,
-        windowTail: _windowTail,
-        windowSize: _windowSize,
+        window: windowElements.$2,
+        windowTail: windowElements.$1 + windowElements.$2.length,
+        windowSize: windowElements.$2.length,
         follow: _follow)));
+    setRefreshed();
   }
 
   // Tail is one past the last element to load
-  Future<AsyncValue<IList<OnlineElementState<T>>>> loadElementsFromReader(
+  Future<(int, IList<OnlineElementState<T>>)?> _loadElementsFromReader(
       DHTLogReadOperations reader, int tail, int count,
       {bool forceRefresh = false}) async {
-    try {
-      final length = reader.length;
-      if (length == 0) {
-        return const AsyncValue.data(IList.empty());
-      }
-      final end = ((tail - 1) % length) + 1;
-      final start = (count < end) ? end - count : 0;
-
-      // If this is writeable get the offline positions
-      Set<int>? offlinePositions;
-      if (_log.writer != null) {
-        offlinePositions = await reader.getOfflinePositions();
-        if (offlinePositions == null) {
-          return const AsyncValue.loading();
-        }
-      }
-
-      // Get the items
-      final allItems = (await reader.getRange(start,
-              length: end - start, forceRefresh: forceRefresh))
-          ?.indexed
-          .map((x) => OnlineElementState(
-              value: _decodeElement(x.$2),
-              isOffline: offlinePositions?.contains(x.$1) ?? false))
-          .toIList();
-      if (allItems == null) {
-        return const AsyncValue.loading();
-      }
-      return AsyncValue.data(allItems);
-    } on Exception catch (e, st) {
-      return AsyncValue.error(e, st);
+    final length = reader.length;
+    final end = ((tail - 1) % length) + 1;
+    final start = (count < end) ? end - count : 0;
+    if (length == 0) {
+      return (start, IList<OnlineElementState<T>>.empty());
     }
+
+    // If this is writeable get the offline positions
+    Set<int>? offlinePositions;
+    if (_log.writer != null) {
+      offlinePositions = await reader.getOfflinePositions();
+    }
+
+    // Get the items
+    final allItems = (await reader.getRange(start,
+            length: end - start, forceRefresh: forceRefresh))
+        ?.indexed
+        .map((x) => OnlineElementState(
+            value: _decodeElement(x.$2),
+            isOffline: offlinePositions?.contains(x.$1) ?? false))
+        .toIList();
+    if (allItems == null) {
+      return null;
+    }
+
+    return (start, allItems);
   }
 
   void _update(DHTLogUpdate upd) {

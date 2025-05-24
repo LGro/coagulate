@@ -57,23 +57,19 @@ void processLog(VeilidLog log) {
   switch (log.logLevel) {
     case VeilidLogLevel.error:
       veilidLoggy.error(log.message, error, stackTrace);
-      break;
     case VeilidLogLevel.warn:
       veilidLoggy.warning(log.message, error, stackTrace);
-      break;
     case VeilidLogLevel.info:
       veilidLoggy.info(log.message, error, stackTrace);
-      break;
     case VeilidLogLevel.debug:
       veilidLoggy.debug(log.message, error, stackTrace);
-      break;
     case VeilidLogLevel.trace:
       veilidLoggy.trace(log.message, error, stackTrace);
-      break;
   }
 }
 
 void initVeilidLog(bool debugMode) {
+  // Always allow LOG_TRACE option
   // ignore: do_not_use_environment
   const isTrace = String.fromEnvironment('LOG_TRACE') != '';
   LogLevel logLevel;

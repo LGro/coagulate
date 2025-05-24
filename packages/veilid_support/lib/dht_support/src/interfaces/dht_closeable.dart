@@ -4,7 +4,7 @@ import 'package:meta/meta.dart';
 
 abstract class DHTCloseable<D> {
   // Public interface
-  Future<void> ref();
+  void ref();
   Future<bool> close();
 
   // Internal implementation
@@ -15,7 +15,9 @@ abstract class DHTCloseable<D> {
 }
 
 abstract class DHTDeleteable<D> extends DHTCloseable<D> {
-  Future<void> delete();
+  /// Returns true if the deletion was processed immediately
+  /// Returns false if the deletion was marked for later
+  Future<bool> delete();
 }
 
 extension DHTCloseableExt<D> on DHTCloseable<D> {

@@ -4,6 +4,7 @@ import 'package:async_tools/async_tools.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
+import 'config.dart';
 import 'table_db.dart';
 
 abstract class AsyncTableDBBackedCubit<T> extends Cubit<AsyncValue<T?>>
@@ -27,8 +28,9 @@ abstract class AsyncTableDBBackedCubit<T> extends Cubit<AsyncValue<T?>>
       await _mutex.protect(() async {
         emit(AsyncValue.data(await load()));
       });
-    } on Exception catch (e, stackTrace) {
-      emit(AsyncValue.error(e, stackTrace));
+    } on Exception catch (e, st) {
+      addError(e, st);
+      emit(AsyncValue.error(e, st));
     }
   }
 
@@ -37,11 +39,12 @@ abstract class AsyncTableDBBackedCubit<T> extends Cubit<AsyncValue<T?>>
     await _initWait();
     try {
       emit(AsyncValue.data(await store(newState)));
-    } on Exception catch (e, stackTrace) {
-      emit(AsyncValue.error(e, stackTrace));
+    } on Exception catch (e, st) {
+      addError(e, st);
+      emit(AsyncValue.error(e, st));
     }
   }
 
   final WaitSet<void, void> _initWait = WaitSet();
-  final Mutex _mutex = Mutex();
+  final Mutex _mutex = Mutex(debugLockTimeout: kIsDebugMode ? 60 : null);
 }

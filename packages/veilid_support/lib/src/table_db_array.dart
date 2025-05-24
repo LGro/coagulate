@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import 'package:protobuf/protobuf.dart';
 
 import '../veilid_support.dart';
+import 'veilid_log.dart';
 
 @immutable
 class TableDBArrayUpdate extends Equatable {
@@ -262,7 +263,16 @@ class _TableDBArrayBase {
       final dws = DelayedWaitSet<Uint8List, void>();
       while (batchLen > 0) {
         final entry = await _getIndexEntry(pos);
-        dws.add((_) async => (await _loadEntry(entry))!);
+        dws.add((_) async {
+          try {
+            return (await _loadEntry(entry))!;
+            // Need some way to debug ParallelWaitError
+            // ignore: avoid_catches_without_on_clauses
+          } catch (e, st) {
+            veilidLoggy.error('$e\n$st\n');
+            rethrow;
+          }
+        });
         pos++;
         batchLen--;
       }
@@ -614,7 +624,7 @@ class _TableDBArrayBase {
   var _initDone = false;
   final VeilidCrypto _crypto;
   final WaitSet<void, void> _initWait = WaitSet();
-  final Mutex _mutex = Mutex();
+  final Mutex _mutex = Mutex(debugLockTimeout: kIsDebugMode ? 60 : null);
 
   // Change tracking
   int _headDelta = 0;

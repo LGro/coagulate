@@ -10,7 +10,7 @@ part 'identity_instance.freezed.dart';
 part 'identity_instance.g.dart';
 
 @freezed
-class IdentityInstance with _$IdentityInstance {
+sealed class IdentityInstance with _$IdentityInstance {
   const factory IdentityInstance({
     // Private DHT record storing identity account mapping
     required TypedKey recordKey,

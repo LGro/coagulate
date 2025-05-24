@@ -22,7 +22,7 @@ part 'super_identity.g.dart';
 /// DHT Owner Secret: SuperIdentity Secret Key (kept offline)
 /// Encryption: None
 @freezed
-class SuperIdentity with _$SuperIdentity {
+sealed class SuperIdentity with _$SuperIdentity {
   const factory SuperIdentity({
     /// Public DHT record storing this structure for account recovery
     /// changing this can migrate/forward the SuperIdentity to a new DHT record

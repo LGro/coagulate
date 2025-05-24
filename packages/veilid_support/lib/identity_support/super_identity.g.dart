@@ -6,8 +6,8 @@ part of 'super_identity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SuperIdentityImpl _$$SuperIdentityImplFromJson(Map<String, dynamic> json) =>
-    _$SuperIdentityImpl(
+_SuperIdentity _$SuperIdentityFromJson(Map<String, dynamic> json) =>
+    _SuperIdentity(
       recordKey: Typed<FixedEncodedString43>.fromJson(json['record_key']),
       publicKey: FixedEncodedString43.fromJson(json['public_key']),
       currentInstance: IdentityInstance.fromJson(json['current_instance']),
@@ -21,7 +21,7 @@ _$SuperIdentityImpl _$$SuperIdentityImplFromJson(Map<String, dynamic> json) =>
       signature: FixedEncodedString86.fromJson(json['signature']),
     );
 
-Map<String, dynamic> _$$SuperIdentityImplToJson(_$SuperIdentityImpl instance) =>
+Map<String, dynamic> _$SuperIdentityToJson(_SuperIdentity instance) =>
     <String, dynamic>{
       'record_key': instance.recordKey.toJson(),
       'public_key': instance.publicKey.toJson(),

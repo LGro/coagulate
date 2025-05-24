@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,31 +10,49 @@ part of 'account_record_info.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-AccountRecordInfo _$AccountRecordInfoFromJson(Map<String, dynamic> json) {
-  return _AccountRecordInfo.fromJson(json);
-}
 
 /// @nodoc
 mixin _$AccountRecordInfo {
 // Top level account keys and secrets
-  OwnedDHTRecordPointer get accountRecord => throw _privateConstructorUsedError;
+  OwnedDHTRecordPointer get accountRecord;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+  /// Create a copy of AccountRecordInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $AccountRecordInfoCopyWith<AccountRecordInfo> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$AccountRecordInfoCopyWithImpl<AccountRecordInfo>(
+          this as AccountRecordInfo, _$identity);
+
+  /// Serializes this AccountRecordInfo to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is AccountRecordInfo &&
+            (identical(other.accountRecord, accountRecord) ||
+                other.accountRecord == accountRecord));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, accountRecord);
+
+  @override
+  String toString() {
+    return 'AccountRecordInfo(accountRecord: $accountRecord)';
+  }
 }
 
 /// @nodoc
-abstract class $AccountRecordInfoCopyWith<$Res> {
+abstract mixin class $AccountRecordInfoCopyWith<$Res> {
   factory $AccountRecordInfoCopyWith(
-          AccountRecordInfo value, $Res Function(AccountRecordInfo) then) =
-      _$AccountRecordInfoCopyWithImpl<$Res, AccountRecordInfo>;
+          AccountRecordInfo value, $Res Function(AccountRecordInfo) _then) =
+      _$AccountRecordInfoCopyWithImpl;
   @useResult
   $Res call({OwnedDHTRecordPointer accountRecord});
 
@@ -41,130 +60,130 @@ abstract class $AccountRecordInfoCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$AccountRecordInfoCopyWithImpl<$Res, $Val extends AccountRecordInfo>
+class _$AccountRecordInfoCopyWithImpl<$Res>
     implements $AccountRecordInfoCopyWith<$Res> {
-  _$AccountRecordInfoCopyWithImpl(this._value, this._then);
+  _$AccountRecordInfoCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final AccountRecordInfo _self;
+  final $Res Function(AccountRecordInfo) _then;
 
+  /// Create a copy of AccountRecordInfo
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? accountRecord = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       accountRecord: null == accountRecord
-          ? _value.accountRecord
+          ? _self.accountRecord
           : accountRecord // ignore: cast_nullable_to_non_nullable
               as OwnedDHTRecordPointer,
-    ) as $Val);
+    ));
   }
 
+  /// Create a copy of AccountRecordInfo
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $OwnedDHTRecordPointerCopyWith<$Res> get accountRecord {
-    return $OwnedDHTRecordPointerCopyWith<$Res>(_value.accountRecord, (value) {
-      return _then(_value.copyWith(accountRecord: value) as $Val);
+    return $OwnedDHTRecordPointerCopyWith<$Res>(_self.accountRecord, (value) {
+      return _then(_self.copyWith(accountRecord: value));
     });
   }
 }
 
 /// @nodoc
-abstract class _$$AccountRecordInfoImplCopyWith<$Res>
-    implements $AccountRecordInfoCopyWith<$Res> {
-  factory _$$AccountRecordInfoImplCopyWith(_$AccountRecordInfoImpl value,
-          $Res Function(_$AccountRecordInfoImpl) then) =
-      __$$AccountRecordInfoImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({OwnedDHTRecordPointer accountRecord});
-
-  @override
-  $OwnedDHTRecordPointerCopyWith<$Res> get accountRecord;
-}
-
-/// @nodoc
-class __$$AccountRecordInfoImplCopyWithImpl<$Res>
-    extends _$AccountRecordInfoCopyWithImpl<$Res, _$AccountRecordInfoImpl>
-    implements _$$AccountRecordInfoImplCopyWith<$Res> {
-  __$$AccountRecordInfoImplCopyWithImpl(_$AccountRecordInfoImpl _value,
-      $Res Function(_$AccountRecordInfoImpl) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? accountRecord = null,
-  }) {
-    return _then(_$AccountRecordInfoImpl(
-      accountRecord: null == accountRecord
-          ? _value.accountRecord
-          : accountRecord // ignore: cast_nullable_to_non_nullable
-              as OwnedDHTRecordPointer,
-    ));
-  }
-}
-
-/// @nodoc
 @JsonSerializable()
-class _$AccountRecordInfoImpl implements _AccountRecordInfo {
-  const _$AccountRecordInfoImpl({required this.accountRecord});
-
-  factory _$AccountRecordInfoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$AccountRecordInfoImplFromJson(json);
+class _AccountRecordInfo implements AccountRecordInfo {
+  const _AccountRecordInfo({required this.accountRecord});
+  factory _AccountRecordInfo.fromJson(Map<String, dynamic> json) =>
+      _$AccountRecordInfoFromJson(json);
 
 // Top level account keys and secrets
   @override
   final OwnedDHTRecordPointer accountRecord;
 
+  /// Create a copy of AccountRecordInfo
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'AccountRecordInfo(accountRecord: $accountRecord)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$AccountRecordInfoCopyWith<_AccountRecordInfo> get copyWith =>
+      __$AccountRecordInfoCopyWithImpl<_AccountRecordInfo>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$AccountRecordInfoToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$AccountRecordInfoImpl &&
+            other is _AccountRecordInfo &&
             (identical(other.accountRecord, accountRecord) ||
                 other.accountRecord == accountRecord));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, accountRecord);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$AccountRecordInfoImplCopyWith<_$AccountRecordInfoImpl> get copyWith =>
-      __$$AccountRecordInfoImplCopyWithImpl<_$AccountRecordInfoImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$AccountRecordInfoImplToJson(
-      this,
-    );
+  String toString() {
+    return 'AccountRecordInfo(accountRecord: $accountRecord)';
   }
 }
 
-abstract class _AccountRecordInfo implements AccountRecordInfo {
-  const factory _AccountRecordInfo(
-          {required final OwnedDHTRecordPointer accountRecord}) =
-      _$AccountRecordInfoImpl;
-
-  factory _AccountRecordInfo.fromJson(Map<String, dynamic> json) =
-      _$AccountRecordInfoImpl.fromJson;
-
-  @override // Top level account keys and secrets
-  OwnedDHTRecordPointer get accountRecord;
+/// @nodoc
+abstract mixin class _$AccountRecordInfoCopyWith<$Res>
+    implements $AccountRecordInfoCopyWith<$Res> {
+  factory _$AccountRecordInfoCopyWith(
+          _AccountRecordInfo value, $Res Function(_AccountRecordInfo) _then) =
+      __$AccountRecordInfoCopyWithImpl;
   @override
-  @JsonKey(ignore: true)
-  _$$AccountRecordInfoImplCopyWith<_$AccountRecordInfoImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @useResult
+  $Res call({OwnedDHTRecordPointer accountRecord});
+
+  @override
+  $OwnedDHTRecordPointerCopyWith<$Res> get accountRecord;
 }
+
+/// @nodoc
+class __$AccountRecordInfoCopyWithImpl<$Res>
+    implements _$AccountRecordInfoCopyWith<$Res> {
+  __$AccountRecordInfoCopyWithImpl(this._self, this._then);
+
+  final _AccountRecordInfo _self;
+  final $Res Function(_AccountRecordInfo) _then;
+
+  /// Create a copy of AccountRecordInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? accountRecord = null,
+  }) {
+    return _then(_AccountRecordInfo(
+      accountRecord: null == accountRecord
+          ? _self.accountRecord
+          : accountRecord // ignore: cast_nullable_to_non_nullable
+              as OwnedDHTRecordPointer,
+    ));
+  }
+
+  /// Create a copy of AccountRecordInfo
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $OwnedDHTRecordPointerCopyWith<$Res> get accountRecord {
+    return $OwnedDHTRecordPointerCopyWith<$Res>(_self.accountRecord, (value) {
+      return _then(_self.copyWith(accountRecord: value));
+    });
+  }
+}
+
+// dart format on

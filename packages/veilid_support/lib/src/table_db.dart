@@ -6,6 +6,9 @@ import 'package:async_tools/async_tools.dart';
 import 'package:meta/meta.dart';
 import 'package:veilid/veilid.dart';
 
+import '../veilid_support.dart';
+import 'veilid_log.dart';
+
 Future<T> tableScope<T>(
     String name, Future<T> Function(VeilidTableDB tdb) callback,
     {int columnCount = 1}) async {
@@ -48,11 +51,20 @@ abstract mixin class TableDBBackedJson<T> {
   /// Load things from storage
   @protected
   Future<T?> load() async {
-    final obj = await tableScope(tableName(), (tdb) async {
-      final objJson = await tdb.loadStringJson(0, tableKeyName());
-      return valueFromJson(objJson);
-    });
-    return obj;
+    try {
+      final obj = await tableScope(tableName(), (tdb) async {
+        final objJson = await tdb.loadStringJson(0, tableKeyName());
+        return valueFromJson(objJson);
+      });
+      return obj;
+    } on Exception catch (e, st) {
+      veilidLoggy.debug(
+          'Unable to load data from table store: '
+          '${tableName()}:${tableKeyName()}',
+          e,
+          st);
+      return null;
+    }
   }
 
   /// Store things to storage

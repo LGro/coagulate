@@ -92,6 +92,7 @@ class TableDBArrayProtobufCubit<T extends GeneratedMessage>
     final avElements = await _loadElements(_tail, _count);
     final err = avElements.asError;
     if (err != null) {
+      addError(err.error, err.stackTrace);
       emit(AsyncValue.error(err.error, err.stackTrace));
       return;
     }
@@ -123,6 +124,7 @@ class TableDBArrayProtobufCubit<T extends GeneratedMessage>
       final allItems = (await _array.getRange(start, end)).toIList();
       return AsyncValue.data(allItems);
     } on Exception catch (e, st) {
+      addError(e, st);
       return AsyncValue.error(e, st);
     }
   }

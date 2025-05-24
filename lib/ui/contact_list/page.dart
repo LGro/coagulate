@@ -171,7 +171,8 @@ class _ContactListPageState extends State<ContactListPage> {
                   onPressed: () async => Navigator.of(context).push(
                       MaterialPageRoute<IntroductionsPage>(
                           builder: (context) => const IntroductionsPage())),
-                  icon: const Icon(Icons.inbox)),
+                  // Or use Icons.group_add instead?
+                  icon: const Icon(Icons.diversity_3)),
               // TODO: Show badge for unread updates
               IconButton(
                   onPressed: () async => Navigator.of(context).push(

@@ -21,8 +21,14 @@ class _DHTLogRead implements DHTLogReadOperations {
       return null;
     }
 
-    return lookup.scope((sa) =>
-        sa.operate((read) => read.get(lookup.pos, forceRefresh: forceRefresh)));
+    return lookup.scope((sa) => sa.operate((read) async {
+          if (lookup.pos >= read.length) {
+            veilidLoggy.error('DHTLog shortarray read @ ${lookup.pos}'
+                ' >= length ${read.length}');
+            return null;
+          }
+          return read.get(lookup.pos, forceRefresh: forceRefresh);
+        }));
   }
 
   (int, int) _clampStartLen(int start, int? len) {
@@ -47,38 +53,54 @@ class _DHTLogRead implements DHTLogReadOperations {
 
     final chunks = Iterable<int>.generate(length)
         .slices(kMaxDHTConcurrency)
-        .map((chunk) =>
-            chunk.map((pos) => get(pos + start, forceRefresh: forceRefresh)));
+        .map((chunk) => chunk.map((pos) async {
+              try {
+                return await get(pos + start, forceRefresh: forceRefresh);
+                // Need some way to debug ParallelWaitError
+                // ignore: avoid_catches_without_on_clauses
+              } catch (e, st) {
+                veilidLoggy.error('$e\n$st\n');
+                rethrow;
+              }
+            }));
 
     for (final chunk in chunks) {
-      final elems = await chunk.wait;
-      if (elems.contains(null)) {
-        return null;
+      var elems = await chunk.wait;
+
+      // Return only the first contiguous range, anything else is garbage
+      // due to a representational error in the head or shortarray legnth
+      final nullPos = elems.indexOf(null);
+      if (nullPos != -1) {
+        elems = elems.sublist(0, nullPos);
       }
+
       out.addAll(elems.cast<Uint8List>());
+
+      if (nullPos != -1) {
+        break;
+      }
     }
 
     return out;
   }
 
   @override
-  Future<Set<int>?> getOfflinePositions() async {
+  Future<Set<int>> getOfflinePositions() async {
     final positionOffline = <int>{};
 
     // Iterate positions backward from most recent
     for (var pos = _spine.length - 1; pos >= 0; pos--) {
+      // Get position
       final lookup = await _spine.lookupPosition(pos);
+      // If position doesn't exist then it definitely wasn't written to offline
       if (lookup == null) {
-        return null;
+        continue;
       }
 
       // Check each segment for offline positions
       var foundOffline = false;
-      final success = await lookup.scope((sa) => sa.operate((read) async {
+      await lookup.scope((sa) => sa.operate((read) async {
             final segmentOffline = await read.getOfflinePositions();
-            if (segmentOffline == null) {
-              return false;
-            }
 
             // For each shortarray segment go through their segment positions
             // in reverse order and see if they are offline
@@ -92,11 +114,7 @@ class _DHTLogRead implements DHTLogReadOperations {
                 foundOffline = true;
               }
             }
-            return true;
           }));
-      if (!success) {
-        return null;
-      }
       // If we found nothing offline in this segment then we can stop
       if (!foundOffline) {
         break;

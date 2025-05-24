@@ -14,7 +14,7 @@ part 'identity.g.dart';
 /// DHT Secret: IdentityInstance Secret Key (stored encrypted with unlock code
 ///                                          in local table store)
 @freezed
-class Identity with _$Identity {
+sealed class Identity with _$Identity {
   const factory Identity({
     // Top level account keys and secrets
     required IMap<String, ISet<AccountRecordInfo>> accountRecords,

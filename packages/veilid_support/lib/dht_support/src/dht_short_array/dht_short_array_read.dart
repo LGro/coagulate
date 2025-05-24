@@ -17,21 +17,25 @@ class _DHTShortArrayRead implements DHTShortArrayReadOperations {
       throw IndexError.withLength(pos, length);
     }
 
-    final lookup = await _head.lookupPosition(pos, false);
+    try {
+      final lookup = await _head.lookupPosition(pos, false);
 
-    final refresh = forceRefresh || _head.positionNeedsRefresh(pos);
-    final outSeqNum = Output<int>();
-    final out = lookup.record.get(
-        subkey: lookup.recordSubkey,
-        refreshMode: refresh
-            ? DHTRecordRefreshMode.network
-            : DHTRecordRefreshMode.cached,
-        outSeqNum: outSeqNum);
-    if (outSeqNum.value != null) {
-      _head.updatePositionSeq(pos, false, outSeqNum.value!);
+      final refresh = forceRefresh || _head.positionNeedsRefresh(pos);
+      final outSeqNum = Output<int>();
+      final out = await lookup.record.get(
+          subkey: lookup.recordSubkey,
+          refreshMode: refresh
+              ? DHTRecordRefreshMode.network
+              : DHTRecordRefreshMode.cached,
+          outSeqNum: outSeqNum);
+      if (outSeqNum.value != null) {
+        _head.updatePositionSeq(pos, false, outSeqNum.value!);
+      }
+      return out;
+    } on DHTExceptionNotAvailable {
+      // If any element is not available, return null
+      return null;
     }
-
-    return out;
   }
 
   (int, int) _clampStartLen(int start, int? len) {
@@ -56,15 +60,32 @@ class _DHTShortArrayRead implements DHTShortArrayReadOperations {
 
     final chunks = Iterable<int>.generate(length)
         .slices(kMaxDHTConcurrency)
-        .map((chunk) =>
-            chunk.map((pos) => get(pos + start, forceRefresh: forceRefresh)));
+        .map((chunk) => chunk.map((pos) async {
+              try {
+                return await get(pos + start, forceRefresh: forceRefresh);
+                // Need some way to debug ParallelWaitError
+                // ignore: avoid_catches_without_on_clauses
+              } catch (e, st) {
+                veilidLoggy.error('$e\n$st\n');
+                rethrow;
+              }
+            }));
 
     for (final chunk in chunks) {
-      final elems = await chunk.wait;
-      if (elems.contains(null)) {
-        return null;
+      var elems = await chunk.wait;
+
+      // Return only the first contiguous range, anything else is garbage
+      // due to a representational error in the head or shortarray legnth
+      final nullPos = elems.indexOf(null);
+      if (nullPos != -1) {
+        elems = elems.sublist(0, nullPos);
       }
+
       out.addAll(elems.cast<Uint8List>());
+
+      if (nullPos != -1) {
+        break;
+      }
     }
 
     return out;

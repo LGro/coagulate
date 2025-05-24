@@ -64,9 +64,6 @@ class DhtSharingStatusCubit extends Cubit<DhtSharingStatusState>
           (k) async =>
               getRecordReport(k).then((r) => r?.offlineSubkeys.length)));
 
-      final numUnknown =
-          offlineSubkeysPerContact.where((n) => n == null).length;
-
       final numOfflineSubkeys =
           offlineSubkeysPerContact.whereType<int>().fold(0, (a, b) => a + b);
 
@@ -76,10 +73,9 @@ class DhtSharingStatusCubit extends Cubit<DhtSharingStatusState>
         if (numSubkeys == 0) {
           return emit(const DhtSharingStatusState(''));
         }
-        return emit(DhtSharingStatusState(
-            '${((1 - (numOfflineSubkeys / numSubkeys)) * 100).round()}% synced / '
-            '${((numUnknown / numSubkeys) * 100).round()}% unknown / '
-            '$numSubkeys subkeys total'));
+        final percentageSynced =
+            ((1 - (numOfflineSubkeys / numSubkeys)) * 100).round();
+        return emit(DhtSharingStatusState('$percentageSynced% synced'));
       }
     } on VeilidAPIExceptionTryAgain {
       return;

@@ -7,6 +7,7 @@ import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
+import '../../../src/veilid_log.dart';
 import '../../../veilid_support.dart';
 import '../../proto/proto.dart' as proto;
 
@@ -171,32 +172,31 @@ class DHTLog implements DHTDeleteable<DHTLog> {
 
   /// Add a reference to this log
   @override
-  Future<void> ref() async => _mutex.protect(() async {
-        _openCount++;
-      });
+  void ref() {
+    _openCount++;
+  }
 
   /// Free all resources for the DHTLog
   @override
-  Future<bool> close() async => _mutex.protect(() async {
-        if (_openCount == 0) {
-          throw StateError('already closed');
-        }
-        _openCount--;
-        if (_openCount != 0) {
-          return false;
-        }
-        await _watchController?.close();
-        _watchController = null;
-        await _spine.close();
-        return true;
-      });
+  Future<bool> close() async {
+    if (_openCount == 0) {
+      throw StateError('already closed');
+    }
+    _openCount--;
+    if (_openCount != 0) {
+      return false;
+    }
+    //
+    await _watchController?.close();
+    _watchController = null;
+    await _spine.close();
+    return true;
+  }
 
   /// Free all resources for the DHTLog and delete it from the DHT
   /// Will wait until the short array is closed to delete it
   @override
-  Future<void> delete() async {
-    await _spine.delete();
-  }
+  Future<bool> delete() => _spine.delete();
 
   ////////////////////////////////////////////////////////////////////////////
   // Public API
@@ -213,7 +213,7 @@ class DHTLog implements DHTDeleteable<DHTLog> {
   /// Runs a closure allowing read-only access to the log
   Future<T> operate<T>(Future<T> Function(DHTLogReadOperations) closure) async {
     if (!isOpen) {
-      throw StateError('log is not open"');
+      throw StateError('log is not open');
     }
 
     return _spine.operate((spine) async {
@@ -230,7 +230,7 @@ class DHTLog implements DHTDeleteable<DHTLog> {
   Future<T> operateAppend<T>(
       Future<T> Function(DHTLogWriteOperations) closure) async {
     if (!isOpen) {
-      throw StateError('log is not open"');
+      throw StateError('log is not open');
     }
 
     return _spine.operateAppend((spine) async {
@@ -249,7 +249,7 @@ class DHTLog implements DHTDeleteable<DHTLog> {
       Future<T> Function(DHTLogWriteOperations) closure,
       {Duration? timeout}) async {
     if (!isOpen) {
-      throw StateError('log is not open"');
+      throw StateError('log is not open');
     }
 
     return _spine.operateAppendEventual((spine) async {
@@ -264,7 +264,7 @@ class DHTLog implements DHTDeleteable<DHTLog> {
     void Function(DHTLogUpdate) onChanged,
   ) {
     if (!isOpen) {
-      throw StateError('log is not open"');
+      throw StateError('log is not open');
     }
 
     return _listenMutex.protect(() async {
@@ -293,11 +293,12 @@ class DHTLog implements DHTDeleteable<DHTLog> {
   ////////////////////////////////////////////////////////////////
   // Fields
 
-  // 56 subkeys * 512 segments * 36 bytes per typedkey =
-  //   1032192 bytes per record
+  // 55 subkeys * 512 segments * 36 bytes per typedkey =
+  //   1013760 bytes per record
+  // Leaves 34816 bytes for 0th subkey as head, 56 subkeys total
   // 512*36 = 18432 bytes per subkey
-  // 28672 shortarrays * 256 elements = 7340032 elements
-  static const spineSubkeys = 56;
+  // 28160 shortarrays * 256 elements = 7208960 elements
+  static const spineSubkeys = 55;
   static const segmentsPerSubkey = 512;
 
   // Internal representation refreshed from spine record
@@ -305,10 +306,9 @@ class DHTLog implements DHTDeleteable<DHTLog> {
 
   // Openable
   int _openCount;
-  final _mutex = Mutex();
 
   // Watch mutex to ensure we keep the representation valid
-  final Mutex _listenMutex = Mutex();
+  final Mutex _listenMutex = Mutex(debugLockTimeout: kIsDebugMode ? 60 : null);
   // Stream of external changes
   StreamController<DHTLogUpdate>? _watchController;
 }

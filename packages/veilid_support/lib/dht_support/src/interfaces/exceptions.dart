@@ -1,15 +1,33 @@
 class DHTExceptionOutdated implements Exception {
-  DHTExceptionOutdated(
+  const DHTExceptionOutdated(
       [this.cause = 'operation failed due to newer dht value']);
-  String cause;
+  final String cause;
+
+  @override
+  String toString() => 'DHTExceptionOutdated: $cause';
 }
 
 class DHTExceptionInvalidData implements Exception {
-  DHTExceptionInvalidData([this.cause = 'dht data structure is corrupt']);
-  String cause;
+  const DHTExceptionInvalidData(this.cause);
+  final String cause;
+
+  @override
+  String toString() => 'DHTExceptionInvalidData: $cause';
 }
 
 class DHTExceptionCancelled implements Exception {
-  DHTExceptionCancelled([this.cause = 'operation was cancelled']);
-  String cause;
+  const DHTExceptionCancelled([this.cause = 'operation was cancelled']);
+  final String cause;
+
+  @override
+  String toString() => 'DHTExceptionCancelled: $cause';
+}
+
+class DHTExceptionNotAvailable implements Exception {
+  const DHTExceptionNotAvailable(
+      [this.cause = 'request could not be completed at this time']);
+  final String cause;
+
+  @override
+  String toString() => 'DHTExceptionNotAvailable: $cause';
 }

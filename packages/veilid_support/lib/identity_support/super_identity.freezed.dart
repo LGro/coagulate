@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,14 +10,8 @@ part of 'super_identity.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-SuperIdentity _$SuperIdentityFromJson(Map<String, dynamic> json) {
-  return _SuperIdentity.fromJson(json);
-}
 
 /// @nodoc
 mixin _$SuperIdentity {
@@ -24,46 +19,84 @@ mixin _$SuperIdentity {
   /// changing this can migrate/forward the SuperIdentity to a new DHT record
   /// Instances should not hash this recordKey, rather the actual record
   /// key used to store the superIdentity, as this may change.
-  Typed<FixedEncodedString43> get recordKey =>
-      throw _privateConstructorUsedError;
+  TypedKey get recordKey;
 
   /// Public key of the SuperIdentity used to sign identity keys for recovery
   /// This must match the owner of the superRecord DHT record and can not be
   /// changed without changing the record
-  FixedEncodedString43 get publicKey => throw _privateConstructorUsedError;
+  PublicKey get publicKey;
 
   /// Current identity instance
   /// The most recently generated identity instance for this SuperIdentity
-  IdentityInstance get currentInstance => throw _privateConstructorUsedError;
+  IdentityInstance get currentInstance;
 
   /// Deprecated identity instances
   /// These may be compromised and should not be considered valid for
   /// new signatures, but may be used to validate old signatures
-  List<IdentityInstance> get deprecatedInstances =>
-      throw _privateConstructorUsedError;
+  List<IdentityInstance> get deprecatedInstances;
 
   /// Deprecated superRecords
   /// These may be compromised and should not be considered valid for
   /// new signatures, but may be used to validate old signatures
-  List<Typed<FixedEncodedString43>> get deprecatedSuperRecordKeys =>
-      throw _privateConstructorUsedError;
+  List<TypedKey> get deprecatedSuperRecordKeys;
 
   /// Signature of recordKey, currentInstance signature,
   /// signatures of deprecatedInstances, and deprecatedSuperRecordKeys
   /// by publicKey
-  FixedEncodedString86 get signature => throw _privateConstructorUsedError;
+  Signature get signature;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+  /// Create a copy of SuperIdentity
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $SuperIdentityCopyWith<SuperIdentity> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$SuperIdentityCopyWithImpl<SuperIdentity>(
+          this as SuperIdentity, _$identity);
+
+  /// Serializes this SuperIdentity to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SuperIdentity &&
+            (identical(other.recordKey, recordKey) ||
+                other.recordKey == recordKey) &&
+            (identical(other.publicKey, publicKey) ||
+                other.publicKey == publicKey) &&
+            (identical(other.currentInstance, currentInstance) ||
+                other.currentInstance == currentInstance) &&
+            const DeepCollectionEquality()
+                .equals(other.deprecatedInstances, deprecatedInstances) &&
+            const DeepCollectionEquality().equals(
+                other.deprecatedSuperRecordKeys, deprecatedSuperRecordKeys) &&
+            (identical(other.signature, signature) ||
+                other.signature == signature));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      recordKey,
+      publicKey,
+      currentInstance,
+      const DeepCollectionEquality().hash(deprecatedInstances),
+      const DeepCollectionEquality().hash(deprecatedSuperRecordKeys),
+      signature);
+
+  @override
+  String toString() {
+    return 'SuperIdentity(recordKey: $recordKey, publicKey: $publicKey, currentInstance: $currentInstance, deprecatedInstances: $deprecatedInstances, deprecatedSuperRecordKeys: $deprecatedSuperRecordKeys, signature: $signature)';
+  }
 }
 
 /// @nodoc
-abstract class $SuperIdentityCopyWith<$Res> {
+abstract mixin class $SuperIdentityCopyWith<$Res> {
   factory $SuperIdentityCopyWith(
-          SuperIdentity value, $Res Function(SuperIdentity) then) =
-      _$SuperIdentityCopyWithImpl<$Res, SuperIdentity>;
+          SuperIdentity value, $Res Function(SuperIdentity) _then) =
+      _$SuperIdentityCopyWithImpl;
   @useResult
   $Res call(
       {Typed<FixedEncodedString43> recordKey,
@@ -77,15 +110,15 @@ abstract class $SuperIdentityCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$SuperIdentityCopyWithImpl<$Res, $Val extends SuperIdentity>
+class _$SuperIdentityCopyWithImpl<$Res>
     implements $SuperIdentityCopyWith<$Res> {
-  _$SuperIdentityCopyWithImpl(this._value, this._then);
+  _$SuperIdentityCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final SuperIdentity _self;
+  final $Res Function(SuperIdentity) _then;
 
+  /// Create a copy of SuperIdentity
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -96,114 +129,49 @@ class _$SuperIdentityCopyWithImpl<$Res, $Val extends SuperIdentity>
     Object? deprecatedSuperRecordKeys = null,
     Object? signature = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       recordKey: null == recordKey
-          ? _value.recordKey
+          ? _self.recordKey!
           : recordKey // ignore: cast_nullable_to_non_nullable
               as Typed<FixedEncodedString43>,
       publicKey: null == publicKey
-          ? _value.publicKey
+          ? _self.publicKey!
           : publicKey // ignore: cast_nullable_to_non_nullable
               as FixedEncodedString43,
       currentInstance: null == currentInstance
-          ? _value.currentInstance
+          ? _self.currentInstance
           : currentInstance // ignore: cast_nullable_to_non_nullable
               as IdentityInstance,
       deprecatedInstances: null == deprecatedInstances
-          ? _value.deprecatedInstances
+          ? _self.deprecatedInstances
           : deprecatedInstances // ignore: cast_nullable_to_non_nullable
               as List<IdentityInstance>,
       deprecatedSuperRecordKeys: null == deprecatedSuperRecordKeys
-          ? _value.deprecatedSuperRecordKeys
+          ? _self.deprecatedSuperRecordKeys!
           : deprecatedSuperRecordKeys // ignore: cast_nullable_to_non_nullable
               as List<Typed<FixedEncodedString43>>,
       signature: null == signature
-          ? _value.signature
+          ? _self.signature!
           : signature // ignore: cast_nullable_to_non_nullable
               as FixedEncodedString86,
-    ) as $Val);
+    ));
   }
 
+  /// Create a copy of SuperIdentity
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $IdentityInstanceCopyWith<$Res> get currentInstance {
-    return $IdentityInstanceCopyWith<$Res>(_value.currentInstance, (value) {
-      return _then(_value.copyWith(currentInstance: value) as $Val);
+    return $IdentityInstanceCopyWith<$Res>(_self.currentInstance, (value) {
+      return _then(_self.copyWith(currentInstance: value));
     });
   }
 }
 
 /// @nodoc
-abstract class _$$SuperIdentityImplCopyWith<$Res>
-    implements $SuperIdentityCopyWith<$Res> {
-  factory _$$SuperIdentityImplCopyWith(
-          _$SuperIdentityImpl value, $Res Function(_$SuperIdentityImpl) then) =
-      __$$SuperIdentityImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {Typed<FixedEncodedString43> recordKey,
-      FixedEncodedString43 publicKey,
-      IdentityInstance currentInstance,
-      List<IdentityInstance> deprecatedInstances,
-      List<Typed<FixedEncodedString43>> deprecatedSuperRecordKeys,
-      FixedEncodedString86 signature});
-
-  @override
-  $IdentityInstanceCopyWith<$Res> get currentInstance;
-}
-
-/// @nodoc
-class __$$SuperIdentityImplCopyWithImpl<$Res>
-    extends _$SuperIdentityCopyWithImpl<$Res, _$SuperIdentityImpl>
-    implements _$$SuperIdentityImplCopyWith<$Res> {
-  __$$SuperIdentityImplCopyWithImpl(
-      _$SuperIdentityImpl _value, $Res Function(_$SuperIdentityImpl) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? recordKey = null,
-    Object? publicKey = null,
-    Object? currentInstance = null,
-    Object? deprecatedInstances = null,
-    Object? deprecatedSuperRecordKeys = null,
-    Object? signature = null,
-  }) {
-    return _then(_$SuperIdentityImpl(
-      recordKey: null == recordKey
-          ? _value.recordKey
-          : recordKey // ignore: cast_nullable_to_non_nullable
-              as Typed<FixedEncodedString43>,
-      publicKey: null == publicKey
-          ? _value.publicKey
-          : publicKey // ignore: cast_nullable_to_non_nullable
-              as FixedEncodedString43,
-      currentInstance: null == currentInstance
-          ? _value.currentInstance
-          : currentInstance // ignore: cast_nullable_to_non_nullable
-              as IdentityInstance,
-      deprecatedInstances: null == deprecatedInstances
-          ? _value._deprecatedInstances
-          : deprecatedInstances // ignore: cast_nullable_to_non_nullable
-              as List<IdentityInstance>,
-      deprecatedSuperRecordKeys: null == deprecatedSuperRecordKeys
-          ? _value._deprecatedSuperRecordKeys
-          : deprecatedSuperRecordKeys // ignore: cast_nullable_to_non_nullable
-              as List<Typed<FixedEncodedString43>>,
-      signature: null == signature
-          ? _value.signature
-          : signature // ignore: cast_nullable_to_non_nullable
-              as FixedEncodedString86,
-    ));
-  }
-}
-
-/// @nodoc
 @JsonSerializable()
-class _$SuperIdentityImpl extends _SuperIdentity {
-  const _$SuperIdentityImpl(
+class _SuperIdentity extends SuperIdentity {
+  const _SuperIdentity(
       {required this.recordKey,
       required this.publicKey,
       required this.currentInstance,
@@ -214,9 +182,8 @@ class _$SuperIdentityImpl extends _SuperIdentity {
       : _deprecatedInstances = deprecatedInstances,
         _deprecatedSuperRecordKeys = deprecatedSuperRecordKeys,
         super._();
-
-  factory _$SuperIdentityImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SuperIdentityImplFromJson(json);
+  factory _SuperIdentity.fromJson(Map<String, dynamic> json) =>
+      _$SuperIdentityFromJson(json);
 
   /// Public DHT record storing this structure for account recovery
   /// changing this can migrate/forward the SuperIdentity to a new DHT record
@@ -274,16 +241,26 @@ class _$SuperIdentityImpl extends _SuperIdentity {
   @override
   final FixedEncodedString86 signature;
 
+  /// Create a copy of SuperIdentity
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'SuperIdentity(recordKey: $recordKey, publicKey: $publicKey, currentInstance: $currentInstance, deprecatedInstances: $deprecatedInstances, deprecatedSuperRecordKeys: $deprecatedSuperRecordKeys, signature: $signature)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SuperIdentityCopyWith<_SuperIdentity> get copyWith =>
+      __$SuperIdentityCopyWithImpl<_SuperIdentity>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SuperIdentityToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SuperIdentityImpl &&
+            other is _SuperIdentity &&
             (identical(other.recordKey, recordKey) ||
                 other.recordKey == recordKey) &&
             (identical(other.publicKey, publicKey) ||
@@ -298,7 +275,7 @@ class _$SuperIdentityImpl extends _SuperIdentity {
                 other.signature == signature));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -309,72 +286,89 @@ class _$SuperIdentityImpl extends _SuperIdentity {
       const DeepCollectionEquality().hash(_deprecatedSuperRecordKeys),
       signature);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SuperIdentityImplCopyWith<_$SuperIdentityImpl> get copyWith =>
-      __$$SuperIdentityImplCopyWithImpl<_$SuperIdentityImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SuperIdentityImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SuperIdentity(recordKey: $recordKey, publicKey: $publicKey, currentInstance: $currentInstance, deprecatedInstances: $deprecatedInstances, deprecatedSuperRecordKeys: $deprecatedSuperRecordKeys, signature: $signature)';
   }
 }
 
-abstract class _SuperIdentity extends SuperIdentity {
-  const factory _SuperIdentity(
-      {required final Typed<FixedEncodedString43> recordKey,
-      required final FixedEncodedString43 publicKey,
-      required final IdentityInstance currentInstance,
-      required final List<IdentityInstance> deprecatedInstances,
-      required final List<Typed<FixedEncodedString43>>
-          deprecatedSuperRecordKeys,
-      required final FixedEncodedString86 signature}) = _$SuperIdentityImpl;
-  const _SuperIdentity._() : super._();
-
-  factory _SuperIdentity.fromJson(Map<String, dynamic> json) =
-      _$SuperIdentityImpl.fromJson;
+/// @nodoc
+abstract mixin class _$SuperIdentityCopyWith<$Res>
+    implements $SuperIdentityCopyWith<$Res> {
+  factory _$SuperIdentityCopyWith(
+          _SuperIdentity value, $Res Function(_SuperIdentity) _then) =
+      __$SuperIdentityCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {Typed<FixedEncodedString43> recordKey,
+      FixedEncodedString43 publicKey,
+      IdentityInstance currentInstance,
+      List<IdentityInstance> deprecatedInstances,
+      List<Typed<FixedEncodedString43>> deprecatedSuperRecordKeys,
+      FixedEncodedString86 signature});
 
   @override
-
-  /// Public DHT record storing this structure for account recovery
-  /// changing this can migrate/forward the SuperIdentity to a new DHT record
-  /// Instances should not hash this recordKey, rather the actual record
-  /// key used to store the superIdentity, as this may change.
-  Typed<FixedEncodedString43> get recordKey;
-  @override
-
-  /// Public key of the SuperIdentity used to sign identity keys for recovery
-  /// This must match the owner of the superRecord DHT record and can not be
-  /// changed without changing the record
-  FixedEncodedString43 get publicKey;
-  @override
-
-  /// Current identity instance
-  /// The most recently generated identity instance for this SuperIdentity
-  IdentityInstance get currentInstance;
-  @override
-
-  /// Deprecated identity instances
-  /// These may be compromised and should not be considered valid for
-  /// new signatures, but may be used to validate old signatures
-  List<IdentityInstance> get deprecatedInstances;
-  @override
-
-  /// Deprecated superRecords
-  /// These may be compromised and should not be considered valid for
-  /// new signatures, but may be used to validate old signatures
-  List<Typed<FixedEncodedString43>> get deprecatedSuperRecordKeys;
-  @override
-
-  /// Signature of recordKey, currentInstance signature,
-  /// signatures of deprecatedInstances, and deprecatedSuperRecordKeys
-  /// by publicKey
-  FixedEncodedString86 get signature;
-  @override
-  @JsonKey(ignore: true)
-  _$$SuperIdentityImplCopyWith<_$SuperIdentityImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  $IdentityInstanceCopyWith<$Res> get currentInstance;
 }
+
+/// @nodoc
+class __$SuperIdentityCopyWithImpl<$Res>
+    implements _$SuperIdentityCopyWith<$Res> {
+  __$SuperIdentityCopyWithImpl(this._self, this._then);
+
+  final _SuperIdentity _self;
+  final $Res Function(_SuperIdentity) _then;
+
+  /// Create a copy of SuperIdentity
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? recordKey = null,
+    Object? publicKey = null,
+    Object? currentInstance = null,
+    Object? deprecatedInstances = null,
+    Object? deprecatedSuperRecordKeys = null,
+    Object? signature = null,
+  }) {
+    return _then(_SuperIdentity(
+      recordKey: null == recordKey
+          ? _self.recordKey
+          : recordKey // ignore: cast_nullable_to_non_nullable
+              as Typed<FixedEncodedString43>,
+      publicKey: null == publicKey
+          ? _self.publicKey
+          : publicKey // ignore: cast_nullable_to_non_nullable
+              as FixedEncodedString43,
+      currentInstance: null == currentInstance
+          ? _self.currentInstance
+          : currentInstance // ignore: cast_nullable_to_non_nullable
+              as IdentityInstance,
+      deprecatedInstances: null == deprecatedInstances
+          ? _self._deprecatedInstances
+          : deprecatedInstances // ignore: cast_nullable_to_non_nullable
+              as List<IdentityInstance>,
+      deprecatedSuperRecordKeys: null == deprecatedSuperRecordKeys
+          ? _self._deprecatedSuperRecordKeys
+          : deprecatedSuperRecordKeys // ignore: cast_nullable_to_non_nullable
+              as List<Typed<FixedEncodedString43>>,
+      signature: null == signature
+          ? _self.signature
+          : signature // ignore: cast_nullable_to_non_nullable
+              as FixedEncodedString86,
+    ));
+  }
+
+  /// Create a copy of SuperIdentity
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $IdentityInstanceCopyWith<$Res> get currentInstance {
+    return $IdentityInstanceCopyWith<$Res>(_self.currentInstance, (value) {
+      return _then(_self.copyWith(currentInstance: value));
+    });
+  }
+}
+
+// dart format on

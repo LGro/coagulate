@@ -5,7 +5,7 @@ class DHTShortArrayHeadLookup {
       {required this.record, required this.recordSubkey, required this.seq});
   final DHTRecord record;
   final int recordSubkey;
-  final int seq;
+  final int? seq;
 }
 
 class _DHTShortArrayHead {
@@ -41,7 +41,7 @@ class _DHTShortArrayHead {
     final head = proto.DHTShortArray();
     head.keys.addAll(_linkedRecords.map((lr) => lr.key.toProto()));
     head.index = List.of(_index);
-    head.seqs.addAll(_seqs);
+    head.seqs.addAll(_seqs.map((x) => x ?? 0xFFFFFFFF));
     // Do not serialize free list, it gets recreated
     // Do not serialize local seqs, they are only locally relevant
     return head;
@@ -65,18 +65,12 @@ class _DHTShortArrayHead {
     });
   }
 
-  Future<void> delete() async {
-    await _headMutex.protect(() async {
-      // Will deep delete all linked records as they are children
-      await _headRecord.delete();
-    });
-  }
+  /// Returns true if the deletion was processed immediately
+  /// Returns false if the deletion was marked for later
+  Future<bool> delete() => _headMutex.protect(_headRecord.delete);
 
   Future<T> operate<T>(Future<T> Function(_DHTShortArrayHead) closure) async =>
-      // ignore: prefer_expression_function_bodies
-      _headMutex.protect(() async {
-        return closure(this);
-      });
+      _headMutex.protect(() async => closure(this));
 
   Future<T> operateWrite<T>(
           Future<T> Function(_DHTShortArrayHead) closure) async =>
@@ -91,7 +85,7 @@ class _DHTShortArrayHead {
           if (!await _writeHead()) {
             // Failed to write head means head got overwritten so write should
             // be considered failed
-            throw DHTExceptionOutdated();
+            throw const DHTExceptionOutdated();
           }
 
           onUpdatedHead?.call();
@@ -118,7 +112,7 @@ class _DHTShortArrayHead {
       late List<DHTRecord> oldLinkedRecords;
       late List<int> oldIndex;
       late List<int> oldFree;
-      late List<int> oldSeqs;
+      late List<int?> oldSeqs;
 
       late T out;
       try {
@@ -200,7 +194,8 @@ class _DHTShortArrayHead {
     // Get the set of new linked keys and validate it
     final updatedLinkedKeys = head.keys.map((p) => p.toVeilid()).toList();
     final updatedIndex = List.of(head.index);
-    final updatedSeqs = List.of(head.seqs);
+    final updatedSeqs =
+        List.of(head.seqs.map((x) => x == 0xFFFFFFFF ? null : x));
     final updatedFree = _makeFreeList(updatedLinkedKeys, updatedIndex);
 
     // See which records are actually new
@@ -336,7 +331,7 @@ class _DHTShortArrayHead {
   }
 
   Future<DHTShortArrayHeadLookup> lookupIndex(int idx, bool allowCreate) async {
-    final seq = idx < _seqs.length ? _seqs[idx] : 0xFFFFFFFF;
+    final seq = idx < _seqs.length ? _seqs[idx] : null;
     final recordNumber = idx ~/ _stride;
     final record = await _getOrCreateLinkedRecord(recordNumber, allowCreate);
     final recordSubkey = (idx % _stride) + ((recordNumber == 0) ? 1 : 0);
@@ -386,6 +381,24 @@ class _DHTShortArrayHead {
     // xxx: free list optimization here?
   }
 
+  /// Truncate index to a particular length
+  void truncate(int newLength) {
+    if (newLength >= _index.length) {
+      return;
+    } else if (newLength == 0) {
+      clearIndex();
+      return;
+    } else if (newLength < 0) {
+      throw StateError('can not truncate to negative length');
+    }
+
+    final newIndex = _index.sublist(0, newLength);
+    final freed = _index.sublist(newLength);
+
+    _index = newIndex;
+    _free.addAll(freed);
+  }
+
   /// Validate the head from the DHT is properly formatted
   /// and calculate the free list from it while we're here
   List<int> _makeFreeList(
@@ -430,18 +443,18 @@ class _DHTShortArrayHead {
 
     // If our local sequence number is unknown or hasnt been written yet
     // then a normal DHT operation is going to pull from the network anyway
-    if (_localSeqs.length < idx || _localSeqs[idx] == 0xFFFFFFFF) {
+    if (_localSeqs.length < idx || _localSeqs[idx] == null) {
       return false;
     }
 
     // If the remote sequence number record is unknown or hasnt been written
     // at this index yet, then we also do not refresh at this time as it
     // is the first time the index is being written to
-    if (_seqs.length < idx || _seqs[idx] == 0xFFFFFFFF) {
+    if (_seqs.length < idx || _seqs[idx] == null) {
       return false;
     }
 
-    return _localSeqs[idx] < _seqs[idx];
+    return _localSeqs[idx]! < _seqs[idx]!;
   }
 
   /// Update the sequence number for a particular index in
@@ -451,12 +464,12 @@ class _DHTShortArrayHead {
     final idx = _index[pos];
 
     while (_localSeqs.length <= idx) {
-      _localSeqs.add(0xFFFFFFFF);
+      _localSeqs.add(null);
     }
     _localSeqs[idx] = newSeq;
     if (write) {
       while (_seqs.length <= idx) {
-        _seqs.add(0xFFFFFFFF);
+        _seqs.add(null);
       }
       _seqs[idx] = newSeq;
     }
@@ -518,7 +531,7 @@ class _DHTShortArrayHead {
   ////////////////////////////////////////////////////////////////////////////
 
   // Head/element mutex to ensure we keep the representation valid
-  final Mutex _headMutex = Mutex();
+  final Mutex _headMutex = Mutex(debugLockTimeout: kIsDebugMode ? 60 : null);
   // Subscription to head record internal changes
   StreamSubscription<DHTRecordWatchChange>? _subscription;
   // Notify closure for external head changes
@@ -540,7 +553,7 @@ class _DHTShortArrayHead {
   // The sequence numbers of each subkey.
   // Index is by subkey number not by element index.
   // (n-1 for head record and then the next n for linked records)
-  List<int> _seqs;
+  List<int?> _seqs;
   // The local sequence numbers for each subkey.
-  List<int> _localSeqs;
+  List<int?> _localSeqs;
 }

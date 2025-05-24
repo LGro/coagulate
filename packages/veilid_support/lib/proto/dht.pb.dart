@@ -4,7 +4,7 @@
 //
 // @dart = 2.12
 
-// ignore_for_file: annotate_overrides, camel_case_types
+// ignore_for_file: annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names, library_prefixes
 // ignore_for_file: non_constant_identifier_names, prefer_final_fields
 // ignore_for_file: unnecessary_import, unnecessary_this, unused_import
@@ -16,7 +16,27 @@ import 'package:protobuf/protobuf.dart' as $pb;
 import 'veilid.pb.dart' as $0;
 
 class DHTData extends $pb.GeneratedMessage {
-  factory DHTData() => create();
+  factory DHTData({
+    $core.Iterable<$0.TypedKey>? keys,
+    $0.TypedKey? hash,
+    $core.int? chunk,
+    $core.int? size,
+  }) {
+    final $result = create();
+    if (keys != null) {
+      $result.keys.addAll(keys);
+    }
+    if (hash != null) {
+      $result.hash = hash;
+    }
+    if (chunk != null) {
+      $result.chunk = chunk;
+    }
+    if (size != null) {
+      $result.size = size;
+    }
+    return $result;
+  }
   DHTData._() : super();
   factory DHTData.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory DHTData.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
@@ -50,9 +70,12 @@ class DHTData extends $pb.GeneratedMessage {
   static DHTData getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DHTData>(create);
   static DHTData? _defaultInstance;
 
+  /// Other keys to concatenate
+  /// Uses the same writer as this DHTList with SMPL schema
   @$pb.TagNumber(1)
   $core.List<$0.TypedKey> get keys => $_getList(0);
 
+  /// Hash of reassembled data to verify contents
   @$pb.TagNumber(2)
   $0.TypedKey get hash => $_getN(1);
   @$pb.TagNumber(2)
@@ -64,6 +87,7 @@ class DHTData extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $0.TypedKey ensureHash() => $_ensure(1);
 
+  /// Chunk size per subkey
   @$pb.TagNumber(3)
   $core.int get chunk => $_getIZ(2);
   @$pb.TagNumber(3)
@@ -73,6 +97,7 @@ class DHTData extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearChunk() => clearField(3);
 
+  /// Total data size
   @$pb.TagNumber(4)
   $core.int get size => $_getIZ(3);
   @$pb.TagNumber(4)
@@ -83,8 +108,26 @@ class DHTData extends $pb.GeneratedMessage {
   void clearSize() => clearField(4);
 }
 
+/// DHTLog - represents a ring buffer of many elements with append/truncate semantics
+/// Header in subkey 0 of first key follows this structure
 class DHTLog extends $pb.GeneratedMessage {
-  factory DHTLog() => create();
+  factory DHTLog({
+    $core.int? head,
+    $core.int? tail,
+    $core.int? stride,
+  }) {
+    final $result = create();
+    if (head != null) {
+      $result.head = head;
+    }
+    if (tail != null) {
+      $result.tail = tail;
+    }
+    if (stride != null) {
+      $result.stride = stride;
+    }
+    return $result;
+  }
   DHTLog._() : super();
   factory DHTLog.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory DHTLog.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
@@ -117,6 +160,7 @@ class DHTLog extends $pb.GeneratedMessage {
   static DHTLog getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DHTLog>(create);
   static DHTLog? _defaultInstance;
 
+  /// Position of the start of the log (oldest items)
   @$pb.TagNumber(1)
   $core.int get head => $_getIZ(0);
   @$pb.TagNumber(1)
@@ -126,6 +170,7 @@ class DHTLog extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   void clearHead() => clearField(1);
 
+  /// Position of the end of the log (newest items)
   @$pb.TagNumber(2)
   $core.int get tail => $_getIZ(1);
   @$pb.TagNumber(2)
@@ -135,6 +180,7 @@ class DHTLog extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearTail() => clearField(2);
 
+  /// Stride of each segment of the dhtlog
   @$pb.TagNumber(3)
   $core.int get stride => $_getIZ(2);
   @$pb.TagNumber(3)
@@ -145,8 +191,32 @@ class DHTLog extends $pb.GeneratedMessage {
   void clearStride() => clearField(3);
 }
 
+///  DHTShortArray - represents a re-orderable collection of up to 256 individual elements
+///  Header in subkey 0 of first key follows this structure
+///
+///  stride = descriptor subkey count on first key - 1
+///  Subkeys 1..=stride on the first key are individual elements
+///  Subkeys 0..stride on the 'keys' keys are also individual elements
+///
+///  Keys must use writable schema in order to make this list mutable
 class DHTShortArray extends $pb.GeneratedMessage {
-  factory DHTShortArray() => create();
+  factory DHTShortArray({
+    $core.Iterable<$0.TypedKey>? keys,
+    $core.List<$core.int>? index,
+    $core.Iterable<$core.int>? seqs,
+  }) {
+    final $result = create();
+    if (keys != null) {
+      $result.keys.addAll(keys);
+    }
+    if (index != null) {
+      $result.index = index;
+    }
+    if (seqs != null) {
+      $result.seqs.addAll(seqs);
+    }
+    return $result;
+  }
   DHTShortArray._() : super();
   factory DHTShortArray.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory DHTShortArray.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
@@ -179,9 +249,16 @@ class DHTShortArray extends $pb.GeneratedMessage {
   static DHTShortArray getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DHTShortArray>(create);
   static DHTShortArray? _defaultInstance;
 
+  /// Other keys to concatenate
+  /// Uses the same writer as this DHTList with SMPL schema
   @$pb.TagNumber(1)
   $core.List<$0.TypedKey> get keys => $_getList(0);
 
+  /// Item position index (uint8[256./])
+  /// Actual item location is:
+  ///   idx = index[n] + 1 (offset for header at idx 0)
+  ///   key = idx / stride
+  ///   subkey = idx % stride
   @$pb.TagNumber(2)
   $core.List<$core.int> get index => $_getN(1);
   @$pb.TagNumber(2)
@@ -191,12 +268,26 @@ class DHTShortArray extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearIndex() => clearField(2);
 
+  /// Most recent sequence numbers for elements
   @$pb.TagNumber(3)
   $core.List<$core.int> get seqs => $_getList(2);
 }
 
+/// A pointer to an child DHT record
 class OwnedDHTRecordPointer extends $pb.GeneratedMessage {
-  factory OwnedDHTRecordPointer() => create();
+  factory OwnedDHTRecordPointer({
+    $0.TypedKey? recordKey,
+    $0.KeyPair? owner,
+  }) {
+    final $result = create();
+    if (recordKey != null) {
+      $result.recordKey = recordKey;
+    }
+    if (owner != null) {
+      $result.owner = owner;
+    }
+    return $result;
+  }
   OwnedDHTRecordPointer._() : super();
   factory OwnedDHTRecordPointer.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
   factory OwnedDHTRecordPointer.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
@@ -228,6 +319,7 @@ class OwnedDHTRecordPointer extends $pb.GeneratedMessage {
   static OwnedDHTRecordPointer getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<OwnedDHTRecordPointer>(create);
   static OwnedDHTRecordPointer? _defaultInstance;
 
+  /// DHT Record key
   @$pb.TagNumber(1)
   $0.TypedKey get recordKey => $_getN(0);
   @$pb.TagNumber(1)
@@ -239,6 +331,7 @@ class OwnedDHTRecordPointer extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   $0.TypedKey ensureRecordKey() => $_ensure(0);
 
+  /// DHT record owner key
   @$pb.TagNumber(2)
   $0.KeyPair get owner => $_getN(1);
   @$pb.TagNumber(2)

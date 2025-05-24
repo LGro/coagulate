@@ -6,14 +6,12 @@ part of 'account_record_info.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$AccountRecordInfoImpl _$$AccountRecordInfoImplFromJson(
-        Map<String, dynamic> json) =>
-    _$AccountRecordInfoImpl(
+_AccountRecordInfo _$AccountRecordInfoFromJson(Map<String, dynamic> json) =>
+    _AccountRecordInfo(
       accountRecord: OwnedDHTRecordPointer.fromJson(json['account_record']),
     );
 
-Map<String, dynamic> _$$AccountRecordInfoImplToJson(
-        _$AccountRecordInfoImpl instance) =>
+Map<String, dynamic> _$AccountRecordInfoToJson(_AccountRecordInfo instance) =>
     <String, dynamic>{
       'account_record': instance.accountRecord.toJson(),
     };

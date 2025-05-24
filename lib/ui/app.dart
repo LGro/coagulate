@@ -296,7 +296,7 @@ class _CoagulateAppState extends State<CoagulateApp>
       initialData: null,
       create: (context) async =>
           // TODO: Pass initially specified boostrap url
-          CoagulateGlobalInit.initialize('bootstrap.veilid.net'),
+          CoagulateGlobalInit.initialize('bootstrap-v1.veilid.net'),
       // CoagulateGlobalInit.initialize can throw Already attached VeilidAPIException which is fine
       catchError: (context, error) => null,
       builder: (context, child) {

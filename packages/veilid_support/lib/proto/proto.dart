@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../src/dynamic_debug.dart';
 import '../veilid_support.dart' as veilid;
 import 'veilid.pb.dart' as proto;
 
@@ -149,4 +150,27 @@ extension KeyPairProto on veilid.KeyPair {
 extension ProtoKeyPair on proto.KeyPair {
   veilid.KeyPair toVeilid() =>
       veilid.KeyPair(key: key.toVeilid(), secret: secret.toVeilid());
+}
+
+void registerVeilidProtoToDebug() {
+  dynamic toDebug(dynamic protoObj) {
+    if (protoObj is proto.CryptoKey) {
+      return protoObj.toVeilid();
+    }
+    if (protoObj is proto.Signature) {
+      return protoObj.toVeilid();
+    }
+    if (protoObj is proto.Nonce) {
+      return protoObj.toVeilid();
+    }
+    if (protoObj is proto.TypedKey) {
+      return protoObj.toVeilid();
+    }
+    if (protoObj is proto.KeyPair) {
+      return protoObj.toVeilid();
+    }
+    return protoObj;
+  }
+
+  DynamicDebug.registerToDebug(toDebug);
 }

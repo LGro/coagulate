@@ -1,13 +1,14 @@
 /// Dart Veilid Support Library
 /// Common functionality for interfacing with Veilid
 
-library veilid_support;
+library;
 
 export 'package:veilid/veilid.dart';
 
 export 'dht_support/dht_support.dart';
 export 'identity_support/identity_support.dart';
 export 'src/config.dart';
+export 'src/dynamic_debug.dart';
 export 'src/json_tools.dart';
 export 'src/memory_tools.dart';
 export 'src/online_element_state.dart';
