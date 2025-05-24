@@ -127,20 +127,21 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updatePhone(String label, String value,
+  Future<void> updatePhone(String? oldLabel, String label, String value,
       List<(String, String, bool)> circlesWithSelection,
       {int? i}) async {
     if (state.profileInfo == null) {
       return;
     }
 
-    final details = {...state.profileInfo!.details.phones};
+    final details = {...state.profileInfo!.details.phones}..remove(oldLabel);
     details[label] = value;
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    final _sharingSettings = {...state.profileInfo!.sharingSettings.phones};
+    final _sharingSettings = {...state.profileInfo!.sharingSettings.phones}
+      ..remove(oldLabel);
     _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
@@ -158,20 +159,21 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updateEmail(String label, String value,
+  Future<void> updateEmail(String? oldLabel, String label, String value,
       List<(String, String, bool)> circlesWithSelection,
       {int? i}) async {
     if (state.profileInfo == null) {
       return;
     }
 
-    final details = {...state.profileInfo!.details.emails};
+    final details = {...state.profileInfo!.details.emails}..remove(oldLabel);
     details[label] = value;
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    final _sharingSettings = {...state.profileInfo!.sharingSettings.emails};
+    final _sharingSettings = {...state.profileInfo!.sharingSettings.emails}
+      ..remove(oldLabel);
     _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
@@ -189,14 +191,15 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updateSocialMedia(String label, String value,
+  Future<void> updateSocialMedia(String? oldLabel, String label, String value,
       List<(String, String, bool)> circlesWithSelection,
       {int? i}) async {
     if (state.profileInfo == null) {
       return;
     }
 
-    final details = {...state.profileInfo!.details.socialMedias};
+    final details = {...state.profileInfo!.details.socialMedias}
+      ..remove(oldLabel);
     details[label] = value;
 
     await createCirclesIfNotExist(
@@ -204,7 +207,7 @@ class ProfileCubit extends Cubit<ProfileState> {
 
     final _sharingSettings = {
       ...state.profileInfo!.sharingSettings.socialMedias
-    };
+    }..remove(oldLabel);
     _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
@@ -222,19 +225,20 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updateWebsite(String label, String value,
+  Future<void> updateWebsite(String? oldLabel, String label, String value,
       List<(String, String, bool)> circlesWithSelection) async {
     if (state.profileInfo == null) {
       return;
     }
 
-    final details = {...state.profileInfo!.details.websites};
+    final details = {...state.profileInfo!.details.websites}..remove(oldLabel);
     details[label] = value;
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    final _sharingSettings = {...state.profileInfo!.sharingSettings.websites};
+    final _sharingSettings = {...state.profileInfo!.sharingSettings.websites}
+      ..remove(oldLabel);
     _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
@@ -252,19 +256,20 @@ class ProfileCubit extends Cubit<ProfileState> {
     await contactsRepository.setProfileInfo(updatedProfile);
   }
 
-  Future<void> updateEvent(String label, DateTime value,
+  Future<void> updateEvent(String? oldLabel, String label, DateTime value,
       List<(String, String, bool)> circlesWithSelection) async {
     if (state.profileInfo == null) {
       return;
     }
 
-    final details = {...state.profileInfo!.details.events};
+    final details = {...state.profileInfo!.details.events}..remove(oldLabel);
     details[label] = value;
 
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    final _sharingSettings = {...state.profileInfo!.sharingSettings.events};
+    final _sharingSettings = {...state.profileInfo!.sharingSettings.events}
+      ..remove(oldLabel);
     _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
@@ -283,6 +288,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> updateAddressLocation(
+      String? oldLabel,
       String label,
       ContactAddressLocation contactAddress,
       List<(String, String, bool)> circlesWithSelection) async {
@@ -293,11 +299,13 @@ class ProfileCubit extends Cubit<ProfileState> {
     await createCirclesIfNotExist(
         circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
 
-    final _sharingSettings = {...state.profileInfo!.sharingSettings.addresses};
+    final _sharingSettings = {...state.profileInfo!.sharingSettings.addresses}
+      ..remove(oldLabel);
     _sharingSettings[label] =
         circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
 
-    final _updatedAddressLocations = {...state.profileInfo!.addressLocations};
+    final _updatedAddressLocations = {...state.profileInfo!.addressLocations}
+      ..remove(oldLabel);
     _updatedAddressLocations[label] = contactAddress;
 
     final updatedProfile = state.profileInfo!.copyWith(

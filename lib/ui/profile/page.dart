@@ -406,7 +406,7 @@ class EditOrAddAddressWidget extends StatefulWidget {
   final String? label;
   final ContactAddressLocation? value;
   final VoidCallback? onDelete;
-  final void Function(String label, ContactAddressLocation value,
+  final void Function(String?, String label, ContactAddressLocation value,
       List<(String, String, bool)> selectedCircles) onAddOrSave;
   final List<(String, String, bool, int)> circles;
   final List<String> existingLabels;
@@ -562,7 +562,10 @@ class _EditOrAddAddressWidgetState extends State<EditOrAddAddressWidget> {
                 FilledButton(
                   onPressed: () =>
                       (_formKey.currentState!.validate() && _value != null)
-                          ? widget.onAddOrSave((_label ?? '').trim(), _value!,
+                          ? widget.onAddOrSave(
+                              widget.label,
+                              (_label ?? '').trim(),
+                              _value!,
                               _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
                           : null,
                   child: Text((widget.isEditing)
@@ -599,7 +602,7 @@ class EditOrAddEventWidget extends StatefulWidget {
   final String? label;
   final String? value;
   final VoidCallback? onDelete;
-  final void Function(String label, DateTime value,
+  final void Function(String? oldLabel, String label, DateTime value,
       List<(String, String, bool)> selectedCircles) onAddOrSave;
   final List<(String, String, bool, int)> circles;
   final List<String> existingLabels;
@@ -764,6 +767,7 @@ class _EditOrAddEventWidgetState extends State<EditOrAddEventWidget> {
                   onPressed: () =>
                       (_formKey.currentState!.validate() && _value != null)
                           ? widget.onAddOrSave(
+                              widget.label,
                               (_label ?? '').trim(),
                               DateTime.parse(_value!),
                               _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
@@ -1009,7 +1013,7 @@ Future<void> onEditDetail({
   required Map<String, String> circles,
   required Map<String, List<String>> circleMemberships,
   required Map<String, List<String>> detailSharingSettings,
-  required Future<void> Function(String label, String number,
+  required Future<void> Function(String oldLabel, String label, String value,
           List<(String, String, bool)> circlesWithSelection)
       onSave,
   required Future<void> Function() onDelete,
@@ -1052,9 +1056,10 @@ Future<void> onEditDetail({
                         (buildContext.mounted)
                             ? Navigator.of(buildContext).pop()
                             : null),
-                    onAddOrSave: (label, value, circlesWithSelection) async =>
-                        onSave(label, value, circlesWithSelection).then((_) =>
-                            (buildContext.mounted)
+                    onAddOrSave: (newLabel, newValue,
+                            circlesWithSelection) async =>
+                        onSave(label, newLabel, newValue, circlesWithSelection)
+                            .then((_) => (buildContext.mounted)
                                 ? Navigator.of(buildContext).pop()
                                 : null)))));
 
@@ -1093,7 +1098,11 @@ class ProfileViewState extends State<ProfileView> {
                   circles: circles,
                   circleMemberships: circleMemberships,
                   detailSharingSettings: profileSharingSettings.names,
-                  onSave: context.read<ProfileCubit>().updateName,
+                  // We don't need to handle label changes here because the id
+                  // i.e. label is not exposed for the user to change it
+                  onSave: (_, id, value, circlesWithSelection) async => context
+                      .read<ProfileCubit>()
+                      .updateName(id, value, circlesWithSelection),
                   onDelete: () async => context
                       .read<ProfileCubit>()
                       .updateDetails(contact.copyWith(
@@ -1175,7 +1184,9 @@ class ProfileViewState extends State<ProfileView> {
               existingLabels: contact.phones.keys.toList(),
               circles: circles,
               circleMemberships: circleMemberships,
-              onAdd: context.read<ProfileCubit>().updatePhone),
+              onAdd: (label, value, circlesWithSelection) async => context
+                  .read<ProfileCubit>()
+                  .updatePhone(null, label, value, circlesWithSelection)),
         ),
         // E-MAILS
         ...detailsList(
@@ -1217,7 +1228,9 @@ class ProfileViewState extends State<ProfileView> {
               existingLabels: contact.emails.keys.toList(),
               circles: circles,
               circleMemberships: circleMemberships,
-              onAdd: context.read<ProfileCubit>().updateEmail),
+              onAdd: (label, value, circlesWithSelection) async => context
+                  .read<ProfileCubit>()
+                  .updateEmail(null, label, value, circlesWithSelection)),
         ),
         // ADDRESSES
         ...detailsList(
@@ -1276,12 +1289,12 @@ class ProfileViewState extends State<ProfileView> {
                                 Navigator.of(buildContext).pop();
                               }
                             },
-                            onAddOrSave:
-                                (label, value, circlesWithSelection) async {
+                            onAddOrSave: (oldLabel, label, value,
+                                circlesWithSelection) async {
                               await context
                                   .read<ProfileCubit>()
-                                  .updateAddressLocation(
-                                      label, value, circlesWithSelection);
+                                  .updateAddressLocation(oldLabel, label, value,
+                                      circlesWithSelection);
                               if (buildContext.mounted) {
                                 Navigator.of(buildContext).pop();
                               }
@@ -1315,12 +1328,12 @@ class ProfileViewState extends State<ProfileView> {
                           labelHelperText: 'e.g. home or cabin',
                           label: (addressLocations.isEmpty) ? 'home' : null,
                           existingLabels: addressLocations.keys.toList(),
-                          onAddOrSave:
-                              (label, value, circlesWithSelection) async {
+                          onAddOrSave: (oldLabel, label, value,
+                              circlesWithSelection) async {
                             await context
                                 .read<ProfileCubit>()
-                                .updateAddressLocation(
-                                    label, value, circlesWithSelection);
+                                .updateAddressLocation(oldLabel, label, value,
+                                    circlesWithSelection);
                             if (buildContext.mounted) {
                               Navigator.of(buildContext).pop();
                             }
@@ -1367,7 +1380,9 @@ class ProfileViewState extends State<ProfileView> {
               existingLabels: contact.socialMedias.keys.toList(),
               circles: circles,
               circleMemberships: circleMemberships,
-              onAdd: context.read<ProfileCubit>().updateSocialMedia),
+              onAdd: (label, value, circlesWithSelection) async => context
+                  .read<ProfileCubit>()
+                  .updateSocialMedia(null, label, value, circlesWithSelection)),
         ),
         // WEBSITES
         ...detailsList(
@@ -1410,7 +1425,9 @@ class ProfileViewState extends State<ProfileView> {
               existingLabels: contact.websites.keys.toList(),
               circles: circles,
               circleMemberships: circleMemberships,
-              onAdd: context.read<ProfileCubit>().updateWebsite),
+              onAdd: (label, value, circlesWithSelection) async => context
+                  .read<ProfileCubit>()
+                  .updateWebsite(null, label, value, circlesWithSelection)),
         ),
         // EVENTS
         ...detailsList(
@@ -1474,10 +1491,10 @@ class ProfileViewState extends State<ProfileView> {
                                 Navigator.of(buildContext).pop();
                               }
                             },
-                            onAddOrSave:
-                                (label, value, circlesWithSelection) async {
+                            onAddOrSave: (oldLabel, label, value,
+                                circlesWithSelection) async {
                               await context.read<ProfileCubit>().updateEvent(
-                                  label, value, circlesWithSelection);
+                                  oldLabel, label, value, circlesWithSelection);
                               if (buildContext.mounted) {
                                 Navigator.of(buildContext).pop();
                               }
@@ -1510,10 +1527,10 @@ class ProfileViewState extends State<ProfileView> {
                           valueHintText: 'YYYY-MM-DD',
                           label: (contact.events.isEmpty) ? 'birthday' : null,
                           existingLabels: contact.events.keys.toList(),
-                          onAddOrSave:
-                              (label, value, circlesWithSelection) async {
+                          onAddOrSave: (oldLabel, label, value,
+                              circlesWithSelection) async {
                             await context.read<ProfileCubit>().updateEvent(
-                                label, value, circlesWithSelection);
+                                oldLabel, label, value, circlesWithSelection);
                             if (buildContext.mounted) {
                               Navigator.of(buildContext).pop();
                             }
