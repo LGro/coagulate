@@ -166,4 +166,24 @@ void main() {
     ]);
     expect(filteredNames, {'nick': 'dudi'});
   });
+
+  test('remove circle', () async {
+    final repo = ContactsRepository(
+        DummyPersistentStorage({}),
+        DummyDistributedStorage(transparent: false),
+        DummySystemContacts([]),
+        'UserA',
+        initialize: false);
+    await repo.addCircle('c1', 'c1');
+    await repo.addCircle('c2', 'c2');
+    await repo.updateCircleMemberships({
+      'p1': ['c1', 'c2'],
+      'p2': ['c2'],
+    });
+
+    await repo.removeCircle('c1');
+
+    expect(repo.getCircleMemberships()['p1'], ['c2']);
+    expect(repo.getCircleMemberships()['p2'], ['c2']);
+  });
 }

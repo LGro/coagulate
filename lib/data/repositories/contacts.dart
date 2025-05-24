@@ -900,8 +900,8 @@ class ContactsRepository {
 
   Future<void> removeCircle(String circleId) async {
     _circles.remove(circleId);
-    _circleMemberships
-        .removeWhere((_, circleIds) => circleIds.contains(circleId));
+    _circleMemberships = _circleMemberships.map((contactId, circleIds) =>
+        MapEntry(contactId, circleIds..remove(circleId)));
     _circlesStreamController.add(null);
     await persistentStorage.updateCircles(_circles);
     await persistentStorage.updateCircleMemberships(_circleMemberships);
