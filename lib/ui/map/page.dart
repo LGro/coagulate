@@ -242,12 +242,12 @@ Future<void> showModalTemporaryLocationDetails(
                                 coagContactId: location.coagContactId!)))),
                 const SizedBox(height: 8),
                 FilledButton.tonal(
-                  child: const Text('Add to my locations'),
                   onPressed: () async => Navigator.push(
                       context,
                       MaterialPageRoute<ScheduleWidget>(
-                          builder: (_) =>
-                              ScheduleWidget(locationId: locationId))),
+                          builder: (_) => ScheduleWidget(
+                              locationId: locationId, location: location))),
+                  child: const Text('Add to my locations'),
                 ),
               ],
 
@@ -276,8 +276,9 @@ Future<void> showModalTemporaryLocationDetails(
                         onPressed: () async => Navigator.push(
                             context,
                             MaterialPageRoute<ScheduleWidget>(
-                                builder: (_) =>
-                                    ScheduleWidget(locationId: locationId))),
+                                builder: (_) => ScheduleWidget(
+                                    locationId: locationId,
+                                    location: location))),
                         child: const Text('Edit'),
                       ),
                     ]),

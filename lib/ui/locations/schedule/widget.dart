@@ -15,6 +15,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../data/models/contact_location.dart';
 import '../../../data/providers/geocoding/maptiler.dart';
 import '../../../data/repositories/contacts.dart';
 import '../../map/page.dart';
@@ -502,9 +503,10 @@ class ScheduleFormState with FormzMixin {
 }
 
 class ScheduleWidget extends StatelessWidget {
-  const ScheduleWidget({this.locationId, super.key});
+  const ScheduleWidget({this.locationId, this.location, super.key});
 
   final String? locationId;
+  final ContactTemporaryLocation? location;
 
   @override
   Widget build(BuildContext context) => BlocProvider(
@@ -512,27 +514,23 @@ class ScheduleWidget extends StatelessWidget {
       child: BlocConsumer<ScheduleCubit, ScheduleState>(
           listener: (context, state) async {},
           builder: (context, state) {
-            final location = context
-                .read<ContactsRepository>()
-                .getProfileInfo()
-                ?.temporaryLocations[locationId];
             final initialFormState = (location == null)
                 ? null
                 : ScheduleFormState(
-                    title: location.name,
-                    details: location.details,
+                    title: location!.name,
+                    details: location!.details,
                     location: SearchResult(
-                        longitude: location.longitude,
-                        latitude: location.latitude,
-                        placeName: location.address ?? '',
+                        longitude: location!.longitude,
+                        latitude: location!.latitude,
+                        placeName: location!.address ?? '',
                         id: ''),
-                    start: location.start,
-                    end: location.end,
+                    start: location!.start,
+                    end: location!.end,
                     circles: state.circles.entries
                         .map((c) => (
                               c.key,
                               c.value,
-                              location.circles.contains(c.key),
+                              location!.circles.contains(c.key),
                               state.circleMemberships.values
                                   .where((cIds) => cIds.contains(c.key))
                                   .length
