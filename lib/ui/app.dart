@@ -13,21 +13,24 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/models/contact_location.dart';
 import '../data/providers/distributed_storage/dht.dart';
 import '../data/providers/persistent_storage/sqlite.dart';
 import '../data/providers/system_contacts/system_contacts.dart';
 import '../data/repositories/contacts.dart';
 import '../notification_service.dart';
 import '../tick.dart';
+import '../veilid_init.dart';
 import 'circles_list/page.dart';
 import 'contact_details/page.dart';
 import 'contact_list/page.dart';
+import 'import_ics/page.dart';
+import 'locations/schedule/widget.dart';
 import 'map/page.dart';
 import 'profile/page.dart';
 import 'receive_request/cubit.dart';
 import 'receive_request/page.dart';
 import 'settings/page.dart';
-import 'package:coagulate/veilid_init.dart';
 import 'welcome.dart';
 
 // TODO: It seems odd to require the knowledge about which other route names should map to the relevant navigation items here
@@ -115,10 +118,24 @@ class AppRouter {
                               state.pathParameters['coagContactId']!)),
                 ]),
             GoRoute(
-              path: '/map',
-              name: 'map',
-              builder: (_, __) => const MapPage(),
-            ),
+                path: '/map',
+                name: 'map',
+                builder: (_, __) => const MapPage(),
+                routes: [
+                  GoRoute(
+                      path: 'importIcs',
+                      name: 'importIcs',
+                      builder: (_, state) =>
+                          ImportIcsPage(icsData: state.extra.toString())),
+                  GoRoute(
+                      path: 'scheduleLocation',
+                      name: 'scheduleLocation',
+                      // TODO: Handle if extra cannot be casted
+                      builder: (_, state) => ScheduleWidget(
+                          location: (state.extra == null)
+                              ? null
+                              : state.extra! as ContactTemporaryLocation)),
+                ]),
             GoRoute(
                 path: '/settings',
                 name: 'settings',

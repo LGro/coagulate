@@ -1,7 +1,7 @@
 name: coagulate
 description: Staying in contact, with privacy friendly contact synchronization and location sharing powered by Veilid.
 publish_to: 'none'
-version: "0.1.7+2"
+version: "0.1.8+9"
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -63,6 +63,11 @@ dependencies:
   badges: ^3.1.2
   flutter_map_cache: ^2.0.0+1
   http_cache_file_store: ^2.0.1
+  # TODO: Switch back to release once this is resolved: https://github.com/KasemJaffer/receive_sharing_intent/issues/344
+  receive_sharing_intent:
+    git:
+      url: https://github.com/KasemJaffer/receive_sharing_intent
+      ref: 2cea396843cd3ab1b5ec4334be4233864637874e
 
 dev_dependencies:
   bloc_test: ^10.0.0

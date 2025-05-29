@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'package:veilid/veilid.dart';
@@ -1064,6 +1067,34 @@ Future<void> onEditDetail({
                                 : null)))));
 
 class ProfileViewState extends State<ProfileView> {
+  @override
+  void initState() {
+    super.initState();
+    // TODO: This is part of the example in the docs, but is it necessary?
+    // Listen to media sharing coming from outside the app while the app is in the memory.
+    // _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((files) {
+    //   if (files.isNotEmpty) {
+    //     final ics = File(files.first.path).readAsStringSync();
+    //     if (context.mounted) {
+    //       context.goNamed('importIcs', extra: ics);
+    //     }
+    //   }
+    // }, onError: (err) {
+    //   debugPrint('getIntentDataStream error: $err');
+    // });
+
+    // Get the media sharing coming from outside the app while the app is closed.
+    ReceiveSharingIntent.instance.getInitialMedia().then((files) {
+      if (files.isNotEmpty) {
+        final ics = File(files.first.path).readAsStringSync();
+        if (context.mounted) {
+          context.goNamed('importIcs', extra: ics);
+        }
+      }
+      ReceiveSharingIntent.instance.reset();
+    });
+  }
+
   Widget buildProfileScrollView(
           {required ContactDetails contact,
           required Map<String, ContactAddressLocation> addressLocations,
