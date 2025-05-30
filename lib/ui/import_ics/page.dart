@@ -7,8 +7,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/models/contact_location.dart';
 import '../../data/providers/geocoding/maptiler.dart';
+import '../../data/repositories/settings.dart';
 import '../../ics_parser.dart';
-import '../map/page.dart';
 
 class ImportIcsPage extends StatefulWidget {
   const ImportIcsPage({required this.icsData, super.key});

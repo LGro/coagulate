@@ -17,6 +17,7 @@ import '../data/providers/distributed_storage/dht.dart';
 import '../data/providers/persistent_storage/sqlite.dart';
 import '../data/providers/system_contacts/system_contacts.dart';
 import '../data/repositories/contacts.dart';
+import '../data/repositories/settings.dart';
 import '../l10n/app_localizations.dart';
 import '../notification_service.dart';
 import '../tick.dart';
@@ -344,9 +345,20 @@ class _CoagulateAppState extends State<CoagulateApp>
 
         // Once init is done, we proceed with the app
         return BackgroundTicker(
-            child: RepositoryProvider.value(
-          value: ContactsRepository(SqliteStorage(), VeilidDhtStorage(),
-              SystemContacts(), _providedNameOnFirstLaunch!),
+            child: MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider(
+                create: (_) => SettingsRepository(
+                    darkMode: MediaQuery.of(context).platformBrightness ==
+                        Brightness.dark,
+                    devicePixelRatio: View.of(context).devicePixelRatio)),
+            RepositoryProvider(
+                create: (context) => ContactsRepository(
+                    SqliteStorage(),
+                    VeilidDhtStorage(),
+                    SystemContacts(),
+                    _providedNameOnFirstLaunch!)),
+          ],
           child: MaterialApp.router(
             title: 'Coagulate',
             debugShowCheckedModeBanner: true,

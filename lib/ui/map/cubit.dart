@@ -10,12 +10,13 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
+import '../../data/repositories/settings.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
 
 class MapCubit extends Cubit<MapState> {
-  MapCubit(this.contactsRepository)
+  MapCubit(this.contactsRepository, this.settingsRepository)
       : super(const MapState(status: MapStatus.initial)) {
     _profileInfoSubscription = contactsRepository
         .getProfileInfoStream()
@@ -31,6 +32,7 @@ class MapCubit extends Cubit<MapState> {
   }
 
   final ContactsRepository contactsRepository;
+  final SettingsRepository settingsRepository;
   late final StreamSubscription<void> _circlesSubscription;
   late final StreamSubscription<String> _contactsSubscription;
   late final StreamSubscription<ProfileInfo> _profileInfoSubscription;

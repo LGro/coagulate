@@ -27,10 +27,26 @@ final class SettingsState extends Equatable {
   final SettingsStatus status;
   final String message;
   final bool darkMode;
-  final String mapProvider;
+  final MapProvider mapProvider;
   final bool autoAddressResolution;
 
   Map<String, dynamic> toJson() => _$SettingsStateToJson(this);
+
+  SettingsState copyWith({
+    bool? darkMode,
+    MapProvider? mapProvider,
+    bool? autoAddressResolution,
+    SettingsStatus? status,
+    String? message,
+  }) =>
+      SettingsState(
+        darkMode: darkMode ?? this.darkMode,
+        mapProvider: mapProvider ?? this.mapProvider,
+        autoAddressResolution:
+            autoAddressResolution ?? this.autoAddressResolution,
+        status: status ?? this.status,
+        message: message ?? this.message,
+      );
 
   @override
   List<Object?> get props =>

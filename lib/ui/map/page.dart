@@ -17,6 +17,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
+import '../../data/repositories/settings.dart';
 import '../contact_details/page.dart';
 import '../locations/check_in/widget.dart';
 import '../locations/cubit.dart';
@@ -24,18 +25,6 @@ import '../locations/schedule/widget.dart';
 import 'cubit.dart';
 
 // TODO: check out 'package:flutter_map_example/pages/bundled_offline_map.dart'
-
-String mapUrl(BuildContext context) => [
-      'https://api.maptiler.com/maps/dataviz-',
-      if (MediaQuery.of(context).platformBrightness == Brightness.dark)
-        'dark'
-      else
-        'light',
-      '/{z}/{x}/{y}',
-      if (View.of(context).devicePixelRatio >= 1) '@2x' else '',
-      '.png?key=',
-      maptilerToken(),
-    ].join();
 
 class SliderExample extends StatefulWidget {
   const SliderExample({super.key});
@@ -106,9 +95,6 @@ LatLng? initialLocation(
 
   return null;
 }
-
-String maptilerToken() =>
-    const String.fromEnvironment('COAGULATE_MAPTILER_TOKEN');
 
 String dateFormat(DateTime d, String languageCode) => [
       DateFormat.yMMMd(languageCode).format(d),
@@ -355,6 +341,7 @@ class MapPage extends StatelessWidget {
     required String label,
     required String subLabel,
     required MarkerType type,
+    required bool darkMode,
     required GestureTapCallback? onTap,
     List<int>? picture,
   }) =>
@@ -370,10 +357,7 @@ class MapPage extends StatelessWidget {
                     padding: const EdgeInsets.only(
                         bottom: 4, left: 8, right: 8, top: 3),
                     decoration: BoxDecoration(
-                        color: ((MediaQuery.of(context).platformBrightness ==
-                                    Brightness.dark)
-                                ? Colors.black
-                                : Colors.white)
+                        color: (darkMode ? Colors.black : Colors.white)
                             .withAlpha(240),
                         borderRadius:
                             const BorderRadius.all(Radius.circular(5))),
@@ -443,7 +427,8 @@ class MapPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => BlocProvider(
-      create: (context) => MapCubit(context.read<ContactsRepository>()),
+      create: (context) => MapCubit(context.read<ContactsRepository>(),
+          context.read<SettingsRepository>()),
       child: BlocConsumer<MapCubit, MapState>(
           listener: (context, state) async {},
           builder: (context, state) => (state.cachePath == null ||
@@ -463,7 +448,7 @@ class MapPage extends StatelessWidget {
                               state.contacts
                                   .map((c) => c.temporaryLocations.values)
                                   .expand((l) => l)) ??
-                          const LatLng(50.5, 30.51),
+                          const LatLng(47, 8),
                       initialZoom: 4,
                       maxZoom: 15,
                       minZoom: 1,
@@ -476,7 +461,7 @@ class MapPage extends StatelessWidget {
                   children: <Widget>[
                     TileLayer(
                       userAgentPackageName: 'social.coagulate.app',
-                      urlTemplate: mapUrl(context),
+                      urlTemplate: context.read<SettingsRepository>().mapUrl,
                       tileProvider: CachedTileProvider(
                         maxStale: const Duration(days: 30),
                         store: FileCacheStore(state.cachePath!),
@@ -501,6 +486,8 @@ class MapPage extends StatelessWidget {
                                 latitude: l.value.latitude,
                                 label: 'Me',
                                 subLabel: l.value.name,
+                                darkMode:
+                                    context.read<SettingsRepository>().darkMode,
                                 type: (l.value.checkedIn)
                                     ? MarkerType.checkedIn
                                     : MarkerType.temporary,
@@ -532,6 +519,9 @@ class MapPage extends StatelessWidget {
                                           label: c.name,
                                           subLabel: l.value.name,
                                           type: MarkerType.temporary,
+                                          darkMode: context
+                                              .read<SettingsRepository>()
+                                              .darkMode,
                                           picture: c.details?.picture,
                                           onTap: () async =>
                                               showModalTemporaryLocationDetails(
@@ -557,6 +547,9 @@ class MapPage extends StatelessWidget {
                                     label: 'Me',
                                     subLabel: label,
                                     type: MarkerType.address,
+                                    darkMode: context
+                                        .read<SettingsRepository>()
+                                        .darkMode,
                                     picture: state.profileInfo?.pictures.values
                                         .firstOrNull,
                                     onTap: () async =>
@@ -579,6 +572,9 @@ class MapPage extends StatelessWidget {
                                         label: c.name,
                                         subLabel: label,
                                         type: MarkerType.address,
+                                        darkMode: context
+                                            .read<SettingsRepository>()
+                                            .darkMode,
                                         picture: c.details?.picture,
                                         onTap: () async =>
                                             showModalAddressLocationDetails(
@@ -609,11 +605,15 @@ class MapPage extends StatelessWidget {
                     RichAttributionWidget(
                         showFlutterMapAttribution: false,
                         attributions: [
-                          TextSourceAttribution(
-                            'MapTiler',
-                            onTap: () async =>
-                                launchUrl(Uri.parse('https://maptiler.com/')),
-                          ),
+                          if (context
+                              .read<SettingsRepository>()
+                              .mapUrl
+                              .contains('maptiler'))
+                            TextSourceAttribution(
+                              'MapTiler',
+                              onTap: () async =>
+                                  launchUrl(Uri.parse('https://maptiler.com/')),
+                            ),
                           TextSourceAttribution(
                             'OpenStreetMap contributors',
                             onTap: () async => launchUrl(

@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/providers/geocoding/maptiler.dart';
-import '../../map/page.dart';
+import '../../../data/repositories/settings.dart';
 
 class LocationSearchWidget extends StatefulWidget {
   const LocationSearchWidget({this.onSelected, this.initialValue, super.key});

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/repositories/contacts.dart';
+import '../../data/repositories/settings.dart';
 import '../../notification_service.dart';
 import '../batch_invite_management/page.dart';
 import '../widgets/veilid_status/widget.dart';
@@ -17,12 +18,10 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: BlocProvider(
-          create: (context) =>
-              SettingsCubit(context.read<ContactsRepository>()),
+          create: (_) => SettingsCubit(context.read<ContactsRepository>(),
+              context.read<SettingsRepository>()),
           child: BlocConsumer<SettingsCubit, SettingsState>(
               listener: (context, state) => {},
               builder: (blocContext, state) => ListView(children: [
@@ -31,27 +30,34 @@ class SettingsPage extends StatelessWidget {
                         trailing: Padding(
                             padding: EdgeInsets.only(right: 4),
                             child: VeilidStatusWidget(statusWidgets: {}))),
-                    // ListTile(
-                    //     title: const Text('Dark mode'),
-                    //     trailing: Switch(
-                    //         value: state.darkMode, onChanged: (v) => ())),
-                    // ListTile(
-                    //     title: const Text('Map provider'),
-                    //     trailing: DropdownMenu<String>(
-                    //         initialSelection: state.mapProvider,
-                    //         requestFocusOnTap: true,
-                    //         enabled: false,
-                    //         onSelected: (v) => (),
-                    //         dropdownMenuEntries: [
-                    //           const DropdownMenuEntry(
-                    //               value: 'mapbox', label: 'MapBox'),
-                    //           const DropdownMenuEntry(
-                    //               value: 'osm', label: 'OpenStreetMap'),
-                    //           if (Platform.isIOS)
-                    //             const DropdownMenuEntry(
-                    //                 value: 'apple', label: 'Apple Maps'),
-                    //         ])),
-                    // TODO: Add option to delete circles
+                    ListTile(
+                        title: const Text('Map provider'),
+                        trailing: DropdownMenu<MapProvider>(
+                            initialSelection: state.mapProvider,
+                            onSelected: (v) => (v == null)
+                                ? null
+                                : blocContext
+                                    .read<SettingsCubit>()
+                                    .setMapProvider(v),
+                            dropdownMenuEntries: MapProvider.values
+                                // TODO: Remove when support for custom urls lands
+                                .sublist(0, 2)
+                                .map((v) => DropdownMenuEntry(
+                                    value: v,
+                                    label: v.toString().split('.').last))
+                                .toList())),
+                    // TODO: Make sure that when re-enabling this the marker labels have the correct color when selecting the opposite of the system theme
+                    // if (state.mapProvider == MapProvider.maptiler)
+                    //   ListTile(
+                    //       title: const Text('Map dark mode'),
+                    //       trailing: Switch(
+                    //           value: state.darkMode,
+                    //           onChanged: blocContext
+                    //               .read<SettingsCubit>()
+                    //               .setDarkMode)),
+                    // TODO: Add option
+                    // if (state.mapProvider == MapProvider.custom)
+                    //   const ListTile(title: Text('Set custom map server url')),
                     // TODO: Move async things to cubit
                     // if (Platform.isIOS) _backgroundPermissionStatus(),
                     // TODO: Add custom bootstrap servers choice -- only allow during initial setup

@@ -18,6 +18,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../data/models/contact_location.dart';
 import '../../../data/providers/geocoding/maptiler.dart';
 import '../../../data/repositories/contacts.dart';
+import '../../../data/repositories/settings.dart';
 import '../../map/page.dart';
 import '../../widgets/location_search/widget.dart';
 import 'cubit.dart';
@@ -77,7 +78,7 @@ class MapWidgetState extends State<MapWidget> {
           children: <Widget>[
             TileLayer(
               userAgentPackageName: 'social.coagulate.app',
-              urlTemplate: mapUrl(context),
+              urlTemplate: context.read<SettingsRepository>().mapUrl,
               tileProvider: CachedTileProvider(
                 maxStale: const Duration(days: 30),
                 store: FileCacheStore(_cachePath!),

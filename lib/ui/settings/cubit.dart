@@ -15,6 +15,7 @@ import 'package:veilid_support/veilid_support.dart';
 import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
+import '../../data/repositories/settings.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
@@ -44,15 +45,26 @@ Uint8List generateRandomImage(int width, int height) {
 }
 
 class SettingsCubit extends Cubit<SettingsState> {
-  SettingsCubit(this.contactsRepository)
-      : super(const SettingsState(
+  SettingsCubit(this.contactsRepository, this.settingsRepository)
+      : super(SettingsState(
             message: '',
             status: SettingsStatus.initial,
-            darkMode: false,
+            darkMode: settingsRepository.darkMode,
             autoAddressResolution: true,
-            mapProvider: 'mapbox'));
+            mapProvider: settingsRepository.mapProvider));
 
   ContactsRepository contactsRepository;
+  SettingsRepository settingsRepository;
+
+  Future<void> setDarkMode(bool v) async {
+    emit(state.copyWith(darkMode: v));
+    await settingsRepository.setDarkMode(v);
+  }
+
+  Future<void> setMapProvider(MapProvider v) async {
+    emit(state.copyWith(mapProvider: v));
+    await settingsRepository.setMapProvider(v);
+  }
 
   Future<void> addDummyContact() async {
     final faker = Faker();
