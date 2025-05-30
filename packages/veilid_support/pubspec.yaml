@@ -9,7 +9,7 @@ environment:
 dependencies:
   async_tools: ^0.1.9
   bloc: ^9.0.0
-  bloc_advanced_tools: ^0.1.10
+  bloc_advanced_tools: ^0.1.12
   charcode: ^1.4.0
   collection: ^1.19.1
   convert: ^3.1.2
@@ -23,7 +23,7 @@ dependencies:
 
   path: ^1.9.1
   path_provider: ^2.1.5
-  protobuf: ^3.1.0
+  protobuf: ^4.1.0
   veilid:
     #   veilid: ^0.0.1
     path: ../../../veilid/veilid-flutter

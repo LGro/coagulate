@@ -1,5 +1,5 @@
 {
-  "flutter": "3.29.0",
+  "flutter": "3.32.0",
   "flavors": {
     "development": "beta",
     "production": "3.19.1"

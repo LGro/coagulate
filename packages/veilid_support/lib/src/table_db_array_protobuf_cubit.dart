@@ -24,7 +24,7 @@ class TableDBArrayProtobufStateData<T extends GeneratedMessage>
   final IList<T> windowElements;
   // The length of the entire array
   final int length;
-  // One past the end of the last element
+  // One past the end of the last element (modulo length, can be zero)
   final int windowTail;
   // The total number of elements to try to keep in 'elements'
   final int windowCount;

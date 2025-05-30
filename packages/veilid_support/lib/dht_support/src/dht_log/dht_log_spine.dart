@@ -608,14 +608,13 @@ class _DHTLogSpine {
   Future<void> watch() async {
     // This will update any existing watches if necessary
     try {
-      await _spineRecord.watch(subkeys: [ValueSubkeyRange.single(0)]);
-
       // Update changes to the head record
       // xxx: check if this localChanges can be false...
       // xxx: Don't watch for local changes because this class already handles
       // xxx: notifying listeners and knows when it makes local changes
       _subscription ??=
-          await _spineRecord.listen(localChanges: true, _onSpineChanged);
+          await _spineRecord.listen(localChanges: false, _onSpineChanged);
+      await _spineRecord.watch(subkeys: [ValueSubkeyRange.single(0)]);
     } on Exception {
       // If anything fails, try to cancel the watches
       await cancelWatch();

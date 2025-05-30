@@ -35,7 +35,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.29.0
+          flutter-version: 3.32.0
 
       - name: Rust
         run: curl -proto '=https' -tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -64,7 +64,7 @@ jobs:
           LANG: en_US.UTF-8
         run: |
           source "$HOME/.cargo/env"
-          git config --global --add safe.directory /__t/flutter/stable-3.29.0-x64
+          git config --global --add safe.directory /__t/flutter/stable-3.32.0-x64
           flutter config --no-analytics
           flutter pub get
           flutter test

@@ -169,6 +169,7 @@ class _$SuperIdentityCopyWithImpl<$Res>
 }
 
 /// @nodoc
+
 @JsonSerializable()
 class _SuperIdentity extends SuperIdentity {
   const _SuperIdentity(

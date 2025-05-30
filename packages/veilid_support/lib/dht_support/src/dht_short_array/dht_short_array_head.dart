@@ -482,13 +482,13 @@ class _DHTShortArrayHead {
   Future<void> watch() async {
     // This will update any existing watches if necessary
     try {
-      await _headRecord.watch(subkeys: [ValueSubkeyRange.single(0)]);
-
       // Update changes to the head record
       // Don't watch for local changes because this class already handles
       // notifying listeners and knows when it makes local changes
       _subscription ??=
           await _headRecord.listen(localChanges: false, _onHeadValueChanged);
+
+      await _headRecord.watch(subkeys: [ValueSubkeyRange.single(0)]);
     } on Exception {
       // If anything fails, try to cancel the watches
       await cancelWatch();

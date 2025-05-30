@@ -23,6 +23,7 @@ part 'super_identity.g.dart';
 /// Encryption: None
 @freezed
 sealed class SuperIdentity with _$SuperIdentity {
+  @JsonSerializable()
   const factory SuperIdentity({
     /// Public DHT record storing this structure for account recovery
     /// changing this can migrate/forward the SuperIdentity to a new DHT record
@@ -63,7 +64,40 @@ sealed class SuperIdentity with _$SuperIdentity {
 
   const SuperIdentity._();
 
-  /// Opens an existing super identity and validates it
+  /// Ensure a SuperIdentity is valid
+  Future<void> validate({required TypedKey superRecordKey}) async {
+    // Validate current IdentityInstance
+    if (!await currentInstance.validateIdentityInstance(
+        superRecordKey: superRecordKey, superPublicKey: publicKey)) {
+      // Invalid current IdentityInstance signature(s)
+      throw IdentityException.invalid;
+    }
+
+    // Validate deprecated IdentityInstances
+    for (final deprecatedInstance in deprecatedInstances) {
+      if (!await deprecatedInstance.validateIdentityInstance(
+          superRecordKey: superRecordKey, superPublicKey: publicKey)) {
+        // Invalid deprecated IdentityInstance signature(s)
+        throw IdentityException.invalid;
+      }
+    }
+
+    // Validate SuperIdentity
+    final deprecatedInstancesSignatures =
+        deprecatedInstances.map((x) => x.signature).toList();
+    if (!await _validateSuperIdentitySignature(
+        recordKey: recordKey,
+        currentInstanceSignature: currentInstance.signature,
+        deprecatedInstancesSignatures: deprecatedInstancesSignatures,
+        deprecatedSuperRecordKeys: deprecatedSuperRecordKeys,
+        publicKey: publicKey,
+        signature: signature)) {
+      // Invalid SuperIdentity signature
+      throw IdentityException.invalid;
+    }
+  }
+
+  /// Opens an existing super identity, validates it, and returns it
   static Future<SuperIdentity> open({required TypedKey superRecordKey}) async {
     final pool = DHTRecordPool.instance;
 
@@ -74,37 +108,7 @@ sealed class SuperIdentity with _$SuperIdentity {
       final superIdentity = (await superRec.getJson(SuperIdentity.fromJson,
           refreshMode: DHTRecordRefreshMode.network))!;
 
-      // Validate current IdentityInstance
-      if (!await superIdentity.currentInstance.validateIdentityInstance(
-          superRecordKey: superRecordKey,
-          superPublicKey: superIdentity.publicKey)) {
-        // Invalid current IdentityInstance signature(s)
-        throw IdentityException.invalid;
-      }
-
-      // Validate deprecated IdentityInstances
-      for (final deprecatedInstance in superIdentity.deprecatedInstances) {
-        if (!await deprecatedInstance.validateIdentityInstance(
-            superRecordKey: superRecordKey,
-            superPublicKey: superIdentity.publicKey)) {
-          // Invalid deprecated IdentityInstance signature(s)
-          throw IdentityException.invalid;
-        }
-      }
-
-      // Validate SuperIdentity
-      final deprecatedInstancesSignatures =
-          superIdentity.deprecatedInstances.map((x) => x.signature).toList();
-      if (!await _validateSuperIdentitySignature(
-          recordKey: superIdentity.recordKey,
-          currentInstanceSignature: superIdentity.currentInstance.signature,
-          deprecatedInstancesSignatures: deprecatedInstancesSignatures,
-          deprecatedSuperRecordKeys: superIdentity.deprecatedSuperRecordKeys,
-          publicKey: superIdentity.publicKey,
-          signature: superIdentity.signature)) {
-        // Invalid SuperIdentity signature
-        throw IdentityException.invalid;
-      }
+      await superIdentity.validate(superRecordKey: superRecordKey);
 
       return superIdentity;
     });

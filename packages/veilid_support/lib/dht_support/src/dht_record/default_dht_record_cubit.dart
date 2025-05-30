@@ -6,14 +6,14 @@ import '../../../veilid_support.dart';
 class DefaultDHTRecordCubit<T> extends DHTRecordCubit<T> {
   DefaultDHTRecordCubit({
     required super.open,
-    required T Function(List<int> data) decodeState,
+    required T Function(Uint8List data) decodeState,
   }) : super(
             initialStateFunction: _makeInitialStateFunction(decodeState),
             stateFunction: _makeStateFunction(decodeState),
             watchFunction: _makeWatchFunction());
 
   static InitialStateFunction<T> _makeInitialStateFunction<T>(
-          T Function(List<int> data) decodeState) =>
+          T Function(Uint8List data) decodeState) =>
       (record) async {
         final initialData = await record.get();
         if (initialData == null) {
@@ -23,7 +23,7 @@ class DefaultDHTRecordCubit<T> extends DHTRecordCubit<T> {
       };
 
   static StateFunction<T> _makeStateFunction<T>(
-          T Function(List<int> data) decodeState) =>
+          T Function(Uint8List data) decodeState) =>
       (record, subkeys, updatedata) async {
         final defaultSubkey = record.subkeyOrDefault(-1);
         if (subkeys.containsSubkey(defaultSubkey)) {

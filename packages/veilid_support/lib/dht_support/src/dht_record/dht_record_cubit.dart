@@ -87,6 +87,10 @@ abstract class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
     await super.close();
   }
 
+  Future<void> ready() async {
+    await initWait();
+  }
+
   Future<void> refresh(List<ValueSubkeyRange> subkeys) async {
     await initWait();
 
@@ -110,8 +114,6 @@ abstract class DHTRecordCubit<T> extends Cubit<AsyncValue<T>> {
       }
     }
   }
-
-  // DHTRecord get record => _record;
 
   @protected
   final WaitSet<void, bool> initWait = WaitSet();
