@@ -35,9 +35,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera is required for QR code scanning</string>
+	<string>Camera access is required for QR code scanning</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This should not happen, if it does contact support</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Integrate your existing contacts</string>
+	<string>Link contacts to your phone address book</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Check in at locations, share your location, or display contacts near you on a map</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
