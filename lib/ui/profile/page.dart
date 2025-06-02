@@ -1617,11 +1617,12 @@ class ProfileViewState extends State<ProfileView> {
                           softWrap: true,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis)),
-                  IconButton(
-                      onPressed: () async => Share.share(profileUrl(
-                              contact.names.values.firstOrNull ?? '???',
-                              profilePubKey)
-                          .toString()),
+                  IconButton.filledTonal(
+                      onPressed: () async => SharePlus.instance.share(
+                          ShareParams(
+                              uri: profileUrl(
+                                  contact.names.values.firstOrNull ?? '???',
+                                  profilePubKey))),
                       icon: const Icon(Icons.copy)),
                 ]),
               ]),

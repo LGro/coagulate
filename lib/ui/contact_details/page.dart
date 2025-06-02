@@ -658,13 +658,13 @@ Widget _connectingCard(BuildContext context, CoagContact contact,
                       softWrap: false,
                       overflow: TextOverflow.ellipsis)),
               IconButton(
-                  onPressed: () async => Share.share(profileBasedOfferUrl(
+                  onPressed: () async => SharePlus.instance.share(ShareParams(
+                      uri: profileBasedOfferUrl(
                           contact.sharedProfile?.details.names.values
                                   .firstOrNull ??
                               '???',
                           contact.dhtSettings.recordKeyMeSharing!,
-                          contact.dhtSettings.myKeyPair.key)
-                      .toString()),
+                          contact.dhtSettings.myKeyPair.key))),
                   icon: const Icon(Icons.copy)),
             ])
           ] else if (showDirectSharing(contact)) ...[
@@ -701,10 +701,10 @@ Widget _connectingCard(BuildContext context, CoagContact contact,
                 SizedBox(width: 4),
               ]),
               // TODO: Add warning dialogue that the link contains a secret and should only be transmitted via an end to end encrypted messenger
-              onPressed: () async => Share.share(
-                  "Hi ${contact.name}, I'd like to share with you: "
-                  '${directSharingUrl(contact.sharedProfile?.details.names.values.firstOrNull ?? '???', contact.dhtSettings.recordKeyMeSharing!, contact.dhtSettings.initialSecret!)}\n'
-                  "Keep this link a secret, it's just for you."),
+              onPressed: () async => SharePlus.instance.share(ShareParams(
+                  text: "Hi ${contact.name}, I'd like to share with you: "
+                      '${directSharingUrl(contact.sharedProfile?.details.names.values.firstOrNull ?? '???', contact.dhtSettings.recordKeyMeSharing!, contact.dhtSettings.initialSecret!)}\n'
+                      "Keep this link a secret, it's just for you.")),
             ),
             const SizedBox(height: 4),
             // TODO: Link "create an invite" to the corresponding page, and maybe also "contact page" to contacts list?

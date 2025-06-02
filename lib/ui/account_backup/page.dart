@@ -46,8 +46,9 @@ class BackupPage extends StatelessWidget {
                         child: Text('${state.dhtRecordKey}~${state.secret}',
                             overflow: TextOverflow.ellipsis)),
                     IconButton(
-                        onPressed: () async => Share.share(
-                            '${state.dhtRecordKey}~${state.secret}'),
+                        onPressed: () async => SharePlus.instance.share(
+                            ShareParams(
+                                text: '${state.dhtRecordKey}~${state.secret}')),
                         icon: const Icon(Icons.copy)),
                   ]),
                 ],

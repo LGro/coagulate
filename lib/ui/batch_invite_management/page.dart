@@ -250,13 +250,13 @@ Widget existingBatchWidget(BuildContext context, Batch batch) =>
             ])),
         const SizedBox(width: 4),
         FilledButton.tonal(
-            onPressed: () async => Share.shareXFiles([
+            onPressed: () async => SharePlus.instance.share(ShareParams(files: [
                   XFile.fromData(
                       utf8.encode(generateBatchInviteLinks(batch).join(', ')),
                       mimeType: 'text/plain')
                 ], fileNameOverrides: [
                   'coagulate_batch_${batch.label}.txt'
-                ]),
+                ])),
             child: const Row(children: [
               Icon(Icons.save),
               SizedBox(width: 8),

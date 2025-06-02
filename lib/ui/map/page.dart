@@ -14,6 +14,7 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:http_cache_file_store/http_cache_file_store.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
@@ -117,35 +118,46 @@ Future<void> showModalAddressLocationDetails(
           controller: scrollController,
           child: Padding(
             padding: EdgeInsets.only(
-                left: 16,
+                left: 24,
                 top: 16,
-                right: 16,
+                right: 24,
                 bottom: 12 + MediaQuery.of(modalContext).viewInsets.bottom),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              // TODO: Add information about who this is shared with
-              Row(children: [
-                Expanded(
-                    child: Text(
-                        [
-                          contactName,
-                          'Label: $label',
-                          if (location.address != null)
-                            'Address: ${location.address}'
-                        ].join('\n\n'),
-                        softWrap: true))
-              ]),
-              const SizedBox(height: 16),
-              // TODO: only display if not already scheduled this (or conflicting)
-              if (location.coagContactId != null) ...[
-                FilledButton.tonal(
-                    child: const Text('Contact details'),
-                    onPressed: () async => Navigator.push(
-                        context,
-                        MaterialPageRoute<ContactPage>(
-                            builder: (_) => ContactPage(
-                                coagContactId: location.coagContactId!)))),
-              ],
-            ]),
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('$contactName @ $label',
+                      softWrap: true,
+                      textScaler: const TextScaler.linear(1.4),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary)),
+                  const SizedBox(height: 16),
+                  if (location.address != null)
+                    Row(children: [
+                      const Icon(Icons.pin_drop),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(location.address!, softWrap: true)),
+                      const SizedBox(width: 12),
+                      IconButton.filledTonal(
+                          onPressed: () async => SharePlus.instance
+                              .share(ShareParams(text: location.address)),
+                          icon: const Icon(Icons.copy)),
+                    ]),
+                  // TODO: Add information about who this is shared with
+                  const SizedBox(height: 16),
+                  if (location.coagContactId != null) ...[
+                    Center(
+                        child: FilledButton.tonal(
+                            child: const Text('Contact details'),
+                            onPressed: () async => Navigator.push(
+                                context,
+                                MaterialPageRoute<ContactPage>(
+                                    builder: (_) => ContactPage(
+                                        coagContactId:
+                                            location.coagContactId!))))),
+                  ],
+                ]),
           ),
         ),
       ),
@@ -170,105 +182,130 @@ Future<void> showModalTemporaryLocationDetails(
           controller: scrollController,
           child: Padding(
             padding: EdgeInsets.only(
-                left: 16,
+                left: 24,
                 top: 16,
-                right: 16,
+                right: 24,
                 bottom: 12 + MediaQuery.of(modalContext).viewInsets.bottom),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Row(children: [
-                Expanded(
-                  child: Text(
-                      [
-                        contactName,
-                        location.name,
-                        '',
-                        if (location.address != null) ...[
-                          'Address: ${location.address}',
-                          ''
-                        ],
-                        'From: ${dateFormat(location.start, Localizations.localeOf(context).languageCode)}',
-                        'Until: ${dateFormat(location.end, Localizations.localeOf(context).languageCode)}',
-                        '',
-                        if (location.details.isNotEmpty) ...[
-                          'Details: ${location.details}',
-                          ''
-                        ],
-                        if (location.circles.isNotEmpty &&
-                            circles.isNotEmpty) ...[
-                          'Shared with {N} contacts via circles: {C}'
-                              .replaceFirst(
-                                  '{N}',
-                                  circleMemberships.values
-                                      .where((cIds) => cIds
-                                          .asSet()
-                                          .intersectsWith(
-                                              location.circles.asSet()))
-                                      .length
-                                      .toString())
-                              .replaceFirst(
-                                  '{C}',
-                                  location.circles
-                                      .map((cId) => circles[cId])
-                                      .whereType<String>()
-                                      .join(', '))
-                        ],
-                      ].join('\n'),
-                      softWrap: true),
-                ),
-              ]),
-              const SizedBox(height: 16),
-              // TODO: only display if not already scheduled this (or conflicting)
-              if (location.coagContactId != null) ...[
-                FilledButton.tonal(
-                    child: const Text('Contact details'),
-                    onPressed: () async => Navigator.push(
-                        context,
-                        MaterialPageRoute<ContactPage>(
-                            builder: (_) => ContactPage(
-                                coagContactId: location.coagContactId!)))),
-                const SizedBox(height: 8),
-                FilledButton.tonal(
-                  onPressed: () async => Navigator.push(
-                      context,
-                      MaterialPageRoute<ScheduleWidget>(
-                          builder: (_) => ScheduleWidget(
-                              locationId: locationId, location: location))),
-                  child: const Text('Add to my locations'),
-                ),
-              ],
-
-              if (showEditAndDelete)
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      FilledButton(
-                        onPressed: () async => context
-                            .read<MapCubit>()
-                            .removeLocation(locationId)
-                            .then((_) => (context.mounted)
-                                ? Navigator.pop(context)
-                                : null),
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll(
-                              Theme.of(context).colorScheme.error),
-                        ),
-                        child: Text(
-                          'Delete',
-                          style: TextStyle(
-                              color: Theme.of(context).colorScheme.onError),
-                        ),
-                      ),
-                      FilledButton(
-                        onPressed: () async => Navigator.push(
-                            context,
-                            MaterialPageRoute<ScheduleWidget>(
-                                builder: (_) => ScheduleWidget(
-                                    locationId: locationId,
-                                    location: location))),
-                        child: const Text('Edit'),
-                      ),
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('$contactName @ ${location.name}',
+                      softWrap: true,
+                      textScaler: const TextScaler.linear(1.4),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary)),
+                  const SizedBox(height: 16),
+                  if (location.address != null)
+                    Row(children: [
+                      const Icon(Icons.pin_drop),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(location.address!, softWrap: true)),
+                      const SizedBox(width: 12),
+                      IconButton.filledTonal(
+                          onPressed: () async => SharePlus.instance
+                              .share(ShareParams(text: location.address)),
+                          icon: const Icon(Icons.copy)),
                     ]),
-            ]),
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    const Icon(Icons.calendar_month),
+                    const SizedBox(width: 12),
+                    Expanded(
+                        child: Text(
+                            'From: ${dateFormat(location.start, Localizations.localeOf(context).languageCode)}\n'
+                            'Until: ${dateFormat(location.end, Localizations.localeOf(context).languageCode)}',
+                            softWrap: true)),
+                  ]),
+                  const SizedBox(height: 16),
+                  if (location.details.isNotEmpty) ...[
+                    Row(children: [
+                      const Icon(Icons.edit),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(location.details, softWrap: true))
+                    ]),
+                    const SizedBox(height: 16),
+                  ],
+                  if (location.circles.isNotEmpty && circles.isNotEmpty)
+                    Row(children: [
+                      const Icon(Icons.bubble_chart_outlined),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: Text(
+                              'Shared with {N} contacts via circles: {C}'
+                                  .replaceFirst(
+                                      '{N}',
+                                      circleMemberships.values
+                                          .where((cIds) => cIds
+                                              .asSet()
+                                              .intersectsWith(
+                                                  location.circles.asSet()))
+                                          .length
+                                          .toString())
+                                  .replaceFirst(
+                                      '{C}',
+                                      location.circles
+                                          .map((cId) => circles[cId])
+                                          .whereType<String>()
+                                          .join(', ')),
+                              softWrap: true))
+                    ]),
+                  const SizedBox(height: 24),
+                  // TODO: only display if not already scheduled this (or conflicting)
+                  if (location.coagContactId != null) ...[
+                    Center(
+                        child: FilledButton.tonal(
+                            child: const Text('Contact details'),
+                            onPressed: () async => Navigator.push(
+                                context,
+                                MaterialPageRoute<ContactPage>(
+                                    builder: (_) => ContactPage(
+                                        coagContactId:
+                                            location.coagContactId!))))),
+                    const SizedBox(height: 8),
+                    Center(
+                        child: FilledButton.tonal(
+                            onPressed: () async => Navigator.push(
+                                context,
+                                MaterialPageRoute<ScheduleWidget>(
+                                    builder: (_) => ScheduleWidget(
+                                        locationId: locationId,
+                                        location: location))),
+                            child: const Text('Add to my locations'))),
+                  ],
+                  if (showEditAndDelete)
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          FilledButton(
+                            onPressed: () async => context
+                                .read<MapCubit>()
+                                .removeLocation(locationId)
+                                .then((_) => (context.mounted)
+                                    ? Navigator.pop(context)
+                                    : null),
+                            style: ButtonStyle(
+                              backgroundColor: WidgetStatePropertyAll(
+                                  Theme.of(context).colorScheme.error),
+                            ),
+                            child: Text(
+                              'Delete',
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onError),
+                            ),
+                          ),
+                          FilledButton(
+                            onPressed: () async => Navigator.push(
+                                context,
+                                MaterialPageRoute<ScheduleWidget>(
+                                    builder: (_) => ScheduleWidget(
+                                        locationId: locationId,
+                                        location: location))),
+                            child: const Text('Edit'),
+                          ),
+                        ]),
+                ]),
           ),
         ),
       ),
