@@ -34,6 +34,11 @@ To (re-)generate all code from templates, run
 dart run build_runner build
 ```
 
+To (re-)generate all app icons, run
+```
+dart run icons_launcher:create
+```
+
 ### Testing
 
 Using `lcov`, run:
