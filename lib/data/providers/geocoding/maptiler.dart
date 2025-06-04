@@ -34,7 +34,7 @@ class SearchResult {
 Future<List<SearchResult>> searchLocation({
   required String query,
   required String apiKey,
-  required String userAgentHeader,
+  String userAgentHeader = 'social.coagulate.app',
   String language = 'en',
   int limit = 3,
 }) async {

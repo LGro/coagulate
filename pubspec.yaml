@@ -1,7 +1,7 @@
 name: coagulate
 description: Staying in contact, with privacy friendly contact synchronization and location sharing powered by Veilid.
 publish_to: 'none'
-version: "0.1.9+12"
+version: "0.1.10+15"
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -68,6 +68,9 @@ dependencies:
     git:
       url: https://github.com/KasemJaffer/receive_sharing_intent
       ref: 2cea396843cd3ab1b5ec4334be4233864637874e
+  # TODO: Switch to official release once https://github.com/builttoroam/device_calendar/pull/590 is in
+  device_calendar:
+    git: https://github.com/bardram/device_calendar
 
 dev_dependencies:
   bloc_test: ^10.0.0

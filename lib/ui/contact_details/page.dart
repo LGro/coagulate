@@ -354,7 +354,6 @@ class _ContactPageState extends State<ContactPage> {
                         left: 12, right: 12, top: 12, bottom: 8),
                     child: TextFormField(
                       key: const Key('contactDetailsNoteInput'),
-
                       onTapOutside: (event) async => context
                           .read<ContactDetailsCubit>()
                           .updateComment(_contactCommentController.text),
@@ -366,6 +365,9 @@ class _ContactPageState extends State<ContactPage> {
                         helperText:
                             'This note is just for you and never shared with '
                             'anyone else.',
+                        // Somehow, this being null still causes the helper text
+                        // to overflow into an ellipsis on narrow iOS screens
+                        helperMaxLines: 20,
                       ),
                       textInputAction: TextInputAction.done,
                       // TODO: Does this limit the number of lines or just

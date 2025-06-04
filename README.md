@@ -2,7 +2,7 @@
 
 Coagulate is a smartphone app to synchronize contact details and share current as well as future locations in a privacy preserving manner for everyone who wants to stay in touch with their peers.
 
-When you are visiting a city, find out immediately who of your old friends you could meet and directly contact them with up-to-date contact details.
+When you plan to visit a city, find out immediately who of your old friends you could meet and directly contact them with up-to-date contact details.
 
 **Features:**
 - You can connect with existing contacts in an end-to-end encrypted manner to securely and privately keep each others' contact details up-to-date, right in your smartphone's address book.
@@ -18,9 +18,16 @@ While this is still in development, you must have a clone of the [Veilid](https:
 
 Check the CI/CD workflows in `.github/` for a compatible development setup.
 
-For maps and geocoding to work, you need to provide the environment variable `COAGULATE_MAPTILER_TOKEN` with an API token that can be obtained for free from maptiler.com
+For the address search and geocoding to work, you need to provide the environment variable `COAGULATE_MAPTILER_TOKEN` with an API token that can be obtained for free from maptiler.com.
+The map itself can also be switched to the OSM foundation's server if no MapTiler token is available.
 
 ### Building
+
+```
+flutter clean
+flutter pub get
+flutter run -d <DEVICE-ID>
+```
 
 To (re-)generate all code from templates, run
 ```
@@ -50,7 +57,10 @@ bundle update
 
 For iOS when changing e.g. the `IPHONEOS_DEPLOYMENT_TARGET`, cd into `ios/` and run `pod update`.
 
-## User Stories
+## Original User Stories
+
+These where the initial user stories written before the development of Coagulate began.
+They serve as a reminder and reference to what experience we aim to achieve.
 
 ### Open app first time
 
@@ -106,21 +116,7 @@ I would like to set up an always on node that I can configure to replicate every
 I'd like nobody to be able to discover my social graph or the contact details I share if they are not intended for them.
 I'd also like to remain anonymous to the peers I do not share my contact details with.
 
-## Architecture
-
-### Views
-- List of all contacts
-- Selected Contact
-  - Specify which information to share with them (name + numbers, name + emails, all including location, custom profiles...)
-  - Send / share initial handshake via all available channels (imessage, encrypted messengers via generic share button?!)
-    Hi, you can keep my contact information up-to-date in your contacts app with Coagulate: coag://pubkey (Make sure this message was sent over a trusted channel and not manipulated by a third party, e.g. by comparing whether these emoji match what the sender sees: X X X X)
-- Link received
-  Congratulations, you will now stay up to date on <NAME>'s <numbers, mails, ...> (system contact sync opt out option for each item). <There is nothing more for you to do.|To ensure that Coagulate can keep your contact information up to date, please activate the location permissions, which is the iOS way of allowing background sync even though your location is never used in the app or sent to anyone unless you explicitly share it.|Do you want to help them stay up to date with your contact details as well?> Should they at some point no longer share want to updates with you, you will still retain the last known details.
-- Map of all contact locations
-- Privacy & Details
-  TODO: Explanation text of how amazingly privacy friendly Coagulate is.
-
-### App links
+## App links
 
 Scan QR code  
 -> `/c/#name~typedRecordKey~psk`

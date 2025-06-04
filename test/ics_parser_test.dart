@@ -28,4 +28,21 @@ END:VCALENDAR
     expect(event?.location, 'Paris, France');
     expect(event?.end, DateTime.utc(2025, 05, 29, 08, 2, 1));
   });
+
+  test('filter clipboard string', () {
+    const testString = r'''Workshop: “Private Sharing” (1h) & Other Stuff (3h)
+Scheduled: 29. May 2025 at 10:00 to 19:00, GMT
+Location: Louvre, Paris
+This is an awesome description of the wonders that await!''';
+
+    final event = parseEventClipboardString(testString);
+
+    expect(
+        event?.summary, 'Workshop: “Private Sharing” (1h) & Other Stuff (3h)');
+    expect(event?.description,
+        'This is an awesome description of the wonders that await!');
+    expect(event?.location, 'Louvre, Paris');
+    expect(event?.start, DateTime.utc(2025, 05, 29, 10));
+    expect(event?.end, DateTime.utc(2025, 05, 29, 19));
+  });
 }

@@ -34,6 +34,10 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Coagulate requires access to the calendar to import events</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Coagulate requires access to the calendar to import events</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera access is required for QR code scanning</string>
 	<key>NSPhotoLibraryUsageDescription</key>

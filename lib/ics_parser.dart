@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:intl/intl.dart';
 
 part 'ics_parser.freezed.dart';
 
@@ -80,4 +81,58 @@ IcsEvent? parseIcsEvent(String icsData) {
   }
 
   return null;
+}
+
+(DateTime?, DateTime?) parseEnglishCopiedEvent(String input) {
+  // Extract date and times
+  final dateRegex = RegExp(
+      r'^(\d{1,2}\. \w+ \d{4}) at (\d{2}:\d{2}) to (\d{2}:\d{2}), (\w+)$');
+  final match = dateRegex.firstMatch(input);
+
+  if (match != null) {
+    final datePart = match.group(1)!;
+    final startTime = match.group(2)!;
+    final endTime = match.group(3)!;
+    final timeZone = match.group(4)!;
+
+    // Parse date and times
+    final dateFormat = DateFormat('d. MMMM yyyy HH:mm');
+    final startDateTime = dateFormat.parseUtc('$datePart $startTime');
+    final endDateTime = dateFormat.parseUtc('$datePart $endTime');
+
+    // Set time zone (assuming GMT is UTC)
+    if (timeZone != 'GMT') {
+      return (null, null);
+    }
+    return (startDateTime.toUtc(), endDateTime.toUtc());
+  } else {
+    return (null, null);
+  }
+}
+
+IcsEvent? parseEventClipboardString(String event) {
+  final lines = event.split('\n');
+  if (lines.length < 3) {
+    return null;
+  }
+  final summary = lines.removeAt(0);
+  final dateTimeRaw = lines.removeAt(0);
+  final dateTime = (dateTimeRaw.split(':')..removeAt(0)).join(':').trim();
+  final locationRaw = lines.removeAt(0);
+  final location = (locationRaw.split(':')..removeAt(0)).join(':').trim();
+  final description = lines.join('\n').trim();
+
+  final (start, end) = parseEnglishCopiedEvent(dateTime);
+
+  if (start == null || end == null) {
+    return null;
+  }
+
+  return IcsEvent(
+    start: start,
+    end: end,
+    summary: summary.trim(),
+    location: location,
+    description: description,
+  );
 }

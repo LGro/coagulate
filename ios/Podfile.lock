@@ -1,6 +1,8 @@
 PODS:
   - background_fetch (1.3.8):
     - Flutter
+  - device_calendar (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - flutter_contacts (0.0.1):
     - Flutter
@@ -40,6 +42,7 @@ PODS:
 
 DEPENDENCIES:
   - background_fetch (from `.symlinks/plugins/background_fetch/ios`)
+  - device_calendar (from `.symlinks/plugins/device_calendar/ios`)
   - Flutter (from `Flutter`)
   - flutter_contacts (from `.symlinks/plugins/flutter_contacts/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
@@ -60,6 +63,8 @@ DEPENDENCIES:
 EXTERNAL SOURCES:
   background_fetch:
     :path: ".symlinks/plugins/background_fetch/ios"
+  device_calendar:
+    :path: ".symlinks/plugins/device_calendar/ios"
   Flutter:
     :path: Flutter
   flutter_contacts:
@@ -95,6 +100,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   background_fetch: 1b98fa3f267413f98d997b82b94698e2574e1c1c
+  device_calendar: 9cb33f88a02e19652ec7b8b122ca778f751b1f7b
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_contacts: edb1c5ce76aa433e20e6cb14c615f4c0b66e0983
   flutter_local_notifications: ff50f8405aaa0ccdc7dcfb9022ca192e8ad9688f

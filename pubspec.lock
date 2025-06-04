@@ -313,6 +313,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.11"
+  device_calendar:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "5ea5ed9e2bb499c0633383b53103f2920b634755"
+      url: "https://github.com/bardram/device_calendar"
+    source: git
+    version: "4.3.1"
   diff_match_patch:
     dependency: transitive
     description:
@@ -1277,6 +1286,14 @@ packages:
       url: "https://github.com/KasemJaffer/receive_sharing_intent"
     source: git
     version: "1.8.1"
+  rrule:
+    dependency: transitive
+    description:
+      name: rrule
+      sha256: b7425410c594d4b6717c9f17ec8ef83c9d1ff2e513c428a135b5924fc2e8e045
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.17"
   rxdart:
     dependency: "direct main"
     description:
@@ -1578,6 +1595,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.8"
+  time:
+    dependency: transitive
+    description:
+      name: time
+      sha256: "370572cf5d1e58adcb3e354c47515da3f7469dac3a95b447117e728e7be6f461"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.5"
   timezone:
     dependency: transitive
     description:

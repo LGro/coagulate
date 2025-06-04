@@ -60,15 +60,15 @@ class SettingsPage extends StatelessWidget {
                     //   const ListTile(title: Text('Set custom map server url')),
                     // TODO: Move async things to cubit
                     // if (Platform.isIOS) _backgroundPermissionStatus(),
-                    // TODO: Add custom bootstrap servers choice -- only allow during initial setup
-                    ListTile(
-                        onTap: () async => Navigator.of(context).push(
-                            MaterialPageRoute<BatchInvitesPage>(
-                                builder: (_) => const BatchInvitesPage())),
-                        title: const Text('Invitation batches'),
-                        trailing: const Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: Icon(Icons.arrow_right))),
+                    if (kDebugMode)
+                      ListTile(
+                          onTap: () async => Navigator.of(context).push(
+                              MaterialPageRoute<BatchInvitesPage>(
+                                  builder: (_) => const BatchInvitesPage())),
+                          title: const Text('Invitation batches'),
+                          trailing: const Padding(
+                              padding: EdgeInsets.only(right: 20),
+                              child: Icon(Icons.arrow_right))),
                     ListTile(
                         title: const Text('Show open source licenses'),
                         trailing: const Padding(
