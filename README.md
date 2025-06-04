@@ -34,11 +34,6 @@ To (re-)generate all code from templates, run
 dart run build_runner build
 ```
 
-To (re-)generate app icons for all target platforms, run
-```
-dart run flutter_launcher_icons
-```
-
 ### Testing
 
 Using `lcov`, run:

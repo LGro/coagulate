@@ -217,14 +217,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.0"
-  cli_util:
-    dependency: transitive
-    description:
-      name: cli_util
-      sha256: ff6785f7e9e3c38ac98b2fb035701789de90154024a75b6cb926445e83197d1c
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.2"
   clock:
     dependency: transitive
     description:
@@ -476,14 +468,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_launcher_icons:
-    dependency: "direct dev"
-    description:
-      name: flutter_launcher_icons
-      sha256: bfa04787c85d80ecb3f8777bde5fc10c3de809240c48fa061a2c2bf15ea5211c
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.14.3"
   flutter_local_notifications:
     dependency: "direct main"
     description:
@@ -768,6 +752,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
+  icons_launcher:
+    dependency: "direct dev"
+    description:
+      name: icons_launcher
+      sha256: "9b514ffed6ed69b232fd2bf34c44878c8526be71fc74129a658f35c04c9d4a9d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.7"
   image:
     dependency: "direct main"
     description:
@@ -1643,6 +1635,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.1"
+  universal_io:
+    dependency: transitive
+    description:
+      name: universal_io
+      sha256: "1722b2dcc462b4b2f3ee7d188dad008b6eb4c40bbd03a3de451d82c78bba9aad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.2"
   url_launcher:
     dependency: "direct main"
     description:
