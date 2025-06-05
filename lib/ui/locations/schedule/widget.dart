@@ -353,15 +353,23 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
                     circles:
                         _circles.where((c) => c.$3).map((c) => c.$1).toList()))
           ])));
-
-      Navigator.pop(context);
     } on Exception catch (e) {
-      // TODO: Handle errors?
       debugPrint('$e');
-      // TODO: notify users that something failed
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(content: Text('Scheduling failed.')),
+          );
+      }
     }
 
     if (mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('Location "$_title" successfully scheduled.')),
+        );
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }
