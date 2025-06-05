@@ -152,6 +152,7 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
   DateTime? _end;
   SearchResult? _location;
   List<(String, String, bool, int)> _circles = const [];
+  bool _toggleMapLocationKey = false;
 
   @override
   void initState() {
@@ -235,6 +236,7 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
       _end = e.end;
       _details = e.description ?? _details;
       _location = location;
+      _toggleMapLocationKey = !_toggleMapLocationKey;
     });
   }
 
@@ -540,8 +542,9 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
                           child: MapWidget(
                             // Force re-drawing the widget if the
                             // location changes; is there a better way?
-                            key: Key(_location?.hashCode.toString() ??
-                                'init-map-location'),
+                            key: Key(_toggleMapLocationKey
+                                ? 'map-location-key-toggled'
+                                : 'map-location-key'),
                             initialLocation: _location,
                             onSelected: _onLocationChanged,
                           )),
