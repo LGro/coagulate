@@ -154,6 +154,41 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
               ]));
 }
 
+Widget buildEditOrAddWidgetSkeleton(BuildContext context,
+        {required String title,
+        required List<Widget> children,
+        required void Function() onCancel,
+        required void Function() onSave}) =>
+    Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+              padding:
+                  const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 16),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton.filledTonal(
+                        onPressed: onCancel, icon: const Icon(Icons.cancel)),
+                    Expanded(
+                        child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                      textAlign: TextAlign.center,
+                    )),
+                    IconButton.filledTonal(
+                        onPressed: onSave, icon: const Icon(Icons.save)),
+                  ])),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: children),
+          ),
+        ]);
+
 // TODO: Pass other labels to prevent duplicates
 class EditOrAddWidget extends StatefulWidget {
   const EditOrAddWidget({
@@ -235,154 +270,138 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => Padding(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(
-                (widget.isEditing)
-                    ? context.loc.profileEditHeadline(widget.headlineSuffix)
-                    : context.loc.profileAddHeadline(widget.headlineSuffix),
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              if (widget.onDelete != null)
-                IconButton(
-                    onPressed: widget.onDelete,
-                    icon: const Icon(Icons.delete_forever, color: Colors.red)),
-            ]),
+  Widget build(BuildContext context) => Form(
+      key: _formKey,
+      child: buildEditOrAddWidgetSkeleton(
+        context,
+        title: (widget.isEditing)
+            ? context.loc.profileEditHeadline(widget.headlineSuffix)
+            : context.loc.profileAddHeadline(widget.headlineSuffix),
+        onCancel: Navigator.of(context).pop,
+        onSave: () => (_formKey.currentState!.validate())
+            ? widget.onAddOrSave((_label ?? '').trim(), (_value ?? '').trim(),
+                _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
+            : null,
+        children: [
+          if (!widget.hideLabel) ...[
             const SizedBox(height: 8),
-            if (!widget.hideLabel) ...[
-              const SizedBox(height: 8),
-              FractionallySizedBox(
-                  widthFactor: 0.5,
-                  child: TextFormField(
-                    key: _labelFieldKey,
-                    initialValue: _label,
-                    decoration: InputDecoration(
-                      labelText: 'label',
-                      isDense: true,
-                      helperText: widget.labelHelperText,
-                      border: const OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value?.isEmpty ?? true) {
-                        return 'Please specify a label.';
-                      }
-                      if (widget.existingLabels
-                          .map((l) => l.toLowerCase())
-                          .contains(value?.toLowerCase())) {
-                        return 'This label already exists.';
-                      }
-                      return null;
-                    },
-                    onChanged: (label) {
-                      if (_labelFieldKey.currentState?.validate() ?? false) {
-                        setState(() {
-                          _label = label;
-                        });
-                      }
-                    },
-                  )),
-              const SizedBox(height: 8),
-            ],
-            TextFormField(
-              key: _valueFieldKey,
-              initialValue: _value,
-              autocorrect: false,
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: widget.valueHintText ?? widget.headlineSuffix,
-                border: const OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if ((_label?.isNotEmpty ?? false) && (value?.isEmpty ?? true)) {
-                  return 'Please enter a value.';
-                }
-                return null;
-              },
-              onChanged: (value) {
-                if (_valueFieldKey.currentState?.validate() ?? false) {
-                  setState(() {
-                    _value = value;
-                  });
-                }
-              },
-            ),
-
+            FractionallySizedBox(
+                widthFactor: 0.5,
+                child: TextFormField(
+                  key: _labelFieldKey,
+                  initialValue: _label,
+                  decoration: InputDecoration(
+                    labelText: 'label',
+                    isDense: true,
+                    helperText: widget.labelHelperText,
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'Please specify a label.';
+                    }
+                    if (widget.existingLabels
+                        .map((l) => l.toLowerCase())
+                        .contains(value?.toLowerCase())) {
+                      return 'This label already exists.';
+                    }
+                    return null;
+                  },
+                  onChanged: (label) {
+                    if (_labelFieldKey.currentState?.validate() ?? false) {
+                      setState(() {
+                        _label = label;
+                      });
+                    }
+                  },
+                )),
             const SizedBox(height: 16),
-            Text(
-              context.loc.profileAndShareWithHeadline,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            // If we don't need wrapping but go for a list, use CheckboxListTile
-            Wrap(
-              spacing: 8,
-              runSpacing: -4,
-              children: List.generate(
-                  _circles.length,
-                  (index) => GestureDetector(
-                      onTap: () =>
-                          _updateCircleMembership(index, !_circles[index].$3),
-                      behavior: HitTestBehavior.opaque,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Checkbox(
-                              value: _circles[index].$3,
-                              onChanged: (value) => (value == null)
-                                  ? null
-                                  : _updateCircleMembership(index, value)),
-                          Text('${_circles[index].$2} (${_circles[index].$4})'),
-                          const SizedBox(width: 4),
-                        ],
-                      ))),
-            ),
-            // const SizedBox(height: 8),
-            // Row(children: [
-            //   Expanded(
-            //       child: TextField(
-            //     controller: _newCircleNameController,
-            //     decoration: InputDecoration(
-            //       isDense: true,
-            //       labelText: context.loc.newCircle,
-            //       border: const OutlineInputBorder(),
-            //     ),
-            //   )),
-            //   const SizedBox(width: 8),
-            //   FilledButton.tonal(
-            //     onPressed: _addNewCircle,
-            //     child: Text(context.loc.add.capitalize()),
-            //   ),
-            // ]),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                FilledButton(
-                  onPressed: Navigator.of(context).pop,
-                  child: Text(context.loc.cancel.capitalize()),
-                ),
-                FilledButton(
-                  onPressed: () => (_formKey.currentState!.validate())
-                      ? widget.onAddOrSave(
-                          (_label ?? '').trim(),
-                          (_value ?? '').trim(),
-                          _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
-                      : null,
-                  child: Text((widget.isEditing)
-                      ? context.loc.save.capitalize()
-                      : context.loc.add.capitalize()),
-                ),
-              ],
-            ),
           ],
-        ),
+          TextFormField(
+            key: _valueFieldKey,
+            initialValue: _value,
+            autocorrect: false,
+            decoration: InputDecoration(
+              isDense: true,
+              hintText: widget.valueHintText ?? widget.headlineSuffix,
+              border: const OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if ((_label?.isNotEmpty ?? false) && (value?.isEmpty ?? true)) {
+                return 'Please enter a value.';
+              }
+              return null;
+            },
+            onChanged: (value) {
+              if (_valueFieldKey.currentState?.validate() ?? false) {
+                setState(() {
+                  _value = value;
+                });
+              }
+            },
+          ),
+
+          const SizedBox(height: 16),
+          Text(
+            context.loc.profileAndShareWithHeadline,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          // If we don't need wrapping but go for a list, use CheckboxListTile
+          Wrap(
+            spacing: 8,
+            runSpacing: -4,
+            children: List.generate(
+                _circles.length,
+                (index) => GestureDetector(
+                    onTap: () =>
+                        _updateCircleMembership(index, !_circles[index].$3),
+                    behavior: HitTestBehavior.opaque,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Checkbox(
+                            value: _circles[index].$3,
+                            onChanged: (value) => (value == null)
+                                ? null
+                                : _updateCircleMembership(index, value)),
+                        Text('${_circles[index].$2} (${_circles[index].$4})'),
+                        const SizedBox(width: 4),
+                      ],
+                    ))),
+          ),
+          // const SizedBox(height: 8),
+          // Row(children: [
+          //   Expanded(
+          //       child: TextField(
+          //     controller: _newCircleNameController,
+          //     decoration: InputDecoration(
+          //       isDense: true,
+          //       labelText: context.loc.newCircle,
+          //       border: const OutlineInputBorder(),
+          //     ),
+          //   )),
+          //   const SizedBox(width: 8),
+          //   FilledButton.tonal(
+          //     onPressed: _addNewCircle,
+          //     child: Text(context.loc.add.capitalize()),
+          //   ),
+          // ]),
+          const SizedBox(height: 16),
+          if (widget.onDelete != null)
+            Center(
+                child: TextButton(
+                    onPressed: widget.onDelete,
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                          Theme.of(context).colorScheme.error),
+                    ),
+                    child: Text(
+                      'Remove ${widget.headlineSuffix}',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onError),
+                    ))),
+        ],
       ));
 }
 
@@ -453,132 +472,113 @@ class _EditOrAddAddressWidgetState extends State<EditOrAddAddressWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => Padding(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(
-                (widget.isEditing)
-                    ? context.loc.profileEditHeadline(widget.headlineSuffix)
-                    : context.loc.profileAddHeadline(widget.headlineSuffix),
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              if (widget.onDelete != null)
-                IconButton(
+  Widget build(BuildContext context) => Form(
+      key: _formKey,
+      child: buildEditOrAddWidgetSkeleton(
+        context,
+        title: (widget.isEditing)
+            ? context.loc.profileEditHeadline(widget.headlineSuffix)
+            : context.loc.profileAddHeadline(widget.headlineSuffix),
+        onCancel: Navigator.of(context).pop,
+        onSave: () => (_formKey.currentState!.validate() && _value != null)
+            ? widget.onAddOrSave(widget.label, (_label ?? '').trim(), _value!,
+                _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
+            : null,
+        children: [
+          FractionallySizedBox(
+              widthFactor: 0.5,
+              child: TextFormField(
+                key: _labelFieldKey,
+                initialValue: _label,
+                decoration: InputDecoration(
+                  labelText: 'label',
+                  isDense: true,
+                  helperText: widget.labelHelperText,
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value?.isEmpty ?? true) {
+                    return 'Please specify a label.';
+                  }
+                  if (widget.existingLabels
+                      .map((l) => l.toLowerCase())
+                      .contains(value?.toLowerCase())) {
+                    return 'This label already exists.';
+                  }
+                  return null;
+                },
+                onChanged: (label) {
+                  if (_labelFieldKey.currentState?.validate() ?? false) {
+                    setState(() {
+                      _label = label;
+                    });
+                  }
+                },
+              )),
+          const SizedBox(height: 16),
+          // TODO: Validate empty field with hint?
+          SizedBox(
+              height: 350,
+              child: MapWidget(
+                  initialLocation: (_value == null)
+                      ? null
+                      : SearchResult(
+                          longitude: _value!.longitude,
+                          latitude: _value!.latitude,
+                          placeName: _value!.address ?? '',
+                          id: ''),
+                  onSelected: (l) {
+                    setState(() {
+                      _value = ContactAddressLocation(
+                          longitude: l.longitude,
+                          latitude: l.latitude,
+                          address: l.placeName);
+                    });
+                  })),
+          const SizedBox(height: 16),
+          Text(
+            context.loc.profileAndShareWithHeadline,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          // If we don't need wrapping but go for a list, use CheckboxListTile
+          Wrap(
+            spacing: 8,
+            runSpacing: -4,
+            children: List.generate(
+                _circles.length,
+                (index) => GestureDetector(
+                    onTap: () =>
+                        _updateCircleMembership(index, !_circles[index].$3),
+                    behavior: HitTestBehavior.opaque,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Checkbox(
+                            value: _circles[index].$3,
+                            onChanged: (value) => (value == null)
+                                ? null
+                                : _updateCircleMembership(index, value)),
+                        Text('${_circles[index].$2} (${_circles[index].$4})'),
+                        const SizedBox(width: 4),
+                      ],
+                    ))),
+          ),
+          const SizedBox(height: 16),
+          if (widget.onDelete != null)
+            Center(
+                child: TextButton(
                     onPressed: widget.onDelete,
-                    icon: const Icon(Icons.delete_forever, color: Colors.red)),
-            ]),
-            const SizedBox(height: 8),
-            const SizedBox(height: 8),
-            FractionallySizedBox(
-                widthFactor: 0.5,
-                child: TextFormField(
-                  key: _labelFieldKey,
-                  initialValue: _label,
-                  decoration: InputDecoration(
-                    labelText: 'label',
-                    isDense: true,
-                    helperText: widget.labelHelperText,
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Please specify a label.';
-                    }
-                    if (widget.existingLabels
-                        .map((l) => l.toLowerCase())
-                        .contains(value?.toLowerCase())) {
-                      return 'This label already exists.';
-                    }
-                    return null;
-                  },
-                  onChanged: (label) {
-                    if (_labelFieldKey.currentState?.validate() ?? false) {
-                      setState(() {
-                        _label = label;
-                      });
-                    }
-                  },
-                )),
-            const SizedBox(height: 8),
-            // TODO: Validate empty field with hint?
-            SizedBox(
-                height: 350,
-                child: MapWidget(
-                    initialLocation: (_value == null)
-                        ? null
-                        : SearchResult(
-                            longitude: _value!.longitude,
-                            latitude: _value!.latitude,
-                            placeName: _value!.address ?? '',
-                            id: ''),
-                    onSelected: (l) {
-                      setState(() {
-                        _value = ContactAddressLocation(
-                            longitude: l.longitude,
-                            latitude: l.latitude,
-                            address: l.placeName);
-                      });
-                    })),
-            const SizedBox(height: 16),
-            Text(
-              context.loc.profileAndShareWithHeadline,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            // If we don't need wrapping but go for a list, use CheckboxListTile
-            Wrap(
-              spacing: 8,
-              runSpacing: -4,
-              children: List.generate(
-                  _circles.length,
-                  (index) => GestureDetector(
-                      onTap: () =>
-                          _updateCircleMembership(index, !_circles[index].$3),
-                      behavior: HitTestBehavior.opaque,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Checkbox(
-                              value: _circles[index].$3,
-                              onChanged: (value) => (value == null)
-                                  ? null
-                                  : _updateCircleMembership(index, value)),
-                          Text('${_circles[index].$2} (${_circles[index].$4})'),
-                          const SizedBox(width: 4),
-                        ],
-                      ))),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                FilledButton(
-                  onPressed: Navigator.of(context).pop,
-                  child: Text(context.loc.cancel.capitalize()),
-                ),
-                FilledButton(
-                  onPressed: () =>
-                      (_formKey.currentState!.validate() && _value != null)
-                          ? widget.onAddOrSave(
-                              widget.label,
-                              (_label ?? '').trim(),
-                              _value!,
-                              _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
-                          : null,
-                  child: Text((widget.isEditing)
-                      ? context.loc.save.capitalize()
-                      : context.loc.add.capitalize()),
-                ),
-              ],
-            ),
-          ],
-        ),
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                          Theme.of(context).colorScheme.error),
+                    ),
+                    child: Text(
+                      'Remove ${widget.headlineSuffix}',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onError),
+                    ))),
+        ],
       ));
 }
 
@@ -650,139 +650,122 @@ class _EditOrAddEventWidgetState extends State<EditOrAddEventWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => Padding(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(
-                (widget.isEditing)
-                    ? context.loc.profileEditHeadline(widget.headlineSuffix)
-                    : context.loc.profileAddHeadline(widget.headlineSuffix),
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              if (widget.onDelete != null)
-                IconButton(
+  Widget build(BuildContext context) => Form(
+      key: _formKey,
+      child: buildEditOrAddWidgetSkeleton(
+        context,
+        title: (widget.isEditing)
+            ? context.loc.profileEditHeadline(widget.headlineSuffix)
+            : context.loc.profileAddHeadline(widget.headlineSuffix),
+        onCancel: Navigator.of(context).pop,
+        onSave: () => (_formKey.currentState!.validate() && _value != null)
+            ? widget.onAddOrSave(
+                widget.label,
+                (_label ?? '').trim(),
+                DateTime.parse(_value!),
+                _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
+            : null,
+        children: [
+          FractionallySizedBox(
+              widthFactor: 0.5,
+              child: TextFormField(
+                key: _labelFieldKey,
+                initialValue: _label,
+                decoration: InputDecoration(
+                  labelText: 'label',
+                  isDense: true,
+                  helperText: widget.labelHelperText,
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value?.isEmpty ?? true) {
+                    return 'Please specify a label.';
+                  }
+                  if (widget.existingLabels
+                      .map((l) => l.toLowerCase())
+                      .contains(value?.toLowerCase())) {
+                    return 'This label already exists.';
+                  }
+                  return null;
+                },
+                onChanged: (label) {
+                  if (_labelFieldKey.currentState?.validate() ?? false) {
+                    setState(() {
+                      _label = label;
+                    });
+                  }
+                },
+              )),
+          const SizedBox(height: 16),
+          TextFormField(
+            key: _valueFieldKey,
+            initialValue: _value,
+            autocorrect: false,
+            decoration: InputDecoration(
+              isDense: true,
+              hintText: widget.valueHintText ?? widget.headlineSuffix,
+              border: const OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if ((_label?.isNotEmpty ?? false) && (value?.isEmpty ?? true)) {
+                return 'Please enter a value.';
+              } else if (DateTime.tryParse(value!) == null) {
+                return 'Please enter a date in the format YYYY-MM-DD';
+              }
+              return null;
+            },
+            onChanged: (value) {
+              if (_valueFieldKey.currentState?.validate() ?? false) {
+                setState(() {
+                  _value = value;
+                });
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          Text(
+            context.loc.profileAndShareWithHeadline,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          // If we don't need wrapping but go for a list, use CheckboxListTile
+          Wrap(
+            spacing: 8,
+            runSpacing: -4,
+            children: List.generate(
+                _circles.length,
+                (index) => GestureDetector(
+                    onTap: () =>
+                        _updateCircleMembership(index, !_circles[index].$3),
+                    behavior: HitTestBehavior.opaque,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Checkbox(
+                            value: _circles[index].$3,
+                            onChanged: (value) => (value == null)
+                                ? null
+                                : _updateCircleMembership(index, value)),
+                        Text('${_circles[index].$2} (${_circles[index].$4})'),
+                        const SizedBox(width: 4),
+                      ],
+                    ))),
+          ),
+          const SizedBox(height: 16),
+          if (widget.onDelete != null)
+            Center(
+                child: TextButton(
                     onPressed: widget.onDelete,
-                    icon: const Icon(Icons.delete_forever, color: Colors.red)),
-            ]),
-            const SizedBox(height: 8),
-            const SizedBox(height: 8),
-            FractionallySizedBox(
-                widthFactor: 0.5,
-                child: TextFormField(
-                  key: _labelFieldKey,
-                  initialValue: _label,
-                  decoration: InputDecoration(
-                    labelText: 'label',
-                    isDense: true,
-                    helperText: widget.labelHelperText,
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Please specify a label.';
-                    }
-                    if (widget.existingLabels
-                        .map((l) => l.toLowerCase())
-                        .contains(value?.toLowerCase())) {
-                      return 'This label already exists.';
-                    }
-                    return null;
-                  },
-                  onChanged: (label) {
-                    if (_labelFieldKey.currentState?.validate() ?? false) {
-                      setState(() {
-                        _label = label;
-                      });
-                    }
-                  },
-                )),
-            const SizedBox(height: 8),
-
-            TextFormField(
-              key: _valueFieldKey,
-              initialValue: _value,
-              autocorrect: false,
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: widget.valueHintText ?? widget.headlineSuffix,
-                border: const OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if ((_label?.isNotEmpty ?? false) && (value?.isEmpty ?? true)) {
-                  return 'Please enter a value.';
-                } else if (DateTime.tryParse(value!) == null) {
-                  return 'Please enter a date in the format YYYY-MM-DD';
-                }
-                return null;
-              },
-              onChanged: (value) {
-                if (_valueFieldKey.currentState?.validate() ?? false) {
-                  setState(() {
-                    _value = value;
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.loc.profileAndShareWithHeadline,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            // If we don't need wrapping but go for a list, use CheckboxListTile
-            Wrap(
-              spacing: 8,
-              runSpacing: -4,
-              children: List.generate(
-                  _circles.length,
-                  (index) => GestureDetector(
-                      onTap: () =>
-                          _updateCircleMembership(index, !_circles[index].$3),
-                      behavior: HitTestBehavior.opaque,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Checkbox(
-                              value: _circles[index].$3,
-                              onChanged: (value) => (value == null)
-                                  ? null
-                                  : _updateCircleMembership(index, value)),
-                          Text('${_circles[index].$2} (${_circles[index].$4})'),
-                          const SizedBox(width: 4),
-                        ],
-                      ))),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                FilledButton(
-                  onPressed: Navigator.of(context).pop,
-                  child: Text(context.loc.cancel.capitalize()),
-                ),
-                FilledButton(
-                  onPressed: () =>
-                      (_formKey.currentState!.validate() && _value != null)
-                          ? widget.onAddOrSave(
-                              widget.label,
-                              (_label ?? '').trim(),
-                              DateTime.parse(_value!),
-                              _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
-                          : null,
-                  child: Text((widget.isEditing)
-                      ? context.loc.save.capitalize()
-                      : context.loc.add.capitalize()),
-                ),
-              ],
-            ),
-          ],
-        ),
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                          Theme.of(context).colorScheme.error),
+                    ),
+                    child: Text(
+                      'Remove ${widget.headlineSuffix}',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onError),
+                    ))),
+        ],
       ));
 }
 

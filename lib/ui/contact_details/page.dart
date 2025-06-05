@@ -403,7 +403,7 @@ class _ContactPageState extends State<ContactPage> {
                       Theme.of(context).colorScheme.error),
                 ),
                 child: Text(
-                  'Delete from Coagulate',
+                  'Remove from Coagulate',
                   style:
                       TextStyle(color: Theme.of(context).colorScheme.onError),
                 ))),
