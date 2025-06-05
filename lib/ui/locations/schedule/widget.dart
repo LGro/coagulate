@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:device_calendar/device_calendar.dart';
@@ -375,12 +376,14 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Schedule a visit'), actions: [
-          IconButton(
-              onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<CalendarEventsPage>(
-                      builder: (c) => CalendarEventsPage(
-                          onSelectEvent: _importCalendarEvent))),
-              icon: const Icon(Icons.calendar_month))
+          // # TODO: Remove check once #58 is solved
+          if (Platform.isAndroid)
+            IconButton(
+                onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<CalendarEventsPage>(
+                        builder: (c) => CalendarEventsPage(
+                            onSelectEvent: _importCalendarEvent))),
+                icon: const Icon(Icons.calendar_month))
         ]),
         body: SingleChildScrollView(
           child: Column(
