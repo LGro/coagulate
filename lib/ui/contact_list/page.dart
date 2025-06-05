@@ -182,7 +182,10 @@ class _ContactListPageState extends State<ContactListPage> {
             ]),
             body: Container(
               padding: const EdgeInsets.all(10),
-              child: (state.contacts.isEmpty)
+              child: (state.contacts.isEmpty &&
+                      state.circles.keys
+                          .where((cId) => cId.startsWith('VLD'))
+                          .isEmpty)
                   ? _noContactsBody()
                   : RefreshIndicator(
                       onRefresh: () async => context
@@ -200,7 +203,9 @@ class _ContactListPageState extends State<ContactListPage> {
                                           'Refreshing failed, try again later!'),
                                     )))
                               : null),
-                      child: _contactsBody(context, state),
+                      child: (state.contacts.isEmpty)
+                          ? _noContactsBody()
+                          : _contactsBody(context, state),
                     ),
             ),
           ),
