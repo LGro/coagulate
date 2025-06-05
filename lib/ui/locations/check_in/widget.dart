@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 
 import '../../../data/repositories/contacts.dart';
+import '../../utils.dart';
 import 'cubit.dart';
 
 // TODO: Display check in form with location (from gps, from map picker, from address, from coordinates) circles to share with, optional duration, optional move away to check out constraint
@@ -18,7 +19,7 @@ class MyForm extends StatefulWidget {
       this.circles = const {},
       this.circleMemberships = const {}});
 
-  final Future<void> Function({
+  final Future<bool> Function({
     required String name,
     required String details,
     required List<String> circles,
@@ -95,7 +96,7 @@ class _MyFormState extends State<MyForm> {
     });
 
     try {
-      await widget.callback(
+      final checkInSuccess = await widget.callback(
           name: (_state.title.isEmpty) ? 'Checked-in' : _state.title,
           details: _state.details,
           circles: _state.circles.where((c) => c.$3).map((c) => c.$1).toList(),
@@ -106,7 +107,11 @@ class _MyFormState extends State<MyForm> {
               minutes: _minutesController.text.isEmpty
                   ? 0
                   : int.parse(_minutesController.text))));
-      _state = _state.copyWith(status: FormzSubmissionStatus.success);
+
+      _state = _state.copyWith(
+          status: checkInSuccess
+              ? FormzSubmissionStatus.success
+              : FormzSubmissionStatus.failure);
       // Navigator.pop(context);
     } catch (e) {
       _state = _state.copyWith(status: FormzSubmissionStatus.failure);
@@ -168,16 +173,24 @@ class _MyFormState extends State<MyForm> {
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-      child: Form(
-          key: _key,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Share current location',
-                textScaler: const TextScaler.linear(1.6),
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary)),
-            const SizedBox(height: 16),
+          child: Form(
+        key: _key,
+        child: buildEditOrAddWidgetSkeleton(
+          context,
+          title: 'Share current location',
+          onSaveWidget: (_state.status.isInProgress)
+              ? const CircularProgressIndicator()
+              : IconButton.filledTonal(
+                  key: const Key('checkInForm_submit'),
+                  onPressed:
+                      (_state.circles.firstWhereOrNull((c) => c.$3) != null &&
+                              (_state.hours > 0 || _state.minutes > 0) &&
+                              _state.title.isNotEmpty)
+                          ? _onSubmit
+                          : null,
+                  icon: const Icon(Icons.save),
+                ),
+          children: [
             TextFormField(
               key: const Key('checkInForm_titleInput'),
               controller: _titleController,
@@ -206,7 +219,9 @@ class _MyFormState extends State<MyForm> {
             ),
             const SizedBox(height: 16),
             const Row(children: [
-              Text('with circles', textScaler: TextScaler.linear(1.2))
+              Text('with circles',
+                  textScaler: TextScaler.linear(1.2),
+                  style: TextStyle(fontWeight: FontWeight.bold))
             ]),
             Wrap(
                 spacing: 8,
@@ -233,7 +248,9 @@ class _MyFormState extends State<MyForm> {
                     .values
                     .toList()),
             const SizedBox(height: 4),
-            const Text('for duration', textScaler: TextScaler.linear(1.2)),
+            const Text('for duration',
+                textScaler: TextScaler.linear(1.2),
+                style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Row(children: [
               Expanded(
@@ -260,23 +277,9 @@ class _MyFormState extends State<MyForm> {
                         border: OutlineInputBorder(),
                       ))),
             ]),
-            const SizedBox(height: 16),
-            if (_state.status.isInProgress)
-              const Center(child: CircularProgressIndicator())
-            else
-              Center(
-                  child: FilledButton(
-                key: const Key('checkInForm_submit'),
-                onPressed:
-                    (_state.circles.firstWhereOrNull((c) => c.$3) != null &&
-                            (_state.hours > 0 || _state.minutes > 0) &&
-                            _state.title.isNotEmpty)
-                        ? _onSubmit
-                        : null,
-                child: const Text('Share'),
-              )),
-            const SizedBox(height: 16),
-          ])));
+          ],
+        ),
+      ));
 }
 
 class MyFormState with FormzMixin {
@@ -364,10 +367,6 @@ class CheckInWidget extends StatelessWidget {
                       child: Text(
                           'Could not determine GPS location, please try again.')));
             }
-
-            // TODO: What to do on success?
-            // Navigator.pop(context);
-
             return MyForm(
                 circles: state.circles,
                 circleMemberships: state.circleMemberships,

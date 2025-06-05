@@ -327,15 +327,13 @@ Widget checkInAndScheduleButtons() => BlocProvider(
                           isScrollControlled: true,
                           builder: (modalContext) => DraggableScrollableSheet(
                               expand: false,
-                              maxChildSize: 0.90,
+                              maxChildSize: 0.9,
+                              initialChildSize: 0.8,
                               builder: (_, scrollController) =>
                                   SingleChildScrollView(
                                       controller: scrollController,
                                       child: Padding(
                                           padding: EdgeInsets.only(
-                                              left: 16,
-                                              top: 16,
-                                              right: 16,
                                               bottom:
                                                   MediaQuery.of(modalContext)
                                                       .viewInsets

@@ -189,3 +189,37 @@ Iterable<(CoagContact, ContactIntroduction)> pendingIntroductions(
                 .contains(i.dhtRecordKeyReceiving))
             .map((i) => (c, i)))
         .expand((i) => i);
+
+Widget buildEditOrAddWidgetSkeleton(BuildContext context,
+        {required String title,
+        required List<Widget> children,
+        required Widget onSaveWidget}) =>
+    Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+              padding:
+                  const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 16),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton.filledTonal(
+                        onPressed: Navigator.of(context).pop,
+                        icon: const Icon(Icons.cancel)),
+                    Expanded(
+                        child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                      textAlign: TextAlign.center,
+                    )),
+                    onSaveWidget,
+                  ])),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: children),
+          ),
+        ]);

@@ -154,41 +154,6 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
               ]));
 }
 
-Widget buildEditOrAddWidgetSkeleton(BuildContext context,
-        {required String title,
-        required List<Widget> children,
-        required void Function() onCancel,
-        required void Function() onSave}) =>
-    Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-              padding:
-                  const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 16),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton.filledTonal(
-                        onPressed: onCancel, icon: const Icon(Icons.cancel)),
-                    Expanded(
-                        child: Text(
-                      title,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
-                    )),
-                    IconButton.filledTonal(
-                        onPressed: onSave, icon: const Icon(Icons.save)),
-                  ])),
-          Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-            child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: children),
-          ),
-        ]);
-
 // TODO: Pass other labels to prevent duplicates
 class EditOrAddWidget extends StatefulWidget {
   const EditOrAddWidget({
@@ -277,11 +242,14 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
         title: (widget.isEditing)
             ? context.loc.profileEditHeadline(widget.headlineSuffix)
             : context.loc.profileAddHeadline(widget.headlineSuffix),
-        onCancel: Navigator.of(context).pop,
-        onSave: () => (_formKey.currentState!.validate())
-            ? widget.onAddOrSave((_label ?? '').trim(), (_value ?? '').trim(),
-                _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
-            : null,
+        onSaveWidget: IconButton.filledTonal(
+            onPressed: () => (_formKey.currentState!.validate())
+                ? widget.onAddOrSave(
+                    (_label ?? '').trim(),
+                    (_value ?? '').trim(),
+                    _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
+                : null,
+            icon: const Icon(Icons.save)),
         children: [
           if (!widget.hideLabel) ...[
             const SizedBox(height: 8),
@@ -479,11 +447,16 @@ class _EditOrAddAddressWidgetState extends State<EditOrAddAddressWidget> {
         title: (widget.isEditing)
             ? context.loc.profileEditHeadline(widget.headlineSuffix)
             : context.loc.profileAddHeadline(widget.headlineSuffix),
-        onCancel: Navigator.of(context).pop,
-        onSave: () => (_formKey.currentState!.validate() && _value != null)
-            ? widget.onAddOrSave(widget.label, (_label ?? '').trim(), _value!,
-                _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
-            : null,
+        onSaveWidget: IconButton.filledTonal(
+            onPressed: () =>
+                (_formKey.currentState!.validate() && _value != null)
+                    ? widget.onAddOrSave(
+                        widget.label,
+                        (_label ?? '').trim(),
+                        _value!,
+                        _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
+                    : null,
+            icon: const Icon(Icons.save)),
         children: [
           FractionallySizedBox(
               widthFactor: 0.5,
@@ -657,14 +630,16 @@ class _EditOrAddEventWidgetState extends State<EditOrAddEventWidget> {
         title: (widget.isEditing)
             ? context.loc.profileEditHeadline(widget.headlineSuffix)
             : context.loc.profileAddHeadline(widget.headlineSuffix),
-        onCancel: Navigator.of(context).pop,
-        onSave: () => (_formKey.currentState!.validate() && _value != null)
-            ? widget.onAddOrSave(
-                widget.label,
-                (_label ?? '').trim(),
-                DateTime.parse(_value!),
-                _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
-            : null,
+        onSaveWidget: IconButton.filledTonal(
+            onPressed: () =>
+                (_formKey.currentState!.validate() && _value != null)
+                    ? widget.onAddOrSave(
+                        widget.label,
+                        (_label ?? '').trim(),
+                        DateTime.parse(_value!),
+                        _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
+                    : null,
+            icon: const Icon(Icons.save)),
         children: [
           FractionallySizedBox(
               widthFactor: 0.5,

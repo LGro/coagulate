@@ -67,7 +67,7 @@ class CheckInCubit extends Cubit<CheckInState> {
 
   // TODO: Check in is e.g. called as the on submit callback in the check in form,
   // but the errors are not handled transparently for the user
-  Future<void> checkIn(
+  Future<bool> checkIn(
       {required String name,
       required String details,
       required List<String> circles,
@@ -78,7 +78,7 @@ class CheckInCubit extends Cubit<CheckInState> {
 
     final profileInfo = contactsRepository.getProfileInfo();
     if (profileInfo == null) {
-      return;
+      return false;
     }
     try {
       final location = await Geolocator.getCurrentPosition(
@@ -108,17 +108,18 @@ class CheckInCubit extends Cubit<CheckInState> {
       // if (!isClosed) {
       //   emit(state.copyWith(checkingIn: false));
       // }
+      return true;
     } on TimeoutException {
       if (!isClosed) {
         // TODO: Where can this be picked up by the UI?
         emit(state.copyWith(status: CheckInStatus.locationTimeout));
       }
-      return;
+      return false;
     } on LocationServiceDisabledException {
       if (!isClosed) {
         emit(state.copyWith(status: CheckInStatus.locationDisabled));
       }
-      return;
+      return false;
     }
   }
 }
