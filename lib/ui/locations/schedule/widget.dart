@@ -375,193 +375,190 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Schedule a visit'), actions: [
-          // # TODO: Remove check once #58 is solved
-          if (Platform.isAndroid)
-            IconButton(
-                onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<CalendarEventsPage>(
-                        builder: (c) => CalendarEventsPage(
-                            onSelectEvent: _importCalendarEvent))),
-                icon: const Icon(Icons.calendar_month))
-        ]),
-        body: SingleChildScrollView(
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 4),
-                SingleChildScrollView(
-                    child: Form(
-                        key: _key,
+      appBar: AppBar(title: const Text('Schedule a visit'), actions: [
+        // # TODO: Remove check once #58 is solved
+        if (Platform.isAndroid)
+          IconButton(
+              onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<CalendarEventsPage>(
+                      builder: (c) => CalendarEventsPage(
+                          onSelectEvent: _importCalendarEvent))),
+              icon: const Icon(Icons.calendar_month))
+      ]),
+      body: Form(
+          key: _key,
+          child: Stack(children: [
+            SingleChildScrollView(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 4),
+                    SingleChildScrollView(
                         child: Column(children: [
-                          Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 16, right: 16),
-                              child: TextFormField(
-                                key: const Key('scheduleForm_titleInput'),
-                                controller: _titleController,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  helperMaxLines: 2,
-                                  labelText: 'Title',
-                                  errorMaxLines: 2,
-                                ),
-                                textInputAction: TextInputAction.done,
-                              )),
-                          const SizedBox(height: 8),
-                          Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 16, right: 16),
-                              child: TextFormField(
-                                key: const Key('scheduleForm_detailsInput'),
-                                controller: _detailsController,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  helperMaxLines: 2,
-                                  labelText: 'Details',
-                                  errorMaxLines: 2,
-                                ),
-                                textInputAction: TextInputAction.done,
-                                maxLines: 4,
-                              )),
-                          const SizedBox(height: 16),
-                          const Padding(
-                              padding: EdgeInsets.only(left: 16, right: 16),
-                              child: Row(children: [
-                                Text('and share with circles',
-                                    textScaler: TextScaler.linear(1.2))
-                              ])),
-                          Wrap(
-                              spacing: 8,
-                              runSpacing: 6,
-                              children: _circles
-                                  .asMap()
-                                  .map((i, c) => MapEntry(
-                                      i,
-                                      GestureDetector(
-                                          onTap: () =>
-                                              _updateCircleSelection(i, !c.$3),
-                                          behavior: HitTestBehavior.opaque,
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Checkbox(
-                                                  value: c.$3,
-                                                  onChanged: (value) => (value ==
-                                                          null)
+                      Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 16),
+                          child: TextFormField(
+                            key: const Key('scheduleForm_titleInput'),
+                            controller: _titleController,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              helperMaxLines: 2,
+                              labelText: 'Title',
+                              errorMaxLines: 2,
+                            ),
+                            textInputAction: TextInputAction.done,
+                          )),
+                      const SizedBox(height: 8),
+                      Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 16),
+                          child: TextFormField(
+                            key: const Key('scheduleForm_detailsInput'),
+                            controller: _detailsController,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              helperMaxLines: 2,
+                              labelText: 'Details',
+                              errorMaxLines: 2,
+                            ),
+                            textInputAction: TextInputAction.done,
+                            maxLines: 4,
+                          )),
+                      const SizedBox(height: 16),
+                      const Padding(
+                          padding: EdgeInsets.only(left: 16, right: 16),
+                          child: Row(children: [
+                            Text('and share with circles',
+                                textScaler: TextScaler.linear(1.2))
+                          ])),
+                      Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: _circles
+                              .asMap()
+                              .map((i, c) => MapEntry(
+                                  i,
+                                  GestureDetector(
+                                      onTap: () =>
+                                          _updateCircleSelection(i, !c.$3),
+                                      behavior: HitTestBehavior.opaque,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Checkbox(
+                                              value: c.$3,
+                                              onChanged: (value) =>
+                                                  (value == null)
                                                       ? null
                                                       : _updateCircleSelection(
                                                           i, value)),
-                                              Text('${c.$2} (${c.$4})'),
-                                              const SizedBox(width: 4),
-                                            ],
-                                          ))))
-                                  .values
-                                  .toList()),
-                          const SizedBox(height: 16),
-                          Row(children: [
-                            TextButton(
-                                child: Text((_start == null)
-                                    ? 'Pick Start Date'
-                                    : DateFormat.yMd().format(_start!)),
-                                onPressed: () async {
-                                  final range = await showDateRangePicker(
-                                      context: context,
-                                      firstDate: DateTime.now(),
-                                      lastDate: DateTime.now()
-                                          .add(const Duration(days: 356 * 2)),
-                                      initialDateRange: DateTimeRange(
-                                          start: _start ?? DateTime.now(),
-                                          end: _end ??
-                                              _start ??
-                                              DateTime.now().add(
-                                                  const Duration(days: 1))));
-                                  if (range != null) {
-                                    _onDateRangeChanged(range);
-                                  }
-                                }),
-                            if (_start != null)
-                              TextButton(
-                                  child: Text(DateFormat.Hm().format(_start!)),
-                                  onPressed: () async => showTimePicker(
-                                      context: context,
-                                      initialTime: TimeOfDay(
-                                          hour: _start!.hour,
-                                          minute: _start!.minute),
-                                      builder: (context, child) => MediaQuery(
-                                          data: MediaQuery.of(context).copyWith(
-                                              alwaysUse24HourFormat: true),
-                                          child: child!)).then((t) =>
-                                      (t == null)
-                                          ? null
-                                          : _onStartTimeChanged(t))),
-                          ]),
-                          Row(children: [
-                            TextButton(
-                                child: Text((_end == null)
-                                    ? 'Pick End Date'
-                                    : DateFormat.yMd().format(_end!)),
-                                onPressed: () async => showDateRangePicker(
-                                        context: context,
-                                        firstDate: DateTime.now(),
-                                        lastDate: DateTime.now()
-                                            .add(const Duration(days: 356 * 2)),
-                                        initialDateRange: DateTimeRange(
-                                            start: _start ?? DateTime.now(),
-                                            end: _end ??
-                                                _start ??
-                                                DateTime.now().add(
-                                                    const Duration(days: 1))))
-                                    .then((range) => (range == null)
-                                        ? null
-                                        : _onDateRangeChanged)),
-                            if (_end != null)
-                              TextButton(
-                                  child: Text(DateFormat.Hm().format(_end!)),
-                                  onPressed: () async => showTimePicker(
-                                      context: context,
-                                      initialTime: TimeOfDay(
-                                          hour: _end!.hour,
-                                          minute: _end!.minute),
-                                      builder: (context, child) => MediaQuery(
-                                          data: MediaQuery.of(context).copyWith(
-                                              alwaysUse24HourFormat: true),
-                                          child: child!)).then((t) =>
-                                      (t == null)
-                                          ? null
-                                          : _onEndTimeChanged(t))),
-                          ]),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                              height: 380,
-                              child: MapWidget(
-                                // Force re-drawing the widget if the
-                                // location changes; is there a better way?
-                                key: Key(_location?.hashCode.toString() ??
-                                    'init-map-location'),
-                                initialLocation: _location,
-                                onSelected: _onLocationChanged,
-                              )),
-                          const SizedBox(height: 16),
-                          if (_inProgress)
-                            const CircularProgressIndicator()
-                          else
-                            FilledButton(
-                              key: const Key('scheduleForm_submit'),
-                              onPressed:
-                                  (_circles.firstWhereOrNull((c) => c.$3) !=
-                                              null &&
-                                          _start != null &&
-                                          _location != null &&
-                                          _title.isNotEmpty)
-                                      ? _onSubmit
-                                      : null,
-                              child: const Text('Share'),
-                            ),
-                          const SizedBox(height: 16),
-                        ]))),
-              ]),
-        ),
-      );
+                                          Text('${c.$2} (${c.$4})'),
+                                          const SizedBox(width: 4),
+                                        ],
+                                      ))))
+                              .values
+                              .toList()),
+                      const SizedBox(height: 16),
+                      Row(children: [
+                        TextButton(
+                            child: Text((_start == null)
+                                ? 'Pick Start Date'
+                                : DateFormat.yMd().format(_start!)),
+                            onPressed: () async {
+                              final range = await showDateRangePicker(
+                                  context: context,
+                                  firstDate: DateTime.now(),
+                                  lastDate: DateTime.now()
+                                      .add(const Duration(days: 356 * 2)),
+                                  initialDateRange: DateTimeRange(
+                                      start: _start ?? DateTime.now(),
+                                      end: _end ??
+                                          _start ??
+                                          DateTime.now()
+                                              .add(const Duration(days: 1))));
+                              if (range != null) {
+                                _onDateRangeChanged(range);
+                              }
+                            }),
+                        if (_start != null)
+                          TextButton(
+                              child: Text(DateFormat.Hm().format(_start!)),
+                              onPressed: () async => showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay(
+                                      hour: _start!.hour,
+                                      minute: _start!.minute),
+                                  builder: (context, child) => MediaQuery(
+                                      data: MediaQuery.of(context).copyWith(
+                                          alwaysUse24HourFormat: true),
+                                      child: child!)).then((t) =>
+                                  (t == null) ? null : _onStartTimeChanged(t))),
+                      ]),
+                      Row(children: [
+                        TextButton(
+                            child: Text((_end == null)
+                                ? 'Pick End Date'
+                                : DateFormat.yMd().format(_end!)),
+                            onPressed: () async => showDateRangePicker(
+                                    context: context,
+                                    firstDate: DateTime.now(),
+                                    lastDate: DateTime.now()
+                                        .add(const Duration(days: 356 * 2)),
+                                    initialDateRange: DateTimeRange(
+                                        start: _start ?? DateTime.now(),
+                                        end: _end ??
+                                            _start ??
+                                            DateTime.now()
+                                                .add(const Duration(days: 1))))
+                                .then((range) => (range == null)
+                                    ? null
+                                    : _onDateRangeChanged)),
+                        if (_end != null)
+                          TextButton(
+                              child: Text(DateFormat.Hm().format(_end!)),
+                              onPressed: () async => showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay(
+                                      hour: _end!.hour, minute: _end!.minute),
+                                  builder: (context, child) => MediaQuery(
+                                      data: MediaQuery.of(context).copyWith(
+                                          alwaysUse24HourFormat: true),
+                                      child: child!)).then((t) =>
+                                  (t == null) ? null : _onEndTimeChanged(t))),
+                      ]),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                          height: 380,
+                          child: MapWidget(
+                            // Force re-drawing the widget if the
+                            // location changes; is there a better way?
+                            key: Key(_location?.hashCode.toString() ??
+                                'init-map-location'),
+                            initialLocation: _location,
+                            onSelected: _onLocationChanged,
+                          )),
+                      const SizedBox(height: 16),
+                    ])),
+                    const SizedBox(height: 16),
+                  ]),
+            ),
+            Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsetsGeometry.only(bottom: 8),
+                  child: _inProgress
+                      ? const CircularProgressIndicator()
+                      : FilledButton(
+                          key: const Key('scheduleForm_submit'),
+                          onPressed:
+                              (_circles.firstWhereOrNull((c) => c.$3) != null &&
+                                      _start != null &&
+                                      _location != null &&
+                                      _title.isNotEmpty)
+                                  ? _onSubmit
+                                  : null,
+                          child: const Text('Share'),
+                        ),
+                )),
+          ])));
 }
