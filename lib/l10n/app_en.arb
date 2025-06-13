@@ -14,6 +14,8 @@
   "address": "address",
   "websites": "websites",
   "website": "website",
+  "organizations": "organizations",
+  "organization": "organization",
   "pictures": "pictures",
   "newCircle": "new circle",
   "sharedWith": "shared with",

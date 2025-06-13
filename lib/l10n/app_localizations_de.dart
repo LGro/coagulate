@@ -54,6 +54,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get website => 'Webseite';
 
   @override
+  String get organizations => 'Organisationen';
+
+  @override
+  String get organization => 'Organisation';
+
+  @override
   String get pictures => 'Bild';
 
   @override

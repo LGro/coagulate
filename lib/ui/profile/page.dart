@@ -25,6 +25,7 @@ import '../../data/repositories/contacts.dart';
 import '../locations/schedule/widget.dart';
 import '../utils.dart';
 import 'cubit.dart';
+import 'widgets/organizations.dart' as organizations;
 
 Future<void> pickCirclePicture(BuildContext context,
     Future<void> Function(Uint8List picture) handlePicture) async {
@@ -776,123 +777,109 @@ List<Widget> detailsList(
 }) =>
     _card(
         title: title,
-        children: details
-                .map((label, value) {
-                  final circleNames =
-                      (circles == null || getDetailSharingSettings == null)
-                          ? null
-                          : circles.entries
-                              .where((c) =>
-                                  getDetailSharingSettings(label)
-                                      ?.contains(c.key) ??
-                                  false)
-                              .map((c) => c.value)
-                              .toList();
+        children: <Widget>[
+              ...details.entries.map((entry) {
+                final (label, value) = (entry.key, entry.value);
+                final circleNames = (circles == null ||
+                        getDetailSharingSettings == null)
+                    ? null
+                    : circles.entries
+                        .where((c) =>
+                            getDetailSharingSettings(label)?.contains(c.key) ??
+                            false)
+                        .map((c) => c.value)
+                        .toList();
 
-                  final numSharedContacts = (circles == null ||
-                          getDetailSharingSettings == null ||
-                          circleMemberships == null)
-                      ? null
-                      : circleMemberships.values
-                          .where((contactCircleIds) => contactCircleIds
-                              .toSet()
-                              .intersectsWith(
-                                  getDetailSharingSettings(label)?.toSet() ??
-                                      {}))
-                          .length;
+                final numSharedContacts = (circles == null ||
+                        getDetailSharingSettings == null ||
+                        circleMemberships == null)
+                    ? null
+                    : circleMemberships.values
+                        .where((contactCircleIds) => contactCircleIds
+                            .toSet()
+                            .intersectsWith(
+                                getDetailSharingSettings(label)?.toSet() ?? {}))
+                        .length;
 
-                  return MapEntry<String, Widget>(
-                    label,
-                    Dismissible(
-                      key: Key('$title|$label'),
-                      direction: (deleteCallback != null)
-                          ? DismissDirection.endToStart
-                          : DismissDirection.none,
-                      onDismissed: (deleteCallback != null)
-                          ? (_) => deleteCallback(label)
-                          : null,
-                      background: Container(
-                        color: Colors.red,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: (editCallback == null)
-                            ? null
-                            : () => editCallback(label),
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                  child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                    if (!hideLabel)
-                                      Text(label,
-                                          textScaler:
-                                              const TextScaler.linear(1.1),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelLarge),
-                                    Text(value,
-                                        textScaler:
-                                            const TextScaler.linear(1.1),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines:
-                                            value.contains('\n') ? null : 1,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge
-                                            ?.copyWith(
-                                                height: value.contains('\n')
-                                                    ? 1.2
-                                                    : null)),
-                                    if (circleNames != null &&
-                                        numSharedContacts != null)
-                                      Text(
-                                          textScaler:
-                                              const TextScaler.linear(1.1),
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall,
-                                          [
-                                            context.loc.sharedWith.capitalize(),
-                                            numSharedContacts.toString(),
-                                            if (numSharedContacts != 1)
-                                              context.loc.contacts
-                                            else
-                                              context.loc.contact,
-                                          ].join(' ')),
-                                    if (circleNames?.isNotEmpty ?? false)
-                                      Text(
-                                        textScaler:
-                                            const TextScaler.linear(1.1),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
-                                        'Circle${(circleNames!.length != 1) ? 's' : ''}: '
-                                        '${circleNames.join(', ')}',
-                                      ),
-                                  ])),
-                              if (editCallback != null && !hideEditButton)
-                                IconButton.filledTonal(
-                                    onPressed: () => editCallback(label),
-                                    icon: const Icon(Icons.edit),
-                                    iconSize: 20),
-                            ],
-                          ),
-                        ),
+                return Dismissible(
+                  key: Key('$title|$label'),
+                  direction: (deleteCallback != null)
+                      ? DismissDirection.endToStart
+                      : DismissDirection.none,
+                  onDismissed: (deleteCallback != null)
+                      ? (_) => deleteCallback(label)
+                      : null,
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Icon(Icons.delete, color: Colors.white),
+                  ),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: (editCallback == null)
+                        ? null
+                        : () => editCallback(label),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                if (!hideLabel)
+                                  Text(label,
+                                      textScaler: const TextScaler.linear(1.1),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelLarge),
+                                Text(value,
+                                    textScaler: const TextScaler.linear(1.1),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: value.contains('\n') ? null : 1,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.copyWith(
+                                            height: value.contains('\n')
+                                                ? 1.2
+                                                : null)),
+                                if (circleNames != null &&
+                                    numSharedContacts != null)
+                                  Text(
+                                      textScaler: const TextScaler.linear(1.1),
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
+                                      [
+                                        context.loc.sharedWith.capitalize(),
+                                        numSharedContacts.toString(),
+                                        if (numSharedContacts != 1)
+                                          context.loc.contacts
+                                        else
+                                          context.loc.contact,
+                                      ].join(' ')),
+                                if (circleNames?.isNotEmpty ?? false)
+                                  Text(
+                                    textScaler: const TextScaler.linear(1.1),
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                    'Circle${(circleNames!.length != 1) ? 's' : ''}: '
+                                    '${circleNames.join(', ')}',
+                                  ),
+                              ])),
+                          if (editCallback != null && !hideEditButton)
+                            IconButton.filledTonal(
+                                onPressed: () => editCallback(label),
+                                icon: const Icon(Icons.edit),
+                                iconSize: 20),
+                        ],
                       ),
                     ),
-                  );
-                })
-                .values
-                .asList()
-                .addBetween(const SizedBox(height: 8)) +
+                  ),
+                );
+              })
+            ].addBetween(const SizedBox(height: 8)) +
             [
               if (addCallback != null) ...[
                 const SizedBox(height: 8),
@@ -1418,6 +1405,117 @@ class ProfileViewState extends State<ProfileView> {
                   .read<ProfileCubit>()
                   .updateWebsite(null, label, value, circlesWithSelection)),
         ),
+        // ORGANIZATIONS
+        ...detailsList(
+            context,
+            contact.organizations.map((key, value) => MapEntry(
+                key,
+                [value.company, value.title, value.department]
+                    .where((v) => v.isNotEmpty)
+                    .join('\n'))),
+            title: Text(context.loc.organizations.capitalize(),
+                textScaler: const TextScaler.linear(1.4),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary)),
+            getDetailSharingSettings: (l) =>
+                profileSharingSettings.organizations[l],
+            circles: circles,
+            circleMemberships: circleMemberships,
+            hideLabel: true,
+            deleteCallback: (id) async =>
+                context.read<ProfileCubit>().updateDetails(contact.copyWith(
+                      organizations: {...contact.organizations}..remove(id),
+                    )),
+            editCallback: (id) async => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                builder: (buildContext) => DraggableScrollableSheet(
+                    expand: false,
+                    maxChildSize: 0.9,
+                    initialChildSize: 0.9,
+                    builder: (_, scrollController) => SingleChildScrollView(
+                        controller: scrollController,
+                        child: organizations.EditOrAddWidget(
+                            isEditing: true,
+                            circles: circles
+                                .map((cId, cLabel) => MapEntry(cId, (
+                                      cId,
+                                      cLabel,
+                                      profileSharingSettings.organizations[id]
+                                              ?.contains(cId) ??
+                                          false,
+                                      circleMemberships.values
+                                          .where((circles) =>
+                                              circles.contains(cId))
+                                          .length
+                                    )))
+                                .values
+                                .toList(),
+                            headlineSuffix: context.loc.organization,
+                            id: id,
+                            company: contact.organizations[id]?.company ?? '',
+                            title: contact.organizations[id]?.title ?? '',
+                            department:
+                                contact.organizations[id]?.department ?? '',
+                            onDelete: () async {
+                              await context
+                                  .read<ProfileCubit>()
+                                  .updateDetails(contact.copyWith(
+                                    organizations: {...contact.organizations}
+                                      ..remove(id),
+                                  ));
+                              if (buildContext.mounted) {
+                                Navigator.of(buildContext).pop();
+                              }
+                            },
+                            onAddOrSave: (existingId, value,
+                                circlesWithSelection) async {
+                              await context
+                                  .read<ProfileCubit>()
+                                  .updateOrganization(
+                                      existingId, value, circlesWithSelection);
+                              if (buildContext.mounted) {
+                                Navigator.of(buildContext).pop();
+                              }
+                            })))),
+            addCallback: () async => showModalBottomSheet<void>(
+                context: context,
+                isDismissible: true,
+                isScrollControlled: true,
+                builder: (buildContext) => DraggableScrollableSheet(
+                    expand: false,
+                    maxChildSize: 0.9,
+                    initialChildSize: 0.9,
+                    builder: (_, scrollController) => SingleChildScrollView(
+                        controller: scrollController,
+                        child: organizations.EditOrAddWidget(
+                          isEditing: false,
+                          circles: circles
+                              .map((cId, cLabel) => MapEntry(cId, (
+                                    cId,
+                                    cLabel,
+                                    false,
+                                    circleMemberships.values
+                                        .where(
+                                            (circles) => circles.contains(cId))
+                                        .length
+                                  )))
+                              .values
+                              .toList(),
+                          headlineSuffix: context.loc.organization,
+                          valueHintText: null,
+                          existingLabels: contact.events.keys.toList(),
+                          onAddOrSave: (id, value, circlesWithSelection) async {
+                            await context
+                                .read<ProfileCubit>()
+                                .updateOrganization(
+                                    id, value, circlesWithSelection);
+                            if (buildContext.mounted) {
+                              Navigator.of(buildContext).pop();
+                            }
+                          },
+                        ))))),
         // EVENTS
         ...detailsList(
             context,

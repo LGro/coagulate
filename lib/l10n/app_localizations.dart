@@ -188,6 +188,18 @@ abstract class AppLocalizations {
   /// **'website'**
   String get website;
 
+  /// No description provided for @organizations.
+  ///
+  /// In en, this message translates to:
+  /// **'organizations'**
+  String get organizations;
+
+  /// No description provided for @organization.
+  ///
+  /// In en, this message translates to:
+  /// **'organization'**
+  String get organization;
+
   /// No description provided for @pictures.
   ///
   /// In en, this message translates to:

@@ -6,7 +6,9 @@ import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
@@ -248,6 +250,41 @@ class ProfileCubit extends Cubit<ProfileState> {
       ),
       sharingSettings: state.profileInfo!.sharingSettings.copyWith(
         websites: _sharingSettings,
+      ),
+    );
+    if (!isClosed) {
+      emit(state.copyWith(profileInfo: updatedProfile));
+    }
+    await contactsRepository.setProfileInfo(updatedProfile);
+  }
+
+  Future<void> updateOrganization(String? existingId, Organization value,
+      List<(String, String, bool)> circlesWithSelection) async {
+    if (state.profileInfo == null) {
+      return;
+    }
+
+    existingId = existingId ?? Uuid().v4();
+
+    final details = {...state.profileInfo!.details.organizations}
+      ..remove(existingId);
+    details[existingId] = value;
+
+    await createCirclesIfNotExist(
+        circlesWithSelection.map((e) => (e.$1, e.$2)).toList());
+
+    final _sharingSettings = {
+      ...state.profileInfo!.sharingSettings.organizations
+    };
+    _sharingSettings[existingId] =
+        circlesWithSelection.where((e) => e.$3).map((c) => c.$1).toList();
+
+    final updatedProfile = state.profileInfo!.copyWith(
+      details: state.profileInfo!.details.copyWith(
+        organizations: details,
+      ),
+      sharingSettings: state.profileInfo!.sharingSettings.copyWith(
+        organizations: _sharingSettings,
       ),
     );
     if (!isClosed) {

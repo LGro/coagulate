@@ -54,6 +54,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get website => 'website';
 
   @override
+  String get organizations => 'organizations';
+
+  @override
+  String get organization => 'organization';
+
+  @override
   String get pictures => 'pictures';
 
   @override

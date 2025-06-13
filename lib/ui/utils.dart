@@ -223,3 +223,6 @@ Widget buildEditOrAddWidgetSkeleton(BuildContext context,
                 children: children),
           ),
         ]);
+
+List<(String, String)> labelValueMapToTupleList(Map<String, String> map) =>
+    map.map((key, value) => MapEntry(key, (key, value))).values.toList();
