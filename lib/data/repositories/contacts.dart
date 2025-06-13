@@ -85,6 +85,8 @@ ContactDetails filterDetails(
           settings.socialMedias, activeCirclesWithMemberCount.keys),
       events: filterContactDetailsList(
           details.events, settings.events, activeCirclesWithMemberCount.keys),
+      organizations: filterContactDetailsList(details.organizations,
+          settings.organizations, activeCirclesWithMemberCount.keys),
     );
 
 /// Remove address locations that are not shared with the circles specified for
