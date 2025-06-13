@@ -129,6 +129,7 @@ class ContactDetails extends Equatable {
     this.websites = const {},
     this.socialMedias = const {},
     this.events = const {},
+    this.organizations = const {},
   });
 
   factory ContactDetails.fromJson(Map<String, dynamic> json) =>
@@ -168,6 +169,7 @@ class ContactDetails extends Equatable {
                 label: EventLabel.custom,
                 customLabel: e.key))
             .toList(),
+        organizations: [...organizations.values],
       );
 
   /// Binary integer representation of an image
@@ -194,17 +196,22 @@ class ContactDetails extends Equatable {
   /// Events / birthdays.
   final Map<String, DateTime> events;
 
+  // Organizations like companies with role info.
+  final Map<String, Organization> organizations;
+
   Map<String, dynamic> toJson() => _$ContactDetailsToJson(this);
 
-  ContactDetails copyWith(
-          {List<int>? picture,
-          String? publicKey,
-          Map<String, String>? names,
-          Map<String, String>? phones,
-          Map<String, String>? emails,
-          Map<String, String>? websites,
-          Map<String, String>? socialMedias,
-          Map<String, DateTime>? events}) =>
+  ContactDetails copyWith({
+    List<int>? picture,
+    String? publicKey,
+    Map<String, String>? names,
+    Map<String, String>? phones,
+    Map<String, String>? emails,
+    Map<String, String>? websites,
+    Map<String, String>? socialMedias,
+    Map<String, DateTime>? events,
+    Map<String, Organization>? organizations,
+  }) =>
       ContactDetails(
         picture:
             picture ?? ((this.picture == null) ? null : [...this.picture!]),
@@ -215,6 +222,7 @@ class ContactDetails extends Equatable {
         websites: {...websites ?? this.websites},
         socialMedias: {...socialMedias ?? this.socialMedias},
         events: {...events ?? this.events},
+        organizations: {...organizations ?? this.organizations},
       );
 
   @override
@@ -227,6 +235,7 @@ class ContactDetails extends Equatable {
         websites,
         socialMedias,
         events,
+        organizations,
       ];
 }
 

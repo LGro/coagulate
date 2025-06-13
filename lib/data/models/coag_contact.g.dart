@@ -93,6 +93,11 @@ ContactDetails _$ContactDetailsFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, DateTime.parse(e as String)),
           ) ??
           const {},
+      organizations: (json['organizations'] as Map<String, dynamic>?)?.map(
+            (k, e) =>
+                MapEntry(k, Organization.fromJson(e as Map<String, dynamic>)),
+          ) ??
+          const {},
     );
 
 Map<String, dynamic> _$ContactDetailsToJson(ContactDetails instance) =>
@@ -105,6 +110,8 @@ Map<String, dynamic> _$ContactDetailsToJson(ContactDetails instance) =>
       'websites': instance.websites,
       'social_medias': instance.socialMedias,
       'events': instance.events.map((k, e) => MapEntry(k, e.toIso8601String())),
+      'organizations':
+          instance.organizations.map((k, e) => MapEntry(k, e.toJson())),
     };
 
 ProfileInfo _$ProfileInfoFromJson(Map<String, dynamic> json) => ProfileInfo(
