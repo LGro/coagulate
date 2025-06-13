@@ -37,10 +37,10 @@ packages:
     dependency: "direct dev"
     description:
       name: async_tools
-      sha256: afd5426e76631172f8ce6a6359b264b092fa9d2a52cd2528100115be9525e067
+      sha256: "9611c1efeae7e6d342721d0c2caf2e4783d91fba6a9637d7badfa2dccf8de2a2"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.9"
+    version: "0.1.10"
   bloc:
     dependency: transitive
     description:
@@ -53,10 +53,10 @@ packages:
     dependency: transitive
     description:
       name: bloc_advanced_tools
-      sha256: dfb142569814952af8d93e7fe045972d847e29382471687db59913e253202f6e
+      sha256: "63e57000df7259e3007dbfbbfd7dae3e0eca60eb2ac93cbe0c5a3de0e77c9972"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.12"
+    version: "0.1.13"
   boolean_selector:
     dependency: transitive
     description:
@@ -65,6 +65,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  buffer:
+    dependency: transitive
+    description:
+      name: buffer
+      sha256: "389da2ec2c16283c8787e0adaede82b1842102f8c8aae2f49003a766c5c6b3d1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.3"
   change_case:
     dependency: transitive
     description:
@@ -106,7 +114,7 @@ packages:
     source: hosted
     version: "1.1.2"
   collection:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: collection
       sha256: "2f5709ae4d3d59dd8f7cd309b4e023046b57d8a6c82130785d2b0e5868084e76"

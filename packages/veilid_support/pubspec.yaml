@@ -7,9 +7,10 @@ environment:
   sdk: ">=3.2.0 <4.0.0"
 
 dependencies:
-  async_tools: ^0.1.9
+  async_tools: ^0.1.10
   bloc: ^9.0.0
-  bloc_advanced_tools: ^0.1.12
+  bloc_advanced_tools: ^0.1.13
+  buffer: ^1.2.3
   charcode: ^1.4.0
   collection: ^1.19.1
   convert: ^3.1.2
@@ -29,10 +30,10 @@ dependencies:
     path: ../../../veilid/veilid-flutter
 
 # dependency_overrides:
-# async_tools:
-#   path: ../../../dart_async_tools
-# bloc_advanced_tools:
-#   path: ../../../bloc_advanced_tools
+#   async_tools:
+#     path: ../../../dart_async_tools
+#   bloc_advanced_tools:
+#     path: ../../../bloc_advanced_tools
 
 dev_dependencies:
   build_runner: ^2.4.15

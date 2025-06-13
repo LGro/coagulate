@@ -2,26 +2,29 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:async_tools/async_tools.dart';
+import 'package:buffer/buffer.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:protobuf/protobuf.dart';
 
 import 'config.dart';
 import 'table_db.dart';
 import 'veilid_log.dart';
 
-class PersistentQueue<T extends GeneratedMessage>
-    with TableDBBackedFromBuffer<IList<T>> {
+const _ksfSyncAdd = 'ksfSyncAdd';
+
+class PersistentQueue<T> with TableDBBackedFromBuffer<IList<T>> {
   //
   PersistentQueue(
       {required String table,
       required String key,
       required T Function(Uint8List) fromBuffer,
+      required Uint8List Function(T) toBuffer,
       required Future<void> Function(IList<T>) closure,
-      bool deleteOnClose = true,
+      bool deleteOnClose = false,
       void Function(Object, StackTrace)? onError})
       : _table = table,
         _key = key,
         _fromBuffer = fromBuffer,
+        _toBuffer = toBuffer,
         _closure = closure,
         _deleteOnClose = deleteOnClose,
         _onError = onError {
@@ -32,13 +35,14 @@ class PersistentQueue<T extends GeneratedMessage>
     // Ensure the init finished
     await _initWait();
 
-    // Close the sync add stream
-    await _syncAddController.close();
+    // Finish all sync adds
+    await serialFutureClose((this, _ksfSyncAdd));
 
     // Stop the processing trigger
+    await _sspQueueReady.close();
     await _queueReady.close();
 
-    // Wait for any setStates to finish
+    // No more queue actions
     await _queueMutex.acquire();
 
     // Clean up table if desired
@@ -47,27 +51,38 @@ class PersistentQueue<T extends GeneratedMessage>
     }
   }
 
+  set deleteOnClose(bool d) {
+    _deleteOnClose = d;
+  }
+
+  bool get deleteOnClose => _deleteOnClose;
+
+  Future<void> get waitEmpty async {
+    // Ensure the init finished
+    await _initWait();
+
+    if (_queue.isEmpty) {
+      return;
+    }
+    final completer = Completer<void>();
+    _queueDoneCompleter = completer;
+    await completer.future;
+  }
+
   Future<void> _init(Completer<void> _) async {
     // Start the processor
-    unawaited(Future.delayed(Duration.zero, () async {
+    _sspQueueReady.follow(_queueReady.stream, true, (more) async {
       await _initWait();
-      await for (final _ in _queueReady.stream) {
+      if (more) {
         await _process();
       }
-    }));
-
-    // Start the sync add controller
-    unawaited(Future.delayed(Duration.zero, () async {
-      await _initWait();
-      await for (final elem in _syncAddController.stream) {
-        await addAll(elem);
-      }
-    }));
+    });
 
     // Load the queue if we have one
     try {
       await _queueMutex.protect(() async {
         _queue = await load() ?? await store(IList<T>.empty());
+        _sendUpdateEventsInner();
       });
     } on Exception catch (e, st) {
       if (_onError != null) {
@@ -78,11 +93,20 @@ class PersistentQueue<T extends GeneratedMessage>
     }
   }
 
+  void _sendUpdateEventsInner() {
+    assert(_queueMutex.isLocked, 'must be locked');
+    if (_queue.isNotEmpty) {
+      if (!_queueReady.isClosed) {
+        _queueReady.sink.add(true);
+      }
+    } else {
+      _queueDoneCompleter?.complete();
+    }
+  }
+
   Future<void> _updateQueueInner(IList<T> newQueue) async {
     _queue = await store(newQueue);
-    if (_queue.isNotEmpty) {
-      _queueReady.sink.add(null);
-    }
+    _sendUpdateEventsInner();
   }
 
   Future<void> add(T item) async {
@@ -102,46 +126,24 @@ class PersistentQueue<T extends GeneratedMessage>
   }
 
   void addSync(T item) {
-    _syncAddController.sink.add([item]);
+    serialFuture((this, _ksfSyncAdd), () async {
+      await add(item);
+    });
   }
 
   void addAllSync(Iterable<T> items) {
-    _syncAddController.sink.add(items);
+    serialFuture((this, _ksfSyncAdd), () async {
+      await addAll(items);
+    });
   }
 
-  // Future<bool> get isEmpty async {
-  //   await _initWait();
-  //   return state.asData!.value.isEmpty;
-  // }
+  Future<void> pause() async {
+    await _sspQueueReady.pause();
+  }
 
-  // Future<bool> get isNotEmpty async {
-  //   await _initWait();
-  //   return state.asData!.value.isNotEmpty;
-  // }
-
-  // Future<int> get length async {
-  //   await _initWait();
-  //   return state.asData!.value.length;
-  // }
-
-  // Future<T?> pop() async {
-  //   await _initWait();
-  //   return _processingMutex.protect(() async => _stateMutex.protect(() async {
-  //         final removedItem = Output<T>();
-  //         final queue = state.asData!.value.removeAt(0, removedItem);
-  //         await _setStateInner(queue);
-  //         return removedItem.value;
-  //       }));
-  // }
-
-  // Future<IList<T>> popAll() async {
-  //   await _initWait();
-  //   return _processingMutex.protect(() async => _stateMutex.protect(() async {
-  //         final queue = state.asData!.value;
-  //         await _setStateInner(IList<T>.empty);
-  //         return queue;
-  //       }));
-  // }
+  Future<void> resume() async {
+    await _sspQueueReady.resume();
+  }
 
   Future<void> _process() async {
     try {
@@ -185,9 +187,10 @@ class PersistentQueue<T extends GeneratedMessage>
   IList<T> valueFromBuffer(Uint8List bytes) {
     var out = IList<T>();
     try {
-      final reader = CodedBufferReader(bytes);
-      while (!reader.isAtEnd()) {
-        final bytes = reader.readBytesAsView();
+      final reader = ByteDataReader()..add(bytes);
+      while (reader.remainingLength != 0) {
+        final count = reader.readUint32();
+        final bytes = reader.read(count);
         try {
           final item = _fromBuffer(bytes);
           out = out.add(item);
@@ -211,22 +214,29 @@ class PersistentQueue<T extends GeneratedMessage>
 
   @override
   Uint8List valueToBuffer(IList<T> val) {
-    final writer = CodedBufferWriter();
+    final writer = ByteDataWriter();
     for (final elem in val) {
-      writer.writeRawBytes(elem.writeToBuffer());
+      final bytes = _toBuffer(elem);
+      final count = bytes.lengthInBytes;
+      writer
+        ..writeUint32(count)
+        ..write(bytes);
     }
-    return writer.toBuffer();
+    return writer.toBytes();
   }
 
   final String _table;
   final String _key;
   final T Function(Uint8List) _fromBuffer;
-  final bool _deleteOnClose;
+  final Uint8List Function(T) _toBuffer;
+  bool _deleteOnClose;
   final WaitSet<void, void> _initWait = WaitSet();
-  final Mutex _queueMutex = Mutex(debugLockTimeout: kIsDebugMode ? 60 : null);
-  IList<T> _queue = IList<T>.empty();
-  final StreamController<Iterable<T>> _syncAddController = StreamController();
-  final StreamController<void> _queueReady = StreamController();
+  final _queueMutex = Mutex(debugLockTimeout: kIsDebugMode ? 60 : null);
+  var _queue = IList<T>.empty();
   final Future<void> Function(IList<T>) _closure;
   final void Function(Object, StackTrace)? _onError;
+  Completer<void>? _queueDoneCompleter;
+
+  final StreamController<bool> _queueReady = StreamController();
+  final _sspQueueReady = SingleStateProcessor<bool>();
 }

@@ -8,6 +8,7 @@ import 'fixtures/fixtures.dart';
 import 'test_dht_log.dart';
 import 'test_dht_record_pool.dart';
 import 'test_dht_short_array.dart';
+import 'test_persistent_queue.dart';
 import 'test_table_db_array.dart';
 
 void main() {
@@ -32,60 +33,70 @@ void main() {
       debugPrintSynchronously('Duration: ${endTime.difference(startTime)}');
     });
 
-    group('Attached Tests', () {
+    group('attached', () {
       setUpAll(veilidFixture.attach);
       tearDownAll(veilidFixture.detach);
 
-      group('DHT Support Tests', () {
+      group('persistent_queue', () {
+        test('persistent_queue:open_close', testPersistentQueueOpenClose);
+        test('persistent_queue:add', testPersistentQueueAdd);
+        test('persistent_queue:add_sync', testPersistentQueueAddSync);
+        test('persistent_queue:add_persist', testPersistentQueueAddPersist);
+        test('persistent_queue:add_sync_persist',
+            testPersistentQueueAddSyncPersist);
+      });
+
+      group('dht_support', () {
         setUpAll(updateProcessorFixture.setUp);
         setUpAll(tickerFixture.setUp);
         tearDownAll(tickerFixture.tearDown);
         tearDownAll(updateProcessorFixture.tearDown);
 
-        test('create pool', testDHTRecordPoolCreate);
+        test('create_pool', testDHTRecordPoolCreate);
 
-        group('DHTRecordPool Tests', () {
+        group('dht_record_pool', () {
           setUpAll(dhtRecordPoolFixture.setUp);
           tearDownAll(dhtRecordPoolFixture.tearDown);
 
-          test('create/delete record', testDHTRecordCreateDelete);
-          test('record scopes', testDHTRecordScopes);
-          test('create/delete deep record', testDHTRecordDeepCreateDelete);
+          test('dht_record_pool:create_delete', testDHTRecordCreateDelete);
+          test('dht_record_pool:scopes', testDHTRecordScopes);
+          test('dht_record_pool:deep_create_delete',
+              testDHTRecordDeepCreateDelete);
         });
 
-        group('DHTShortArray Tests', () {
+        group('dht_short_array', () {
           setUpAll(dhtRecordPoolFixture.setUp);
           tearDownAll(dhtRecordPoolFixture.tearDown);
 
           for (final stride in [256, 16 /*64, 32, 16, 8, 4, 2, 1 */]) {
-            test('create shortarray stride=$stride',
+            test('dht_short_array:create_stride_$stride',
                 makeTestDHTShortArrayCreateDelete(stride: stride));
-            test('add shortarray stride=$stride',
+            test('dht_short_array:add_stride_$stride',
                 makeTestDHTShortArrayAdd(stride: stride));
           }
         });
 
-        group('DHTLog Tests', () {
+        group('dht_log', () {
           setUpAll(dhtRecordPoolFixture.setUp);
           tearDownAll(dhtRecordPoolFixture.tearDown);
 
           for (final stride in [256, 16 /*64, 32, 16, 8, 4, 2, 1 */]) {
-            test('create log stride=$stride',
+            test('dht_log:create_stride_$stride',
                 makeTestDHTLogCreateDelete(stride: stride));
             test(
               timeout: const Timeout(Duration(seconds: 480)),
-              'add/truncate log stride=$stride',
+              'dht_log:add_truncate_stride_$stride',
               makeTestDHTLogAddTruncate(stride: stride),
             );
           }
         });
       });
 
-      group('TableDB Tests', () {
-        group('TableDBArray Tests', () {
-          // test('create/delete TableDBArray', testTableDBArrayCreateDelete);
+      group('table_db', () {
+        group('table_db_array', () {
+          test('table_db_array:create_delete', testTableDBArrayCreateDelete);
 
-          group('TableDBArray Add/Get Tests', () {
+          group('table_db_array:add_get', () {
             for (final params in [
               //
               (99, 3, 15),
@@ -110,7 +121,7 @@ void main() {
 
               test(
                 timeout: const Timeout(Duration(seconds: 480)),
-                'add/remove TableDBArray count = $count batchSize=$batchSize',
+                'table_db_array:add_remove_count=${count}_batchSize=$batchSize',
                 makeTestTableDBArrayAddGetClear(
                     count: count,
                     singles: singles,
@@ -120,7 +131,7 @@ void main() {
             }
           });
 
-          group('TableDBArray Insert Tests', () {
+          group('table_db_array:insert', () {
             for (final params in [
               //
               (99, 3, 15),
@@ -145,7 +156,8 @@ void main() {
 
               test(
                 timeout: const Timeout(Duration(seconds: 480)),
-                'insert TableDBArray count=$count singles=$singles batchSize=$batchSize',
+                'table_db_array:insert_count=${count}_'
+                'singles=${singles}_batchSize=$batchSize',
                 makeTestTableDBArrayInsert(
                     count: count,
                     singles: singles,
@@ -155,7 +167,7 @@ void main() {
             }
           });
 
-          group('TableDBArray Remove Tests', () {
+          group('table_db_array:remove', () {
             for (final params in [
               //
               (99, 3, 15),
@@ -180,7 +192,8 @@ void main() {
 
               test(
                 timeout: const Timeout(Duration(seconds: 480)),
-                'remove TableDBArray count=$count singles=$singles batchSize=$batchSize',
+                'table_db_array:remove_count=${count}_'
+                'singles=${singles}_batchSize=$batchSize',
                 makeTestTableDBArrayRemove(
                     count: count,
                     singles: singles,
