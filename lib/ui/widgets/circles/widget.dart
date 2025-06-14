@@ -16,13 +16,11 @@ class CirclesForm extends StatefulWidget {
       {required this.circles,
       required this.callback,
       this.allowCreateNew = true,
-      this.customHeader,
       super.key});
 
   final Future<void> Function(List<(String, String, bool)>) callback;
   final List<(String, String, bool, int)> circles;
   final bool allowCreateNew;
-  final Widget? customHeader;
 
   @override
   State<CirclesForm> createState() => _CirclesFormState();
@@ -139,11 +137,11 @@ class _CirclesFormState extends State<CirclesForm> {
                   icon: const Icon(Icons.save),
                 ),
           children: [
-            if (widget.customHeader != null) widget.customHeader!,
             if (widget.allowCreateNew)
               Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   child: Row(children: [
+                    const SizedBox(width: 8),
                     Expanded(
                         child: TextFormField(
                       key: const Key('circlesForm_newCircleInput'),
@@ -184,8 +182,10 @@ class _CirclesFormState extends State<CirclesForm> {
                                     onChanged: (value) => (value == null)
                                         ? null
                                         : _updateCircleMembership(i, value)),
-                                Text('${c.$2} (${c.$4})'),
-                                const SizedBox(width: 4),
+                                Expanded(
+                                    child: Text('${c.$2} (${c.$4})',
+                                        overflow: TextOverflow.ellipsis)),
+                                const SizedBox(width: 16),
                               ],
                             ))))
                     .values

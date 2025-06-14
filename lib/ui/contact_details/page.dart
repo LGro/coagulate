@@ -807,9 +807,6 @@ Widget _circlesCard(
                     controller: scrollController,
                     child: Padding(
                       padding: EdgeInsets.only(
-                          left: 8,
-                          top: 8,
-                          right: 8,
                           bottom:
                               MediaQuery.of(modalContext).viewInsets.bottom),
                       child: Column(
