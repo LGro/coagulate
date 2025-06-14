@@ -12,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:loggy/loggy.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
@@ -42,7 +43,7 @@ Future<void> pickCirclePicture(BuildContext context,
     }
   } catch (e) {
     // TODO: Handle
-    print(e);
+    logDebug(e);
   }
 }
 
@@ -1027,7 +1028,7 @@ class ProfileViewState extends State<ProfileView> {
     //     }
     //   }
     // }, onError: (err) {
-    //   debugPrint('getIntentDataStream error: $err');
+    //   logDebug('getIntentDataStream error: $err');
     // });
 
     // Get the media sharing coming from outside the app while the app is closed.

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/repositories/contacts.dart';
+import '../../../debug_log.dart';
 
 class DebugInfoPage extends StatelessWidget {
   const DebugInfoPage({super.key});
@@ -15,11 +16,19 @@ class DebugInfoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final persistentStorageInfo =
-        context.read<ContactsRepository>().persistentStorage.debugInfo();
+    final combinedInfo = [
+      'Database',
+      context.read<ContactsRepository>().persistentStorage.debugInfo(),
+      '---',
+      'Repository',
+      'Contacts: ${context.read<ContactsRepository>().getContacts().length}',
+      '---',
+      'Log',
+      ...DebugLogger().getRecentLogs(count: 100),
+    ].join('\n');
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Open Source Licenses'),
+          title: const Text('Debug Information'),
         ),
         body: SingleChildScrollView(
             child: Container(
@@ -30,7 +39,7 @@ class DebugInfoPage extends StatelessWidget {
                       GestureDetector(
                           onTap: () async {
                             await Clipboard.setData(
-                                ClipboardData(text: persistentStorageInfo));
+                                ClipboardData(text: combinedInfo));
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -39,7 +48,7 @@ class DebugInfoPage extends StatelessWidget {
                               );
                             }
                           },
-                          child: Text(persistentStorageInfo)),
+                          child: Text(combinedInfo)),
                     ]))));
   }
 }

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
+import 'package:loggy/loggy.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -206,7 +207,7 @@ class _CoagulateAppState extends State<CoagulateApp>
           requiresBatteryNotLow: true,
         ), (String taskId) async {
       // This is the callback function that will be called periodically
-      print("[BackgroundFetch] Event received: $taskId");
+      logDebug("[BackgroundFetch] Event received: $taskId");
 
       final log = <String>[];
       final startTime = DateTime.now();
@@ -236,15 +237,15 @@ class _CoagulateAppState extends State<CoagulateApp>
 
       log.add('Returning successfully after waiting until ${DateTime.now()}');
 
-      print('[BackgroundFetch] $log');
+      logDebug('[BackgroundFetch] $log');
 
       // Signal completion of your task
       await BackgroundFetch.finish(taskId);
       return;
     }).then((int status) {
-      print('[BackgroundFetch] configure success: $status');
+      logDebug('[BackgroundFetch] configure success: $status');
     }).catchError((e) {
-      print('[BackgroundFetch] configure ERROR: $e');
+      logDebug('[BackgroundFetch] configure ERROR: $e');
     }));
 
     // BackgroundFetch.scheduleTask(TaskConfig(
@@ -283,16 +284,16 @@ class _CoagulateAppState extends State<CoagulateApp>
     if (state == AppLifecycleState.paused) {
       // App goes to background
       unawaited(BackgroundFetch.start().then((int status) {
-        print('[BackgroundFetch] start success: $status');
+        logDebug('[BackgroundFetch] start success: $status');
       }).catchError((e) {
-        print('[BackgroundFetch] start ERROR: $e');
+        logDebug('[BackgroundFetch] start ERROR: $e');
       }));
     } else if (state == AppLifecycleState.resumed) {
       // App comes to foreground
       unawaited(BackgroundFetch.stop().then((int status) {
-        print('[BackgroundFetch] stop success: $status');
+        logDebug('[BackgroundFetch] stop success: $status');
       }).catchError((e) {
-        print('[BackgroundFetch] stop ERROR: $e');
+        logDebug('[BackgroundFetch] stop ERROR: $e');
       }));
     }
   }
@@ -301,7 +302,7 @@ class _CoagulateAppState extends State<CoagulateApp>
       NotificationResponse notificationResponse) async {
     final payload = notificationResponse.payload;
     if (notificationResponse.payload != null) {
-      debugPrint('notification payload: $payload');
+      logDebug('notification payload: $payload');
     }
     // await Navigator.push(
     //   context,

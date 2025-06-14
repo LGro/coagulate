@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:loggy/loggy.dart';
 import 'package:veilid_support/veilid_support.dart';
 
 import '../../models/backup.dart';
@@ -19,7 +20,7 @@ String? tryUtf8Decode(Uint8List? content) {
   try {
     return utf8.decode(content);
   } on FormatException catch (e) {
-    debugPrint('$e');
+    logDebug('$e');
     return null;
   }
 }
@@ -77,7 +78,7 @@ class VeilidDhtStorage extends DistributedStorage {
     // Write to it once, so push it into the network. (Is this really needed?)
     await record.tryWriteBytes(Uint8List(0));
     await record.close();
-    debugPrint(
+    logDebug(
         'created and wrote once to ${record.key.toString().substring(5, 10)}');
     return (record.key, record.writer!);
   }
@@ -118,13 +119,13 @@ class VeilidDhtStorage extends DistributedStorage {
               final (jsonString, picture) =
                   await _getJsonProfileAndPictureFromRecord(
                       record, dhCrypto, refreshMode);
-              debugPrint('read pub ${recordKey.toString().substring(5, 10)}');
+              logDebug('read pub ${recordKey.toString().substring(5, 10)}');
               return (jsonString, picture);
             } on FormatException catch (e) {
               // This can happen due to "not enough data to decrypt" when a record
               // was written empty without encryption during initialization
               // TODO: Only accept "not enough data to decrypt" here, make sure "Unexpected exentsion byte" is passed down as an error
-              debugPrint('pub ${recordKey.toString().substring(5, 10)} $e');
+              logDebug('pub ${recordKey.toString().substring(5, 10)} $e');
             } finally {
               await record.close();
             }
@@ -146,13 +147,13 @@ class VeilidDhtStorage extends DistributedStorage {
               final (jsonString, picture) =
                   await _getJsonProfileAndPictureFromRecord(
                       record, pskCrypto, refreshMode);
-              debugPrint('read psk ${recordKey.toString().substring(5, 10)}');
+              logDebug('read psk ${recordKey.toString().substring(5, 10)}');
               return (jsonString, picture);
             } on FormatException catch (e) {
               // This can happen due to "not enough data to decrypt" when a record
               // was written empty without encryption during initialization
               // TODO: Only accept "not enough data to decrypt" here, make sure "Unexpected exentsion byte" is passed down as an error
-              debugPrint('psk ${recordKey.toString().substring(5, 10)} $e');
+              logDebug('psk ${recordKey.toString().substring(5, 10)} $e');
             } finally {
               await record.close();
             }
@@ -198,7 +199,7 @@ class VeilidDhtStorage extends DistributedStorage {
 
     // Ensure that if both parties are ready, we encrypt with DH derived key
     if (settings.theirPublicKey != null && settings.theyAckHandshakeComplete) {
-      debugPrint(
+      logDebug(
           'using pubkey ${settings.theirPublicKey.toString().substring(0, 6)} '
           'for writing ${_recordKey.toString().substring(5, 10)}');
       // Derive DH secret
@@ -211,11 +212,11 @@ class VeilidDhtStorage extends DistributedStorage {
       // and psk or would it make sense to include the crypto system prefix in
       // the psk and using a TypedSecret.fromString() here?
       secret = settings.initialSecret!;
-      debugPrint('using psk crypto ${secret.toString().substring(0, 6)} '
+      logDebug('using psk crypto ${secret.toString().substring(0, 6)} '
           'for writing ${_recordKey.toString().substring(5, 10)}');
     } else {
       // TODO: Raise Exception
-      debugPrint('no crypto for ${_recordKey.toString().substring(5, 10)}');
+      logDebug('no crypto for ${_recordKey.toString().substring(5, 10)}');
       return;
     }
     final crypto =
@@ -234,10 +235,10 @@ class VeilidDhtStorage extends DistributedStorage {
             record.tryWriteBytes(crypto: crypto, e.value, subkey: e.key + 1)));
     await record.close();
 
-    debugPrint('wrote ${_recordKey.toString().substring(5, 10)}');
+    logDebug('wrote ${_recordKey.toString().substring(5, 10)}');
     if (written != null) {
       // This shouldn't happen, but it does sometimes; do we issue parallel update requests?
-      debugPrint('found newer for ${_recordKey.toString().substring(5, 10)}');
+      logDebug('found newer for ${_recordKey.toString().substring(5, 10)}');
     }
   }
 
@@ -338,13 +339,13 @@ class VeilidDhtStorage extends DistributedStorage {
             final payload = await getChunkedPayload(
                 record, pskCrypto, refreshMode,
                 numChunks: 32);
-            debugPrint('read psk ${recordKey.toString().substring(5, 10)}');
+            logDebug('read psk ${recordKey.toString().substring(5, 10)}');
             return tryUtf8Decode(payload);
           } on FormatException catch (e) {
             // This can happen due to "not enough data to decrypt" when a record
             // was written empty without encryption during initialization
             // TODO: Only accept "not enough data to decrypt" here, make sure "Unexpected exentsion byte" is passed down as an error
-            debugPrint('psk ${recordKey.toString().substring(5, 10)} $e');
+            logDebug('psk ${recordKey.toString().substring(5, 10)} $e');
           } finally {
             await record.close();
           }

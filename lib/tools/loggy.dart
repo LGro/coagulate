@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:loggy/loggy.dart';
 
+import '../debug_log.dart';
 import 'state_logger.dart';
 
 const LogLevel traceLevel = LogLevel('Trace', 1);
@@ -116,6 +117,7 @@ class CallbackPrinter extends LoggyPrinter {
     } else {
       debugPrintSynchronously(out);
     }
+    // DebugLogger().log(out);
     callback?.call(record);
   }
 

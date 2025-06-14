@@ -13,6 +13,7 @@ import 'package:flutter_map_cache/flutter_map_cache.dart';
 import 'package:http_cache_file_store/http_cache_file_store.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:loggy/loggy.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
@@ -356,7 +357,7 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
                         _circles.where((c) => c.$3).map((c) => c.$1).toList()))
           ])));
     } on Exception catch (e) {
-      debugPrint('$e');
+      logDebug('$e');
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()

@@ -9,11 +9,13 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:loggy/loggy.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:uuid/uuid.dart';
 import 'package:veilid_support/veilid_support.dart';
 
+import '../../debug_log.dart';
 import '../../ui/utils.dart';
 import '../../veilid_processor/veilid_processor.dart';
 import '../models/backup.dart';
@@ -264,8 +266,10 @@ class ContactsRepository {
   /////////////////////
   // PERSISTENT STORAGE
   Future<void> initializeFromPersistentStorage() async {
+    DebugLogger().log('Init from persistent start');
     _profileInfo = await persistentStorage.getProfileInfo();
     if (_profileInfo != null) {
+      DebugLogger().log('Found profile');
       _profileInfoStreamController.add(_profileInfo!);
     }
 
@@ -273,6 +277,8 @@ class ContactsRepository {
     _circles = await persistentStorage.getCircles();
     _circleMemberships = await persistentStorage.getCircleMemberships();
     _circlesStreamController.add(null);
+    DebugLogger().log('Circles: ${_circles.length}');
+    DebugLogger().log('Circle Memberships: ${_circleMemberships.length}');
 
     // Load updates from persistent storage
     // TODO: Actually delete old updates from persistent storage
@@ -286,12 +292,14 @@ class ContactsRepository {
 
     // Load coagulate contacts from persistent storage
     _contacts = await persistentStorage.getAllContacts();
+    DebugLogger().log('Contacts: ${_contacts.length}');
     for (final c in _contacts.values) {
       _contactsStreamController.add(c.coagContactId);
     }
 
     // Load all batches and update
     final batches = await persistentStorage.getBatches();
+    DebugLogger().log('Batches: ${batches.length}');
     _batchInvites
         .addAll(Map.fromEntries(batches.map((b) => MapEntry(b.recordKey, b))));
     await updateAllBatchInvites();
@@ -306,7 +314,7 @@ class ContactsRepository {
   //////
   // DHT
   Future<bool> updateContactFromDHT(CoagContact contact) async {
-    debugPrint('Attempting to update contact ${contact.name}');
+    logDebug('Attempting to update contact ${contact.name}');
     var success = false;
     try {
       final updatedContact = await distributedStorage.getContact(contact);
@@ -384,18 +392,18 @@ class ContactsRepository {
     } on DHTExceptionNotAvailable catch (e) {
       // TODO: Report / log them somewhere accessible for debugging?
       // TODO: Handle if connected but record unavailable -> suggest reconnect
-      debugPrint('Veilid API ERROR: $e');
+      logDebug('Veilid API ERROR: $e');
       return false;
     } on VeilidAPIException catch (e) {
       // TODO: Report / log them somewhere accessible for debugging?
       // TODO: Handle if connected but record unavailable -> suggest reconnect
-      debugPrint('Veilid API ERROR: $e');
+      logDebug('Veilid API ERROR: $e');
       return false;
     }
   }
 
   void _veilidConnectionStateChangeCallback(ProcessorConnectionState event) {
-    debugPrint('veilid connection state changed $event');
+    logDebug('veilid connection state changed $event');
     if (event.isPublicInternetReady &&
         event.isAttached &&
         !veilidNetworkAvailable) {
@@ -423,7 +431,7 @@ class ContactsRepository {
     if (!ProcessorRepository
         .instance.processorConnectionState.attachment.publicInternetReady) {
       veilidNetworkAvailable = false;
-      debugPrint('Veilid attachment not public internet ready');
+      logDebug('Veilid attachment not public internet ready');
       return false;
     }
     veilidNetworkAvailable = true;
@@ -502,7 +510,7 @@ class ContactsRepository {
     } on VeilidAPIException catch (e) {
       // TODO: Proper logging / other handling strategy / retry?
       if (kDebugMode) {
-        print(e);
+        logDebug(e);
       }
       return false;
     }
@@ -1060,12 +1068,11 @@ class ContactsRepository {
           refreshMode: DHTRecordRefreshMode.network,
           subkey: subkey);
     } on FormatException catch (e) {
-      debugPrint('Batch update format error for subkey $subkey: $e');
+      logDebug('Batch update format error for subkey $subkey: $e');
     } on DHTExceptionNotAvailable catch (e) {
-      debugPrint(
-          'Batch update DHTExceptionNotAvailable for subkey $subkey: $e');
+      logDebug('Batch update DHTExceptionNotAvailable for subkey $subkey: $e');
     } on VeilidAPIException catch (e) {
-      debugPrint('Batch update veilid error for subkey $subkey: $e');
+      logDebug('Batch update veilid error for subkey $subkey: $e');
     } finally {
       await record.close();
     }
@@ -1083,7 +1090,7 @@ class ContactsRepository {
             c.dhtSettings.theirPublicKey == contactSubkeyContent.publicKey)
         .firstOrNull;
 
-    debugPrint(
+    logDebug(
         'Batch update for contact ${contact?.name ?? 'new'} at subkey $subkey');
 
     // or create new contact if not yet exists
@@ -1126,7 +1133,7 @@ class ContactsRepository {
       } else {
         // this should happen only when record creation fails in
         // trysharewithcontactdht?
-        debugPrint('missing share key for batch offer');
+        logDebug('missing share key for batch offer');
       }
     }
 

@@ -39,7 +39,7 @@ class SqliteStorage extends PersistentStorage {
   Future<void> _initialize() async {
     final db = await getDatabase();
     final results = await db.query('contacts', columns: ['id', 'contactJson']);
-    _debugInfo = 'Contacts in DB: ${results.length}';
+    _debugInfo = 'Contacts: ${results.length}';
   }
 
   Future<CoagContact> getContact(String coagContactId) async {

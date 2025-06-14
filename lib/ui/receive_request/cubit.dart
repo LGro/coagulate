@@ -7,6 +7,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:loggy/loggy.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:uuid/uuid.dart';
 import 'package:veilid_support/veilid_support.dart';
@@ -93,7 +94,7 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
         final url = Uri.parse(uri);
         if (url.fragment.isEmpty) {
           // TODO: Log / feedback?
-          print('Payload is empty');
+          logDebug('Payload is empty');
           if (!isClosed) {
             emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
           }
