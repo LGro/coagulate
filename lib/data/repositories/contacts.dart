@@ -224,7 +224,11 @@ class ContactsRepository {
   Future<void> initialize(
       {bool scheduleRegularUpdates = true,
       bool listenToVeilidNetworkChanges = true}) async {
-    await initializeFromPersistentStorage();
+    try {
+      await initializeFromPersistentStorage();
+    } catch (e) {
+      DebugLogger().log('Error initializing from persistent storage:\n$e');
+    }
 
     // Initialize profile info
     if (_profileInfo == null) {
@@ -280,21 +284,22 @@ class ContactsRepository {
     DebugLogger().log('Circles: ${_circles.length}');
     DebugLogger().log('Circle Memberships: ${_circleMemberships.length}');
 
+    // Load coagulate contacts from persistent storage
+    _contacts = await persistentStorage.getAllContacts();
+    DebugLogger().log('Contacts: ${_contacts.length}');
+    for (final c in _contacts.values) {
+      _contactsStreamController.add(c.coagContactId);
+    }
+
     // Load updates from persistent storage
     // TODO: Actually delete old updates from persistent storage
     _contactUpdates = (await persistentStorage.getUpdates())
         .where((u) => u.timestamp
             .isAfter(DateTime.now().subtract(const Duration(days: 30))))
         .toList();
+    DebugLogger().log('Updates: ${_contactUpdates.length}');
     for (final u in _contactUpdates) {
       _updatesStreamController.add(u);
-    }
-
-    // Load coagulate contacts from persistent storage
-    _contacts = await persistentStorage.getAllContacts();
-    DebugLogger().log('Contacts: ${_contacts.length}');
-    for (final c in _contacts.values) {
-      _contactsStreamController.add(c.coagContactId);
     }
 
     // Load all batches and update

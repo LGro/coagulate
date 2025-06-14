@@ -8,6 +8,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../../debug_log.dart';
 import '../../models/batch_invites.dart';
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
@@ -98,8 +99,16 @@ class SqliteStorage extends PersistentStorage {
   Future<List<ContactUpdate>> getUpdates() async => getDatabase()
       .then((db) async => db.query('updates', columns: ['updateJson']))
       .then((results) => results
-          .map((r) => ContactUpdate.fromJson(
-              json.decode(r['updateJson']! as String) as Map<String, dynamic>))
+          .map((r) {
+            try {
+              return ContactUpdate.fromJson(json
+                  .decode(r['updateJson']! as String) as Map<String, dynamic>);
+            } catch (e) {
+              DebugLogger()
+                  .log('Error deserializing update: ${r['updateJson']}');
+            }
+          })
+          .whereType<ContactUpdate>()
           .asList());
 
   @override
