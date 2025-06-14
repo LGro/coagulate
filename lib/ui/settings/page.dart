@@ -11,6 +11,7 @@ import '../../notification_service.dart';
 import '../batch_invite_management/page.dart';
 import '../widgets/veilid_status/widget.dart';
 import 'cubit.dart';
+import 'debug_info/page.dart';
 import 'licenses/page.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -76,6 +77,13 @@ class SettingsPage extends StatelessWidget {
                             child: Icon(Icons.arrow_right)),
                         onTap: () async =>
                             Navigator.of(context).push(LicensesPage.route())),
+                    ListTile(
+                        title: const Text('Show developer debug info'),
+                        trailing: const Padding(
+                            padding: EdgeInsets.only(right: 20),
+                            child: Icon(Icons.arrow_right)),
+                        onTap: () async =>
+                            Navigator.of(context).push(DebugInfoPage.route())),
                     if (kDebugMode)
                       ListTile(
                           title: const Text('Add dummy contact'),

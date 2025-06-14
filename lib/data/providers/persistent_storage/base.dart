@@ -25,4 +25,6 @@ abstract class PersistentStorage {
 
   Future<void> addBatch(BatchInvite batch);
   Future<List<BatchInvite>> getBatches();
+
+  String debugInfo();
 }

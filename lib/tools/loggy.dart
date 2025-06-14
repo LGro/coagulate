@@ -109,11 +109,18 @@ class CallbackPrinter extends LoggyPrinter {
 
   @override
   void onLog(LogRecord record) {
-    final out = record.pretty();
-    debugPrint(out);
+    final out = record.pretty().replaceAll('\uFFFD', '');
+
+    if (!kIsWeb && Platform.isAndroid) {
+      debugPrint(out);
+    } else {
+      debugPrintSynchronously(out);
+    }
     callback?.call(record);
   }
 
+  // Change callback function
+  // ignore: use_setters_to_change_properties
   void setCallback(void Function(LogRecord)? cb) {
     callback = cb;
   }

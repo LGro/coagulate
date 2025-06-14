@@ -148,6 +148,9 @@ class DummyPersistentStorage extends PersistentStorage {
   Future<void> updateProfileInfo(ProfileInfo info) async {
     profileInfo = info;
   }
+
+  @override
+  String debugInfo() => '';
 }
 
 class DummyDistributedStorage extends VeilidDhtStorage {

@@ -30,6 +30,18 @@ Future<Database> getDatabase() async => openDatabase(
     );
 
 class SqliteStorage extends PersistentStorage {
+  SqliteStorage() {
+    unawaited(_initialize());
+  }
+
+  String _debugInfo = '';
+
+  Future<void> _initialize() async {
+    final db = await getDatabase();
+    final results = await db.query('contacts', columns: ['id', 'contactJson']);
+    _debugInfo = 'Contacts in DB: ${results.length}';
+  }
+
   Future<CoagContact> getContact(String coagContactId) async {
     final db = await getDatabase();
     final result = await db.query('contacts',
@@ -191,4 +203,7 @@ class SqliteStorage extends PersistentStorage {
           .map((r) => BatchInvite.fromJson(
               json.decode(r['batchJson']! as String) as Map<String, dynamic>))
           .asList());
+
+  @override
+  String debugInfo() => _debugInfo;
 }
