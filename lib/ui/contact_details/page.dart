@@ -750,6 +750,16 @@ Iterable<Widget> _displaySharedProfile(
         ...detailsList(context, details.socialMedias),
       if (details.websites.isNotEmpty)
         ...detailsList(context, details.websites),
+      if (details.organizations.isNotEmpty)
+        ...detailsList(
+          context,
+          hideLabel: true,
+          details.organizations.map((id, org) => MapEntry(
+              id,
+              [org.company, org.title, org.department]
+                  .where((v) => v.isNotEmpty)
+                  .join('\n'))),
+        ),
       if (details.events.isNotEmpty)
         ...detailsList(
           context,

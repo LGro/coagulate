@@ -64,6 +64,7 @@ void main() {
           emails: const {'e1': 'hi@mail.com'},
           socialMedias: const {'s': '@beste'},
           websites: const {'w': 'awesome.org'},
+          organizations: {'o': Organization(company: 'LargeCorp')},
           events: {'e': DateTime.now()},
         ),
         const ProfileSharingSettings(),
@@ -74,6 +75,7 @@ void main() {
     expect(filteredDetails.socialMedias, isEmpty);
     expect(filteredDetails.websites, isEmpty);
     expect(filteredDetails.events, isEmpty);
+    expect(filteredDetails.organizations, isEmpty);
     expect(filteredDetails.picture, isNull);
   });
 
