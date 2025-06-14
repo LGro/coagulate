@@ -137,14 +137,16 @@ class _CirclesWithAvatarWidgetState extends State<CirclesWithAvatarWidget> {
                                             MemoryImage(_pictures[circleId]!),
                                         radius: 48,
                                       ),
-                                    Padding(
-                                        padding: const EdgeInsets.only(left: 8),
-                                        //FIXME: Overflow / wrapping for long circle names
-                                        child: Text(
-                                            'Circle: $circleLabel\nShared with '
-                                            '${widget.circleMemberCount[circleId] ?? 0} '
-                                            'contact${(widget.circleMemberCount[circleId] == 1) ? '' : 's'}',
-                                            softWrap: true)),
+                                    Expanded(
+                                        child: Padding(
+                                            padding:
+                                                const EdgeInsets.only(left: 8),
+                                            child: Text(
+                                              'Circle: $circleLabel\nShared with '
+                                              '${widget.circleMemberCount[circleId] ?? 0} '
+                                              'contact${(widget.circleMemberCount[circleId] == 1) ? '' : 's'}',
+                                              softWrap: true,
+                                            ))),
                                   ]))))))
                   .values
                   .asList() +
