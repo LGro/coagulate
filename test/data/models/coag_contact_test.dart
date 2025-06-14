@@ -1,6 +1,8 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:coagulate/data/models/coag_contact.dart';
@@ -134,5 +136,24 @@ void main() {
 
     expect(addCoagSuffixNewline('my note\n\n\n'),
         'my note\n\n$coagulateManagedLabelSuffix');
+  });
+
+  test('contact details deserialization for backwards compatibility', () async {
+    final details = ContactDetails(
+        publicKey: 'pub-key',
+        picture: const [1, 2, 3],
+        names: const {'n': 'My Name'},
+        phones: const {'p': '123'},
+        emails: const {'e': 'hi@mail'},
+        websites: const {'w': 'www.com'},
+        socialMedias: const {'s': '@social'},
+        events: {'y2k': DateTime(2000)});
+
+    final file = File('test/assets/contact_details.json');
+    final contents = await file.readAsString();
+    final deserializedDetails =
+        ContactDetails.fromJson(json.decode(contents) as Map<String, dynamic>);
+
+    expect(details, deserializedDetails);
   });
 }
