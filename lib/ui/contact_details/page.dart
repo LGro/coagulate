@@ -362,9 +362,7 @@ class _ContactPageState extends State<ContactPage> {
                       decoration: const InputDecoration(
                         isDense: true,
                         border: OutlineInputBorder(),
-                        helperText:
-                            'This note is just for you and never shared with '
-                            'anyone else.',
+                        helperText: 'Just for you, this is never shared.',
                         // Somehow, this being null still causes the helper text
                         // to overflow into an ellipsis on narrow iOS screens
                         helperMaxLines: 20,
