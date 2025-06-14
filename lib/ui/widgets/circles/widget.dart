@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:formz/formz.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../utils.dart';
+
 // TODO: Display check in form with location (from gps, from map picker, from address, from coordinates) circles to share with, optional duration, optional move away to check out constraint
 class CirclesForm extends StatefulWidget {
   const CirclesForm(
@@ -127,73 +129,69 @@ class _CirclesFormState extends State<CirclesForm> {
   @override
   Widget build(BuildContext context) => Form(
       key: _key,
-      child: Column(children: [
-        const Align(
-            alignment: Alignment.centerLeft,
-            child:
-                Text('Circle memberships', textScaler: TextScaler.linear(1.2))),
-        if (widget.customHeader != null) widget.customHeader!,
-        if (widget.allowCreateNew)
-          Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Row(children: [
-                Expanded(
-                    child: TextFormField(
-                  key: const Key('circlesForm_newCircleInput'),
-                  controller: _titleController,
-                  // TODO: Make this a search or create new circle
-                  decoration: const InputDecoration(
-                    helperText: 'Create a new circle',
-                    helperMaxLines: 2,
-                    labelText: 'New Circle',
-                    errorMaxLines: 2,
-                  ),
-                  textInputAction: TextInputAction.done,
-                )),
-                IconButton(
-                  key: const Key('circlesForm_submitNewCircle'),
-                  onPressed: (_titleController.text.trim().isEmpty)
-                      ? null
-                      : _addNewCircle,
-                  icon: const Icon(Icons.add),
+      child: buildEditOrAddWidgetSkeleton(context,
+          title: 'Circle memberships',
+          onSaveWidget: (_state.status.isInProgress)
+              ? const CircularProgressIndicator()
+              : IconButton.filledTonal(
+                  key: const Key('circlesForm_submit'),
+                  onPressed: _onSubmit,
+                  icon: const Icon(Icons.save),
                 ),
-              ])),
-        // If we don't need wrapping but go for a list, use CheckboxListTile
-        Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: _state.circles
-                .asMap()
-                .map((i, c) => MapEntry(
-                    i,
-                    GestureDetector(
-                        onTap: () => _updateCircleMembership(i, !c.$3),
-                        behavior: HitTestBehavior.opaque,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Checkbox(
-                                value: c.$3,
-                                onChanged: (value) => (value == null)
-                                    ? null
-                                    : _updateCircleMembership(i, value)),
-                            Text('${c.$2} (${c.$4})'),
-                            const SizedBox(width: 4),
-                          ],
-                        ))))
-                .values
-                .asList()),
-        const SizedBox(height: 8, width: double.maxFinite),
-        if (_state.status.isInProgress)
-          const CircularProgressIndicator()
-        else
-          FilledButton(
-            key: const Key('circlesForm_submit'),
-            onPressed: _onSubmit,
-            child: const Text('Save'),
-          ),
-        const SizedBox(height: 16),
-      ]));
+          children: [
+            if (widget.customHeader != null) widget.customHeader!,
+            if (widget.allowCreateNew)
+              Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Row(children: [
+                    Expanded(
+                        child: TextFormField(
+                      key: const Key('circlesForm_newCircleInput'),
+                      controller: _titleController,
+                      // TODO: Make this a search or create new circle
+                      decoration: const InputDecoration(
+                        helperText: 'Create a new circle',
+                        helperMaxLines: 2,
+                        labelText: 'New Circle',
+                        errorMaxLines: 2,
+                      ),
+                      textInputAction: TextInputAction.done,
+                    )),
+                    IconButton(
+                      key: const Key('circlesForm_submitNewCircle'),
+                      onPressed: (_titleController.text.trim().isEmpty)
+                          ? null
+                          : _addNewCircle,
+                      icon: const Icon(Icons.add),
+                    ),
+                  ])),
+            // If we don't need wrapping but go for a list, use CheckboxListTile
+            Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: _state.circles
+                    .asMap()
+                    .map((i, c) => MapEntry(
+                        i,
+                        GestureDetector(
+                            onTap: () => _updateCircleMembership(i, !c.$3),
+                            behavior: HitTestBehavior.opaque,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Checkbox(
+                                    value: c.$3,
+                                    onChanged: (value) => (value == null)
+                                        ? null
+                                        : _updateCircleMembership(i, value)),
+                                Text('${c.$2} (${c.$4})'),
+                                const SizedBox(width: 4),
+                              ],
+                            ))))
+                    .values
+                    .asList()),
+            const SizedBox(height: 8, width: double.maxFinite),
+          ]));
 }
 
 class CirclesFormState with FormzMixin {
