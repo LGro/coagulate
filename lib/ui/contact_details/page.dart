@@ -766,6 +766,11 @@ Iterable<Widget> _displaySharedProfile(
               DateFormat.yMd(Localizations.localeOf(context).languageCode)
                   .format(date))),
         ),
+      const Padding(
+          padding: EdgeInsets.only(left: 12, right: 12, bottom: 8, top: 4),
+          child: Text(
+              'You are sharing the above information with them based on the '
+              'circles you added them to.')),
       // TODO: Check if opted out
       const Padding(
           padding: EdgeInsets.only(left: 12, right: 12, bottom: 8, top: 4),
@@ -774,11 +779,6 @@ Iterable<Widget> _displaySharedProfile(
               'only find out who an individual contact is if they are '
               'connected with them as well and only see the information that '
               'contact shared with them.')),
-      const Padding(
-          padding: EdgeInsets.only(left: 12, right: 12, bottom: 8, top: 4),
-          child: Text(
-              'Once you are connected, they see the above information based on '
-              'the circles you added them to.')),
     ];
 
 Widget _circlesCard(
