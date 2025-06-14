@@ -25,19 +25,6 @@ int crossAxisCountFromNumPictures(int numPictures) {
   return 3;
 }
 
-class _GridTitleText extends StatelessWidget {
-  const _GridTitleText(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: AlignmentDirectional.centerStart,
-        child: Text(text),
-      );
-}
-
 class _GridCircleItem extends StatelessWidget {
   const _GridCircleItem(this.circleName, this.numCircleMembers,
       {this.pictures = const []});
@@ -79,8 +66,15 @@ class _GridCircleItem extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: GridTileBar(
             backgroundColor: Colors.black45,
-            title: _GridTitleText(circleName),
-            subtitle: _GridTitleText('$numCircleMembers members'),
+            title: Expanded(
+                child: Padding(
+                    padding: const EdgeInsetsGeometry.only(top: 16),
+                    child: Text(circleName, overflow: TextOverflow.ellipsis))),
+            subtitle: Expanded(
+                child: Padding(
+                    padding: const EdgeInsetsGeometry.only(bottom: 8),
+                    child: Text('$numCircleMembers members',
+                        overflow: TextOverflow.ellipsis))),
           ),
         ),
         child: image);
