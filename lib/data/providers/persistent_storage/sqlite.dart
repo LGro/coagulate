@@ -39,8 +39,9 @@ class SqliteStorage extends PersistentStorage {
 
   Future<void> _initialize() async {
     final db = await getDatabase();
-    final results = await db.query('contacts', columns: ['id', 'contactJson']);
-    _debugInfo = 'Contacts: ${results.length}';
+    final contactIds = await db.query('contacts', columns: ['id']);
+    final updateIds = await db.query('updates', columns: ['id']);
+    _debugInfo = 'Contacts: ${contactIds.length}\nUpdates: ${updateIds.length}';
   }
 
   Future<CoagContact> getContact(String coagContactId) async {
@@ -62,6 +63,7 @@ class SqliteStorage extends PersistentStorage {
   Future<Map<String, CoagContact>> getAllContacts() async {
     final db = await getDatabase();
     final results = await db.query('contacts', columns: ['id', 'contactJson']);
+    // TODO: Skip and log failing contacts like with updates
     return {
       for (final r in results)
         r['id']! as String: CoagContact.fromJson(
