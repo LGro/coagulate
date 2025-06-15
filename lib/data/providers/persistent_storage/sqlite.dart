@@ -106,8 +106,9 @@ class SqliteStorage extends PersistentStorage {
               return ContactUpdate.fromJson(json
                   .decode(r['updateJson']! as String) as Map<String, dynamic>);
             } catch (e) {
-              DebugLogger()
-                  .log('Error deserializing update: ${r['updateJson']}');
+              // TODO: Log a more info about the update without the risk of
+              //       including the pictures in the json, this get too big fast
+              DebugLogger().log('Error deserializing update');
             }
           })
           .whereType<ContactUpdate>()
