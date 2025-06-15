@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_location.dart';
 import 'package:coagulate/ui/utils.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:veilid/veilid.dart';
 import 'package:veilid_support/veilid_support.dart';
@@ -219,6 +220,25 @@ void main() {
           details: const ContactDetails(picture: [3, 2, 1]),
         ));
     expect(result, 'picture');
+  });
+
+  test('compare contact details different organizations', () {
+    final result = contactUpdateSummary(
+        CoagContact(
+          coagContactId: '',
+          name: 'name',
+          dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
+          details: ContactDetails(
+              organizations: {'o': Organization(company: 'LargeCorp A')}),
+        ),
+        CoagContact(
+          coagContactId: '',
+          name: 'name',
+          dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
+          details: ContactDetails(
+              organizations: {'o': Organization(company: 'LargeCorp B')}),
+        ));
+    expect(result, 'organizations');
   });
 
   test('compare contacts with matching hash codes', () {

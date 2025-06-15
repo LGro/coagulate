@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:veilid/veilid.dart';
 
 import '../data/models/coag_contact.dart';
@@ -100,6 +101,11 @@ String contactUpdateSummary(CoagContact oldContact, CoagContact newContact) {
   if (!const MapEquality<String, DateTime>()
       .equals(oldDetails.events, newDetails.events)) {
     results.add('events');
+  }
+
+  if (!const MapEquality<String, Organization>()
+      .equals(oldDetails.organizations, newDetails.organizations)) {
+    results.add('organizations');
   }
 
   // TODO: Make this consistent with the yesterday filtering we do elsewhere?
