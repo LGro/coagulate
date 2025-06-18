@@ -304,15 +304,28 @@ class _ContactPageState extends State<ContactPage> {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (contact.theirPersonalUniqueId != null)
+                      if (contact.theirPersonalUniqueId != null ||
+                          contact.connectionAttestations.isNotEmpty)
                         Text(
                             [
-                              '${contact.name} is connected with at least',
-                              '${contact.knownPersonalContactIds.length} other',
-                              'folks via Coagulate.',
+                              '${contact.name} claims to be connected with at least',
+                              if (contact.knownPersonalContactIds.isEmpty)
+                                '${contact.connectionAttestations.length}'
+                              else
+                                '${contact.knownPersonalContactIds.length}',
+                              'other folks via Coagulate.',
                               if (knownContacts.isNotEmpty) ...[
-                                'Including the following ones you also know:',
-                                knownContacts.values.asList().join(', '),
+                                'Including ${knownContacts.length} of your',
+                                'contacts like:',
+                                // TODO: Do we need to seed this shuffling to
+                                //       avoid changes on each redraw?
+                                ((knownContacts.values.asList()..shuffle())
+                                        .sublist(0, 10)
+                                      ..sort((a, b) => a
+                                          .toLowerCase()
+                                          .compareTo(b.toLowerCase())))
+                                    .join(', '),
+                                if (knownContacts.length > 10) 'and others.'
                               ],
                             ].join(' '),
                             softWrap: true),

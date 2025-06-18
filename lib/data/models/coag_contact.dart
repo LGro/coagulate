@@ -309,6 +309,7 @@ class CoagContact extends Equatable {
     this.details,
     this.theirPersonalUniqueId,
     this.knownPersonalContactIds = const [],
+    this.connectionAttestations = const [],
     this.systemContactId,
     this.addressLocations = const {},
     this.temporaryLocations = const {},
@@ -324,10 +325,15 @@ class CoagContact extends Equatable {
 
   /// A unique ID provided by the contact to identified shared connections and
   /// avoid proposing introductions for contacts that already know each other
+  /// TODO: Remove once new contact discovery scheme is in place
   final String? theirPersonalUniqueId;
 
   /// All unique contact IDs that this contact told us they know
+  /// TODO: Remove once new contact discovery scheme is in place
   final List<String> knownPersonalContactIds;
+
+  /// All connection attestations they provide for shared contact discovery
+  final List<String> connectionAttestations;
 
   /// Name given to the contact by the app user
   final String name;
@@ -400,6 +406,7 @@ class CoagContact extends Equatable {
     ContactDetails? details,
     String? theirPersonalUniqueId,
     List<String>? knownPersonalContactIds,
+    List<String>? connectionAttestations,
     Map<String, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
     DhtSettings? dhtSettings,
@@ -423,6 +430,9 @@ class CoagContact extends Equatable {
         knownPersonalContactIds: [
           ...knownPersonalContactIds ?? this.knownPersonalContactIds
         ],
+        connectionAttestations: [
+          ...connectionAttestations ?? this.connectionAttestations
+        ],
         comment: comment ?? this.comment,
         introductionsByThem: [
           ...introductionsByThem ?? this.introductionsByThem
@@ -443,6 +453,7 @@ class CoagContact extends Equatable {
         sharedProfile,
         theirPersonalUniqueId,
         knownPersonalContactIds,
+        connectionAttestations,
         name,
         comment,
         addressLocations,

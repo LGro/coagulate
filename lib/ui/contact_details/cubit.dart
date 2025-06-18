@@ -13,19 +13,29 @@ import '../../data/repositories/contacts.dart';
 part 'cubit.g.dart';
 part 'state.dart';
 
+Map<String, String> knownContacts(
+    String coagContactId, Map<String, CoagContact> contacts) {
+  final contact = contacts[coagContactId];
+  if (contact == null) {
+    return {};
+  }
+
+  final attestations = contact.connectionAttestations.toSet();
+
+  return Map.fromEntries(contacts.values
+      .where((c) =>
+          c.coagContactId != coagContactId &&
+          c.connectionAttestations.toSet().intersection(attestations).length ==
+              1)
+      .map((c) => MapEntry(c.coagContactId, c.name)));
+}
+
 class ContactDetailsCubit extends Cubit<ContactDetailsState> {
   ContactDetailsCubit(this.contactsRepository, String coagContactId)
       : super(ContactDetailsState(ContactDetailsStatus.success,
             contact: contactsRepository.getContact(coagContactId),
-            knownContacts: Map.fromEntries(contactsRepository
-                .getContacts()
-                .entries
-                .where((c) => (contactsRepository
-                            .getContact(coagContactId)
-                            ?.knownPersonalContactIds ??
-                        [])
-                    .contains(c.key))
-                .map((c) => MapEntry(c.key, c.value.name))),
+            knownContacts:
+                knownContacts(coagContactId, contactsRepository.getContacts()),
             circles: contactsRepository.getCirclesForContact(coagContactId))) {
     _circlesSubscription = contactsRepository.getCirclesStream().listen((c) {
       if (!isClosed) {
@@ -44,15 +54,8 @@ class ContactDetailsCubit extends Cubit<ContactDetailsState> {
           emit(state.copyWith(
               status: ContactDetailsStatus.success,
               contact: updatedContact,
-              knownContacts: Map.fromEntries(contactsRepository
-                  .getContacts()
-                  .entries
-                  .where((c) => (contactsRepository
-                              .getContact(coagContactId)
-                              ?.knownPersonalContactIds ??
-                          [])
-                      .contains(c.value.theirPersonalUniqueId))
-                  .map((c) => MapEntry(c.key, c.value.name))),
+              knownContacts: knownContacts(
+                  coagContactId, contactsRepository.getContacts()),
               circles: contactsRepository.getCirclesForContact(coagContactId)));
         }
       }

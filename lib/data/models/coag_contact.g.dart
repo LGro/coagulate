@@ -172,6 +172,11 @@ CoagContact _$CoagContactFromJson(Map<String, dynamic> json) => CoagContact(
                   ?.map((e) => e as String)
                   .toList() ??
               const [],
+      connectionAttestations:
+          (json['connection_attestations'] as List<dynamic>?)
+                  ?.map((e) => e as String)
+                  .toList() ??
+              const [],
       systemContactId: json['system_contact_id'] as String?,
       addressLocations: (json['address_locations'] as Map<String, dynamic>?)
               ?.map(
@@ -213,6 +218,7 @@ Map<String, dynamic> _$CoagContactToJson(CoagContact instance) =>
       'coag_contact_id': instance.coagContactId,
       'their_personal_unique_id': instance.theirPersonalUniqueId,
       'known_personal_contact_ids': instance.knownPersonalContactIds,
+      'connection_attestations': instance.connectionAttestations,
       'name': instance.name,
       'system_contact_id': instance.systemContactId,
       'details': instance.details?.toJson(),
