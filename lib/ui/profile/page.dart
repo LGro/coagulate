@@ -246,14 +246,14 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
         title: (widget.isEditing)
             ? context.loc.profileEditHeadline(widget.headlineSuffix)
             : context.loc.profileAddHeadline(widget.headlineSuffix),
-        onSaveWidget: IconButton.filledTonal(
+        onSaveWidget: IconButton.filled(
             onPressed: () => (_formKey.currentState!.validate())
                 ? widget.onAddOrSave(
                     (_label ?? '').trim(),
                     (_value ?? '').trim(),
                     _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
                 : null,
-            icon: const Icon(Icons.save)),
+            icon: const Icon(Icons.check)),
         children: [
           if (!widget.hideLabel) ...[
             const SizedBox(height: 8),
@@ -451,7 +451,7 @@ class _EditOrAddAddressWidgetState extends State<EditOrAddAddressWidget> {
         title: (widget.isEditing)
             ? context.loc.profileEditHeadline(widget.headlineSuffix)
             : context.loc.profileAddHeadline(widget.headlineSuffix),
-        onSaveWidget: IconButton.filledTonal(
+        onSaveWidget: IconButton.filled(
             onPressed: () =>
                 (_formKey.currentState!.validate() && _value != null)
                     ? widget.onAddOrSave(
@@ -460,7 +460,7 @@ class _EditOrAddAddressWidgetState extends State<EditOrAddAddressWidget> {
                         _value!,
                         _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
                     : null,
-            icon: const Icon(Icons.save)),
+            icon: const Icon(Icons.check)),
         children: [
           FractionallySizedBox(
               widthFactor: 0.5,
@@ -634,7 +634,7 @@ class _EditOrAddEventWidgetState extends State<EditOrAddEventWidget> {
         title: (widget.isEditing)
             ? context.loc.profileEditHeadline(widget.headlineSuffix)
             : context.loc.profileAddHeadline(widget.headlineSuffix),
-        onSaveWidget: IconButton.filledTonal(
+        onSaveWidget: IconButton.filled(
             onPressed: () =>
                 (_formKey.currentState!.validate() && _value != null)
                     ? widget.onAddOrSave(
@@ -643,7 +643,7 @@ class _EditOrAddEventWidgetState extends State<EditOrAddEventWidget> {
                         DateTime.parse(_value!),
                         _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
                     : null,
-            icon: const Icon(Icons.save)),
+            icon: const Icon(Icons.check)),
         children: [
           FractionallySizedBox(
               widthFactor: 0.5,

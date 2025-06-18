@@ -258,7 +258,7 @@ Widget existingBatchWidget(BuildContext context, Batch batch) =>
                   'coagulate_batch_${batch.label}.txt'
                 ])),
             child: const Row(children: [
-              Icon(Icons.save),
+              Icon(Icons.download),
               SizedBox(width: 8),
               Text('Save links'),
               SizedBox(width: 2),

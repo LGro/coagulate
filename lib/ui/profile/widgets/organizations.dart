@@ -88,7 +88,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
         title: (widget.isEditing)
             ? context.loc.profileEditHeadline(widget.headlineSuffix)
             : context.loc.profileAddHeadline(widget.headlineSuffix),
-        onSaveWidget: IconButton.filledTonal(
+        onSaveWidget: IconButton.filled(
             onPressed: () =>
                 (_formKey.currentState!.validate() && _company != null)
                     ? widget.onAddOrSave(
@@ -99,7 +99,7 @@ class _EditOrAddWidgetState extends State<EditOrAddWidget> {
                             department: _department?.trim() ?? ''),
                         _circles.map((e) => (e.$1, e.$2, e.$3)).toList())
                     : null,
-            icon: const Icon(Icons.save)),
+            icon: const Icon(Icons.check)),
         children: [
           // Company
           TextFormField(

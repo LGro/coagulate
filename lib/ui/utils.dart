@@ -212,7 +212,7 @@ Widget buildEditOrAddWidgetSkeleton(BuildContext context,
                   children: [
                     IconButton.filledTonal(
                         onPressed: Navigator.of(context).pop,
-                        icon: const Icon(Icons.cancel)),
+                        icon: const Icon(Icons.cancel_outlined)),
                     Expanded(
                         child: Text(
                       title,

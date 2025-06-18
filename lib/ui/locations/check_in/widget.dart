@@ -180,7 +180,7 @@ class _MyFormState extends State<MyForm> {
           title: 'Share current location',
           onSaveWidget: (_state.status.isInProgress)
               ? const CircularProgressIndicator()
-              : IconButton.filledTonal(
+              : IconButton.filled(
                   key: const Key('checkInForm_submit'),
                   onPressed:
                       (_state.circles.firstWhereOrNull((c) => c.$3) != null &&
@@ -188,7 +188,7 @@ class _MyFormState extends State<MyForm> {
                               _state.title.isNotEmpty)
                           ? _onSubmit
                           : null,
-                  icon: const Icon(Icons.save),
+                  icon: const Icon(Icons.check),
                 ),
           children: [
             TextFormField(

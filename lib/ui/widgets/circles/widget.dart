@@ -131,10 +131,10 @@ class _CirclesFormState extends State<CirclesForm> {
           title: 'Circle memberships',
           onSaveWidget: (_state.status.isInProgress)
               ? const CircularProgressIndicator()
-              : IconButton.filledTonal(
+              : IconButton.filled(
                   key: const Key('circlesForm_submit'),
                   onPressed: _onSubmit,
-                  icon: const Icon(Icons.save),
+                  icon: const Icon(Icons.check),
                 ),
           children: [
             if (widget.allowCreateNew)

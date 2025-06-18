@@ -226,7 +226,7 @@ class _ContactPageState extends State<ContactPage> {
                         _isEditingName = !_isEditingName;
                       });
                     },
-                    icon: Icon(_isEditingName ? Icons.save : Icons.edit))
+                    icon: Icon(_isEditingName ? Icons.check : Icons.edit))
               ],
             ),
             body: (state.contact == null)

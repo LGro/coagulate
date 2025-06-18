@@ -175,7 +175,7 @@ class ContactDetails extends Equatable {
   /// Binary integer representation of an image
   final List<int>? picture;
 
-  /// Public key for encrypting data
+  /// Public identity key
   final String? publicKey;
 
   /// Names with unique key
@@ -266,7 +266,7 @@ class ProfileInfo extends Equatable {
   final Map<String, ContactTemporaryLocation> temporaryLocations;
   final ProfileSharingSettings sharingSettings;
 
-  /// The main key pair used for connecting with folks via the profile link
+  /// The main public identity key pair
   final TypedKeyPair? mainKeyPair;
 
   Map<String, dynamic> toJson() => _$ProfileInfoToJson(this);
