@@ -6,14 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
+import '../../data/shared_contact_discovery.dart';
 import '../utils.dart';
 import 'cubit.dart';
-
-bool alreadyKnowEachOther(CoagContact? c1, CoagContact? c2) =>
-    c1 != null &&
-    c2 != null &&
-    (c1.knownPersonalContactIds.contains(c2.theirPersonalUniqueId) ||
-        c2.knownPersonalContactIds.contains(c1.theirPersonalUniqueId));
 
 class IntroduceContactsPage extends StatefulWidget {
   const IntroduceContactsPage({super.key});

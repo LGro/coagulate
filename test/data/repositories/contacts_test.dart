@@ -115,7 +115,7 @@ void main() {
       profile: profile,
       activeCirclesWithMemberCount: {'Circle': 2},
       dhtSettings: DhtSettings(myKeyPair: dummyTypedKeyPair()),
-      sharePersonalUniqueId: true,
+      identityKey: null,
       introductions: [],
     );
     expect(filtered.temporaryLocations.length, 1);

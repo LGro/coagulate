@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-import 'package:loggy/loggy.dart';
 import 'package:veilid_support/veilid_support.dart';
 
 import '../../models/backup.dart';
@@ -20,7 +19,7 @@ String? tryUtf8Decode(Uint8List? content) {
   try {
     return utf8.decode(content);
   } on FormatException catch (e) {
-    logDebug('$e');
+    debugPrint('UTF-8 decode attempt lead to $e');
     return null;
   }
 }
@@ -63,6 +62,76 @@ Iterable<Uint8List> chopPayloadChunks(Uint8List payload,
                 i * chunkMaxBytes, min(payload.length, (i + 1) * chunkMaxBytes))
             : Uint8List(0));
 
+DhtSettings rotateKeysInDhtSettings(
+    DhtSettings settings, PublicKey? usedPublicKey, TypedKeyPair? usedKeyPair) {
+  final rotateKeyPair =
+      usedKeyPair != null && settings.myNextKeyPair == usedKeyPair;
+  final rotatePublicKey =
+      usedPublicKey != null && settings.theirNextPublicKey == usedPublicKey;
+  debugPrint('Rotating kp: $rotateKeyPair');
+  debugPrint('Rotating pk: $rotatePublicKey');
+  return DhtSettings(
+    // If the next key pair was used, rotate it to the current slot
+    myKeyPair: rotateKeyPair ? usedKeyPair : settings.myKeyPair,
+    myNextKeyPair: rotateKeyPair ? null : settings.myNextKeyPair,
+    // If the next public key was used, rotate it to the current slot
+    theirPublicKey: rotatePublicKey ? usedPublicKey : settings.theirPublicKey,
+    theirNextPublicKey: rotatePublicKey ? null : settings.theirNextPublicKey,
+    // If anything asymmetric crypto related was rotated, discard symmetric key
+    initialSecret:
+        (rotateKeyPair || rotatePublicKey) ? null : settings.initialSecret,
+    // Leave all other attributes as is
+    // TODO: How can we ensure that we don't miss transferring new settings attributes here?
+    recordKeyMeSharing: settings.recordKeyMeSharing,
+    writerMeSharing: settings.writerMeSharing,
+    recordKeyThemSharing: settings.recordKeyThemSharing,
+    writerThemSharing: settings.writerThemSharing,
+  );
+}
+
+DhtSettings updateDhtSettingsFromContactUpdate(
+    DhtSettings settings, CoagContactDHTSchema update) {
+  // Try deserializing shareBackPublicKey
+  late PublicKey? shareBackPublicKey;
+  try {
+    shareBackPublicKey =
+        (update.shareBackPubKey != null && update.shareBackPubKey != 'null')
+            ? PublicKey.fromString(update.shareBackPubKey!)
+            : null;
+  } catch (e) {}
+
+  // Try deserializing shareBackDhtKey
+  late Typed<FixedEncodedString43>? shareBackDhtKey;
+  try {
+    shareBackDhtKey =
+        (update.shareBackDHTKey != null && update.shareBackDHTKey != 'null')
+            ? Typed<FixedEncodedString43>.fromString(update.shareBackDHTKey!)
+            : null;
+  } catch (e) {}
+
+  // Try deserializing shareBackDHTKey
+  late KeyPair? shareBackDhtWriter;
+  try {
+    shareBackDhtWriter = (update.shareBackDHTWriter != null &&
+            update.shareBackDHTWriter != 'null')
+        ? KeyPair.fromString(update.shareBackDHTWriter!)
+        : null;
+  } catch (e) {}
+
+  // Update settings
+  return settings.copyWith(
+    // If the update contains a public key and it is not already the one in
+    // use, add it as the next candidate public key
+    theirNextPublicKey: (shareBackPublicKey != null &&
+            shareBackPublicKey != settings.theirPublicKey)
+        ? shareBackPublicKey
+        : null,
+    recordKeyMeSharing: shareBackDhtKey,
+    writerMeSharing: shareBackDhtWriter,
+    theyAckHandshakeComplete: update.ackHandshakeComplete,
+  );
+}
+
 class VeilidDhtStorage extends DistributedStorage {
   /// Create an empty DHT record, return key and writer in string representation
   @override
@@ -78,94 +147,107 @@ class VeilidDhtStorage extends DistributedStorage {
     // Write to it once, so push it into the network. (Is this really needed?)
     await record.tryWriteBytes(Uint8List(0));
     await record.close();
-    logDebug(
+    debugPrint(
         'created and wrote once to ${record.key.toString().substring(5, 10)}');
     return (record.key, record.writer!);
   }
 
   /// Read DHT record, return decrypted content
   @override
-  Future<(String?, Uint8List?)> readRecord(
-      {required Typed<FixedEncodedString43> recordKey,
-      TypedKeyPair? keyPair,
-      FixedEncodedString43? psk,
-      PublicKey? publicKey,
-      int maxRetries = 3,
-      DHTRecordRefreshMode refreshMode = DHTRecordRefreshMode.network}) async {
+  Future<(PublicKey?, TypedKeyPair?, String?, Uint8List?)> readRecord({
+    required Typed<FixedEncodedString43> recordKey,
+    required TypedKeyPair keyPair,
+    TypedKeyPair? nextKeyPair,
+    SecretKey? psk,
+    PublicKey? publicKey,
+    PublicKey? nextPublicKey,
+    int maxRetries = 3,
+    DHTRecordRefreshMode refreshMode = DHTRecordRefreshMode.network,
+  }) async {
     if (psk == null && publicKey == null) {
       // TODO: Raise exception/log/handle
-      return (null, null);
+      return (null, null, null, null);
     }
 
-    // Derive DH secret
-    final dhSecret = (publicKey == null || keyPair == null)
-        ? null
-        : await Veilid.instance.getCryptoSystem(keyPair.kind).then((cs) async =>
-            cs.generateSharedSecret(
-                publicKey, keyPair.secret, utf8.encode('dht')));
+    // Derive all available DH secrets to try in addition to the pre shared key
+    final domain = utf8.encode('dht');
+    final secrets = <(PublicKey?, TypedKeyPair?, SecretKey)>[
+      if (psk != null) (null, null, psk),
+      if (publicKey != null)
+        (
+          publicKey,
+          keyPair,
+          await Veilid.instance.getCryptoSystem(keyPair.kind).then((cs) async =>
+              cs.generateSharedSecret(publicKey, keyPair.secret, domain))
+        ),
+      if (publicKey != null && nextKeyPair != null)
+        (
+          publicKey,
+          nextKeyPair,
+          await Veilid.instance.getCryptoSystem(nextKeyPair.kind).then(
+              (cs) async => cs.generateSharedSecret(
+                  publicKey, nextKeyPair.secret, domain))
+        ),
+      if (nextPublicKey != null)
+        (
+          nextPublicKey,
+          keyPair,
+          await Veilid.instance.getCryptoSystem(keyPair.kind).then((cs) async =>
+              cs.generateSharedSecret(nextPublicKey, keyPair.secret, domain))
+        ),
+      if (nextPublicKey != null && nextKeyPair != null)
+        (
+          nextPublicKey,
+          nextKeyPair,
+          await Veilid.instance.getCryptoSystem(nextKeyPair.kind).then(
+              (cs) async => cs.generateSharedSecret(
+                  nextPublicKey, nextKeyPair.secret, domain))
+        ),
+    ];
 
-    // TODO: Handle VeilidAPIExceptionKeyNotFound, VeilidAPIExceptionTryAgain
     var retries = 0;
     while (true) {
       try {
-        if (dhSecret != null) {
-          final dhCrypto = await VeilidCryptoPrivate.fromSharedSecret(
-              recordKey.kind, dhSecret);
+        debugPrint(
+            'trying ${secrets.length} secrets for ${recordKey.toString().substring(5, 10)}');
+        for (final secret in secrets) {
+          debugPrint('trying pub ${secret.$1?.toString().substring(0, 10)} '
+              'kp ${secret.$2?.toString().substring(0, 10)}');
+
+          final crypto = await VeilidCryptoPrivate.fromSharedSecret(
+              recordKey.kind, secret.$3);
+
           final content = await DHTRecordPool.instance
               .openRecordRead(recordKey,
-                  debugName: 'coag::read', crypto: dhCrypto)
+                  debugName: 'coag::read', crypto: crypto)
               .then((record) async {
             try {
               final (jsonString, picture) =
                   await _getJsonProfileAndPictureFromRecord(
-                      record, dhCrypto, refreshMode);
-              logDebug('read pub ${recordKey.toString().substring(5, 10)}');
+                      record, crypto, refreshMode);
+              debugPrint('read ${recordKey.toString().substring(5, 10)}');
               return (jsonString, picture);
             } on FormatException catch (e) {
-              // This can happen due to "not enough data to decrypt" when a record
-              // was written empty without encryption during initialization
+              // This can happen due to "not enough data to decrypt" when a
+              // record was written empty without encryption during init
               // TODO: Only accept "not enough data to decrypt" here, make sure "Unexpected exentsion byte" is passed down as an error
-              logDebug('pub ${recordKey.toString().substring(5, 10)} $e');
+              debugPrint('read ${recordKey.toString().substring(5, 10)} $e');
             } finally {
               await record.close();
             }
           });
 
-          if (content?.$1 != null) {
-            return content!;
+          // TODO: Why can't we check for schema_version here?
+          if (content?.$1?.contains('details') ?? false) {
+            debugPrint('got ${recordKey.toString().substring(5, 10)}');
+            return (secret.$1, secret.$2, content?.$1, content?.$2);
           }
         }
 
-        if (psk != null) {
-          final pskCrypto =
-              await VeilidCryptoPrivate.fromSharedSecret(recordKey.kind, psk);
-          final content = await DHTRecordPool.instance
-              .openRecordRead(recordKey,
-                  debugName: 'coag::read', crypto: pskCrypto)
-              .then((record) async {
-            try {
-              final (jsonString, picture) =
-                  await _getJsonProfileAndPictureFromRecord(
-                      record, pskCrypto, refreshMode);
-              logDebug('read psk ${recordKey.toString().substring(5, 10)}');
-              return (jsonString, picture);
-            } on FormatException catch (e) {
-              // This can happen due to "not enough data to decrypt" when a record
-              // was written empty without encryption during initialization
-              // TODO: Only accept "not enough data to decrypt" here, make sure "Unexpected exentsion byte" is passed down as an error
-              logDebug('psk ${recordKey.toString().substring(5, 10)} $e');
-            } finally {
-              await record.close();
-            }
-          });
-
-          if (content?.$1 != null) {
-            return content!;
-          }
-        }
-
-        return (null, null);
+        debugPrint('nothing for ${recordKey.toString().substring(5, 10)}');
+        return (null, null, null, null);
       } on VeilidAPIExceptionTryAgain {
+        // TODO: Handle VeilidAPIExceptionKeyNotFound
         // TODO: Make sure that Veilid offline is detected at a higher level and not triggering errors here
         retries++;
         if (retries <= maxRetries) {
@@ -197,28 +279,42 @@ class VeilidDhtStorage extends DistributedStorage {
     final _recordKey = settings.recordKeyMeSharing;
     final SharedSecret secret;
 
-    // Ensure that if both parties are ready, we encrypt with DH derived key
-    if (settings.theirPublicKey != null && settings.theyAckHandshakeComplete) {
-      logDebug(
+    // TODO: Is it safe to assume consistent crypto systems between record key
+    //       and psk/public keys or would it make sense to use typed instances?
+    if (settings.initialSecret != null && !settings.theyAckHandshakeComplete) {
+      // Otherwise, if an initial secret is present, use it for symmetric crypto
+      secret = settings.initialSecret!;
+      debugPrint('using psk crypto ${secret.toString().substring(0, 6)} '
+          'for writing ${_recordKey.toString().substring(5, 10)}');
+    } else if (settings.theirNextPublicKey != null) {
+      // If a next public key is queued, use it to confirm
+      debugPrint(
+          'using next pubkey ${settings.theirNextPublicKey.toString().substring(0, 6)} '
+          'for writing ${_recordKey.toString().substring(5, 10)}');
+      // Derive DH secret with next public key
+      secret = await Veilid.instance
+          .getCryptoSystem(settings.myKeyPair.kind)
+          .then((cs) async => cs.generateSharedSecret(
+              settings.theirNextPublicKey!,
+              settings.myKeyPair.secret,
+              utf8.encode('dht')));
+    } else if (settings.theirPublicKey != null) {
+      // If the initial secret is no longer / was never active and there is a
+      // public key in the current public key slot, i.e. it was confirmed
+      debugPrint(
           'using pubkey ${settings.theirPublicKey.toString().substring(0, 6)} '
           'for writing ${_recordKey.toString().substring(5, 10)}');
-      // Derive DH secret
+      // Derive DH secret with current public key
       secret = await Veilid.instance
           .getCryptoSystem(settings.myKeyPair.kind)
           .then((cs) async => cs.generateSharedSecret(settings.theirPublicKey!,
               settings.myKeyPair.secret, utf8.encode('dht')));
-    } else if (settings.initialSecret != null) {
-      // TODO: Is it safe to assume consistent crypto systems between record key
-      // and psk or would it make sense to include the crypto system prefix in
-      // the psk and using a TypedSecret.fromString() here?
-      secret = settings.initialSecret!;
-      logDebug('using psk crypto ${secret.toString().substring(0, 6)} '
-          'for writing ${_recordKey.toString().substring(5, 10)}');
     } else {
-      // TODO: Raise Exception
-      logDebug('no crypto for ${_recordKey.toString().substring(5, 10)}');
+      // TODO: Raise Exception / signal to user that something is broken
+      debugPrint('no crypto for ${_recordKey.toString().substring(5, 10)}');
       return;
     }
+
     final crypto =
         await VeilidCryptoPrivate.fromSharedSecret(_recordKey!.kind, secret);
 
@@ -235,10 +331,10 @@ class VeilidDhtStorage extends DistributedStorage {
             record.tryWriteBytes(crypto: crypto, e.value, subkey: e.key + 1)));
     await record.close();
 
-    logDebug('wrote ${_recordKey.toString().substring(5, 10)}');
+    debugPrint('wrote ${_recordKey.toString().substring(5, 10)}');
     if (written != null) {
       // This shouldn't happen, but it does sometimes; do we issue parallel update requests?
-      logDebug('found newer for ${_recordKey.toString().substring(5, 10)}');
+      debugPrint('found newer for ${_recordKey.toString().substring(5, 10)}');
     }
   }
 
@@ -259,42 +355,47 @@ class VeilidDhtStorage extends DistributedStorage {
     if (contact.dhtSettings.recordKeyThemSharing == null) {
       return null;
     }
-    final (contactJson, contactPicture) = await readRecord(
-        recordKey: contact.dhtSettings.recordKeyThemSharing!,
-        psk: contact.dhtSettings.initialSecret,
-        publicKey: contact.dhtSettings.theirPublicKey,
-        keyPair: contact.dhtSettings.myKeyPair);
+    final (usedPublicKey, usedKeyPair, contactJson, contactPicture) =
+        await readRecord(
+      recordKey: contact.dhtSettings.recordKeyThemSharing!,
+      psk: contact.dhtSettings.initialSecret,
+      publicKey: contact.dhtSettings.theirPublicKey,
+      nextPublicKey: contact.dhtSettings.theirNextPublicKey,
+      keyPair: contact.dhtSettings.myKeyPair,
+      nextKeyPair: contact.dhtSettings.myNextKeyPair,
+    );
     if ((contactJson?.isEmpty ?? true) || contactJson == 'null') {
+      debugPrint(
+          'empty or null ${contact.dhtSettings.recordKeyThemSharing.toString().substring(5, 10)}');
       return null;
     }
-    final dhtContact = CoagContactDHTSchema.fromJson(
-        json.decode(contactJson!) as Map<String, dynamic>);
+
+    late CoagContactDHTSchema? dhtContact;
+    try {
+      dhtContact = CoagContactDHTSchema.fromJson(
+          json.decode(contactJson!) as Map<String, dynamic>);
+    } catch (e) {
+      // TODO: Report to user?
+      debugPrint(
+          'error deserializing ${contact.dhtSettings.recordKeyThemSharing.toString().substring(5, 10)} $e');
+      return null;
+    }
+
+    final dhtSettingsWithRotatedKeys = rotateKeysInDhtSettings(
+        contact.dhtSettings, usedPublicKey, usedKeyPair);
+
+    final updatedDhtSettings = updateDhtSettingsFromContactUpdate(
+        dhtSettingsWithRotatedKeys, dhtContact);
 
     return contact.copyWith(
-        theirPersonalUniqueId: dhtContact.personalUniqueId,
-        knownPersonalContactIds: dhtContact.knownPersonalContactIds,
-        details: dhtContact.details.copyWith(picture: contactPicture),
-        addressLocations: dhtContact.addressLocations,
-        temporaryLocations: dhtContact.temporaryLocations,
-        introductionsByThem: dhtContact.introductions,
-        // TODO: Check here if share back pub key is valid?
-        // TODO: Handle parsing fromString issues
-        dhtSettings: (dhtContact.shareBackDHTKey == null ||
-                dhtContact.shareBackDHTKey == 'null')
-            ? null
-            : contact.dhtSettings.copyWith(
-                theyAckHandshakeComplete: dhtContact.ackHandshakeComplete,
-                recordKeyMeSharing: Typed<FixedEncodedString43>.fromString(
-                    dhtContact.shareBackDHTKey!),
-                writerMeSharing: (dhtContact.shareBackDHTWriter == null ||
-                        dhtContact.shareBackDHTWriter == 'null')
-                    ? null
-                    : KeyPair.fromString(dhtContact.shareBackDHTWriter!),
-                theirPublicKey: (dhtContact.shareBackPubKey == null ||
-                        dhtContact.shareBackPubKey == 'null')
-                    ? null
-                    : FixedEncodedString43.fromString(
-                        dhtContact.shareBackPubKey!)));
+      theirIdentity: dhtContact.identityKey,
+      connectionAttestations: dhtContact.connectionAttestations,
+      details: dhtContact.details.copyWith(picture: contactPicture),
+      addressLocations: dhtContact.addressLocations,
+      temporaryLocations: dhtContact.temporaryLocations,
+      introductionsByThem: dhtContact.introductions,
+      dhtSettings: updatedDhtSettings,
+    );
   }
 
   @override
@@ -339,13 +440,13 @@ class VeilidDhtStorage extends DistributedStorage {
             final payload = await getChunkedPayload(
                 record, pskCrypto, refreshMode,
                 numChunks: 32);
-            logDebug('read psk ${recordKey.toString().substring(5, 10)}');
+            debugPrint('read psk ${recordKey.toString().substring(5, 10)}');
             return tryUtf8Decode(payload);
           } on FormatException catch (e) {
             // This can happen due to "not enough data to decrypt" when a record
             // was written empty without encryption during initialization
             // TODO: Only accept "not enough data to decrypt" here, make sure "Unexpected exentsion byte" is passed down as an error
-            logDebug('psk ${recordKey.toString().substring(5, 10)} $e');
+            debugPrint('psk ${recordKey.toString().substring(5, 10)} $e');
           } finally {
             await record.close();
           }

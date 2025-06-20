@@ -16,6 +16,7 @@ import '../../data/models/coag_contact.dart';
 import '../../data/models/contact_location.dart';
 import '../../data/repositories/contacts.dart';
 import '../../data/repositories/settings.dart';
+import '../../data/utils.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
@@ -72,6 +73,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     final c1 = CoagContact(
         coagContactId: coagContactId,
         name: faker.person.name(),
+        myIdentity: await generateTypedKeyPairBest(),
         details: ContactDetails(
             // TODO: do too large noisy images break things?
             picture: generateRandomImage(20, 20),

@@ -18,21 +18,37 @@ part 'coag_contact.g.dart';
 
 @JsonSerializable()
 class DhtSettings extends Equatable {
-  const DhtSettings(
-      {required this.myKeyPair,
-      this.theirPublicKey,
-      this.recordKeyMeSharing,
-      this.writerMeSharing,
-      this.recordKeyThemSharing,
-      this.writerThemSharing,
-      this.initialSecret,
-      this.theyAckHandshakeComplete = false});
+  const DhtSettings({
+    required this.myKeyPair,
+    this.myNextKeyPair,
+    this.theirPublicKey,
+    this.theirNextPublicKey,
+    this.recordKeyMeSharing,
+    this.writerMeSharing,
+    this.recordKeyThemSharing,
+    this.writerThemSharing,
+    this.initialSecret,
+    this.theyAckHandshakeComplete = false,
+  });
 
   factory DhtSettings.fromJson(Map<String, dynamic> json) =>
       _$DhtSettingsFromJson(json);
 
+  /// Acknowledged key pair to use for deriving symmetric key for decrypting and
+  /// encrypting updates
   final TypedKeyPair myKeyPair;
+
+  /// Replacement key pair to use for deriving symmetric key for decrypting and
+  /// encrypting updates in the future as soon as acknowledged
+  final TypedKeyPair? myNextKeyPair;
+
+  /// Current public keys to derive a key for decrypting received updates
   final PublicKey? theirPublicKey;
+
+  /// Replacement public keys to use for deriving symmetric key for decrypting
+  /// and encrypting updates in the future
+  final PublicKey? theirNextPublicKey;
+
   final Typed<FixedEncodedString43>? recordKeyMeSharing;
   final KeyPair? writerMeSharing;
   final Typed<FixedEncodedString43>? recordKeyThemSharing;
@@ -42,18 +58,23 @@ class DhtSettings extends Equatable {
 
   Map<String, dynamic> toJson() => _$DhtSettingsToJson(this);
 
-  DhtSettings copyWith(
-          {TypedKeyPair? myKeyPair,
-          PublicKey? theirPublicKey,
-          Typed<FixedEncodedString43>? recordKeyMeSharing,
-          KeyPair? writerMeSharing,
-          Typed<FixedEncodedString43>? recordKeyThemSharing,
-          KeyPair? writerThemSharing,
-          FixedEncodedString43? initialSecret,
-          bool? theyAckHandshakeComplete}) =>
+  DhtSettings copyWith({
+    TypedKeyPair? myKeyPair,
+    TypedKeyPair? myNextKeyPair,
+    PublicKey? theirPublicKey,
+    PublicKey? theirNextPublicKey,
+    Typed<FixedEncodedString43>? recordKeyMeSharing,
+    KeyPair? writerMeSharing,
+    Typed<FixedEncodedString43>? recordKeyThemSharing,
+    KeyPair? writerThemSharing,
+    FixedEncodedString43? initialSecret,
+    bool? theyAckHandshakeComplete,
+  }) =>
       DhtSettings(
         myKeyPair: myKeyPair ?? this.myKeyPair,
+        myNextKeyPair: myNextKeyPair ?? this.myNextKeyPair,
         theirPublicKey: theirPublicKey ?? this.theirPublicKey,
+        theirNextPublicKey: theirNextPublicKey ?? this.theirNextPublicKey,
         recordKeyMeSharing: recordKeyMeSharing ?? this.recordKeyMeSharing,
         writerMeSharing: writerMeSharing ?? this.writerMeSharing,
         recordKeyThemSharing: recordKeyThemSharing ?? this.recordKeyThemSharing,
@@ -66,7 +87,9 @@ class DhtSettings extends Equatable {
   @override
   List<Object?> get props => [
         myKeyPair,
+        myNextKeyPair,
         theirPublicKey,
+        theirNextPublicKey,
         recordKeyMeSharing,
         writerMeSharing,
         recordKeyThemSharing,
@@ -85,18 +108,20 @@ class ContactDHTSettings extends Equatable {
       this.pubKey,
       this.lastUpdated});
 
+  factory ContactDHTSettings.fromJson(Map<String, dynamic> json) =>
+      _$ContactDHTSettingsFromJson(json);
+
   final String key;
-  // Optional writer keypair in case I shared first and offered a DHT record for
-  // my peer to share back
+
+  /// Optional writer key pair in case I shared first and offered a DHT record
+  /// for my peer to share back
   final String? writer;
-  // Optional pre-shared secret in case I shared first and did not yet have
-  // their public key
+
+  /// Optional pre-shared secret in case I shared first and did not yet have
+  /// their public key
   final String? psk;
   final String? pubKey;
   final DateTime? lastUpdated;
-
-  factory ContactDHTSettings.fromJson(Map<String, dynamic> json) =>
-      _$ContactDHTSettingsFromJson(json);
 
   Map<String, dynamic> toJson() => _$ContactDHTSettingsToJson(this);
 
@@ -306,9 +331,9 @@ class CoagContact extends Equatable {
     required this.coagContactId,
     required this.name,
     required this.dhtSettings,
+    required this.myIdentity,
     this.details,
-    this.theirPersonalUniqueId,
-    this.knownPersonalContactIds = const [],
+    this.theirIdentity,
     this.connectionAttestations = const [],
     this.systemContactId,
     this.addressLocations = const {},
@@ -323,14 +348,13 @@ class CoagContact extends Equatable {
 
   final String coagContactId;
 
-  /// A unique ID provided by the contact to identified shared connections and
-  /// avoid proposing introductions for contacts that already know each other
-  /// TODO: Remove once new contact discovery scheme is in place
-  final String? theirPersonalUniqueId;
+  /// Their long lived typed identity key, used for example to derive a
+  /// connection attestation for enabling others to discover shared contacts
+  final Typed<PublicKey>? theirIdentity;
 
-  /// All unique contact IDs that this contact told us they know
-  /// TODO: Remove once new contact discovery scheme is in place
-  final List<String> knownPersonalContactIds;
+  /// My long lived typed identity key pair, used for example to derive a
+  /// connection attestation for enabling others to discover shared contacts
+  final TypedKeyPair myIdentity;
 
   /// All connection attestations they provide for shared contact discovery
   final List<String> connectionAttestations;
@@ -404,8 +428,8 @@ class CoagContact extends Equatable {
     String? comment,
     String? systemContactId,
     ContactDetails? details,
-    String? theirPersonalUniqueId,
-    List<String>? knownPersonalContactIds,
+    Typed<PublicKey>? theirIdentity,
+    TypedKeyPair? myIdentity,
     List<String>? connectionAttestations,
     Map<String, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
@@ -425,11 +449,8 @@ class CoagContact extends Equatable {
         dhtSettings: (dhtSettings ?? this.dhtSettings).copyWith(),
         sharedProfile: (sharedProfile ?? this.sharedProfile)?.copyWith(),
         name: name ?? this.name,
-        theirPersonalUniqueId:
-            theirPersonalUniqueId ?? this.theirPersonalUniqueId,
-        knownPersonalContactIds: [
-          ...knownPersonalContactIds ?? this.knownPersonalContactIds
-        ],
+        theirIdentity: theirIdentity ?? this.theirIdentity,
+        myIdentity: myIdentity ?? this.myIdentity,
         connectionAttestations: [
           ...connectionAttestations ?? this.connectionAttestations
         ],
@@ -451,8 +472,8 @@ class CoagContact extends Equatable {
         systemContactId,
         dhtSettings,
         sharedProfile,
-        theirPersonalUniqueId,
-        knownPersonalContactIds,
+        theirIdentity,
+        myIdentity,
         connectionAttestations,
         name,
         comment,
@@ -529,35 +550,64 @@ class CoagContactDHTSchemaV2 extends Equatable {
     required this.shareBackDHTKey,
     required this.shareBackPubKey,
     this.shareBackDHTWriter,
-    this.personalUniqueId,
+    this.identityKey,
     this.addressLocations = const {},
     this.temporaryLocations = const {},
-    this.ackHandshakeComplete = false,
-    this.knownPersonalContactIds = const [],
+    this.connectionAttestations = const [],
     this.introductions = const [],
+    this.ackHandshakeComplete = false,
     DateTime? mostRecentUpdate,
   }) {
     this.mostRecentUpdate = mostRecentUpdate ?? DateTime.now();
   }
   factory CoagContactDHTSchemaV2.fromJson(Map<String, dynamic> json) {
-    try {
+    final schemaVersion = json['schema_version'] as int?;
+    if (schemaVersion == 2) {
       return _$CoagContactDHTSchemaV2FromJson(
           migrateContactAddressLocationFromIntToLabelIndexing(json));
-    } on FormatException {
-      return schemaV1toV2(_$CoagContactDHTSchemaV1FromJson(json));
+    } else {
+      // Legacy compatibility when we were still missing the schema version
+      try {
+        return _$CoagContactDHTSchemaV2FromJson(
+            migrateContactAddressLocationFromIntToLabelIndexing(json));
+      } on FormatException {
+        return schemaV1toV2(_$CoagContactDHTSchemaV1FromJson(json));
+      }
     }
   }
 
+  /// Schema version to facilitate data migration
+  @JsonKey(includeToJson: true)
   final int schemaVersion = 2;
+
+  /// Shared contact details of author
   final ContactDetails details;
+
+  /// Shared address locations of author
   final Map<String, ContactAddressLocation> addressLocations;
+
+  /// Shared temporary locations of author
   final Map<String, ContactTemporaryLocation> temporaryLocations;
-  final String? personalUniqueId;
+
+  /// DHT record key for recipient to share back
   final String? shareBackDHTKey;
+
+  /// DHT record writer for recipient to share back
   final String? shareBackDHTWriter;
+
+  /// The next author public key for the recipient to use when encrypting
+  /// their shared back information and to try when decrypting the next update
   final String? shareBackPubKey;
   final bool ackHandshakeComplete;
-  final List<String> knownPersonalContactIds;
+
+  /// Long lived identity key, used for example to derive a connection
+  /// attestation for enabling others to discover shared contacts
+  final Typed<PublicKey>? identityKey;
+
+  /// Attestations for connections between the author and their contacts
+  final List<String> connectionAttestations;
+
+  /// Introduction proposals by the author for the recipient
   final List<ContactIntroduction> introductions;
   late final DateTime? mostRecentUpdate;
 
@@ -571,10 +621,10 @@ class CoagContactDHTSchemaV2 extends Equatable {
     String? shareBackDHTKey,
     String? shareBackDHTWriter,
     String? shareBackPubKey,
-    String? personalUniqueId,
+    Typed<PublicKey>? identityKey,
     Map<String, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
-    List<String>? knownPersonalContactIds,
+    List<String>? connectionAttestations,
     List<ContactIntroduction>? introductions,
     bool? ackHandshakeComplete,
   }) =>
@@ -583,28 +633,28 @@ class CoagContactDHTSchemaV2 extends Equatable {
         shareBackDHTKey: shareBackDHTKey ?? this.shareBackDHTKey,
         shareBackPubKey: shareBackPubKey ?? this.shareBackPubKey,
         shareBackDHTWriter: shareBackDHTWriter ?? this.shareBackDHTWriter,
-        personalUniqueId: personalUniqueId ?? this.personalUniqueId,
+        identityKey: identityKey ?? this.identityKey,
         addressLocations: {...addressLocations ?? this.addressLocations},
         temporaryLocations: {...temporaryLocations ?? this.temporaryLocations},
-        knownPersonalContactIds: [
-          ...knownPersonalContactIds ?? this.knownPersonalContactIds
+        connectionAttestations: [
+          ...connectionAttestations ?? this.connectionAttestations
         ],
         introductions: [...introductions ?? this.introductions],
         ackHandshakeComplete: ackHandshakeComplete ?? this.ackHandshakeComplete,
       );
 
-  // Differences in mostRecentUpdate timestamp will still caus equality
+  // Differences in mostRecentUpdate timestamp will still cause equality
   @override
   List<Object?> get props => [
         schemaVersion,
         details,
-        shareBackDHTKey,
-        shareBackPubKey,
-        shareBackDHTWriter,
-        personalUniqueId,
         addressLocations,
         temporaryLocations,
-        knownPersonalContactIds,
+        shareBackDHTKey,
+        shareBackDHTWriter,
+        shareBackPubKey,
+        identityKey,
+        connectionAttestations,
         introductions,
         ackHandshakeComplete,
       ];
@@ -613,7 +663,6 @@ class CoagContactDHTSchemaV2 extends Equatable {
 CoagContactDHTSchemaV2 schemaV1toV2(CoagContactDHTSchemaV1 old) =>
     CoagContactDHTSchemaV2(
         details: old.details,
-        personalUniqueId: old.coagContactId,
         shareBackDHTKey: old.shareBackDHTKey,
         shareBackDHTWriter: old.shareBackDHTWriter,
         // NOTE: This will cause downstream errors when trying to decrypt

@@ -14,6 +14,7 @@ import 'package:veilid_support/veilid_support.dart';
 
 import '../../data/models/coag_contact.dart';
 import '../../data/repositories/contacts.dart';
+import '../../data/utils.dart';
 
 part 'cubit.g.dart';
 part 'state.dart';
@@ -183,6 +184,7 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
         coagContactId: Uuid().v4(),
         // TODO: localize default to language
         name: name,
+        myIdentity: await generateTypedKeyPairBest(),
         // TODO: Handle fromString parsing errors
         dhtSettings: DhtSettings(
             recordKeyThemSharing: recordKey,
@@ -293,10 +295,14 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     final contact = CoagContact(
         coagContactId: Uuid().v4(),
         name: name,
+        myIdentity: await generateTypedKeyPairBest(),
         dhtSettings: DhtSettings(
             recordKeyThemSharing: recordKey,
             theirPublicKey: publicKey,
             myKeyPair: contactsRepository.getProfileInfo()!.mainKeyPair!,
+            // Already queue an individual key pair to move away from the
+            // profile key pair
+            myNextKeyPair: await contactsRepository.generateTypedKeyPair(),
             // We skip the DH key exchange and directly start with all pub keys
             theyAckHandshakeComplete: true));
 

@@ -304,15 +304,11 @@ class _ContactPageState extends State<ContactPage> {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (contact.theirPersonalUniqueId != null ||
-                          contact.connectionAttestations.isNotEmpty)
+                      if (contact.connectionAttestations.isNotEmpty)
                         Text(
                             [
                               '${contact.name} claims to be connected with at least',
-                              if (contact.knownPersonalContactIds.isEmpty)
-                                '${contact.connectionAttestations.length}'
-                              else
-                                '${contact.knownPersonalContactIds.length}',
+                              '${contact.connectionAttestations.length}',
                               'other folks via Coagulate.',
                               if (knownContacts.isNotEmpty) ...[
                                 'Including ${knownContacts.length} of your',
@@ -451,7 +447,7 @@ class _ContactPageState extends State<ContactPage> {
               'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair.key.toString())}...'),
           if (contact.dhtSettings.recordKeyMeSharing != null)
             Text(
-                'MeDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
+                'MyDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
           if (contact.dhtSettings.theirPublicKey != null)
             Text(
                 'ThemPubKey: ${_shorten(contact.dhtSettings.theirPublicKey.toString())}...'),

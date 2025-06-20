@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/repositories/contacts.dart';
+import 'package:coagulate/data/utils.dart';
 import 'package:coagulate/ui/receive_request/cubit.dart';
 import 'package:coagulate/ui/utils.dart';
 import 'package:coagulate/veilid_init.dart';
@@ -53,11 +54,13 @@ void main() {
         CoagContact(
             coagContactId: '2',
             name: 'Existing Contact A',
+            myIdentity: await generateTypedKeyPairBest(),
             dhtSettings:
                 DhtSettings(myKeyPair: await generateTypedKeyPairBest())),
         CoagContact(
             coagContactId: '5',
             name: 'Existing Contact B',
+            myIdentity: await generateTypedKeyPairBest(),
             dhtSettings:
                 DhtSettings(myKeyPair: await generateTypedKeyPairBest())),
       ];

@@ -40,6 +40,7 @@ void main() {
     final contact = CoagContact(
         coagContactId: '',
         name: 'name',
+        myIdentity: dummyKeyPair,
         dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
         details: const ContactDetails(picture: [1, 2, 3]),
         temporaryLocations: {
@@ -63,6 +64,7 @@ void main() {
     final contact = CoagContact(
         coagContactId: '',
         name: 'name',
+        myIdentity: dummyKeyPair,
         dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
         details: const ContactDetails(picture: [1, 2, 3]),
         temporaryLocations: {

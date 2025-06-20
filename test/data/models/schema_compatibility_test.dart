@@ -53,6 +53,23 @@ void main() {
     expect(migrated['address_locations'].keys, contains('address-loc'));
   });
 
+  test('schema json includes version', () {
+    final schema = CoagContactDHTSchemaV2(
+        details: const ContactDetails(),
+        shareBackDHTKey: null,
+        shareBackPubKey: null);
+    final json = schema.toJson();
+    expect(json['schema_version'], 2);
+  });
+  test('schema simple to from json', () {
+    final schema = CoagContactDHTSchemaV2(
+        details: const ContactDetails(),
+        shareBackDHTKey: null,
+        shareBackPubKey: null);
+    final deserialized = CoagContactDHTSchemaV2.fromJson(schema.toJson());
+    expect(schema, deserialized);
+  });
+
   test('load schema v2 from legacy json', () {
     const addressLocationJson = {
       'longitude': 1.0,
@@ -109,12 +126,10 @@ void main() {
     expect(schema.shareBackDHTKey, schemaJsonV2['share_back_d_h_t_key']);
     expect(schema.shareBackPubKey, schemaJsonV2['share_back_pub_key']);
     expect(schema.shareBackDHTWriter, schemaJsonV2['share_back_d_h_t_writer']);
-    expect(schema.personalUniqueId, schemaJsonV2['personal_unique_id']);
     expect(schema.addressLocations.values.first.longitude, 1);
     expect(schema.addressLocations.keys.first, 'address-loc');
     expect(schema.temporaryLocations.values.first, temporaryLocation);
     expect(schema.ackHandshakeComplete, schemaJsonV2['ack_handshake_complete']);
-    expect(schema.knownPersonalContactIds,
-        schemaJsonV2['known_personal_contact_ids']);
+    expect(schema.connectionAttestations, isEmpty);
   });
 }

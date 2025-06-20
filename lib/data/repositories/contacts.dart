@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:loggy/loggy.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -28,6 +27,8 @@ import '../models/profile_sharing_settings.dart';
 import '../providers/distributed_storage/base.dart';
 import '../providers/persistent_storage/base.dart';
 import '../providers/system_contacts/base.dart';
+import '../shared_contact_discovery.dart';
+import '../utils.dart';
 
 const String defaultInitialCircleId = 'coag::initial';
 
@@ -116,15 +117,16 @@ Map<String, ContactTemporaryLocation> filterTemporaryLocations(
             l.value.circles.toSet().intersectsWith(activeCircles.toSet()))));
 
 // TODO: Empty all the known contacts and misc stuff when no circles active?
-CoagContactDHTSchema filterAccordingToSharingProfile(
-        {required ProfileInfo profile,
-        required Map<String, int> activeCirclesWithMemberCount,
-        required DhtSettings dhtSettings,
-        required bool sharePersonalUniqueId,
-        required List<ContactIntroduction> introductions,
-        List<String> knownPersonalContactIds = const []}) =>
+CoagContactDHTSchema filterAccordingToSharingProfile({
+  required ProfileInfo profile,
+  required Map<String, int> activeCirclesWithMemberCount,
+  required DhtSettings dhtSettings,
+  required List<ContactIntroduction> introductions,
+  required Typed<PublicKey>? identityKey,
+  List<String> connectionAttestations = const [],
+  List<String> knownPersonalContactIds = const [],
+}) =>
     CoagContactDHTSchema(
-      personalUniqueId: sharePersonalUniqueId ? profile.id : null,
       details: filterDetails(profile.pictures, profile.details,
           profile.sharingSettings, activeCirclesWithMemberCount),
       // Only share locations up to 1 day ago
@@ -135,18 +137,12 @@ CoagContactDHTSchema filterAccordingToSharingProfile(
       shareBackDHTKey: dhtSettings.recordKeyThemSharing.toString(),
       shareBackDHTWriter: dhtSettings.writerThemSharing.toString(),
       shareBackPubKey: dhtSettings.myKeyPair.key.toString(),
-      knownPersonalContactIds: knownPersonalContactIds,
-      ackHandshakeComplete: dhtSettings.theirPublicKey != null,
+      identityKey: identityKey,
+      connectionAttestations: connectionAttestations,
+      ackHandshakeComplete: dhtSettings.theirPublicKey != null ||
+          dhtSettings.theirNextPublicKey != null,
       introductions: introductions,
     );
-
-Future<TypedKeyPair> generateTypedKeyPairBest() async =>
-    DHTRecordPool.instance.veilid.bestCryptoSystem().then((cs) => cs
-        .generateKeyPair()
-        .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)));
-
-Future<FixedEncodedString43> generateRandomSharedSecretBest() async =>
-    Veilid.instance.bestCryptoSystem().then((cs) => cs.randomSharedSecret());
 
 class ContactsRepository {
   ContactsRepository(
@@ -339,6 +335,7 @@ class ContactsRepository {
                 oldContact: CoagContact(
                     coagContactId: contact.coagContactId,
                     name: contact.name,
+                    myIdentity: contact.myIdentity,
                     dhtSettings: contact.dhtSettings.copyWith(),
                     details: contact.details?.copyWith(),
                     temporaryLocations: {...contact.temporaryLocations},
@@ -346,6 +343,7 @@ class ContactsRepository {
                 newContact: CoagContact(
                     coagContactId: updatedContact.coagContactId,
                     name: updatedContact.name,
+                    myIdentity: updatedContact.myIdentity,
                     dhtSettings: updatedContact.dhtSettings.copyWith(),
                     details: updatedContact.details?.copyWith(),
                     temporaryLocations: {...updatedContact.temporaryLocations},
@@ -375,9 +373,10 @@ class ContactsRepository {
 
           unawaited(updateSystemContact(contact.coagContactId));
 
-          // When it's the first time they acknowledge a completed handshake,
-          // trigger an update of the sharing DHT record to switch from the
-          // initial secret to a public key derived one
+          // When it's the first time they acknowledge a completed handshake
+          // from symmetric to asymmetric encryption, trigger an update of the
+          // sharing DHT record to switch from the initial secret to a public
+          // key derived one
           if (!contact.dhtSettings.theyAckHandshakeComplete &&
               updatedContact.dhtSettings.theyAckHandshakeComplete) {
             // TODO: This could be directly "distributedStorage.updateRecord"
@@ -563,6 +562,7 @@ class ContactsRepository {
           .toList()
           .map((c) => CoagContact(
               coagContactId: c.coagContactId,
+              myIdentity: c.myIdentity,
               name: c.name,
               dhtSettings: c.dhtSettings))
           .toList(),
@@ -766,32 +766,33 @@ class ContactsRepository {
       return;
     }
 
+    final updatedSharedProfile = filterAccordingToSharingProfile(
+      profile: _profileInfo!,
+      // TODO: Also expose this view of the data from contacts repo?
+      //       Seems to be used in different places.
+      activeCirclesWithMemberCount: Map.fromEntries(
+          (_circleMemberships[coagContactId] ?? []).map((circleId) => MapEntry(
+              circleId,
+              _circleMemberships.values
+                  .where((ids) => ids.contains(circleId))
+                  .length))),
+      dhtSettings: contact.dhtSettings,
+      introductions: contact.introductionsForThem,
+      identityKey: Typed<PublicKey>(
+          kind: contact.myIdentity.kind, value: contact.myIdentity.key),
+      connectionAttestations:
+          await connectionAttestations(contact, getContacts().values),
+    );
+
     await saveContact(contact.copyWith(
-        sharedProfile: filterAccordingToSharingProfile(
-            profile: _profileInfo!,
-            // TODO: Also expose this view of the data from contacts repo?
-            //       Seems to be used in different places.
-            activeCirclesWithMemberCount: Map.fromEntries(
-                (_circleMemberships[coagContactId] ?? []).map((circleId) =>
-                    MapEntry(
-                        circleId,
-                        _circleMemberships.values
-                            .where((ids) => ids.contains(circleId))
-                            .length))),
-            dhtSettings: contact.dhtSettings,
-            introductions: contact.introductionsForThem,
-            // TODO: Allow opt-out (per circle or globally?)
-            sharePersonalUniqueId: true,
-            // TODO: Do we need to trigger updating the sharing profile more often to keep this list up to date?
-            knownPersonalContactIds: getContacts()
-                .values
-                .map((c) => c.theirPersonalUniqueId)
-                .where((id) => id != contact.theirPersonalUniqueId)
-                // Remove null entries
-                .whereType<String>()
-                // Remove duplicates
-                .toSet()
-                .toList())));
+      sharedProfile: updatedSharedProfile,
+      dhtSettings: contact.dhtSettings.copyWith(
+          myNextKeyPair: (contact.dhtSettings.myNextKeyPair != null ||
+                  // TODO: Check that the comparison detects changes on location list membership, not list instance
+                  contact.sharedProfile == updatedSharedProfile)
+              ? null
+              : await generateTypedKeyPair()),
+    ));
   }
 
   Future<void> _dhtRecordUpdateCallback(Typed<FixedEncodedString43> key) async {
@@ -806,12 +807,12 @@ class ContactsRepository {
   /// Creating contact from just a name or from a profile link, i.e. with name
   /// and public key
   Future<CoagContact> createContactForInvite(String name,
-      {FixedEncodedString43? pubKey,
-      bool awaitDhtSharingAttempt = false}) async {
+      {PublicKey? pubKey, bool awaitDhtSharingAttempt = false}) async {
     // Create contact
     final contact = CoagContact(
         coagContactId: Uuid().v4(),
         name: name,
+        myIdentity: await generateTypedKeyPair(),
         dhtSettings: DhtSettings(
             myKeyPair: await generateTypedKeyPair(),
             // If we already have a pubkey, consider the handshake complete
@@ -1102,6 +1103,7 @@ class ContactsRepository {
     if (contact == null) {
       contact = CoagContact(
         coagContactId: Uuid().v4(),
+        myIdentity: await generateTypedKeyPair(),
         name: contactSubkeyContent.name,
         dhtSettings: DhtSettings(
             theyAckHandshakeComplete: true,
@@ -1250,10 +1252,7 @@ class ContactsRepository {
     }
 
     // TODO: check that they don't already know each other and let user know
-    if (contactA!.knownPersonalContactIds
-            .contains(contactB!.theirPersonalUniqueId) ||
-        contactB.knownPersonalContactIds
-            .contains(contactA.theirPersonalUniqueId)) {
+    if (alreadyKnowEachOther(contactA, contactB)) {
       return false;
     }
 
@@ -1264,14 +1263,14 @@ class ContactsRepository {
 
       final introForA = ContactIntroduction(
           otherName: nameB,
-          otherPublicKey: contactB.dhtSettings.theirPublicKey!,
+          otherPublicKey: contactB!.dhtSettings.theirPublicKey!,
           dhtRecordKeyReceiving: recordKeyB,
           dhtRecordKeySharing: recordKeyA,
           dhtWriterSharing: writerA,
           message: message);
       final introForB = ContactIntroduction(
           otherName: nameA,
-          otherPublicKey: contactA.dhtSettings.theirPublicKey!,
+          otherPublicKey: contactA!.dhtSettings.theirPublicKey!,
           dhtRecordKeyReceiving: recordKeyA,
           dhtRecordKeySharing: recordKeyB,
           dhtWriterSharing: writerB,
@@ -1313,6 +1312,7 @@ class ContactsRepository {
     final contact = CoagContact(
         coagContactId: Uuid().v4(),
         name: introduction.otherName,
+        myIdentity: await generateTypedKeyPair(),
         dhtSettings: DhtSettings(
             myKeyPair: introducer.dhtSettings.myKeyPair,
             recordKeyMeSharing: introduction.dhtRecordKeySharing,

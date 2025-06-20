@@ -22,12 +22,14 @@ void main() {
         CoagContact(
             coagContactId: '',
             name: 'name',
+            myIdentity: dummyKeyPair,
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
             details: const ContactDetails(
                 names: {'0': 'a'}, emails: {'private': 'e@1.de'})),
         CoagContact(
             coagContactId: '',
             name: 'name',
+            myIdentity: dummyKeyPair,
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
             details: const ContactDetails(
                 names: {'0': 'a'}, emails: {'private': 'e@1.de'})));
@@ -39,12 +41,14 @@ void main() {
         CoagContact(
             coagContactId: '',
             name: 'name',
+            myIdentity: dummyKeyPair,
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
             details: const ContactDetails(
                 names: {'0': 'a'}, emails: {'private': 'e@1.de'})),
         CoagContact(
             coagContactId: '',
             name: 'name',
+            myIdentity: dummyKeyPair,
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
             details: const ContactDetails(
                 names: {'0': 'a'}, emails: {'private': 'e@2.de'})));
@@ -56,11 +60,13 @@ void main() {
         CoagContact(
             coagContactId: '',
             name: 'name',
+            myIdentity: dummyKeyPair,
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
             details: const ContactDetails(names: {'0': 'a'})),
         CoagContact(
             coagContactId: '',
             name: 'name',
+            myIdentity: dummyKeyPair,
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
             details: const ContactDetails(names: {'0': 'b'})));
     expect(result, 'names');
@@ -71,12 +77,14 @@ void main() {
         CoagContact(
             coagContactId: '',
             name: 'name',
+            myIdentity: dummyKeyPair,
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
             details: const ContactDetails(
                 names: {'0': 'a'}, phones: {'label1': '0123'})),
         CoagContact(
             coagContactId: '',
             name: 'name',
+            myIdentity: dummyKeyPair,
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
             details: const ContactDetails(
                 names: {'0': 'b'}, phones: {'label2': '4321'})));
@@ -88,6 +96,7 @@ void main() {
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           temporaryLocations: {
             '0': ContactTemporaryLocation(
@@ -102,6 +111,7 @@ void main() {
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           temporaryLocations: {
             '0': ContactTemporaryLocation(
@@ -121,6 +131,7 @@ void main() {
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           temporaryLocations: {
             '0': ContactTemporaryLocation(
@@ -135,6 +146,7 @@ void main() {
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           temporaryLocations: {
             '0': ContactTemporaryLocation(
@@ -154,6 +166,7 @@ void main() {
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           temporaryLocations: {
             '0': ContactTemporaryLocation(
@@ -168,6 +181,7 @@ void main() {
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           temporaryLocations: {
             '1': ContactTemporaryLocation(
@@ -187,10 +201,12 @@ void main() {
         CoagContact(
             coagContactId: '',
             name: 'name',
+            myIdentity: dummyKeyPair,
             dhtSettings: DhtSettings(myKeyPair: dummyKeyPair)),
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           temporaryLocations: {
             '0': ContactTemporaryLocation(
@@ -210,12 +226,14 @@ void main() {
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           details: const ContactDetails(picture: [1, 2, 3]),
         ),
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           details: const ContactDetails(picture: [3, 2, 1]),
         ));
@@ -227,6 +245,7 @@ void main() {
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           details: ContactDetails(
               organizations: {'o': Organization(company: 'LargeCorp A')}),
@@ -234,6 +253,7 @@ void main() {
         CoagContact(
           coagContactId: '',
           name: 'name',
+          myIdentity: dummyKeyPair,
           dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
           details: ContactDetails(
               organizations: {'o': Organization(company: 'LargeCorp B')}),
@@ -245,6 +265,7 @@ void main() {
     final c1 = CoagContact(
         coagContactId: '',
         name: 'name',
+        myIdentity: dummyKeyPair,
         dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
         details: const ContactDetails(picture: [1, 2, 3]),
         temporaryLocations: {
@@ -261,6 +282,7 @@ void main() {
     final c2 = CoagContact(
         coagContactId: '',
         name: 'name',
+        myIdentity: dummyKeyPair,
         dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
         details: const ContactDetails(picture: [1, 2, 3]),
         temporaryLocations: {

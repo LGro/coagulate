@@ -12,7 +12,19 @@ import '../../../debug_log.dart';
 import '../../models/batch_invites.dart';
 import '../../models/coag_contact.dart';
 import '../../models/contact_update.dart';
+import '../../utils.dart';
 import 'base.dart';
+
+/// Legacy migration: If I have not assigned an identity key pair to a contact
+Future<Map<String, dynamic>> migrateContactAddIdentityKeyPair(
+    Map<String, dynamic> contactJson) async {
+  if (!contactJson.containsKey('my_identity')) {
+    contactJson = {...contactJson};
+    contactJson['my_identity'] =
+        await generateTypedKeyPairBest().then((kp) => kp.toJson());
+  }
+  return contactJson;
+}
 
 Future<Database> getDatabase() async => openDatabase(
       join(await getDatabasesPath(), 'contacts.db'),

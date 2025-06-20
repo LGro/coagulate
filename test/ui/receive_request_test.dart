@@ -58,10 +58,12 @@ void main() {
         CoagContact(
             coagContactId: '2',
             name: 'Existing Contact A',
+            myIdentity: dummyTypedKeyPair(3, 2),
             dhtSettings: DhtSettings(myKeyPair: dummyTypedKeyPair(2, 2))),
         CoagContact(
             coagContactId: '5',
             name: 'Existing Contact B',
+            myIdentity: dummyTypedKeyPair(2, 3),
             dhtSettings: DhtSettings(myKeyPair: dummyTypedKeyPair(5, 5))),
       ]);
       await contactsRepository!.initialize();

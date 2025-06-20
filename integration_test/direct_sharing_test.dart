@@ -1,6 +1,7 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'package:coagulate/data/models/contact_location.dart';
 import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:coagulate/ui/receive_request/cubit.dart';
 import 'package:coagulate/ui/utils.dart';
@@ -50,6 +51,22 @@ void main() {
       isNotNull,
       reason: 'Receiving record prepared',
     );
+    expect(
+      contactBobInvitedByA.dhtSettings.initialSecret,
+      isNotNull,
+      reason: 'Initial secret for symmetric encryption ready',
+    );
+    expect(
+      contactBobInvitedByA.dhtSettings.theirPublicKey,
+      isNull,
+      reason: 'We have not seen any public keys from them yet',
+    );
+    expect(
+      contactBobInvitedByA.dhtSettings.theirNextPublicKey,
+      isNull,
+      reason: 'We have not seen any public keys from them yet',
+    );
+    // TODO: Can those be used as matchers?
     expect(showSharingInitializing(contactBobInvitedByA), false);
     expect(showSharingOffer(contactBobInvitedByA), false);
     expect(showDirectSharing(contactBobInvitedByA), true);
@@ -77,6 +94,16 @@ void main() {
       contactAliceFromBobsRepo.details?.names.values.firstOrNull,
       'UserA',
       reason: 'Name from sharing profile',
+    );
+    expect(
+      contactAliceFromBobsRepo.dhtSettings.initialSecret,
+      isNotNull,
+      reason: 'Initial secret still in place because no full pub key cycle yet',
+    );
+    expect(
+      contactAliceFromBobsRepo.dhtSettings.theirNextPublicKey,
+      isNotNull,
+      reason: 'Public key is expected to be available after first read',
     );
     expect(showSharingInitializing(contactAliceFromBobsRepo), false);
     expect(showSharingOffer(contactAliceFromBobsRepo), false);
@@ -106,5 +133,36 @@ void main() {
       true,
       reason: 'Handshake accepted as complete by Alice',
     );
+
+    //// TRANSITION FROM SYMMETRIC TO ASYMMETRIC CRYPTO COMPLETED ////
+    ////           TESTING ASYMMETRIC KEY ROTATION NOW            ////
+
+    // // Bob shares update, testing key rotation
+    // final profileB = _cRepoB.getProfileInfo()!;
+    // await _cRepoB.setProfileInfo(
+    //     profileB.copyWith(
+    //         addressLocations: {
+    //           'a0': const ContactAddressLocation(latitude: 0, longitude: 0)
+    //         },
+    //         sharingSettings: profileB.sharingSettings.copyWith(addresses: {
+    //           'a0': [defaultInitialCircleId]
+    //         })),
+    //     triggerDhtUpdate: false);
+    // await _cRepoB.updateSharingDHT();
+
+    // // Bob receives new location
+    // await _cRepoA.updateContactFromDHT(
+    //     _cRepoA.getContact(contactBobInvitedByA.coagContactId)!);
+    // final contactBobFromAlicesRepo = _cRepoA.getContacts().values.first;
+    // expect(
+    //   contactBobFromAlicesRepo.dhtSettings.theirNextPublicKey,
+    //   isNotNull,
+    //   reason: 'Follow up public key has been transmitted',
+    // );
+    // expect(
+    //   contactBobFromAlicesRepo.dhtSettings.theirNextPublicKey,
+    //   isNot(equals(contactBobInvitedByA.dhtSettings.theirNextPublicKey)),
+    //   reason: 'Follow up key differs',
+    // );
   });
 }

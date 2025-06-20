@@ -183,23 +183,27 @@ class DummyDistributedStorage extends VeilidDhtStorage {
   }
 
   @override
-  Future<(String?, Uint8List?)> readRecord(
+  Future<(PublicKey?, TypedKeyPair?, String?, Uint8List?)> readRecord(
       {required Typed<FixedEncodedString43> recordKey,
-      TypedKeyPair? keyPair,
-      FixedEncodedString43? psk,
+      required TypedKeyPair keyPair,
+      TypedKeyPair? nextKeyPair,
+      SecretKey? psk,
       PublicKey? publicKey,
+      PublicKey? nextPublicKey,
       int maxRetries = 3,
       DHTRecordRefreshMode refreshMode = DHTRecordRefreshMode.network}) async {
     if (transparent) {
       return super.readRecord(
           recordKey: recordKey,
           keyPair: keyPair,
+          nextKeyPair: nextKeyPair,
           psk: psk,
           publicKey: publicKey,
+          nextPublicKey: nextPublicKey,
           maxRetries: maxRetries,
           refreshMode: DHTRecordRefreshMode.local);
     }
-    return (jsonEncode(dht[recordKey]?.toJson()), null);
+    return (publicKey, keyPair, jsonEncode(dht[recordKey]?.toJson()), null);
   }
 
   @override
