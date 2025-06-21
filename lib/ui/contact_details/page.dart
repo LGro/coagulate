@@ -445,15 +445,21 @@ class _ContactPageState extends State<ContactPage> {
           _paddedDivider(),
           Text(
               'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair.key.toString())}...'),
+          if (contact.dhtSettings.myNextKeyPair != null)
+            Text(
+                'MyNextPubKey: ${_shorten(contact.dhtSettings.myNextKeyPair!.key.toString())}...'),
           if (contact.dhtSettings.recordKeyMeSharing != null)
             Text(
                 'MyDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
           if (contact.dhtSettings.theirPublicKey != null)
             Text(
-                'ThemPubKey: ${_shorten(contact.dhtSettings.theirPublicKey.toString())}...'),
+                'TheirPubKey: ${_shorten(contact.dhtSettings.theirPublicKey.toString())}...'),
+          if (contact.dhtSettings.theirNextPublicKey != null)
+            Text(
+                'TheirNextPubKey: ${_shorten(contact.dhtSettings.theirNextPublicKey.toString())}...'),
           if (contact.dhtSettings.recordKeyThemSharing != null)
             Text(
-                'ThemDhtKey: ${_shorten(contact.dhtSettings.recordKeyThemSharing.toString())}...'),
+                'TheirDhtKey: ${_shorten(contact.dhtSettings.recordKeyThemSharing.toString())}...'),
           if (contact.dhtSettings.initialSecret != null)
             Text(
                 'InitSec: ${_shorten(contact.dhtSettings.initialSecret.toString())}...'),
