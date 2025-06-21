@@ -32,7 +32,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-For the changes: Copyright 2024 by the Coagulate authors
+For the changes: Copyright 2024 - 2025 by the Coagulate authors
 */
 import 'dart:async';
 
@@ -51,7 +51,8 @@ class BarcodeScannerPageView extends StatefulWidget {
 class _BarcodeScannerPageViewState extends State<BarcodeScannerPageView> {
   _BarcodeScannerPageViewState({required this.onDetectCallback});
 
-  final MobileScannerController controller = MobileScannerController();
+  final MobileScannerController controller =
+      MobileScannerController(autoStart: false);
 
   final PageController pageController = PageController();
 
