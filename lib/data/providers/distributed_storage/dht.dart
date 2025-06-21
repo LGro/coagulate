@@ -323,19 +323,15 @@ class VeilidDhtStorage extends DistributedStorage {
         _recordKey, settings.writerMeSharing!,
         crypto: crypto, debugName: 'coag::update');
     // Write main profile info
-    final written = await record.tryWriteBytes(
+    await record.eventualWriteBytes(
         crypto: crypto, utf8.encode(content), subkey: 0);
     // Write picture chunks to remaining subkeys
     await Future.wait(chopPayloadChunks(picture).toList().asMap().entries.map(
-        (e) =>
-            record.tryWriteBytes(crypto: crypto, e.value, subkey: e.key + 1)));
+        (e) => record.eventualWriteBytes(
+            crypto: crypto, e.value, subkey: e.key + 1)));
     await record.close();
 
     debugPrint('wrote ${_recordKey.toString().substring(5, 10)}');
-    if (written != null) {
-      // This shouldn't happen, but it does sometimes; do we issue parallel update requests?
-      debugPrint('found newer for ${_recordKey.toString().substring(5, 10)}');
-    }
   }
 
   @override
@@ -416,7 +412,7 @@ class VeilidDhtStorage extends DistributedStorage {
         .asMap()
         .entries
         .map((e) =>
-            record.tryWriteBytes(crypto: crypto, e.value, subkey: e.key)));
+            record.eventualWriteBytes(crypto: crypto, e.value, subkey: e.key)));
     await record.close();
   }
 

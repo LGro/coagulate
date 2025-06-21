@@ -59,6 +59,10 @@ class DhtStatusCubit extends Cubit<DhtStatusState> with WidgetsBindingObserver {
           return emit(const DhtStatusState('pending'));
         }
       }
+    } on DHTExceptionNotAvailable catch (e) {
+      if (!isClosed) {
+        return emit(DhtStatusState('disconnected $e'));
+      }
     } on VeilidAPIExceptionTryAgain catch (e) {
       if (!isClosed) {
         return emit(DhtStatusState('disconnected $e'));

@@ -77,6 +77,8 @@ class DhtSharingStatusCubit extends Cubit<DhtSharingStatusState>
             ((1 - (numOfflineSubkeys / numSubkeys)) * 100).round();
         return emit(DhtSharingStatusState('$percentageSynced% synced'));
       }
+    } on DHTExceptionNotAvailable {
+      return;
     } on VeilidAPIExceptionTryAgain {
       return;
     }
