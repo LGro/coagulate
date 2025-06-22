@@ -47,7 +47,7 @@ void main() {
     final offerLinkForA = profileBasedOfferUrl(
         'Introducer sharing with A',
         contactA.dhtSettings.recordKeyMeSharing!,
-        contactA.dhtSettings.myKeyPair.key);
+        contactA.dhtSettings.myKeyPair!.key);
     await ReceiveRequestCubit(_cRepoA)
         .handleSharingOffer(offerLinkForA.fragment, awaitDhtOperations: true);
 
@@ -58,7 +58,7 @@ void main() {
     final offerLinkForB = profileBasedOfferUrl(
         'Introducer sharing with B',
         contactB.dhtSettings.recordKeyMeSharing!,
-        contactB.dhtSettings.myKeyPair.key);
+        contactB.dhtSettings.myKeyPair!.key);
     await ReceiveRequestCubit(_cRepoB)
         .handleSharingOffer(offerLinkForB.fragment, awaitDhtOperations: true);
 
@@ -79,7 +79,8 @@ void main() {
     expect(_cRepoA.getContacts().length, 1);
     final introducerA = _cRepoA.getContacts().values.first;
     expect(introducerA.name, 'Introducer sharing with A');
-    expect(introducerA.introductionsByThem.first.otherName, 'Intro Alias B');
+    expect(introducerA.introductionsByThem.firstOrNull?.otherName,
+        'Intro Alias B');
     // Accept and share
     final contactIdB = await _cRepoA.acceptIntroduction(
         introducerA, introducerA.introductionsByThem.first,
@@ -94,7 +95,8 @@ void main() {
     expect(_cRepoB.getContacts().length, 1);
     final introducerB = _cRepoB.getContacts().values.first;
     expect(introducerB.name, 'Introducer sharing with B');
-    expect(introducerB.introductionsByThem.first.otherName, 'Intro Alias A');
+    expect(introducerB.introductionsByThem.firstOrNull?.otherName,
+        'Intro Alias A');
     // Accept and share
     final contactIdA = await _cRepoB.acceptIntroduction(
         introducerB, introducerB.introductionsByThem.first,

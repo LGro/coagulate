@@ -661,7 +661,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact,
                                       .firstOrNull ??
                                   '???',
                               contact.dhtSettings.recordKeyMeSharing!,
-                              contact.dhtSettings.myNextKeyPair.key)
+                              contact.dhtSettings.myKeyPair!.key)
                           .toString(),
                       maxLines: 1,
                       softWrap: false,
@@ -673,7 +673,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact,
                                   .firstOrNull ??
                               '???',
                           contact.dhtSettings.recordKeyMeSharing!,
-                          contact.dhtSettings.myNextKeyPair.key))),
+                          contact.dhtSettings.myKeyPair!.key))),
                   icon: const Icon(Icons.copy)),
             ])
           ] else if (showDirectSharing(contact)) ...[

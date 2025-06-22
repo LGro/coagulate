@@ -179,6 +179,7 @@ class VeilidDhtStorage extends DistributedStorage {
     SecretKey? psk,
     PublicKey? publicKey,
     PublicKey? nextPublicKey,
+    Iterable<TypedKeyPair> myMiscKeyPairs = const [],
     int maxRetries = 3,
     DHTRecordRefreshMode refreshMode = DHTRecordRefreshMode.network,
   }) async {
@@ -201,6 +202,16 @@ class VeilidDhtStorage extends DistributedStorage {
               (cs) async => cs.generateSharedSecret(
                   publicKey, nextKeyPair.secret, domain))
         ),
+      if (publicKey != null)
+        ...await Future.wait(myMiscKeyPairs
+            .map((kp) async => (
+                  publicKey,
+                  kp,
+                  await Veilid.instance.getCryptoSystem(kp.kind).then(
+                      (cs) async =>
+                          cs.generateSharedSecret(publicKey, kp.secret, domain))
+                ))
+            .toList()),
       if (nextPublicKey != null && keyPair != null)
         (
           nextPublicKey,
@@ -216,6 +227,16 @@ class VeilidDhtStorage extends DistributedStorage {
               (cs) async => cs.generateSharedSecret(
                   nextPublicKey, nextKeyPair.secret, domain))
         ),
+      if (nextPublicKey != null)
+        ...await Future.wait(myMiscKeyPairs
+            .map((kp) async => (
+                  nextPublicKey,
+                  kp,
+                  await Veilid.instance.getCryptoSystem(kp.kind).then(
+                      (cs) async => cs.generateSharedSecret(
+                          nextPublicKey, kp.secret, domain))
+                ))
+            .toList()),
     ];
 
     var retries = 0;
@@ -352,7 +373,8 @@ class VeilidDhtStorage extends DistributedStorage {
   }
 
   @override
-  Future<CoagContact?> getContact(CoagContact contact) async {
+  Future<CoagContact?> getContact(CoagContact contact,
+      {Iterable<TypedKeyPair> myMiscKeyPairs = const []}) async {
     if (contact.dhtSettings.recordKeyThemSharing == null) {
       return null;
     }
@@ -364,6 +386,7 @@ class VeilidDhtStorage extends DistributedStorage {
       nextPublicKey: contact.dhtSettings.theirNextPublicKey,
       keyPair: contact.dhtSettings.myKeyPair,
       nextKeyPair: contact.dhtSettings.myNextKeyPair,
+      myMiscKeyPairs: myMiscKeyPairs,
     );
     if ((contactJson?.isEmpty ?? true) || contactJson == 'null') {
       debugPrint(

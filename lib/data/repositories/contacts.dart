@@ -318,7 +318,11 @@ class ContactsRepository {
     logDebug('Attempting to update contact ${contact.name}');
     var success = false;
     try {
-      final updatedContact = await distributedStorage.getContact(contact);
+      final updatedContact =
+          await distributedStorage.getContact(contact, myMiscKeyPairs: [
+        if (getProfileInfo()?.mainKeyPair != null)
+          getProfileInfo()!.mainKeyPair!,
+      ]);
 
       if (updatedContact != null) {
         success = true;
@@ -814,7 +818,9 @@ class ContactsRepository {
         name: name,
         myIdentity: await generateTypedKeyPair(),
         dhtSettings: DhtSettings(
+            myKeyPair: await generateTypedKeyPair(),
             myNextKeyPair: await generateTypedKeyPair(),
+            theirPublicKey: pubKey,
             // If we already have a pubkey, consider the handshake complete
             theyAckHandshakeComplete: pubKey != null));
     await saveContact(contact);

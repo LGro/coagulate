@@ -190,6 +190,7 @@ class DummyDistributedStorage extends VeilidDhtStorage {
       SecretKey? psk,
       PublicKey? publicKey,
       PublicKey? nextPublicKey,
+      Iterable<TypedKeyPair> myMiscKeyPairs = const [],
       int maxRetries = 3,
       DHTRecordRefreshMode refreshMode = DHTRecordRefreshMode.network}) async {
     if (transparent) {
@@ -201,6 +202,7 @@ class DummyDistributedStorage extends VeilidDhtStorage {
           publicKey: publicKey,
           nextPublicKey: nextPublicKey,
           maxRetries: maxRetries,
+          myMiscKeyPairs: myMiscKeyPairs,
           refreshMode: DHTRecordRefreshMode.local);
     }
     return (publicKey, keyPair, jsonEncode(dht[recordKey]?.toJson()), null);

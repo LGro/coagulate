@@ -56,13 +56,13 @@ void main() {
             name: 'Existing Contact A',
             myIdentity: await generateTypedKeyPairBest(),
             dhtSettings:
-                DhtSettings(myKeyPair: await generateTypedKeyPairBest())),
+                DhtSettings(myNextKeyPair: await generateTypedKeyPairBest())),
         CoagContact(
             coagContactId: '5',
             name: 'Existing Contact B',
             myIdentity: await generateTypedKeyPairBest(),
             dhtSettings:
-                DhtSettings(myKeyPair: await generateTypedKeyPairBest())),
+                DhtSettings(myNextKeyPair: await generateTypedKeyPairBest())),
       ];
       initialDht = {
         _dummyDhtRecordKey(0): CoagContactDHTSchema(
@@ -191,7 +191,7 @@ void main() {
           expect(c.state.status, ReceiveRequestStatus.success);
           expect(c.state.profile!.name, 'Profile Sharer');
           expect(c.state.profile!.dhtSettings.theirPublicKey,
-              initialContacts[0].dhtSettings.myKeyPair.key);
+              initialContacts[0].dhtSettings.myKeyPair?.key);
           expect(c.state.profile!.dhtSettings.initialSecret, isNull);
           expect(c.state.profile!.dhtSettings.recordKeyThemSharing, isNotNull);
           expect(c.state.profile!.dhtSettings.recordKeyMeSharing, isNotNull);
@@ -217,7 +217,7 @@ void main() {
                   rawValue: profileBasedOfferUrl(
                           'Offering Sharer',
                           _dummyDhtRecordKey(4),
-                          initialContacts[0].dhtSettings.myKeyPair.key)
+                          initialContacts[0].dhtSettings.myKeyPair!.key)
                       .toString())
             ]),
             awaitDhtOperations: true),

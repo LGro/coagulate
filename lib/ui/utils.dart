@@ -177,6 +177,7 @@ bool showSharingInitializing(CoagContact contact) =>
 bool showSharingOffer(CoagContact contact) =>
     contact.dhtSettings.recordKeyThemSharing != null &&
     contact.dhtSettings.initialSecret == null &&
+    contact.dhtSettings.myKeyPair != null &&
     contact.details == null;
 
 bool showDirectSharing(CoagContact contact) =>

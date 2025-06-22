@@ -5,6 +5,7 @@ import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:coagulate/ui/receive_request/cubit.dart';
 import 'package:coagulate/ui/utils.dart';
 import 'package:coagulate/veilid_init.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -31,11 +32,13 @@ void main() {
   });
 
   test("Alice shares from Bob's profile link, who shares back", () async {
+    final bobsProfileUrl =
+        profileUrl('Bob Profile', _cRepoB.getProfileInfo()!.mainKeyPair!.key);
+
     // Alice prepares invite for Bob using Bob's profile public key and shares via the default circle
+    debugPrint('ALICE ACTING');
     final rrCubitA = ReceiveRequestCubit(_cRepoA);
-    await rrCubitA.handleProfileLink(
-        profileUrl('Bob Profile', _cRepoB.getProfileInfo()!.mainKeyPair!.key)
-            .fragment,
+    await rrCubitA.handleProfileLink(bobsProfileUrl.fragment,
         awaitDhtOperations: true);
     var contactBobFromProfile = _cRepoA.getContacts().values.first;
     await _cRepoA.updateCirclesForContact(
@@ -63,9 +66,11 @@ void main() {
     final profileBasedOfferLinkFromAliceForBob = profileBasedOfferUrl(
         'Alice Sharing',
         contactBobFromProfile.dhtSettings.recordKeyMeSharing!,
-        contactBobFromProfile.dhtSettings.myKeyPair.key);
+        contactBobFromProfile.dhtSettings.myKeyPair!.key);
 
     // Bob accepts profile based offer from Alice and shares via default circle
+    debugPrint('---');
+    debugPrint('BOB ACTING');
     await ReceiveRequestCubit(_cRepoB).handleSharingOffer(
         profileBasedOfferLinkFromAliceForBob.fragment,
         awaitDhtOperations: true);
@@ -100,6 +105,8 @@ void main() {
     expect(showDirectSharing(contactAliceFromBobsRepo), false);
 
     // Alice checks for Bob sharing back
+    debugPrint('---');
+    debugPrint('ALICE ACTING');
     contactBobFromProfile =
         _cRepoA.getContact(contactBobFromProfile.coagContactId)!;
     await _cRepoA.updateContactFromDHT(contactBobFromProfile);

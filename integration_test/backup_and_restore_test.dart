@@ -51,7 +51,7 @@ void main() {
     final profileBasedOfferLinkFromAliceForBob = profileBasedOfferUrl(
         'Alice Sharing',
         contactBobFromProfile.dhtSettings.recordKeyMeSharing!,
-        contactBobFromProfile.dhtSettings.myKeyPair.key);
+        contactBobFromProfile.dhtSettings.myKeyPair!.key);
 
     // Bob accepts profile based offer from Alice
     await ReceiveRequestCubit(_cRepoB).handleSharingOffer(

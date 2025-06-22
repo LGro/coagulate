@@ -291,7 +291,7 @@ class ProfileInfo extends Equatable {
   final Map<String, ContactTemporaryLocation> temporaryLocations;
   final ProfileSharingSettings sharingSettings;
 
-  /// The main public identity key pair
+  /// The main key pair used for profile invites
   final TypedKeyPair? mainKeyPair;
 
   Map<String, dynamic> toJson() => _$ProfileInfoToJson(this);
