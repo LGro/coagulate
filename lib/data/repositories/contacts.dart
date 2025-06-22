@@ -136,7 +136,7 @@ CoagContactDHTSchema filterAccordingToSharingProfile({
           profile.sharingSettings, activeCirclesWithMemberCount.keys),
       shareBackDHTKey: dhtSettings.recordKeyThemSharing.toString(),
       shareBackDHTWriter: dhtSettings.writerThemSharing.toString(),
-      shareBackPubKey: dhtSettings.myKeyPair.key.toString(),
+      shareBackPubKey: dhtSettings.myNextKeyPair.key.toString(),
       identityKey: identityKey,
       connectionAttestations: connectionAttestations,
       ackHandshakeComplete: dhtSettings.theirPublicKey != null ||
@@ -814,7 +814,7 @@ class ContactsRepository {
         name: name,
         myIdentity: await generateTypedKeyPair(),
         dhtSettings: DhtSettings(
-            myKeyPair: await generateTypedKeyPair(),
+            myNextKeyPair: await generateTypedKeyPair(),
             // If we already have a pubkey, consider the handshake complete
             theyAckHandshakeComplete: pubKey != null));
     await saveContact(contact);
@@ -1108,7 +1108,7 @@ class ContactsRepository {
         dhtSettings: DhtSettings(
             theyAckHandshakeComplete: true,
             theirPublicKey: contactSubkeyContent.publicKey,
-            myKeyPair: batch.myKeyPair),
+            myNextKeyPair: batch.myKeyPair),
       );
       await saveContact(contact);
       await updateCirclesForContact(
@@ -1315,6 +1315,7 @@ class ContactsRepository {
         myIdentity: await generateTypedKeyPair(),
         dhtSettings: DhtSettings(
             myKeyPair: introducer.dhtSettings.myKeyPair,
+            myNextKeyPair: await generateTypedKeyPair(),
             recordKeyMeSharing: introduction.dhtRecordKeySharing,
             writerMeSharing: introduction.dhtWriterSharing,
             theirPublicKey: introduction.otherPublicKey,

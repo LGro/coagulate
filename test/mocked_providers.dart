@@ -185,7 +185,7 @@ class DummyDistributedStorage extends VeilidDhtStorage {
   @override
   Future<(PublicKey?, TypedKeyPair?, String?, Uint8List?)> readRecord(
       {required Typed<FixedEncodedString43> recordKey,
-      required TypedKeyPair keyPair,
+      TypedKeyPair? keyPair,
       TypedKeyPair? nextKeyPair,
       SecretKey? psk,
       PublicKey? publicKey,

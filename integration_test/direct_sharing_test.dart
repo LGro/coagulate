@@ -6,6 +6,7 @@ import 'package:coagulate/data/repositories/contacts.dart';
 import 'package:coagulate/ui/receive_request/cubit.dart';
 import 'package:coagulate/ui/utils.dart';
 import 'package:coagulate/veilid_init.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -33,6 +34,7 @@ void main() {
 
   test('Alice directly shares with Bob who shares back', () async {
     // Alice prepares invite for Bob and shares via default circle
+    debugPrint('ALICE ACTING');
     var contactBobInvitedByA = await _cRepoA.createContactForInvite(
         'Bob Invite',
         pubKey: null,
@@ -76,6 +78,8 @@ void main() {
         contactBobInvitedByA.dhtSettings.initialSecret!);
 
     // Bob accepts invite from Alice and shares via default circle
+    debugPrint('---');
+    debugPrint('BOB ACTING');
     await ReceiveRequestCubit(_cRepoB).handleDirectSharing(
         directSharingLinkFromAliceForBob.fragment,
         awaitDhtOperations: true);
@@ -110,6 +114,8 @@ void main() {
     expect(showDirectSharing(contactAliceFromBobsRepo), false);
 
     // Alice checks for Bob sharing back
+    debugPrint('---');
+    debugPrint('ALICE ACTING');
     await _cRepoA.updateContactFromDHT(contactBobInvitedByA);
     contactBobInvitedByA =
         _cRepoA.getContact(contactBobInvitedByA.coagContactId)!;
@@ -123,9 +129,16 @@ void main() {
       true,
       reason: 'Bob indicated handshake complete',
     );
+    expect(
+      contactBobInvitedByA.dhtSettings.initialSecret,
+      isNull,
+      reason: 'Initial secret discarded due to switch to public key crypto',
+    );
     await _cRepoA.tryShareWithContactDHT(contactBobInvitedByA.coagContactId);
 
     // Bob checks for completed handshake after updating receive and share
+    debugPrint('---');
+    debugPrint('BOB ACTING');
     await _cRepoB.updateContactFromDHT(contactAliceFromBobsRepo);
     contactAliceFromBobsRepo = _cRepoB.getContacts().values.first;
     expect(
@@ -133,36 +146,54 @@ void main() {
       true,
       reason: 'Handshake accepted as complete by Alice',
     );
+    expect(contactAliceFromBobsRepo.dhtSettings.initialSecret, isNull,
+        reason:
+            'Initial secret removed after pub keys exchanged and handshake');
 
     //// TRANSITION FROM SYMMETRIC TO ASYMMETRIC CRYPTO COMPLETED ////
     ////           TESTING ASYMMETRIC KEY ROTATION NOW            ////
 
-    // // Bob shares update, testing key rotation
-    // final profileB = _cRepoB.getProfileInfo()!;
-    // await _cRepoB.setProfileInfo(
-    //     profileB.copyWith(
-    //         addressLocations: {
-    //           'a0': const ContactAddressLocation(latitude: 0, longitude: 0)
-    //         },
-    //         sharingSettings: profileB.sharingSettings.copyWith(addresses: {
-    //           'a0': [defaultInitialCircleId]
-    //         })),
-    //     triggerDhtUpdate: false);
-    // await _cRepoB.updateSharingDHT();
+    // Bob shares update, testing key rotation
+    debugPrint('---');
+    debugPrint('BOB ACTING');
+    final profileB = _cRepoB.getProfileInfo()!;
+    await _cRepoB.setProfileInfo(
+        profileB.copyWith(
+            addressLocations: {
+              'a0': const ContactAddressLocation(latitude: 0, longitude: 0)
+            },
+            sharingSettings: profileB.sharingSettings.copyWith(addresses: {
+              'a0': [defaultInitialCircleId]
+            })),
+        triggerDhtUpdate: false);
+    await _cRepoB
+        .tryShareWithContactDHT(contactAliceFromBobsRepo.coagContactId);
 
-    // // Bob receives new location
-    // await _cRepoA.updateContactFromDHT(
-    //     _cRepoA.getContact(contactBobInvitedByA.coagContactId)!);
-    // final contactBobFromAlicesRepo = _cRepoA.getContacts().values.first;
-    // expect(
-    //   contactBobFromAlicesRepo.dhtSettings.theirNextPublicKey,
-    //   isNotNull,
-    //   reason: 'Follow up public key has been transmitted',
-    // );
-    // expect(
-    //   contactBobFromAlicesRepo.dhtSettings.theirNextPublicKey,
-    //   isNot(equals(contactBobInvitedByA.dhtSettings.theirNextPublicKey)),
-    //   reason: 'Follow up key differs',
-    // );
+    // Alice receives new location
+    debugPrint('---');
+    debugPrint('ALICE ACTING');
+    await _cRepoA.updateContactFromDHT(
+        _cRepoA.getContact(contactBobInvitedByA.coagContactId)!);
+    final contactBobFromAlicesRepo = _cRepoA.getContacts().values.first;
+    expect(
+      contactBobFromAlicesRepo.dhtSettings.theirPublicKey,
+      isNotNull,
+      reason: 'Public key is marked as working',
+    );
+    expect(
+      contactBobFromAlicesRepo.dhtSettings.theirNextPublicKey,
+      isNotNull,
+      reason: 'Follow up public key has been transmitted',
+    );
+    expect(
+      contactBobFromAlicesRepo.dhtSettings.theirPublicKey,
+      isNot(equals(contactBobFromAlicesRepo.dhtSettings.theirNextPublicKey)),
+      reason: 'Follow up key differs',
+    );
+    expect(
+      contactBobFromAlicesRepo.dhtSettings.theirNextPublicKey,
+      contactAliceFromBobsRepo.dhtSettings.myNextKeyPair.key,
+      reason: 'Next key matches source next key pair public key',
+    );
   });
 }

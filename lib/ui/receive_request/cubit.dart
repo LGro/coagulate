@@ -189,7 +189,7 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
         dhtSettings: DhtSettings(
             recordKeyThemSharing: recordKey,
             initialSecret: psk,
-            myKeyPair: await contactsRepository.generateTypedKeyPair()));
+            myNextKeyPair: await contactsRepository.generateTypedKeyPair()));
 
     // Save contact and trigger optional DHT update if connected, this allows
     // to scan a QR code offline and fetch data later if not available now

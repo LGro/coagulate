@@ -7,16 +7,16 @@ part of 'coag_contact.dart';
 // **************************************************************************
 
 DhtSettings _$DhtSettingsFromJson(Map<String, dynamic> json) => DhtSettings(
-      myKeyPair: TypedKeyPair.fromJson(json['my_key_pair']),
-      myNextKeyPair: json['my_next_key_pair'] == null
+      myNextKeyPair: TypedKeyPair.fromJson(json['my_next_key_pair']),
+      myKeyPair: json['my_key_pair'] == null
           ? null
-          : TypedKeyPair.fromJson(json['my_next_key_pair']),
-      theirPublicKey: json['their_public_key'] == null
-          ? null
-          : FixedEncodedString43.fromJson(json['their_public_key']),
+          : TypedKeyPair.fromJson(json['my_key_pair']),
       theirNextPublicKey: json['their_next_public_key'] == null
           ? null
           : FixedEncodedString43.fromJson(json['their_next_public_key']),
+      theirPublicKey: json['their_public_key'] == null
+          ? null
+          : FixedEncodedString43.fromJson(json['their_public_key']),
       recordKeyMeSharing: json['record_key_me_sharing'] == null
           ? null
           : Typed<FixedEncodedString43>.fromJson(json['record_key_me_sharing']),
@@ -39,8 +39,8 @@ DhtSettings _$DhtSettingsFromJson(Map<String, dynamic> json) => DhtSettings(
 
 Map<String, dynamic> _$DhtSettingsToJson(DhtSettings instance) =>
     <String, dynamic>{
-      'my_key_pair': instance.myKeyPair.toJson(),
-      'my_next_key_pair': instance.myNextKeyPair?.toJson(),
+      'my_key_pair': instance.myKeyPair?.toJson(),
+      'my_next_key_pair': instance.myNextKeyPair.toJson(),
       'their_public_key': instance.theirPublicKey?.toJson(),
       'their_next_public_key': instance.theirNextPublicKey?.toJson(),
       'record_key_me_sharing': instance.recordKeyMeSharing?.toJson(),

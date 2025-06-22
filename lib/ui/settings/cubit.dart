@@ -100,11 +100,7 @@ class SettingsCubit extends Cubit<SettingsState> {
                   details: faker.lorem.sentence()));
         })),
         dhtSettings: DhtSettings(
-            myKeyPair: await DHTRecordPool.instance.veilid
-                .bestCryptoSystem()
-                .then((cs) => cs
-                    .generateKeyPair()
-                    .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)))));
+            myNextKeyPair: await contactsRepository.generateTypedKeyPair()));
     await contactsRepository.saveContact(c1);
     await contactsRepository.updateCirclesForContact(
         c1.coagContactId, [defaultInitialCircleId],

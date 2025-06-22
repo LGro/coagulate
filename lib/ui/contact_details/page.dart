@@ -444,25 +444,19 @@ class _ContactPageState extends State<ContactPage> {
           // Text('Changed: ${contact.mostRecentChange}'),
           _paddedDivider(),
           Text(
-              'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair.key.toString())}...'),
-          if (contact.dhtSettings.myNextKeyPair != null)
-            Text(
-                'MyNextPubKey: ${_shorten(contact.dhtSettings.myNextKeyPair!.key.toString())}...'),
-          if (contact.dhtSettings.recordKeyMeSharing != null)
-            Text(
-                'MyDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
-          if (contact.dhtSettings.theirPublicKey != null)
-            Text(
-                'TheirPubKey: ${_shorten(contact.dhtSettings.theirPublicKey.toString())}...'),
-          if (contact.dhtSettings.theirNextPublicKey != null)
-            Text(
-                'TheirNextPubKey: ${_shorten(contact.dhtSettings.theirNextPublicKey.toString())}...'),
-          if (contact.dhtSettings.recordKeyThemSharing != null)
-            Text(
-                'TheirDhtKey: ${_shorten(contact.dhtSettings.recordKeyThemSharing.toString())}...'),
-          if (contact.dhtSettings.initialSecret != null)
-            Text(
-                'InitSec: ${_shorten(contact.dhtSettings.initialSecret.toString())}...'),
+              'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair?.key.toString() ?? 'null')}...'),
+          Text(
+              'MyNextPubKey: ${_shorten(contact.dhtSettings.myNextKeyPair.key.toString())}...'),
+          Text(
+              'MyDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
+          Text(
+              'TheirPubKey: ${_shorten(contact.dhtSettings.theirPublicKey.toString())}...'),
+          Text(
+              'TheirNextPubKey: ${_shorten(contact.dhtSettings.theirNextPublicKey.toString())}...'),
+          Text(
+              'TheirDhtKey: ${_shorten(contact.dhtSettings.recordKeyThemSharing.toString())}...'),
+          Text(
+              'InitSec: ${_shorten(contact.dhtSettings.initialSecret.toString())}...'),
           const SizedBox(height: 16),
         ]),
       ]));
@@ -667,7 +661,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact,
                                       .firstOrNull ??
                                   '???',
                               contact.dhtSettings.recordKeyMeSharing!,
-                              contact.dhtSettings.myKeyPair.key)
+                              contact.dhtSettings.myNextKeyPair.key)
                           .toString(),
                       maxLines: 1,
                       softWrap: false,
@@ -679,7 +673,7 @@ Widget _connectingCard(BuildContext context, CoagContact contact,
                                   .firstOrNull ??
                               '???',
                           contact.dhtSettings.recordKeyMeSharing!,
-                          contact.dhtSettings.myKeyPair.key))),
+                          contact.dhtSettings.myNextKeyPair.key))),
                   icon: const Icon(Icons.copy)),
             ])
           ] else if (showDirectSharing(contact)) ...[

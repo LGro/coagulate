@@ -10,6 +10,7 @@ import 'package:veilid_support/veilid_support.dart';
 
 import '../../models/backup.dart';
 import '../../models/coag_contact.dart';
+import '../../utils.dart';
 import 'base.dart';
 
 String? tryUtf8Decode(Uint8List? content) {
@@ -62,19 +63,30 @@ Iterable<Uint8List> chopPayloadChunks(Uint8List payload,
                 i * chunkMaxBytes, min(payload.length, (i + 1) * chunkMaxBytes))
             : Uint8List(0));
 
-DhtSettings rotateKeysInDhtSettings(
-    DhtSettings settings, PublicKey? usedPublicKey, TypedKeyPair? usedKeyPair) {
-  final rotateKeyPair =
-      usedKeyPair != null && settings.myNextKeyPair == usedKeyPair;
+Future<DhtSettings> rotateKeysInDhtSettings(
+    DhtSettings settings,
+    PublicKey? usedPublicKey,
+    TypedKeyPair? usedKeyPair,
+    bool ackHandshakeComplete) async {
+  // If either we haven't established a key pair but received handshake complete
+  // signal, or our next key pair's public key was used
+  final rotateKeyPair = (ackHandshakeComplete && settings.myKeyPair == null) ||
+      (usedKeyPair != null && settings.myNextKeyPair == usedKeyPair);
+
+  // If their next public key was used
   final rotatePublicKey =
       usedPublicKey != null && settings.theirNextPublicKey == usedPublicKey;
-  debugPrint('Rotating kp: $rotateKeyPair');
-  debugPrint('Rotating pk: $rotatePublicKey');
+
+  if (rotateKeyPair) debugPrint('Rotating my key pair');
+  if (rotatePublicKey) debugPrint('Rotating their public key');
+
   return DhtSettings(
-    // If the next key pair was used, rotate it to the current slot
-    myKeyPair: rotateKeyPair ? usedKeyPair : settings.myKeyPair,
-    myNextKeyPair: rotateKeyPair ? null : settings.myNextKeyPair,
-    // If the next public key was used, rotate it to the current slot
+    // If the next key pair was used or acknowledged, rotate it
+    myKeyPair: rotateKeyPair ? settings.myNextKeyPair : settings.myKeyPair,
+    myNextKeyPair: rotateKeyPair
+        ? await generateTypedKeyPairBest()
+        : settings.myNextKeyPair,
+    // If the next public key was used, rotate it
     theirPublicKey: rotatePublicKey ? usedPublicKey : settings.theirPublicKey,
     theirNextPublicKey: rotatePublicKey ? null : settings.theirNextPublicKey,
     // If anything asymmetric crypto related was rotated, discard symmetric key
@@ -98,7 +110,9 @@ DhtSettings updateDhtSettingsFromContactUpdate(
         (update.shareBackPubKey != null && update.shareBackPubKey != 'null')
             ? PublicKey.fromString(update.shareBackPubKey!)
             : null;
-  } catch (e) {}
+  } catch (e) {
+    debugPrint('Error decoding share back pub key: $e');
+  }
 
   // Try deserializing shareBackDhtKey
   late Typed<FixedEncodedString43>? shareBackDhtKey;
@@ -107,7 +121,9 @@ DhtSettings updateDhtSettingsFromContactUpdate(
         (update.shareBackDHTKey != null && update.shareBackDHTKey != 'null')
             ? Typed<FixedEncodedString43>.fromString(update.shareBackDHTKey!)
             : null;
-  } catch (e) {}
+  } catch (e) {
+    debugPrint('Error decoding share back dht key: $e');
+  }
 
   // Try deserializing shareBackDHTKey
   late KeyPair? shareBackDhtWriter;
@@ -116,7 +132,9 @@ DhtSettings updateDhtSettingsFromContactUpdate(
             update.shareBackDHTWriter != 'null')
         ? KeyPair.fromString(update.shareBackDHTWriter!)
         : null;
-  } catch (e) {}
+  } catch (e) {
+    debugPrint('Error decoding share back writer: $e');
+  }
 
   // Update settings
   return settings.copyWith(
@@ -156,7 +174,7 @@ class VeilidDhtStorage extends DistributedStorage {
   @override
   Future<(PublicKey?, TypedKeyPair?, String?, Uint8List?)> readRecord({
     required Typed<FixedEncodedString43> recordKey,
-    required TypedKeyPair keyPair,
+    TypedKeyPair? keyPair,
     TypedKeyPair? nextKeyPair,
     SecretKey? psk,
     PublicKey? publicKey,
@@ -164,16 +182,11 @@ class VeilidDhtStorage extends DistributedStorage {
     int maxRetries = 3,
     DHTRecordRefreshMode refreshMode = DHTRecordRefreshMode.network,
   }) async {
-    if (psk == null && publicKey == null) {
-      // TODO: Raise exception/log/handle
-      return (null, null, null, null);
-    }
-
     // Derive all available DH secrets to try in addition to the pre shared key
     final domain = utf8.encode('dht');
     final secrets = <(PublicKey?, TypedKeyPair?, SecretKey)>[
       if (psk != null) (null, null, psk),
-      if (publicKey != null)
+      if (publicKey != null && keyPair != null)
         (
           publicKey,
           keyPair,
@@ -188,7 +201,7 @@ class VeilidDhtStorage extends DistributedStorage {
               (cs) async => cs.generateSharedSecret(
                   publicKey, nextKeyPair.secret, domain))
         ),
-      if (nextPublicKey != null)
+      if (nextPublicKey != null && keyPair != null)
         (
           nextPublicKey,
           keyPair,
@@ -225,13 +238,13 @@ class VeilidDhtStorage extends DistributedStorage {
               final (jsonString, picture) =
                   await _getJsonProfileAndPictureFromRecord(
                       record, crypto, refreshMode);
-              debugPrint('read ${recordKey.toString().substring(5, 10)}');
               return (jsonString, picture);
             } on FormatException catch (e) {
               // This can happen due to "not enough data to decrypt" when a
               // record was written empty without encryption during init
               // TODO: Only accept "not enough data to decrypt" here, make sure "Unexpected exentsion byte" is passed down as an error
-              debugPrint('read ${recordKey.toString().substring(5, 10)} $e');
+              debugPrint(
+                  'error reading ${recordKey.toString().substring(5, 10)} $e');
             } finally {
               await record.close();
             }
@@ -271,44 +284,36 @@ class VeilidDhtStorage extends DistributedStorage {
       // TODO: Log/raise/handle
       return;
     }
+    final _recordKey = settings.recordKeyMeSharing!;
+
     final content = sharedProfile?.toJsonStringWithoutPicture() ?? '';
     final picture = (sharedProfile?.details.picture == null)
         ? Uint8List(0)
         : Uint8List.fromList(sharedProfile!.details.picture!);
 
-    final _recordKey = settings.recordKeyMeSharing;
-    final SharedSecret secret;
+    // Prefer their next public key over the established one for sending updates
+    final theirPublicKey =
+        settings.theirNextPublicKey ?? settings.theirPublicKey;
 
     // TODO: Is it safe to assume consistent crypto systems between record key
     //       and psk/public keys or would it make sense to use typed instances?
+    final SharedSecret secret;
     if (settings.initialSecret != null && !settings.theyAckHandshakeComplete) {
       // Otherwise, if an initial secret is present, use it for symmetric crypto
       secret = settings.initialSecret!;
-      debugPrint('using psk crypto ${secret.toString().substring(0, 6)} '
+      debugPrint('using psk ${secret.toString().substring(0, 6)} '
           'for writing ${_recordKey.toString().substring(5, 10)}');
-    } else if (settings.theirNextPublicKey != null) {
+    } else if (theirPublicKey != null && settings.myKeyPair != null) {
       // If a next public key is queued, use it to confirm
       debugPrint(
-          'using next pubkey ${settings.theirNextPublicKey.toString().substring(0, 6)} '
+          'using their pubkey ${theirPublicKey.toString().substring(0, 6)} '
+          'and my kp ${settings.myKeyPair!.key.toString().substring(0, 6)} '
           'for writing ${_recordKey.toString().substring(5, 10)}');
       // Derive DH secret with next public key
       secret = await Veilid.instance
-          .getCryptoSystem(settings.myKeyPair.kind)
+          .getCryptoSystem(settings.myKeyPair!.kind)
           .then((cs) async => cs.generateSharedSecret(
-              settings.theirNextPublicKey!,
-              settings.myKeyPair.secret,
-              utf8.encode('dht')));
-    } else if (settings.theirPublicKey != null) {
-      // If the initial secret is no longer / was never active and there is a
-      // public key in the current public key slot, i.e. it was confirmed
-      debugPrint(
-          'using pubkey ${settings.theirPublicKey.toString().substring(0, 6)} '
-          'for writing ${_recordKey.toString().substring(5, 10)}');
-      // Derive DH secret with current public key
-      secret = await Veilid.instance
-          .getCryptoSystem(settings.myKeyPair.kind)
-          .then((cs) async => cs.generateSharedSecret(settings.theirPublicKey!,
-              settings.myKeyPair.secret, utf8.encode('dht')));
+              theirPublicKey, settings.myKeyPair!.secret, utf8.encode('dht')));
     } else {
       // TODO: Raise Exception / signal to user that something is broken
       debugPrint('no crypto for ${_recordKey.toString().substring(5, 10)}');
@@ -316,7 +321,7 @@ class VeilidDhtStorage extends DistributedStorage {
     }
 
     final crypto =
-        await VeilidCryptoPrivate.fromSharedSecret(_recordKey!.kind, secret);
+        await VeilidCryptoPrivate.fromSharedSecret(_recordKey.kind, secret);
 
     // Open, write and close record
     final record = await DHTRecordPool.instance.openRecordWrite(
@@ -362,7 +367,7 @@ class VeilidDhtStorage extends DistributedStorage {
     );
     if ((contactJson?.isEmpty ?? true) || contactJson == 'null') {
       debugPrint(
-          'empty or null ${contact.dhtSettings.recordKeyThemSharing.toString().substring(5, 10)}');
+          'empty or null ${contact.dhtSettings.recordKeyThemSharing.toString().substring(5, 10)}: $contactJson');
       return null;
     }
 
@@ -377,8 +382,11 @@ class VeilidDhtStorage extends DistributedStorage {
       return null;
     }
 
-    final dhtSettingsWithRotatedKeys = rotateKeysInDhtSettings(
-        contact.dhtSettings, usedPublicKey, usedKeyPair);
+    final dhtSettingsWithRotatedKeys = await rotateKeysInDhtSettings(
+        contact.dhtSettings,
+        usedPublicKey,
+        usedKeyPair,
+        dhtContact.ackHandshakeComplete);
 
     final updatedDhtSettings = updateDhtSettingsFromContactUpdate(
         dhtSettingsWithRotatedKeys, dhtContact);
