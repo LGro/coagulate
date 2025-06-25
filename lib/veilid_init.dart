@@ -13,7 +13,7 @@ class CoagulateGlobalInit {
   Future<void> _initializeVeilid(String bootstrapUrl) async {
     // Init Veilid
     Veilid.instance.initializeVeilidCore(
-        await getDefaultVeilidPlatformConfig(false, 'Coagulate'));
+        await getDefaultVeilidPlatformConfig(kIsWeb, 'Coagulate'));
 
     // Veilid logging
     initVeilidLog(kDebugMode);

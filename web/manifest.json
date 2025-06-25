@@ -1,0 +1,12 @@
+{
+    "name": "coagulate",
+    "short_name": "coagulate",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#33183f",
+    "theme_color": "#863fa6",
+    "description": "Coagulate",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": []
+}

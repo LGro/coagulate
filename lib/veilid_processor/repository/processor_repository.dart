@@ -50,11 +50,23 @@ class ProcessorRepository {
       // Do nothing on failure here
     }
     final veilidConfig = await getVeilidConfig(kIsWeb, 'Coagulate').then((c) =>
-        c.copyWith(
-            network: c.network.copyWith(
-                routingTable: c.network.routingTable
-                    .copyWith(bootstrap: [bootstrapUrl]))));
-    final updateStream = await Veilid.instance.startupVeilidCore(veilidConfig);
+        kIsWeb
+            ? c
+            : c.copyWith(
+                network: c.network.copyWith(
+                    routingTable: c.network.routingTable
+                        .copyWith(bootstrap: [bootstrapUrl]))));
+    Stream<VeilidUpdate> updateStream;
+    try {
+      log.debug('Starting VeilidCore');
+      updateStream = await Veilid.instance.startupVeilidCore(veilidConfig);
+    } on VeilidAPIExceptionAlreadyInitialized catch (_) {
+      log.debug(
+          'VeilidCore is already started, shutting down and restarting...');
+      startedUp = true;
+      await shutdown();
+      updateStream = await Veilid.instance.startupVeilidCore(veilidConfig);
+    }
     _updateSubscription = updateStream.listen((update) {
       if (update is VeilidLog) {
         processLog(update);
