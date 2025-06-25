@@ -192,7 +192,7 @@ void main() {
     );
     expect(
       contactBobFromAlicesRepo.dhtSettings.theirNextPublicKey,
-      contactAliceFromBobsRepo.dhtSettings.myNextKeyPair.key,
+      contactAliceFromBobsRepo.dhtSettings.myNextKeyPair?.key,
       reason: 'Next key matches source next key pair public key',
     );
   });

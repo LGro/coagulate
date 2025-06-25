@@ -63,11 +63,11 @@ Iterable<Uint8List> chopPayloadChunks(Uint8List payload,
                 i * chunkMaxBytes, min(payload.length, (i + 1) * chunkMaxBytes))
             : Uint8List(0));
 
-Future<DhtSettings> rotateKeysInDhtSettings(
+DhtSettings rotateKeysInDhtSettings(
     DhtSettings settings,
     PublicKey? usedPublicKey,
     TypedKeyPair? usedKeyPair,
-    bool ackHandshakeJustCompleted) async {
+    bool ackHandshakeJustCompleted) {
   // If we have received handshake complete signal for the first time, or our
   // next key pair's public key was used
   final rotateKeyPair = ackHandshakeJustCompleted ||
@@ -83,11 +83,12 @@ Future<DhtSettings> rotateKeysInDhtSettings(
   return DhtSettings.explicit(
     // If the next key pair was used or acknowledged, rotate it
     myKeyPair: rotateKeyPair ? settings.myNextKeyPair : settings.myKeyPair,
-    myNextKeyPair: rotateKeyPair
-        ? await generateTypedKeyPairBest()
-        : settings.myNextKeyPair,
+    // The next key pair will be populated only when the shared profile changes,
+    // to avoid needlessly rotating keys
+    myNextKeyPair: rotateKeyPair ? null : settings.myNextKeyPair,
     // If the next public key was used, rotate it
     theirPublicKey: rotatePublicKey ? usedPublicKey : settings.theirPublicKey,
+    // Their next public key will be populated from the update they share(d)
     theirNextPublicKey: rotatePublicKey ? null : settings.theirNextPublicKey,
     // If anything asymmetric crypto related was rotated, discard symmetric key
     initialSecret:
@@ -408,7 +409,7 @@ class VeilidDhtStorage extends DistributedStorage {
       return null;
     }
 
-    final dhtSettingsWithRotatedKeys = await rotateKeysInDhtSettings(
+    final dhtSettingsWithRotatedKeys = rotateKeysInDhtSettings(
         contact.dhtSettings,
         usedPublicKey,
         usedKeyPair,

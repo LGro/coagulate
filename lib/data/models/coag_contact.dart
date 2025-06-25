@@ -19,7 +19,7 @@ part 'coag_contact.g.dart';
 @JsonSerializable()
 class DhtSettings extends Equatable {
   const DhtSettings({
-    required this.myNextKeyPair,
+    this.myNextKeyPair,
     this.myKeyPair,
     this.theirNextPublicKey,
     this.theirPublicKey,
@@ -54,7 +54,7 @@ class DhtSettings extends Equatable {
 
   /// Replacement key pair to use for deriving symmetric key for decrypting and
   /// encrypting updates in the future as soon as acknowledged
-  final TypedKeyPair myNextKeyPair;
+  final TypedKeyPair? myNextKeyPair;
 
   /// Current public keys to derive a key for decrypting received updates
   final PublicKey? theirPublicKey;

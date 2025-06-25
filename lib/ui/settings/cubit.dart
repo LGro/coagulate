@@ -100,8 +100,7 @@ class SettingsCubit extends Cubit<SettingsState> {
                       .add(Duration(days: faker.randomGenerator.integer(30))),
                   details: faker.lorem.sentence()));
         })),
-        dhtSettings: DhtSettings(
-            myNextKeyPair: await contactsRepository.generateTypedKeyPair()));
+        dhtSettings: const DhtSettings());
     await contactsRepository.saveContact(c1);
     await contactsRepository.updateCirclesForContact(
         c1.coagContactId, [defaultInitialCircleId],

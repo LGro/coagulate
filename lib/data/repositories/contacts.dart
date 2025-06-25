@@ -137,7 +137,11 @@ CoagContactDHTSchema filterAccordingToSharingProfile({
           profile.sharingSettings, activeCirclesWithMemberCount.keys),
       shareBackDHTKey: dhtSettings.recordKeyThemSharing.toString(),
       shareBackDHTWriter: dhtSettings.writerThemSharing.toString(),
-      shareBackPubKey: dhtSettings.myNextKeyPair.key.toString(),
+      shareBackPubKey: (dhtSettings.myNextKeyPair != null)
+          ? dhtSettings.myNextKeyPair!.key.toString()
+          : ((dhtSettings.myKeyPair != null)
+              ? dhtSettings.myKeyPair!.key.toString()
+              : null),
       identityKey: identityKey,
       connectionAttestations: connectionAttestations,
       ackHandshakeComplete: dhtSettings.theirPublicKey != null ||
@@ -811,7 +815,18 @@ class ContactsRepository {
           await connectionAttestations(contact, getContacts().values),
     );
 
-    await saveContact(contact.copyWith(sharedProfile: updatedSharedProfile));
+    await saveContact(contact.copyWith(
+      sharedProfile: updatedSharedProfile,
+      dhtSettings: contact.dhtSettings.copyWith(
+          // Only if the shared profile infos actually changed, and there isn't
+          // already a next key pair queued, queue one for rotation
+          // TODO: Check that the comparison detects changes on location list
+          //       membership, not list instance
+          myNextKeyPair: (contact.sharedProfile != updatedSharedProfile &&
+                  contact.dhtSettings.myNextKeyPair == null)
+              ? await generateTypedKeyPair()
+              : null),
+    ));
   }
 
   Future<void> _dhtRecordUpdateCallback(Typed<FixedEncodedString43> key) async {
@@ -835,7 +850,6 @@ class ContactsRepository {
         myIntroductionKeyPair: await generateTypedKeyPair(),
         dhtSettings: DhtSettings(
             myKeyPair: await generateTypedKeyPair(),
-            myNextKeyPair: await generateTypedKeyPair(),
             theirNextPublicKey: pubKey,
             // If we already have a pubkey, consider the handshake complete
             theyAckHandshakeComplete: pubKey != null));
@@ -1136,8 +1150,7 @@ class ContactsRepository {
         dhtSettings: DhtSettings(
             theyAckHandshakeComplete: true,
             theirNextPublicKey: contactSubkeyContent.publicKey,
-            myKeyPair: batch.myKeyPair,
-            myNextKeyPair: await generateTypedKeyPair()),
+            myKeyPair: batch.myKeyPair),
         origin: batchOrigin(batch, subkey),
       );
       await saveContact(contact);
@@ -1348,7 +1361,6 @@ class ContactsRepository {
         myIntroductionKeyPair: await generateTypedKeyPair(),
         dhtSettings: DhtSettings(
             myKeyPair: myKeyPair,
-            myNextKeyPair: await generateTypedKeyPair(),
             theirNextPublicKey: introduction.otherPublicKey,
             recordKeyMeSharing: introduction.dhtRecordKeySharing,
             writerMeSharing: introduction.dhtWriterSharing,

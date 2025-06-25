@@ -7,7 +7,9 @@ part of 'coag_contact.dart';
 // **************************************************************************
 
 DhtSettings _$DhtSettingsFromJson(Map<String, dynamic> json) => DhtSettings(
-      myNextKeyPair: TypedKeyPair.fromJson(json['my_next_key_pair']),
+      myNextKeyPair: json['my_next_key_pair'] == null
+          ? null
+          : TypedKeyPair.fromJson(json['my_next_key_pair']),
       myKeyPair: json['my_key_pair'] == null
           ? null
           : TypedKeyPair.fromJson(json['my_key_pair']),
@@ -40,7 +42,7 @@ DhtSettings _$DhtSettingsFromJson(Map<String, dynamic> json) => DhtSettings(
 Map<String, dynamic> _$DhtSettingsToJson(DhtSettings instance) =>
     <String, dynamic>{
       'my_key_pair': instance.myKeyPair?.toJson(),
-      'my_next_key_pair': instance.myNextKeyPair.toJson(),
+      'my_next_key_pair': instance.myNextKeyPair?.toJson(),
       'their_public_key': instance.theirPublicKey?.toJson(),
       'their_next_public_key': instance.theirNextPublicKey?.toJson(),
       'record_key_me_sharing': instance.recordKeyMeSharing?.toJson(),

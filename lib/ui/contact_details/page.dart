@@ -446,7 +446,7 @@ class _ContactPageState extends State<ContactPage> {
           Text(
               'MyPubKey: ${_shorten(contact.dhtSettings.myKeyPair?.key.toString() ?? 'null')}...'),
           Text(
-              'MyNextPubKey: ${_shorten(contact.dhtSettings.myNextKeyPair.key.toString())}...'),
+              'MyNextPubKey: ${_shorten(contact.dhtSettings.myNextKeyPair?.key.toString() ?? 'null')}...'),
           Text(
               'MyDhtKey: ${_shorten(contact.dhtSettings.recordKeyMeSharing.toString())}...'),
           Text(
