@@ -58,11 +58,17 @@ class IntroductionsPage extends StatelessWidget {
                           final coagContactId = await context
                               .read<IntroductionsCubit>()
                               .accept(introducer, introduction);
-                          if (context.mounted) {
+                          if (context.mounted && coagContactId != null) {
                             context.goNamed('contactDetails', pathParameters: {
                               'coagContactId': coagContactId
                             });
                             alertContext.pop();
+                          } else if (context.mounted && coagContactId == null) {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text('Accepting introduction failed. '
+                                  'Ask the introducer to send one again.'),
+                            ));
                           }
                         },
                         child: const Text('Accept & configure sharing'))),

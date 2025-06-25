@@ -11,6 +11,7 @@ class ContactIntroduction extends Equatable {
   const ContactIntroduction({
     required this.otherName,
     required this.otherPublicKey,
+    required this.publicKey,
     required this.dhtRecordKeyReceiving,
     required this.dhtRecordKeySharing,
     required this.dhtWriterSharing,
@@ -24,7 +25,10 @@ class ContactIntroduction extends Equatable {
   final String otherName;
 
   /// Public key of the contact this is not the introduction for
-  final FixedEncodedString43 otherPublicKey;
+  final PublicKey otherPublicKey;
+
+  /// Public key of the recipient of this invite, the app user
+  final PublicKey publicKey;
 
   /// Optional message for the introduction
   final String? message;
@@ -44,6 +48,7 @@ class ContactIntroduction extends Equatable {
   List<Object?> get props => [
         otherName,
         otherPublicKey,
+        publicKey,
         message,
         dhtRecordKeyReceiving,
         dhtRecordKeySharing,

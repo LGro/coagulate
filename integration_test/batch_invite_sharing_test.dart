@@ -6,6 +6,7 @@ import 'package:coagulate/ui/batch_invite_management/cubit.dart';
 import 'package:coagulate/ui/receive_request/cubit.dart';
 import 'package:coagulate/ui/utils.dart';
 import 'package:coagulate/veilid_init.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -33,6 +34,7 @@ void main() {
 
   test('Peter creates a batch, Alice and Bob join to share', () async {
     // Peter creates a batch
+    debugPrint('PETER ACTING');
     final biCubitP = BatchInvitesCubit();
     await biCubitP.generateInvites(
         'Party Batch', 2, DateTime.now().add(const Duration(hours: 1)));
@@ -42,6 +44,8 @@ void main() {
     final batchInviteUrlBob = Uri.parse(inviteLinks.last);
 
     // Alice prepares invite for Bob using Bob's profile public key
+    debugPrint('---');
+    debugPrint('ALICE ACTING');
     final rrCubitA = ReceiveRequestCubit(_cRepoA,
         initialState: ReceiveRequestState(
             ReceiveRequestStatus.handleBatchInvite,
@@ -54,7 +58,9 @@ void main() {
       reason: 'Nobody else shared with the batch yet',
     );
 
-    // Bob accepts batch based offer from Alice
+    // Bob accepts batch based offer from Alice and starts sharing
+    debugPrint('---');
+    debugPrint('BOB ACTING');
     final rrCubitB = ReceiveRequestCubit(_cRepoB,
         initialState: ReceiveRequestState(
             ReceiveRequestStatus.handleBatchInvite,
@@ -76,7 +82,9 @@ void main() {
         contactAliceFromBobsRepo.sharedProfile?.details.names.keys.firstOrNull,
         batchNameIdB);
 
-    // Alice finds bob in the batch and starts sharing
+    // Alice finds bob in the batch, sees stuff from Bob and starts sharing
+    debugPrint('---');
+    debugPrint('ALICE ACTING');
     expect(_cRepoA.getBatchInvites().length, 1,
         reason: 'Alice received only one batch invite');
     await _cRepoA.batchInviteUpdate(_cRepoA.getBatchInvites().values.first);
@@ -85,6 +93,11 @@ void main() {
       contactBobFromAlicesRepo.name,
       'UserB',
       reason: 'Got name from batch',
+    );
+    expect(
+      contactBobFromAlicesRepo.details?.names.values.firstOrNull,
+      'UserB',
+      reason: 'Details available',
     );
     expect(
       contactBobFromAlicesRepo.dhtSettings.recordKeyMeSharing,
@@ -100,10 +113,13 @@ void main() {
         contactBobFromAlicesRepo.sharedProfile?.details.names.keys.firstOrNull,
         batchNameIdA);
 
-    // Bob learns about Alice and starts sharing back
+    // Bob learns about Alice
+    debugPrint('---');
+    debugPrint('BOB ACTING');
     expect(_cRepoB.getBatchInvites().length, 1,
         reason: 'Bob received only one batch invite');
     await _cRepoB.batchInviteUpdate(_cRepoB.getBatchInvites().values.first);
+    expect(_cRepoB.getContacts().length, 1, reason: 'Expecting only Alice');
     contactAliceFromBobsRepo = _cRepoB.getContacts().values.first;
     expect(
       contactAliceFromBobsRepo.details?.names.values.firstOrNull,
@@ -111,14 +127,13 @@ void main() {
       reason: 'Details available',
     );
 
-    // Alice sees stuff from Bob
+    // First key rotation
+    debugPrint('---');
+    debugPrint('ALICE ACTING');
     await _cRepoA.updateContactFromDHT(contactBobFromAlicesRepo);
+    expect(_cRepoA.getContacts().length, 1, reason: 'Expecting only Bob');
     contactBobFromAlicesRepo =
         _cRepoA.getContact(contactBobFromAlicesRepo.coagContactId)!;
-    expect(
-      contactBobFromAlicesRepo.details?.names.values.firstOrNull,
-      'UserB',
-      reason: 'Details available',
-    );
+    // TODO: Check something that should only be available here
   });
 }

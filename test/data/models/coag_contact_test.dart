@@ -41,7 +41,8 @@ void main() {
         coagContactId: '',
         name: 'name',
         myIdentity: dummyKeyPair,
-        dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
+        myIntroductionKeyPair: dummyKeyPair,
+        dhtSettings: DhtSettings(myNextKeyPair: dummyKeyPair),
         details: const ContactDetails(picture: [1, 2, 3]),
         temporaryLocations: {
           '0': ContactTemporaryLocation(
@@ -65,7 +66,8 @@ void main() {
         coagContactId: '',
         name: 'name',
         myIdentity: dummyKeyPair,
-        dhtSettings: DhtSettings(myKeyPair: dummyKeyPair),
+        myIntroductionKeyPair: dummyKeyPair,
+        dhtSettings: DhtSettings(myNextKeyPair: dummyKeyPair),
         details: const ContactDetails(picture: [1, 2, 3]),
         temporaryLocations: {
           '0': ContactTemporaryLocation(

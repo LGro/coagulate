@@ -114,8 +114,9 @@ void main() {
     final filtered = filterAccordingToSharingProfile(
       profile: profile,
       activeCirclesWithMemberCount: {'Circle': 2},
-      dhtSettings: DhtSettings(myKeyPair: dummyTypedKeyPair()),
+      dhtSettings: DhtSettings(myNextKeyPair: dummyTypedKeyPair()),
       identityKey: null,
+      introductionKey: null,
       introductions: [],
     );
     expect(filtered.temporaryLocations.length, 1);

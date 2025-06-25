@@ -29,7 +29,7 @@ class IntroductionsCubit extends Cubit<IntroductionsState> {
   final ContactsRepository contactsRepository;
   late final StreamSubscription<String> _contactsSubscription;
 
-  Future<String> accept(
+  Future<String?> accept(
           CoagContact introducer, ContactIntroduction introduction) async =>
       contactsRepository.acceptIntroduction(introducer, introduction);
 

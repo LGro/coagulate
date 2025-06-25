@@ -17,6 +17,11 @@ bool alreadyKnowEachOther(CoagContact? c1, CoagContact? c2) =>
             .length ==
         1);
 
+bool introducible(CoagContact? c1, CoagContact? c2) =>
+    c1?.theirIntroductionKey != null &&
+    c2?.theirIntroductionKey != null &&
+    alreadyKnowEachOther(c1, c2) == false;
+
 // TODO: Allow opt-out (per contact, for contact, or globally?)
 Future<List<String>> connectionAttestations(
         CoagContact contact, Iterable<CoagContact> contacts) async =>

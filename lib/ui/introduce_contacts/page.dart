@@ -172,11 +172,7 @@ class _IntroduceContactsPageState extends State<IntroduceContactsPage> {
                     const SizedBox(height: 16),
                     Center(
                         child: FilledButton(
-                            onPressed: (_contactA?.dhtSettings.theirPublicKey ==
-                                        null ||
-                                    _contactB?.dhtSettings.theirPublicKey ==
-                                        null ||
-                                    alreadyKnowEachOther(_contactA, _contactB))
+                            onPressed: !introducible(_contactA, _contactB)
                                 ? null
                                 : () async => context
                                     .read<IntroduceContactsCubit>()

@@ -59,6 +59,7 @@ void main() {
             coagContactId: '2',
             name: 'Existing Contact A',
             myIdentity: dummyTypedKeyPair(3, 2),
+            myIntroductionKeyPair: dummyTypedKeyPair(3, 3),
             dhtSettings: DhtSettings(
                 myKeyPair: dummyTypedKeyPair(2, 1),
                 myNextKeyPair: dummyTypedKeyPair(2, 2))),
@@ -66,6 +67,7 @@ void main() {
             coagContactId: '5',
             name: 'Existing Contact B',
             myIdentity: dummyTypedKeyPair(2, 3),
+            myIntroductionKeyPair: dummyTypedKeyPair(2, 4),
             dhtSettings: DhtSettings(
                 myKeyPair: dummyTypedKeyPair(5, 1),
                 myNextKeyPair: dummyTypedKeyPair(5, 5))),

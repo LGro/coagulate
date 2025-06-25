@@ -16,11 +16,16 @@ import '../../utils.dart';
 import 'base.dart';
 
 /// Legacy migration: If I have not assigned an identity key pair to a contact
-Future<Map<String, dynamic>> migrateContactAddIdentityKeyPair(
+Future<Map<String, dynamic>> migrateContactAddIdentityAndIntroductionKeyPairs(
     Map<String, dynamic> contactJson) async {
   if (!contactJson.containsKey('my_identity')) {
     contactJson = {...contactJson};
     contactJson['my_identity'] =
+        await generateTypedKeyPairBest().then((kp) => kp.toJson());
+  }
+  if (!contactJson.containsKey('my_introduction_key_pair')) {
+    contactJson = {...contactJson};
+    contactJson['my_introduction_key_pair'] =
         await generateTypedKeyPairBest().then((kp) => kp.toJson());
   }
   return contactJson;
@@ -79,7 +84,8 @@ class SqliteStorage extends PersistentStorage {
     return {
       for (final r in results)
         r['id']! as String: CoagContact.fromJson(
-            json.decode(r['contactJson']! as String) as Map<String, dynamic>)
+            await migrateContactAddIdentityAndIntroductionKeyPairs(json
+                .decode(r['contactJson']! as String) as Map<String, dynamic>))
     };
   }
 

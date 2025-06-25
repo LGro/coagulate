@@ -67,10 +67,10 @@ Future<DhtSettings> rotateKeysInDhtSettings(
     DhtSettings settings,
     PublicKey? usedPublicKey,
     TypedKeyPair? usedKeyPair,
-    bool ackHandshakeComplete) async {
-  // If either we haven't established a key pair but received handshake complete
-  // signal, or our next key pair's public key was used
-  final rotateKeyPair = (ackHandshakeComplete && settings.myKeyPair == null) ||
+    bool ackHandshakeJustCompleted) async {
+  // If we have received handshake complete signal for the first time, or our
+  // next key pair's public key was used
+  final rotateKeyPair = ackHandshakeJustCompleted ||
       (usedKeyPair != null && settings.myNextKeyPair == usedKeyPair);
 
   // If their next public key was used
@@ -80,7 +80,7 @@ Future<DhtSettings> rotateKeysInDhtSettings(
   if (rotateKeyPair) debugPrint('Rotating my key pair');
   if (rotatePublicKey) debugPrint('Rotating their public key');
 
-  return DhtSettings(
+  return DhtSettings.explicit(
     // If the next key pair was used or acknowledged, rotate it
     myKeyPair: rotateKeyPair ? settings.myNextKeyPair : settings.myKeyPair,
     myNextKeyPair: rotateKeyPair
@@ -93,11 +93,11 @@ Future<DhtSettings> rotateKeysInDhtSettings(
     initialSecret:
         (rotateKeyPair || rotatePublicKey) ? null : settings.initialSecret,
     // Leave all other attributes as is
-    // TODO: How can we ensure that we don't miss transferring new settings attributes here?
     recordKeyMeSharing: settings.recordKeyMeSharing,
     writerMeSharing: settings.writerMeSharing,
     recordKeyThemSharing: settings.recordKeyThemSharing,
     writerThemSharing: settings.writerThemSharing,
+    theyAckHandshakeComplete: settings.theyAckHandshakeComplete,
   );
 }
 
@@ -146,7 +146,9 @@ DhtSettings updateDhtSettingsFromContactUpdate(
         : null,
     recordKeyMeSharing: shareBackDhtKey,
     writerMeSharing: shareBackDhtWriter,
-    theyAckHandshakeComplete: update.ackHandshakeComplete,
+    // Prevent going back to unacknowledged when a contact sends false
+    theyAckHandshakeComplete:
+        settings.theyAckHandshakeComplete || update.ackHandshakeComplete,
   );
 }
 
@@ -244,7 +246,7 @@ class VeilidDhtStorage extends DistributedStorage {
       try {
         debugPrint(
             'trying ${secrets.length} secrets for ${recordKey.toString().substring(5, 10)}');
-        for (final secret in secrets) {
+        for (final secret in secrets.reversed) {
           debugPrint('trying pub ${secret.$1?.toString().substring(0, 10)} '
               'kp ${secret.$2?.toString().substring(0, 10)}');
 
@@ -271,7 +273,8 @@ class VeilidDhtStorage extends DistributedStorage {
             }
           });
 
-          // TODO: Why can't we check for schema_version here?
+          // TODO: Let's in the future check for schema_version here,
+          // when fewer v2 schemas without version included are in circulation
           if (content?.$1?.contains('details') ?? false) {
             debugPrint('got ${recordKey.toString().substring(5, 10)}');
             return (secret.$1, secret.$2, content?.$1, content?.$2);
@@ -409,7 +412,8 @@ class VeilidDhtStorage extends DistributedStorage {
         contact.dhtSettings,
         usedPublicKey,
         usedKeyPair,
-        dhtContact.ackHandshakeComplete);
+        !contact.dhtSettings.theyAckHandshakeComplete &&
+            dhtContact.ackHandshakeComplete);
 
     final updatedDhtSettings = updateDhtSettingsFromContactUpdate(
         dhtSettingsWithRotatedKeys, dhtContact);
@@ -420,6 +424,7 @@ class VeilidDhtStorage extends DistributedStorage {
       details: dhtContact.details.copyWith(picture: contactPicture),
       addressLocations: dhtContact.addressLocations,
       temporaryLocations: dhtContact.temporaryLocations,
+      theirIntroductionKey: dhtContact.introductionKey,
       introductionsByThem: dhtContact.introductions,
       dhtSettings: updatedDhtSettings,
     );

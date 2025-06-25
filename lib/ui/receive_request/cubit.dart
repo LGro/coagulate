@@ -185,6 +185,7 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
         // TODO: localize default to language
         name: name,
         myIdentity: await generateTypedKeyPairBest(),
+        myIntroductionKeyPair: await generateTypedKeyPairBest(),
         // TODO: Handle fromString parsing errors
         dhtSettings: DhtSettings(
             recordKeyThemSharing: recordKey,
@@ -295,14 +296,12 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     final contact = CoagContact(
         coagContactId: Uuid().v4(),
         name: name,
-        myIdentity: await generateTypedKeyPairBest(),
+        myIdentity: await contactsRepository.generateTypedKeyPair(),
+        myIntroductionKeyPair: await contactsRepository.generateTypedKeyPair(),
         dhtSettings: DhtSettings(
             recordKeyThemSharing: recordKey,
-            theirPublicKey: publicKey,
-            myKeyPair: contactsRepository.getProfileInfo()!.mainKeyPair!,
-            // Already queue an individual key pair to move away from the
-            // profile key pair
-            myNextKeyPair: await contactsRepository.generateTypedKeyPair(),
+            theirNextPublicKey: publicKey,
+            myNextKeyPair: contactsRepository.getProfileInfo()!.mainKeyPair!,
             // We skip the DH key exchange and directly start with all pub keys
             theyAckHandshakeComplete: true));
 

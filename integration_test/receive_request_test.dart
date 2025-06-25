@@ -55,12 +55,14 @@ void main() {
             coagContactId: '2',
             name: 'Existing Contact A',
             myIdentity: await generateTypedKeyPairBest(),
+            myIntroductionKeyPair: await generateTypedKeyPairBest(),
             dhtSettings:
                 DhtSettings(myNextKeyPair: await generateTypedKeyPairBest())),
         CoagContact(
             coagContactId: '5',
             name: 'Existing Contact B',
             myIdentity: await generateTypedKeyPairBest(),
+            myIntroductionKeyPair: await generateTypedKeyPairBest(),
             dhtSettings:
                 DhtSettings(myNextKeyPair: await generateTypedKeyPairBest())),
       ];
@@ -177,7 +179,7 @@ void main() {
             mobile_scanner.BarcodeCapture(barcodes: [
               mobile_scanner.Barcode(
                   rawValue: profileUrl('Profile Sharer',
-                          initialContacts[0].dhtSettings.myKeyPair.key)
+                          initialContacts[0].dhtSettings.myKeyPair!.key)
                       .toString())
             ]),
             awaitDhtOperations: true),
@@ -231,7 +233,7 @@ void main() {
           expect(c.state.status, ReceiveRequestStatus.success);
           expect(c.state.profile!.name, 'Offering Sharer');
           expect(c.state.profile!.dhtSettings.theirPublicKey,
-              initialContacts[0].dhtSettings.myKeyPair.key);
+              initialContacts[0].dhtSettings.myKeyPair!.key);
           expect(c.state.profile!.dhtSettings.initialSecret, isNull);
           expect(c.state.profile!.dhtSettings.recordKeyThemSharing,
               _dummyDhtRecordKey(4));

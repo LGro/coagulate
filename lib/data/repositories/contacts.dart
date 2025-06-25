@@ -123,6 +123,7 @@ CoagContactDHTSchema filterAccordingToSharingProfile({
   required DhtSettings dhtSettings,
   required List<ContactIntroduction> introductions,
   required Typed<PublicKey>? identityKey,
+  required Typed<PublicKey>? introductionKey,
   List<String> connectionAttestations = const [],
   List<String> knownPersonalContactIds = const [],
 }) =>
@@ -141,8 +142,12 @@ CoagContactDHTSchema filterAccordingToSharingProfile({
       connectionAttestations: connectionAttestations,
       ackHandshakeComplete: dhtSettings.theirPublicKey != null ||
           dhtSettings.theirNextPublicKey != null,
+      introductionKey: introductionKey,
       introductions: introductions,
     );
+
+String batchOrigin(BatchInvite batch, int subkey) =>
+    'BATCH|${batch.recordKey}|$subkey';
 
 class ContactsRepository {
   ContactsRepository(
@@ -204,8 +209,6 @@ class ContactsRepository {
       BehaviorSubject<bool>.seeded(false);
   Stream<bool> isSystemContactAccessGranted() =>
       _systemContactAccessGrantedStreamController.asBroadcastStream();
-
-  bool systemContactsChangedCallbackTemporarilyDisabled = false;
 
   bool veilidNetworkAvailable = false;
 
@@ -283,8 +286,14 @@ class ContactsRepository {
     // Load coagulate contacts from persistent storage
     _contacts = await persistentStorage.getAllContacts();
     DebugLogger().log('Contacts: ${_contacts.length}');
+    // Immediately save all contacts again, because they might have been
+    // migrated from old schema versions
+    // TODO: This doesn't seem super ideal here, decoupled from the migration
+    //       logic in the persistent storage layer.
+    // TODO: How much does this cost us in terms of initialization time with
+    //       larger contact lists?
     for (final c in _contacts.values) {
-      _contactsStreamController.add(c.coagContactId);
+      await saveContact(c);
     }
 
     // Load updates from persistent storage
@@ -318,11 +327,7 @@ class ContactsRepository {
     logDebug('Attempting to update contact ${contact.name}');
     var success = false;
     try {
-      final updatedContact =
-          await distributedStorage.getContact(contact, myMiscKeyPairs: [
-        if (getProfileInfo()?.mainKeyPair != null)
-          getProfileInfo()!.mainKeyPair!,
-      ]);
+      final updatedContact = await distributedStorage.getContact(contact);
 
       if (updatedContact != null) {
         success = true;
@@ -340,6 +345,7 @@ class ContactsRepository {
                     coagContactId: contact.coagContactId,
                     name: contact.name,
                     myIdentity: contact.myIdentity,
+                    myIntroductionKeyPair: contact.myIntroductionKeyPair,
                     dhtSettings: contact.dhtSettings.copyWith(),
                     details: contact.details?.copyWith(),
                     temporaryLocations: {...contact.temporaryLocations},
@@ -348,6 +354,7 @@ class ContactsRepository {
                     coagContactId: updatedContact.coagContactId,
                     name: updatedContact.name,
                     myIdentity: updatedContact.myIdentity,
+                    myIntroductionKeyPair: updatedContact.myIntroductionKeyPair,
                     dhtSettings: updatedContact.dhtSettings.copyWith(),
                     details: updatedContact.details?.copyWith(),
                     temporaryLocations: {...updatedContact.temporaryLocations},
@@ -464,8 +471,7 @@ class ContactsRepository {
   /// Update the "me-to-them" record for a given contact and update dht settings
   // TODO: Sometimes we pass a full contact instance, sometimes just the id - what are benefits and downsides? does it make sense to unify?
   Future<bool> tryShareWithContactDHT(String coagContactId,
-      {bool initializeReceivingSettings = false,
-      PublicKey? contactPubKey}) async {
+      {bool initializeReceivingSettings = false}) async {
     var contact = getContact(coagContactId);
     if (contact == null) {
       return false;
@@ -478,8 +484,8 @@ class ContactsRepository {
         final (shareKey, shareWriter) = await distributedStorage.createRecord();
 
         // TODO: Get specific cryptosystem version? also, move veilid specific stuff elsewhere
-        final initialSecret = (contactPubKey == null &&
-                contact.dhtSettings.theirPublicKey == null)
+        final initialSecret = (contact.dhtSettings.theirPublicKey == null &&
+                contact.dhtSettings.theirNextPublicKey == null)
             ? await generateSharedSecret()
             : null;
 
@@ -489,8 +495,6 @@ class ContactsRepository {
             dhtSettings: contact.dhtSettings.copyWith(
                 recordKeyMeSharing: shareKey,
                 writerMeSharing: shareWriter,
-                theirPublicKey:
-                    contactPubKey ?? contact.dhtSettings.theirPublicKey,
                 initialSecret: initialSecret));
         await saveContact(contact);
       }
@@ -564,11 +568,27 @@ class ContactsRepository {
       getContacts()
           .values
           .toList()
-          .map((c) => CoagContact(
+          .map((c) => CoagContact.explicit(
               coagContactId: c.coagContactId,
               myIdentity: c.myIdentity,
+              myIntroductionKeyPair: c.myIntroductionKeyPair,
+              myPreviousIntroductionKeyPairs: c.myPreviousIntroductionKeyPairs,
               name: c.name,
-              dhtSettings: c.dhtSettings))
+              dhtSettings: c.dhtSettings,
+              origin: c.origin,
+              comment: c.comment,
+              details: null,
+              theirIdentity: null,
+              connectionAttestations: const [],
+              systemContactId: null,
+              addressLocations: const {},
+              temporaryLocations: const {},
+              sharedProfile: null,
+              theirIntroductionKey: null,
+              introductionsForThem: const [],
+              introductionsByThem: const [],
+              mostRecentUpdate: null,
+              mostRecentChange: null))
           .toList(),
       getCircles(),
       getCircleMemberships(),
@@ -784,19 +804,14 @@ class ContactsRepository {
       introductions: contact.introductionsForThem,
       identityKey: Typed<PublicKey>(
           kind: contact.myIdentity.kind, value: contact.myIdentity.key),
+      introductionKey: Typed<PublicKey>(
+          kind: contact.myIntroductionKeyPair.kind,
+          value: contact.myIntroductionKeyPair.key),
       connectionAttestations:
           await connectionAttestations(contact, getContacts().values),
     );
 
-    await saveContact(contact.copyWith(
-      sharedProfile: updatedSharedProfile,
-      dhtSettings: contact.dhtSettings.copyWith(
-          myNextKeyPair: (contact.dhtSettings.myNextKeyPair != null ||
-                  // TODO: Check that the comparison detects changes on location list membership, not list instance
-                  contact.sharedProfile == updatedSharedProfile)
-              ? null
-              : await generateTypedKeyPair()),
-    ));
+    await saveContact(contact.copyWith(sharedProfile: updatedSharedProfile));
   }
 
   Future<void> _dhtRecordUpdateCallback(Typed<FixedEncodedString43> key) async {
@@ -817,10 +832,11 @@ class ContactsRepository {
         coagContactId: Uuid().v4(),
         name: name,
         myIdentity: await generateTypedKeyPair(),
+        myIntroductionKeyPair: await generateTypedKeyPair(),
         dhtSettings: DhtSettings(
             myKeyPair: await generateTypedKeyPair(),
             myNextKeyPair: await generateTypedKeyPair(),
-            theirPublicKey: pubKey,
+            theirNextPublicKey: pubKey,
             // If we already have a pubkey, consider the handshake complete
             theyAckHandshakeComplete: pubKey != null));
     await saveContact(contact);
@@ -830,7 +846,7 @@ class ContactsRepository {
 
     // Trigger sharing, incl. DHT record creation
     final dhtSharingAttempt = tryShareWithContactDHT(contact.coagContactId,
-        initializeReceivingSettings: true, contactPubKey: pubKey);
+        initializeReceivingSettings: true);
     if (awaitDhtSharingAttempt) {
       await dhtSharingAttempt;
       // Update contact after setting up DHT things
@@ -1030,11 +1046,9 @@ class ContactsRepository {
         profileInfo?.details.names[myNameId] ?? '${batchInfo.label} $mySubkey';
 
     // generate one keypair to use for all contacts in that batch
-    final batchKeyPair = await DHTRecordPool.instance.veilid
-        .bestCryptoSystem()
-        .then((cs) => cs
-            .generateKeyPair()
-            .then((kp) => TypedKeyPair.fromKeyPair(cs.kind(), kp)));
+    // NOTE: This is a focused purpose key pair like the main key pair for
+    //       profile link based invite flows.
+    final batchKeyPair = await generateTypedKeyPair();
 
     // TODO: Detect if someone has already written to my subkey and raise error
 
@@ -1091,30 +1105,40 @@ class ContactsRepository {
     if (contactSubkeyContentRaw == null) {
       return null;
     }
-    final contactSubkeyContent = BatchSubkeySchema.fromJson(
-        jsonDecode(utf8.decode(contactSubkeyContentRaw))
-            as Map<String, dynamic>);
+
+    late BatchSubkeySchema contactSubkeyContent;
+    try {
+      contactSubkeyContent = BatchSubkeySchema.fromJson(
+          jsonDecode(utf8.decode(contactSubkeyContentRaw))
+              as Map<String, dynamic>);
+    } on Exception catch (e) {
+      debugPrint(
+          'Error decoding batch schema ${batch.recordKey} subkey $subkey: $e');
+      return null;
+    }
 
     // Get existing contact if available
     var contact = getContacts()
         .values
-        .where((c) =>
-            c.dhtSettings.theirPublicKey == contactSubkeyContent.publicKey)
+        .where((c) => c.origin == batchOrigin(batch, subkey))
         .firstOrNull;
 
     logDebug(
-        'Batch update for contact ${contact?.name ?? 'new'} at subkey $subkey');
+        'Batch update for contact ${contact?.name ?? '???'} at subkey $subkey');
 
     // or create new contact if not yet exists
     if (contact == null) {
       contact = CoagContact(
         coagContactId: Uuid().v4(),
         myIdentity: await generateTypedKeyPair(),
+        myIntroductionKeyPair: await generateTypedKeyPair(),
         name: contactSubkeyContent.name,
         dhtSettings: DhtSettings(
             theyAckHandshakeComplete: true,
-            theirPublicKey: contactSubkeyContent.publicKey,
-            myNextKeyPair: batch.myKeyPair),
+            theirNextPublicKey: contactSubkeyContent.publicKey,
+            myKeyPair: batch.myKeyPair,
+            myNextKeyPair: await generateTypedKeyPair()),
+        origin: batchOrigin(batch, subkey),
       );
       await saveContact(contact);
       await updateCirclesForContact(
@@ -1135,8 +1159,7 @@ class ContactsRepository {
     if (!batch.myConnectionRecords
         .containsKey(contactSubkeyContent.publicKey.toString())) {
       // Trigger sharing, incl. DHT record creation and update contact
-      await tryShareWithContactDHT(contact.coagContactId,
-          contactPubKey: contact.dhtSettings.theirPublicKey);
+      await tryShareWithContactDHT(contact.coagContactId);
       contact = getContact(contact.coagContactId);
 
       if (contact?.dhtSettings.recordKeyMeSharing != null) {
@@ -1225,7 +1248,7 @@ class ContactsRepository {
 
   Future<void> updateBatchInviteForContact(String coagContactId) async {
     final contact = getContact(coagContactId);
-    if (contact?.dhtSettings.theirPublicKey == null ||
+    if (contact?.dhtSettings.theirNextPublicKey == null ||
         contact?.dhtSettings.recordKeyThemSharing != null) {
       return;
     }
@@ -1248,47 +1271,37 @@ class ContactsRepository {
       required String nameB,
       String? message,
       bool awaitDhtOperations = false}) async {
-    var contactA = getContact(contactIdA);
-    var contactB = getContact(contactIdB);
-
-    if (contactA?.dhtSettings.theirPublicKey == null ||
-        contactB?.dhtSettings.theirPublicKey == null) {
-      // TODO: let user know that fully connecting is prereq
-      return false;
-    }
-
-    // TODO: check that they don't already know each other and let user know
-    if (alreadyKnowEachOther(contactA, contactB)) {
-      return false;
-    }
-
     // TODO: Can this fail? Do we need to try except this?
     try {
       final (recordKeyA, writerA) = await distributedStorage.createRecord();
       final (recordKeyB, writerB) = await distributedStorage.createRecord();
 
+      // Get most up to date contacts since dht record creation might have taken
+      // a moment
+      final contactA = getContact(contactIdA);
+      final contactB = getContact(contactIdB);
+
+      // This should already have been prevented on the UI side, just checking
+      if (!introducible(contactA, contactB)) {
+        return false;
+      }
+
       final introForA = ContactIntroduction(
+          publicKey: contactA!.theirIntroductionKey!.value,
           otherName: nameB,
-          otherPublicKey: contactB!.dhtSettings.theirPublicKey!,
+          otherPublicKey: contactB!.theirIntroductionKey!.value,
           dhtRecordKeyReceiving: recordKeyB,
           dhtRecordKeySharing: recordKeyA,
           dhtWriterSharing: writerA,
           message: message);
       final introForB = ContactIntroduction(
+          publicKey: contactB.theirIntroductionKey!.value,
           otherName: nameA,
-          otherPublicKey: contactA!.dhtSettings.theirPublicKey!,
+          otherPublicKey: contactA.theirIntroductionKey!.value,
           dhtRecordKeyReceiving: recordKeyA,
           dhtRecordKeySharing: recordKeyB,
           dhtWriterSharing: writerB,
           message: message);
-
-      // Get most up to date contacts since dht record creation might have taken
-      // a moment
-      contactA = getContact(contactIdA);
-      contactB = getContact(contactIdB);
-      if (contactA == null || contactB == null) {
-        return false;
-      }
 
       await saveContact(contactA.copyWith(
           introductionsForThem: [...contactA.introductionsForThem, introForA]));
@@ -1303,37 +1316,67 @@ class ContactsRepository {
       if (awaitDhtOperations) {
         return await updateAndShareA && await updateAndShareB;
       } else {
+        // The try share with doesn't need to succeed now for the introductions
+        // to reach them later
         unawaited(updateAndShareA);
         unawaited(updateAndShareB);
         return true;
       }
-    } on Exception {
+    } on Exception catch (e) {
+      debugPrint('Error preparing introduction: $e');
       return false;
     }
   }
 
-  Future<String> acceptIntroduction(
+  Future<String?> acceptIntroduction(
       CoagContact introducer, ContactIntroduction introduction,
       {bool awaitUpdateFromDht = false}) async {
+    // Find the key pair to use for encrypting communication with the introduced
+    final myKeyPair = [
+      introducer.myIntroductionKeyPair,
+      ...introducer.myPreviousIntroductionKeyPairs
+    ].where((kp) => kp.key == introduction.publicKey).firstOrNull;
+    if (myKeyPair == null) {
+      return null;
+    }
+
+    // Create new contact for the introduced
     final contact = CoagContact(
         coagContactId: Uuid().v4(),
         name: introduction.otherName,
         myIdentity: await generateTypedKeyPair(),
+        myIntroductionKeyPair: await generateTypedKeyPair(),
         dhtSettings: DhtSettings(
-            myKeyPair: introducer.dhtSettings.myKeyPair,
+            myKeyPair: myKeyPair,
             myNextKeyPair: await generateTypedKeyPair(),
+            theirNextPublicKey: introduction.otherPublicKey,
             recordKeyMeSharing: introduction.dhtRecordKeySharing,
             writerMeSharing: introduction.dhtWriterSharing,
-            theirPublicKey: introduction.otherPublicKey,
             recordKeyThemSharing: introduction.dhtRecordKeyReceiving,
             theyAckHandshakeComplete: true));
     await saveContact(contact);
-    final dhtUpdate = updateContactFromDHT(contact);
+    final contactDhtUpdate = updateContactFromDHT(contact);
     if (awaitUpdateFromDht) {
-      await dhtUpdate;
+      await contactDhtUpdate;
     } else {
-      unawaited(dhtUpdate);
+      unawaited(contactDhtUpdate);
     }
+
+    // Rotate introduction key pair for introducer
+    await saveContact(introducer.copyWith(
+        myIntroductionKeyPair: await generateTypedKeyPair(),
+        myPreviousIntroductionKeyPairs: [
+          introducer.myIntroductionKeyPair,
+          ...introducer.myPreviousIntroductionKeyPairs
+        ]));
+    final introducerDhtUpdate =
+        tryShareWithContactDHT(introducer.coagContactId);
+    if (awaitUpdateFromDht) {
+      await introducerDhtUpdate;
+    } else {
+      unawaited(introducerDhtUpdate);
+    }
+
     return contact.coagContactId;
   }
 }

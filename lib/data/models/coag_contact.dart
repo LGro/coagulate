@@ -31,6 +31,20 @@ class DhtSettings extends Equatable {
     this.theyAckHandshakeComplete = false,
   });
 
+  /// Constructor that requires all fields to be explicitly provided
+  const DhtSettings.explicit({
+    required this.myNextKeyPair,
+    required this.myKeyPair,
+    required this.theirNextPublicKey,
+    required this.theirPublicKey,
+    required this.recordKeyMeSharing,
+    required this.writerMeSharing,
+    required this.recordKeyThemSharing,
+    required this.writerThemSharing,
+    required this.initialSecret,
+    required this.theyAckHandshakeComplete,
+  });
+
   factory DhtSettings.fromJson(Map<String, dynamic> json) =>
       _$DhtSettingsFromJson(json);
 
@@ -332,6 +346,7 @@ class CoagContact extends Equatable {
     required this.name,
     required this.dhtSettings,
     required this.myIdentity,
+    required this.myIntroductionKeyPair,
     this.details,
     this.theirIdentity,
     this.connectionAttestations = const [],
@@ -340,10 +355,37 @@ class CoagContact extends Equatable {
     this.temporaryLocations = const {},
     this.comment = '',
     this.sharedProfile,
+    this.theirIntroductionKey,
+    this.myPreviousIntroductionKeyPairs = const [],
     this.introductionsForThem = const [],
     this.introductionsByThem = const [],
+    this.origin,
     this.mostRecentUpdate,
     this.mostRecentChange,
+  });
+
+  /// Constructor that requires all fields to be explicitly provided
+  const CoagContact.explicit({
+    required this.coagContactId,
+    required this.name,
+    required this.dhtSettings,
+    required this.myIdentity,
+    required this.myIntroductionKeyPair,
+    required this.details,
+    required this.theirIdentity,
+    required this.connectionAttestations,
+    required this.systemContactId,
+    required this.addressLocations,
+    required this.temporaryLocations,
+    required this.comment,
+    required this.sharedProfile,
+    required this.theirIntroductionKey,
+    required this.myPreviousIntroductionKeyPairs,
+    required this.introductionsForThem,
+    required this.introductionsByThem,
+    required this.origin,
+    required this.mostRecentUpdate,
+    required this.mostRecentChange,
   });
 
   final String coagContactId;
@@ -382,11 +424,26 @@ class CoagContact extends Equatable {
   /// Personalized selection of profile info that is shared with this contact
   final CoagContactDHTSchema? sharedProfile;
 
+  /// Current public key the app user can hand to others when introducing them
+  /// to this contact
+  final Typed<PublicKey>? theirIntroductionKey;
+
+  /// Current key pair of which the app user has shared the public key with this
+  /// contact to facilitate encrypted communication for introductions
+  final TypedKeyPair myIntroductionKeyPair;
+
+  /// List of app user's previous key pairs of which they have shared the public
+  /// key with this contact
+  final List<TypedKeyPair> myPreviousIntroductionKeyPairs;
+
   /// Introductions the app user proposed them
   final List<ContactIntroduction> introductionsForThem;
 
   /// Introductions this contact proposed the app user
   final List<ContactIntroduction> introductionsByThem;
+
+  /// Origin information, like batch DHT key + subkey index
+  final String? origin;
 
   // TODO: Move these two to contact details to also have the same for the system contact
   final DateTime? mostRecentUpdate;
@@ -435,8 +492,12 @@ class CoagContact extends Equatable {
     Map<String, ContactTemporaryLocation>? temporaryLocations,
     DhtSettings? dhtSettings,
     CoagContactDHTSchema? sharedProfile,
+    Typed<PublicKey>? theirIntroductionKey,
+    TypedKeyPair? myIntroductionKeyPair,
+    List<TypedKeyPair>? myPreviousIntroductionKeyPairs,
     List<ContactIntroduction>? introductionsByThem,
     List<ContactIntroduction>? introductionsForThem,
+    String? origin,
     DateTime? mostRecentUpdate,
     DateTime? mostRecentChange,
   }) =>
@@ -455,12 +516,20 @@ class CoagContact extends Equatable {
           ...connectionAttestations ?? this.connectionAttestations
         ],
         comment: comment ?? this.comment,
+        theirIntroductionKey: theirIntroductionKey ?? this.theirIntroductionKey,
+        myIntroductionKeyPair:
+            myIntroductionKeyPair ?? this.myIntroductionKeyPair,
+        myPreviousIntroductionKeyPairs: [
+          ...myPreviousIntroductionKeyPairs ??
+              this.myPreviousIntroductionKeyPairs
+        ],
         introductionsByThem: [
           ...introductionsByThem ?? this.introductionsByThem
         ],
         introductionsForThem: [
           ...introductionsForThem ?? this.introductionsForThem
         ],
+        origin: origin ?? this.origin,
         mostRecentUpdate: mostRecentUpdate ?? this.mostRecentUpdate,
         mostRecentChange: mostRecentChange ?? this.mostRecentChange,
       );
@@ -479,8 +548,12 @@ class CoagContact extends Equatable {
         comment,
         addressLocations,
         temporaryLocations,
+        theirIntroductionKey,
+        myIntroductionKeyPair,
+        myPreviousIntroductionKeyPairs,
         introductionsByThem,
         introductionsForThem,
+        origin,
         mostRecentUpdate,
         mostRecentChange,
       ];
@@ -554,6 +627,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
     this.addressLocations = const {},
     this.temporaryLocations = const {},
     this.connectionAttestations = const [],
+    this.introductionKey,
     this.introductions = const [],
     this.ackHandshakeComplete = false,
     DateTime? mostRecentUpdate,
@@ -607,6 +681,10 @@ class CoagContactDHTSchemaV2 extends Equatable {
   /// Attestations for connections between the author and their contacts
   final List<String> connectionAttestations;
 
+  /// Author's public key the recipient can use to securely introduce them to
+  /// others
+  final Typed<PublicKey>? introductionKey;
+
   /// Introduction proposals by the author for the recipient
   final List<ContactIntroduction> introductions;
   late final DateTime? mostRecentUpdate;
@@ -625,6 +703,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
     Map<String, ContactAddressLocation>? addressLocations,
     Map<String, ContactTemporaryLocation>? temporaryLocations,
     List<String>? connectionAttestations,
+    Typed<PublicKey>? introductionKey,
     List<ContactIntroduction>? introductions,
     bool? ackHandshakeComplete,
   }) =>
@@ -639,6 +718,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
         connectionAttestations: [
           ...connectionAttestations ?? this.connectionAttestations
         ],
+        introductionKey: introductionKey ?? this.introductionKey,
         introductions: [...introductions ?? this.introductions],
         ackHandshakeComplete: ackHandshakeComplete ?? this.ackHandshakeComplete,
       );
@@ -655,6 +735,7 @@ class CoagContactDHTSchemaV2 extends Equatable {
         shareBackPubKey,
         identityKey,
         connectionAttestations,
+        introductionKey,
         introductions,
         ackHandshakeComplete,
       ];

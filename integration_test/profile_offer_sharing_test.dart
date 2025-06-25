@@ -46,7 +46,7 @@ void main() {
         triggerDhtUpdate: false);
     await _cRepoA.tryShareWithContactDHT(contactBobFromProfile.coagContactId);
     expect(
-      contactBobFromProfile.dhtSettings.theirPublicKey,
+      contactBobFromProfile.dhtSettings.theirNextPublicKey,
       _cRepoB.getProfileInfo()!.mainKeyPair!.key,
       reason: 'Used given profile public key',
     );
