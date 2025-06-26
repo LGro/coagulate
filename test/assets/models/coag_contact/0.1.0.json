@@ -1,0 +1,30 @@
+{
+    "coag_contact_id": "coag-contact-id",
+    "their_personal_unique_id": "6f0f51ae-dab3-4b93-9ed9-df36782ce1fd",
+    "known_personal_contact_ids": [],
+    "name": "Display Name",
+    "system_contact_id": null,
+    "details": {
+        "picture": [],
+        "public_key": null,
+        "names": {
+            "d8856a36-9ed9-9ed9-9ed9-0db616c96a9a": "Name1"
+        },
+        "phones": {},
+        "emails": {},
+        "websites": {},
+        "social_medias": {},
+        "events": {},
+        "organizations": {}
+    },
+    "comment": "",
+    "address_locations": {},
+    "temporary_locations": {},
+    "dht_settings": {
+        "they_ack_handshake_complete": true
+    },
+    "introductions_for_them": [],
+    "introductions_by_them": [],
+    "most_recent_update": "2025-06-25T13:57:17.122857",
+    "most_recent_change": "2025-05-16T20:46:36.083610"
+}

@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:veilid/veilid.dart';
 
 import '../../../debug_log.dart';
 import '../../models/batch_invites.dart';
@@ -17,16 +18,18 @@ import 'base.dart';
 
 /// Legacy migration: If I have not assigned an identity key pair to a contact
 Future<Map<String, dynamic>> migrateContactAddIdentityAndIntroductionKeyPairs(
-    Map<String, dynamic> contactJson) async {
+    Map<String, dynamic> contactJson,
+    {Future<TypedKeyPair> Function() generateKeyPair =
+        generateTypedKeyPairBest}) async {
   if (!contactJson.containsKey('my_identity')) {
     contactJson = {...contactJson};
     contactJson['my_identity'] =
-        await generateTypedKeyPairBest().then((kp) => kp.toJson());
+        await generateKeyPair().then((kp) => kp.toJson());
   }
   if (!contactJson.containsKey('my_introduction_key_pair')) {
     contactJson = {...contactJson};
     contactJson['my_introduction_key_pair'] =
-        await generateTypedKeyPairBest().then((kp) => kp.toJson());
+        await generateKeyPair().then((kp) => kp.toJson());
   }
   return contactJson;
 }
@@ -81,12 +84,23 @@ class SqliteStorage extends PersistentStorage {
     final db = await getDatabase();
     final results = await db.query('contacts', columns: ['id', 'contactJson']);
     // TODO: Skip and log failing contacts like with updates
-    return {
-      for (final r in results)
-        r['id']! as String: CoagContact.fromJson(
-            await migrateContactAddIdentityAndIntroductionKeyPairs(json
-                .decode(r['contactJson']! as String) as Map<String, dynamic>))
-    };
+    final contacts = <String, CoagContact>{};
+    for (final r in results) {
+      late String id;
+      late String jsonString;
+      try {
+        id = r['id']! as String;
+        jsonString = r['contactJson']! as String;
+        final contactJson = json.decode(jsonString) as Map<String, dynamic>;
+        contacts[id] = CoagContact.fromJson(
+            await migrateContactAddIdentityAndIntroductionKeyPairs(
+                contactJson));
+      } catch (e) {
+        DebugLogger().log('Error deserializing contact $id: $e\n$jsonString');
+        return {};
+      }
+    }
+    return contacts;
   }
 
   @override

@@ -1,8 +1,12 @@
 // Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_location.dart';
+import 'package:coagulate/data/providers/persistent_storage/sqlite.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -131,5 +135,16 @@ void main() {
     expect(schema.temporaryLocations.values.first, temporaryLocation);
     expect(schema.ackHandshakeComplete, schemaJsonV2['ack_handshake_complete']);
     expect(schema.connectionAttestations, isEmpty);
+  });
+
+  test('contacts deserialization for backwards compatibility', () async {
+    final file = File('test/assets/example_contact.json');
+    final contents = await file.readAsString();
+    final contactJson = (json.decode(contents) as List<dynamic>).first;
+    final migratedJson = await migrateContactAddIdentityAndIntroductionKeyPairs(
+        contactJson as Map<String, dynamic>,
+        generateKeyPair: () async => dummyTypedKeyPair());
+    final contact = CoagContact.fromJson(migratedJson);
+    expect(contact.name, 'Display Name');
   });
 }

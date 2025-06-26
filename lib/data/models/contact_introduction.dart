@@ -19,7 +19,15 @@ class ContactIntroduction extends Equatable {
   });
 
   factory ContactIntroduction.fromJson(Map<String, dynamic> json) =>
-      _$ContactIntroductionFromJson(json);
+      // Backwards compatibility for previously missing and now non existing
+      // public key field
+      // TODO: Would it be better to make publicKey nullable?
+      _$ContactIntroductionFromJson(json.containsKey('public_key')
+          ? json
+          : {
+              'public_key': 'DUMMYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+              ...json
+            });
 
   /// Name of the contact this is not the introduction for
   final String otherName;

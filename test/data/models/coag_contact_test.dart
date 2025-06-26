@@ -7,9 +7,14 @@ import 'dart:typed_data';
 
 import 'package:coagulate/data/models/coag_contact.dart';
 import 'package:coagulate/data/models/contact_location.dart';
+import 'package:coagulate/data/providers/persistent_storage/sqlite.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:veilid/veilid.dart';
+
+import '../utils.dart';
+
+const jsonAssetDirectory = 'test/assets/models/coag_contact';
 
 final dummyKeyPair = TypedKeyPair(
     kind: 0,
@@ -142,22 +147,56 @@ void main() {
         'my note\n\n$coagulateManagedLabelSuffix');
   });
 
-  test('contact details deserialization for backwards compatibility', () async {
-    final details = ContactDetails(
-        publicKey: 'pub-key',
-        picture: const [1, 2, 3],
-        names: const {'n': 'My Name'},
-        phones: const {'p': '123'},
-        emails: const {'e': 'hi@mail'},
-        websites: const {'w': 'www.com'},
-        socialMedias: const {'s': '@social'},
-        events: {'y2k': DateTime(2000)});
+  test('save current json schema version', () async {
+    final version = await readCurrentVersionFromPubspec();
+    final file = File('$jsonAssetDirectory/$version.json');
 
-    final file = File('test/assets/contact_details.json');
-    final contents = await file.readAsString();
-    final deserializedDetails =
-        ContactDetails.fromJson(json.decode(contents) as Map<String, dynamic>);
+    final contact = CoagContact.explicit(
+        coagContactId: 'coag-contact-id',
+        name: 'Display Name',
+        dhtSettings: const DhtSettings(),
+        myIdentity: dummyKeyPair,
+        myIntroductionKeyPair: dummyKeyPair,
+        details: null,
+        theirIdentity: null,
+        connectionAttestations: const [],
+        systemContactId: null,
+        addressLocations: const {},
+        temporaryLocations: const {},
+        comment: '',
+        sharedProfile: null,
+        theirIntroductionKey: Typed<PublicKey>(
+            kind: 1447838768, value: dummyFixedEncodedString43(2)),
+        myPreviousIntroductionKeyPairs: const [],
+        introductionsForThem: const [],
+        introductionsByThem: const [],
+        origin: null,
+        mostRecentUpdate: null,
+        mostRecentChange: null);
 
-    expect(details, deserializedDetails);
+    final jsonString = json.encode(contact.toJson());
+
+    if (!loadAllPreviousSchemaVersionJsons(jsonAssetDirectory)
+        .values
+        .toSet()
+        .contains(jsonString)) {
+      await file.writeAsString(jsonString);
+    }
+  });
+
+  test('test loading previous json schema versions', () async {
+    for (final jsonEntry
+        in loadAllPreviousSchemaVersionJsons(jsonAssetDirectory).entries) {
+      try {
+        final jsonData =
+            await jsonDecode(jsonEntry.value) as Map<String, dynamic>;
+        final migrated = await migrateContactAddIdentityAndIntroductionKeyPairs(
+            jsonData,
+            generateKeyPair: () async => dummyKeyPair);
+        CoagContact.fromJson(migrated);
+      } catch (e, stackTrace) {
+        fail('Failed to deserialize ${jsonEntry.key}:\n$e\n$stackTrace');
+      }
+    }
   });
 }
