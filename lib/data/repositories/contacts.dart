@@ -1029,7 +1029,7 @@ class ContactsRepository {
   Map<Typed<FixedEncodedString43>, BatchInvite> getBatchInvites() =>
       {..._batchInvites};
 
-  Future<void> handleBatchInvite(
+  Future<BatchInvite?> handleBatchInvite(
       String myNameId,
       Typed<FixedEncodedString43> recordKey,
       FixedEncodedString43 psk,
@@ -1038,8 +1038,7 @@ class ContactsRepository {
     // If we already know about this invite, don't do anything
     final existingBatch = _batchInvites[recordKey];
     if (existingBatch != null) {
-      await batchInviteUpdate(existingBatch);
-      return;
+      return existingBatch;
     }
 
     // read meta info from first subkey, decrypt with psk
@@ -1057,7 +1056,7 @@ class ContactsRepository {
       await record.close();
     }
     if (batchInfoRaw == null) {
-      return;
+      return null;
     }
     final batchInfo = BatchInviteInfoSchema.fromJson(
         jsonDecode(utf8.decode(batchInfoRaw)) as Map<String, dynamic>);
@@ -1114,7 +1113,7 @@ class ContactsRepository {
     _batchInvites[batch.recordKey] = batch;
     await persistentStorage.addBatch(batch);
 
-    await batchInviteUpdate(batch);
+    return batch;
   }
 
   Future<MapEntry<String, Typed<FixedEncodedString43>>?>
@@ -1229,6 +1228,7 @@ class ContactsRepository {
 
   // TODO: regularly run for all batches
   // TODO: how to deal with race condition of two folks setting things up in parallel, who wins? make it unidirectional, no share back settings or override share back settings? is this really an issue?
+  // TODO: Report progress via callback or something about how many subkeys covered
   Future<void> batchInviteUpdate(BatchInvite batch) async {
     // Do not check expired invite batches
     if (DateTime.now().isAfter(batch.expiration)) {

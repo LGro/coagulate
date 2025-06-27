@@ -359,13 +359,36 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
     }
 
     // TODO: Handle parsing errors
-    final subkeyWriter = KeyPair.fromString(parts.removeLast());
-    final subkeyIndex = int.parse(parts.removeLast());
-    final psk = FixedEncodedString43.fromString(parts.removeLast());
-    final recordKey = TypedKey.fromString(parts.removeLast());
+    late KeyPair subkeyWriter;
+    late int subkeyIndex;
+    late FixedEncodedString43 psk;
+    late TypedKey recordKey;
+    try {
+      subkeyWriter = KeyPair.fromString(parts.removeLast());
+      subkeyIndex = int.parse(parts.removeLast());
+      psk = FixedEncodedString43.fromString(parts.removeLast());
+      recordKey = TypedKey.fromString(parts.removeLast());
+    } catch (e) {
+      // TODO: Emit error notice
+      if (!isClosed) {
+        emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+      }
+      return;
+    }
 
-    await contactsRepository.handleBatchInvite(
+    final batch = await contactsRepository.handleBatchInvite(
         myNameId, recordKey, psk, subkeyIndex, subkeyWriter);
+
+    // TODO: Emit error notice
+    if (batch == null) {
+      if (!isClosed) {
+        emit(const ReceiveRequestState(ReceiveRequestStatus.qrcode));
+      }
+      return;
+    }
+    // TODO: Report successful intermediate step with option to cancel further
+    //       processing for now / or do this unawaited in the first place?
+    await contactsRepository.batchInviteUpdate(batch);
 
     if (!isClosed) {
       emit(state.copyWith(status: ReceiveRequestStatus.batchInviteSuccess));
