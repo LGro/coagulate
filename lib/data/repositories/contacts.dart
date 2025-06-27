@@ -231,6 +231,7 @@ class ContactsRepository {
       await initializeFromPersistentStorage();
     } catch (e) {
       DebugLogger().log('Error initializing from persistent storage:\n$e');
+      return;
     }
 
     // Initialize profile info
@@ -280,43 +281,63 @@ class ContactsRepository {
       _profileInfoStreamController.add(_profileInfo!);
     }
 
-    // Initialize circles, circle memberships from persistent storage
-    _circles = await persistentStorage.getCircles();
-    _circleMemberships = await persistentStorage.getCircleMemberships();
-    _circlesStreamController.add(null);
-    DebugLogger().log('Circles: ${_circles.length}');
-    DebugLogger().log('Circle Memberships: ${_circleMemberships.length}');
-
-    // Load coagulate contacts from persistent storage
-    _contacts = await persistentStorage.getAllContacts();
-    DebugLogger().log('Contacts: ${_contacts.length}');
-    // Immediately save all contacts again, because they might have been
-    // migrated from old schema versions
-    // TODO: This doesn't seem super ideal here, decoupled from the migration
-    //       logic in the persistent storage layer.
-    // TODO: How much does this cost us in terms of initialization time with
-    //       larger contact lists?
-    for (final c in _contacts.values) {
-      await saveContact(c);
+    try {
+      // Initialize circles, circle memberships from persistent storage
+      _circles = await persistentStorage.getCircles();
+      _circleMemberships = await persistentStorage.getCircleMemberships();
+      _circlesStreamController.add(null);
+      DebugLogger().log('Circles: ${_circles.length}');
+      DebugLogger().log('Circle Memberships: ${_circleMemberships.length}');
+    } catch (e) {
+      DebugLogger()
+          .log('Error initializing circles from persistent storage:\n$e');
     }
 
-    // Load updates from persistent storage
-    // TODO: Actually delete old updates from persistent storage
-    _contactUpdates = (await persistentStorage.getUpdates())
-        .where((u) => u.timestamp
-            .isAfter(DateTime.now().subtract(const Duration(days: 30))))
-        .toList();
-    DebugLogger().log('Updates: ${_contactUpdates.length}');
-    for (final u in _contactUpdates) {
-      _updatesStreamController.add(u);
+    try {
+      // Load coagulate contacts from persistent storage
+      _contacts = await persistentStorage.getAllContacts();
+      DebugLogger().log('Contacts: ${_contacts.length}');
+      // Immediately save all contacts again, because they might have been
+      // migrated from old schema versions
+      // TODO: This doesn't seem super ideal here, decoupled from the migration
+      //       logic in the persistent storage layer.
+      // TODO: How much does this cost us in terms of initialization time with
+      //       larger contact lists?
+      for (final c in _contacts.values) {
+        await saveContact(c);
+      }
+    } catch (e) {
+      DebugLogger()
+          .log('Error initializing contacts from persistent storage:\n$e');
     }
 
-    // Load all batches and update
-    final batches = await persistentStorage.getBatches();
-    DebugLogger().log('Batches: ${batches.length}');
-    _batchInvites
-        .addAll(Map.fromEntries(batches.map((b) => MapEntry(b.recordKey, b))));
-    await updateAllBatchInvites();
+    try {
+      // Load updates from persistent storage
+      // TODO: Actually delete old updates from persistent storage
+      _contactUpdates = (await persistentStorage.getUpdates())
+          .where((u) => u.timestamp
+              .isAfter(DateTime.now().subtract(const Duration(days: 30))))
+          .toList();
+      DebugLogger().log('Updates: ${_contactUpdates.length}');
+      for (final u in _contactUpdates) {
+        _updatesStreamController.add(u);
+      }
+    } catch (e) {
+      DebugLogger()
+          .log('Error initializing updates from persistent storage:\n$e');
+    }
+
+    try {
+      // Load all batches and update
+      final batches = await persistentStorage.getBatches();
+      DebugLogger().log('Batches: ${batches.length}');
+      _batchInvites.addAll(
+          Map.fromEntries(batches.map((b) => MapEntry(b.recordKey, b))));
+      await updateAllBatchInvites();
+    } catch (e) {
+      DebugLogger()
+          .log('Error initializing batches from persistent storage:\n$e');
+    }
   }
 
   Future<void> saveContact(CoagContact coagContact) async {
