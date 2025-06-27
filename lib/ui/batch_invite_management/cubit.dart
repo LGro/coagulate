@@ -126,4 +126,7 @@ class BatchInvitesCubit extends Cubit<BatchInvitesState> {
       emit(state.copyWith(batches: updatedBatches));
     }
   }
+
+  Future<void> importBatch(Batch batch) async => emit(state.copyWith(
+      batches: {batch.dhtRecordKey.toString(): batch, ...state.batches}));
 }

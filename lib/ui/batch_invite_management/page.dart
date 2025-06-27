@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../utils.dart';
+import '../widgets/dht_batch_invite_status/widget.dart';
 import '../widgets/dht_status/widget.dart';
 import 'cubit.dart';
 
@@ -211,6 +213,8 @@ class _BatchInvitesPageState extends State<BatchInvitesPage> {
               const SizedBox(height: 8),
               ...state.batches.values
                   .map((b) => existingBatchWidget(context, b)),
+              const SizedBox(height: 8),
+              importBatchWidget(context),
             ],
           ),
         ),
@@ -233,6 +237,9 @@ Widget existingBatchWidget(BuildContext context, Batch batch) =>
         Text('Due date ${DateFormat('yyyy-MM-dd').format(batch.expiration)}, '),
         DhtStatusWidget(recordKey: batch.dhtRecordKey, statusWidgets: const {}),
       ]),
+      const SizedBox(height: 4),
+      DhtBatchInviteStatusWidget(batch),
+      const SizedBox(height: 8),
       Row(children: [
         FilledButton.tonal(
             onPressed: () async {
@@ -264,4 +271,77 @@ Widget existingBatchWidget(BuildContext context, Batch batch) =>
               SizedBox(width: 2),
             ])),
       ]),
+      const SizedBox(height: 4),
+      FilledButton.tonal(
+          onPressed: () async => SharePlus.instance.share(ShareParams(files: [
+                XFile.fromData(utf8.encode(jsonEncode(batch.toJson())),
+                    mimeType: 'text/plain')
+              ], fileNameOverrides: [
+                'coagulate_batch_admin_${batch.label}.json'
+              ])),
+          child: const Row(children: [
+            Icon(Icons.download),
+            SizedBox(width: 8),
+            Text('Save batch admin info'),
+            SizedBox(width: 2),
+          ])),
     ]);
+
+Widget importBatchWidget(BuildContext context) => IconButton(
+      icon: const Icon(Icons.upload_file),
+      onPressed: () async {
+        final result = await showDialog<String>(
+          context: context,
+          builder: (context) {
+            final _jsonController = TextEditingController();
+            return AlertDialog(
+              title: const Text('Import Batch Admin JSON'),
+              content: ElevatedButton.icon(
+                icon: const Icon(Icons.upload_file),
+                label: const Text('Pick JSON file'),
+                onPressed: () async {
+                  final result = await FilePicker.platform.pickFiles(
+                    type: FileType.custom,
+                    allowedExtensions: ['json'],
+                  );
+                  if (result != null && result.files.single.bytes != null) {
+                    final jsonString = utf8.decode(result.files.single.bytes!);
+                    Navigator.of(context).pop(jsonString);
+                  }
+                },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(_jsonController.text),
+                  child: const Text('Import'),
+                ),
+              ],
+            );
+          },
+        );
+        if (result != null && result.trim().isNotEmpty) {
+          try {
+            final jsonMap = jsonDecode(result.trim()) as Map<String, dynamic>;
+            if (context.mounted) {
+              await context
+                  .read<BatchInvitesCubit>()
+                  .importBatch(Batch.fromJson(jsonMap));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Batch imported successfully')),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Failed to import batch: $e')),
+              );
+            }
+          }
+        }
+      },
+    );

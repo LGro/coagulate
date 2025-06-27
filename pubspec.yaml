@@ -70,6 +70,7 @@ dependencies:
   # TODO: Switch to official release once https://github.com/builttoroam/device_calendar/pull/590 is in
   device_calendar:
     git: https://github.com/bardram/device_calendar
+  file_picker: ^10.2.0
 
 dev_dependencies:
   bloc_test: ^10.0.0
