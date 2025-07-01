@@ -1232,12 +1232,14 @@ class ContactsRepository {
   Future<void> batchInviteUpdate(BatchInvite batch) async {
     // Do not check expired invite batches
     if (DateTime.now().isAfter(batch.expiration)) {
+      DebugLogger().log('Not updating expired batch ${batch.label}');
       // TODO: Do we clean up / mark contacts that didn't successfully connect?
       return;
     }
 
     // If the corresponding circle is (no longer) available, skip the update
     if (!_circles.containsKey(batch.recordKey.toString())) {
+      DebugLogger().log('Not updating deleted batch ${batch.label}');
       return;
     }
 
@@ -1254,6 +1256,8 @@ class ContactsRepository {
       subkeyFutures.add(updateFromBatchInviteSubkey(batch, crypto, subkey));
     }
     final connectionRecordUpdates = await Future.wait(subkeyFutures);
+
+    DebugLogger().log('Got subkey updates from batch ${batch.label}');
 
     // Update record matches in batch
     batch = batch.copyWith(myConnectionRecords: {
@@ -1275,6 +1279,7 @@ class ContactsRepository {
         .tryWriteBytes(utf8.encode(jsonEncode(mySubkeyContent.toJson())));
     await mySubkeyRecord.close();
     // TODO: Also update the name in case someone changed the name available to the circle?
+    DebugLogger().log('Finished updating my subkey for batch ${batch.label}');
   }
 
   Future<void> updateAllBatchInvites() =>

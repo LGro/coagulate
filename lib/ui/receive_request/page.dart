@@ -191,7 +191,9 @@ class ReceiveRequestPage extends StatelessWidget {
                 ),
               ),
             );
-
+          case ReceiveRequestStatus.batchInviteConfirmed:
+            return const Center(
+                child: Text('Accepted, fetching contacts...', softWrap: true));
           case ReceiveRequestStatus.success:
           case ReceiveRequestStatus.batchInviteSuccess:
           case ReceiveRequestStatus.handleDirectSharing:

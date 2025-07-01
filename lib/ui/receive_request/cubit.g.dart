@@ -31,6 +31,7 @@ const _$ReceiveRequestStatusEnumMap = {
   ReceiveRequestStatus.qrcode: 'qrcode',
   ReceiveRequestStatus.processing: 'processing',
   ReceiveRequestStatus.success: 'success',
+  ReceiveRequestStatus.batchInviteConfirmed: 'batchInviteConfirmed',
   ReceiveRequestStatus.batchInviteSuccess: 'batchInviteSuccess',
   ReceiveRequestStatus.malformedUrl: 'malformedUrl',
 };

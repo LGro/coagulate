@@ -11,6 +11,7 @@ enum ReceiveRequestStatus {
   qrcode,
   processing,
   success,
+  batchInviteConfirmed,
   batchInviteSuccess,
   malformedUrl,
 }

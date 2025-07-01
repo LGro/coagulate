@@ -386,6 +386,10 @@ class ReceiveRequestCubit extends Cubit<ReceiveRequestState> {
       }
       return;
     }
+    if (!isClosed) {
+      emit(state.copyWith(status: ReceiveRequestStatus.batchInviteConfirmed));
+    }
+
     // TODO: Report successful intermediate step with option to cancel further
     //       processing for now / or do this unawaited in the first place?
     await contactsRepository.batchInviteUpdate(batch);
