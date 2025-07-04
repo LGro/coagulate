@@ -1,7 +1,7 @@
 name: coagulate
 description: Staying in contact, with privacy friendly contact synchronization and location sharing powered by Veilid.
 publish_to: 'none'
-version: "0.2.0+35"
+version: "0.2.0+36"
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -91,22 +91,26 @@ flutter_native_splash:
   color: "#8588D0"
 
 icons_launcher:
-  image_path: 'assets/launcher/icon.png'
+  image_path: 'assets/launcher/ic_logo_radius.png'
   platforms:
     android:
       enable: true
-      adaptive_background_color: '#ffffff'
-      adaptive_foreground_image: 'assets/launcher/icon.png'
-      adaptive_round_image: 'assets/launcher/icon.png'
+      image_path: 'assets/launcher/ic_logo_radius.png'
+      notification_image: 'assets/launcher/ic_foreground.png'
+      # adaptive_background_color: '#ffffff'
+      adaptive_background_image: 'assets/launcher/ic_background.png'
+      adaptive_foreground_image: 'assets/launcher/ic_foreground.png'
+      adaptive_round_image: 'assets/launcher/ic_logo_round.png'
+      adaptive_monochrome_image: 'assets/launcher/ic_black_white.png'
     ios:
       enable: true
+      image_path: 'assets/launcher/ic_logo_rectangle_light.png'
+      # For iOS 18+ (support dark and tinted)
+      dark_path: 'assets/launcher/ic_logo_rectangle_dark.png'
+      tinted_path: 'assets/launcher/ic_logo_rectangle_tinted.png'
 
 flutter:
   uses-material-design: true
   generate: true
   assets:
-    # Launcher icon
-    - assets/launcher/icon.png
-    # Images
     - assets/images/icon.svg
-    - assets/images/title.svg
