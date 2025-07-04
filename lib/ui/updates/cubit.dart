@@ -1,4 +1,4 @@
-// Copyright 2024 The Coagulate Authors. All rights reserved.
+// Copyright 2024 - 2025 The Coagulate Authors. All rights reserved.
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
@@ -9,6 +9,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../../data/models/contact_update.dart';
 import '../../data/repositories/contacts.dart';
+import '../utils.dart';
 
 part 'state.dart';
 part 'cubit.g.dart';
@@ -18,9 +19,12 @@ class UpdatesCubit extends Cubit<UpdatesState> {
       : super(const UpdatesState(UpdatesStatus.initial)) {
     _updatesSubscription = contactsRepository.getUpdatesStream().listen((_) =>
         emit(UpdatesState(UpdatesStatus.success,
-            updates: contactsRepository.getContactUpdates().reversed)));
+            updates: contactsRepository.getContactUpdates().reversed.where(
+                (u) => contactUpdateSummary(u.oldContact, u.newContact)
+                    .isNotEmpty))));
     emit(UpdatesState(UpdatesStatus.success,
-        updates: contactsRepository.getContactUpdates().reversed));
+        updates: contactsRepository.getContactUpdates().reversed.where((u) =>
+            contactUpdateSummary(u.oldContact, u.newContact).isNotEmpty)));
   }
 
   final ContactsRepository contactsRepository;
