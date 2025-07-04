@@ -201,4 +201,99 @@ void main() {
         });
     expect(c1.hashCode, c2.hashCode);
   });
+
+  test('compare detail removal does not qualify', () {
+    expect(
+        contactUpdateSummary(
+            dummyBaseContact.copyWith(
+                details: const ContactDetails(picture: [1, 2, 3])),
+            dummyBaseContact),
+        isEmpty);
+
+    expect(
+        contactUpdateSummary(
+            dummyBaseContact.copyWith(
+                details: const ContactDetails(names: {'0': 'a'})),
+            dummyBaseContact),
+        isEmpty);
+
+    expect(
+        contactUpdateSummary(
+            dummyBaseContact.copyWith(
+                details: const ContactDetails(phones: {'landline': '123'})),
+            dummyBaseContact),
+        isEmpty);
+
+    expect(
+        contactUpdateSummary(
+            dummyBaseContact.copyWith(
+                details: const ContactDetails(emails: {'work': 'hi@mail'})),
+            dummyBaseContact),
+        isEmpty);
+
+    expect(
+        contactUpdateSummary(
+            dummyBaseContact.copyWith(
+                details: const ContactDetails(websites: {'web': 'www.tld'})),
+            dummyBaseContact),
+        isEmpty);
+
+    expect(
+        contactUpdateSummary(
+            dummyBaseContact.copyWith(
+                details: const ContactDetails(
+                    socialMedias: {'mastodon': '@profile'})),
+            dummyBaseContact),
+        isEmpty);
+
+    expect(
+        contactUpdateSummary(
+            dummyBaseContact.copyWith(
+                details: ContactDetails(events: {'birthday': DateTime(2000)})),
+            dummyBaseContact),
+        isEmpty);
+
+    expect(
+        contactUpdateSummary(
+            dummyBaseContact.copyWith(
+                details: ContactDetails(
+                    organizations: {'job': Organization(company: 'corp')})),
+            dummyBaseContact),
+        isEmpty);
+  });
+
+  test('compare location removal does not qualify', () {
+    expect(
+        contactUpdateSummary(
+            dummyBaseContact.copyWith(addressLocations: {
+              '': const ContactAddressLocation(longitude: 0, latitude: 0)
+            }),
+            dummyBaseContact),
+        isEmpty,
+        reason: 'Removing address location should not register as update');
+
+    expect(
+        contactUpdateSummary(
+            dummyBaseContact.copyWith(temporaryLocations: {
+              '': ContactTemporaryLocation(
+                  longitude: 0,
+                  latitude: 0,
+                  name: '',
+                  start: DateTime(2000),
+                  end: DateTime(3000),
+                  details: '')
+            }),
+            dummyBaseContact),
+        isEmpty,
+        reason: 'Removing temporary location should not register as update');
+  });
+
+  test('compare adding name does qualify', () {
+    final result = contactUpdateSummary(
+        dummyBaseContact.copyWith(
+            details: const ContactDetails(names: const {})),
+        dummyBaseContact.copyWith(
+            details: const ContactDetails(names: {'0': 'a'})));
+    expect(result, 'names');
+  });
 }

@@ -60,61 +60,66 @@ Widget roundPictureOrPlaceholder(List<int>? picture,
 String commasToNewlines(String s) =>
     s.split(',').map((p) => p.trim()).join('\n');
 
-// TODO: Only detect added things, not removed things
+/// Detect added or updated values in new map
+/// If the key didn't exist before, or its value has changed, we've got an
+/// update. Removals count as no change, because when an abuse victim stops
+/// sharing details with their abuser, we do not want to alert them.
+bool addedOrUpdatedValue(
+        Map<String, dynamic> oldMap, Map<String, dynamic> newMap) =>
+    newMap.entries.firstWhereOrNull(
+        (e) => !oldMap.containsKey(e.key) || oldMap[e.key] != e.value) !=
+    null;
+
 String contactUpdateSummary(CoagContact oldContact, CoagContact newContact) {
   final results = <String>[];
 
   final oldDetails = oldContact.details ?? const ContactDetails();
   final newDetails = newContact.details ?? const ContactDetails();
 
-  const equality = MapEquality<String, String>();
-
-  if (!(oldDetails.picture ?? []).equals(newDetails.picture ?? [])) {
+  if ((newDetails.picture?.isNotEmpty ?? false) &&
+      !(oldDetails.picture ?? []).equals(newDetails.picture ?? [])) {
     results.add('picture');
   }
 
-  if (!equality.equals(oldDetails.names, newDetails.names)) {
+  if (addedOrUpdatedValue(oldDetails.names, newDetails.names)) {
     results.add('names');
   }
 
-  if (!equality.equals(oldDetails.emails, newDetails.emails)) {
+  if (addedOrUpdatedValue(oldDetails.emails, newDetails.emails)) {
     results.add('emails');
   }
 
-  if (!equality.equals(oldDetails.phones, newDetails.phones)) {
+  if (addedOrUpdatedValue(oldDetails.phones, newDetails.phones)) {
     results.add('phones');
   }
 
-  if (!equality.equals(oldDetails.websites, newDetails.websites)) {
+  if (addedOrUpdatedValue(oldDetails.websites, newDetails.websites)) {
     results.add('websites');
   }
 
-  if (!equality.equals(oldDetails.socialMedias, newDetails.socialMedias)) {
+  if (addedOrUpdatedValue(oldDetails.socialMedias, newDetails.socialMedias)) {
     results.add('socials');
   }
 
-  if (!const MapEquality<String, ContactAddressLocation>()
-      .equals(oldContact.addressLocations, newContact.addressLocations)) {
+  if (addedOrUpdatedValue(
+      oldContact.addressLocations, newContact.addressLocations)) {
     results.add('addresses');
   }
 
-  if (!const MapEquality<String, DateTime>()
-      .equals(oldDetails.events, newDetails.events)) {
+  if (addedOrUpdatedValue(oldDetails.events, newDetails.events)) {
     results.add('events');
   }
 
-  if (!const MapEquality<String, Organization>()
-      .equals(oldDetails.organizations, newDetails.organizations)) {
+  if (addedOrUpdatedValue(oldDetails.organizations, newDetails.organizations)) {
     results.add('organizations');
   }
 
   // TODO: Make this consistent with the yesterday filtering we do elsewhere?
-  if (!oldContact.temporaryLocations.values
-      .where((l) => l.end.isAfter(DateTime.now()))
-      .toList()
-      .equals(newContact.temporaryLocations.values
-          .where((l) => l.end.isAfter(DateTime.now()))
-          .toList())) {
+  final filteredOld = Map.fromEntries(oldContact.temporaryLocations.entries
+      .where((e) => e.value.end.isAfter(DateTime.now())));
+  final filteredNew = Map.fromEntries(newContact.temporaryLocations.entries
+      .where((e) => e.value.end.isAfter(DateTime.now())));
+  if (addedOrUpdatedValue(filteredOld, filteredNew)) {
     results.add('locations');
   }
 
